@@ -1,0 +1,1 @@
+class FailedToConnectException implements Exception {}
