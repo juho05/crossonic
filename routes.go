@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"net/http"
+	"strconv"
 )
 
 func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
@@ -38,6 +39,10 @@ func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) handlePing(w http.ResponseWriter, r *http.Request) {
+	if noAuth, _ := strconv.ParseBool(r.URL.Query().Get("noAuth")); noAuth {
+		respond(w, http.StatusOK, "crossonic-success")
+		return
+	}
 	username, password, ok := h.authUser(r)
 	if !ok {
 		clientError(w, http.StatusUnauthorized)
@@ -52,5 +57,5 @@ func (h *Handler) handlePing(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	respond(w, http.StatusOK, nil)
+	respond(w, http.StatusOK, "crossonic-success")
 }
