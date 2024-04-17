@@ -50,6 +50,14 @@ func generateToken(length int) string {
 	return string(ret)
 }
 
+func (h *Handler) authUser(r *http.Request) (username, password string, ok bool) {
+	parts := strings.Split(r.Header.Get("Authorization"), " ")
+	if len(parts) != 2 || parts[0] != "Bearer" {
+		return "", "", false
+	}
+	return h.AuthService.VerifyToken(parts[1])
+}
+
 func subsonicRequest[T any](ctx context.Context, username, password, uri string, values map[string]string, dataProperty string) (T, error) {
 	var obj T
 	r, err := createSubsonicRequest(ctx, username, password, uri, values)

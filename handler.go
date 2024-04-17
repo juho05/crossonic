@@ -23,6 +23,7 @@ func NewHandler() *Handler {
 func (h *Handler) registerRoutes() {
 	r := chi.NewRouter()
 	r.Post("/login", h.handleLogin)
+	r.Get("/ping", h.handlePing)
 	h.router = r
 }
 

@@ -24,7 +24,7 @@ func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	token, expires := h.AuthService.LoginUser(body.Username)
+	token, expires := h.AuthService.CreateAuthToken(body.Username, body.Password)
 	type response struct {
 		Token       string `json:"token"`
 		Expires     int64  `json:"expires"`
@@ -35,4 +35,22 @@ func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 		Expires:     expires.Unix(),
 		SubsonicURL: Config.SubsonicURL.String(),
 	})
+}
+
+func (h *Handler) handlePing(w http.ResponseWriter, r *http.Request) {
+	username, password, ok := h.authUser(r)
+	if !ok {
+		clientError(w, http.StatusUnauthorized)
+		return
+	}
+	_, err := subsonicRequest[struct{}](r.Context(), username, password, "/ping", nil, "")
+	if err != nil {
+		if errors.Is(err, ErrSubsonicInvalidCredentials) {
+			clientError(w, http.StatusUnauthorized)
+		} else {
+			serverError(w, err)
+		}
+		return
+	}
+	respond(w, http.StatusOK, nil)
 }
