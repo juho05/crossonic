@@ -1,4 +1,4 @@
-package com.example.crossonic
+package de.julianh.crossonic
 
 import io.flutter.embedding.android.FlutterActivity
 
