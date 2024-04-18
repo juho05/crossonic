@@ -1,10 +1,11 @@
+import 'package:crossonic/page_transition.dart';
 import 'package:flutter/material.dart';
 
 class PlaylistsPage extends StatelessWidget {
   const PlaylistsPage({super.key});
 
   static Route<void> route() {
-    return MaterialPageRoute(builder: (_) => const PlaylistsPage());
+    return PageTransition(const PlaylistsPage());
   }
 
   @override

@@ -1,10 +1,11 @@
+import 'package:crossonic/page_transition.dart';
 import 'package:flutter/material.dart';
 
 class SearchPage extends StatelessWidget {
   const SearchPage({super.key});
 
   static Route<void> route() {
-    return MaterialPageRoute(builder: (_) => const SearchPage());
+    return PageTransition(const SearchPage());
   }
 
   @override

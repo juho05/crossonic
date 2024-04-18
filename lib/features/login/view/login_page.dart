@@ -1,12 +1,13 @@
 import 'package:crossonic/features/login/login.dart';
+import 'package:crossonic/page_transition.dart';
 import 'package:crossonic/repositories/auth/auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
-  static Route<void> route() {
-    return MaterialPageRoute<void>(builder: (_) => const LoginPage());
+  static Route route() {
+    return PageTransition(const LoginPage());
   }
 
   @override

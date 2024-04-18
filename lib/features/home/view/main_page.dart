@@ -4,13 +4,14 @@ import 'package:crossonic/features/home/view/home_page.dart';
 import 'package:crossonic/features/playlists/playlists.dart';
 import 'package:crossonic/features/search/view/search_page.dart';
 import 'package:crossonic/features/settings/settings.dart';
+import 'package:crossonic/page_transition.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
-  static Route<void> route() {
-    return MaterialPageRoute<void>(builder: (_) => const MainPage());
+  static Route route() {
+    return PageTransition(const MainPage());
   }
 
   @override
@@ -63,42 +64,39 @@ class _MainPageState extends State<MainPage> {
                 )
               ],
             ),
-            body: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 200),
-              child: Stack(
-                children: [
-                  Offstage(
-                    offstage: state.tabIndex != 0,
-                    child: HeroControllerScope(
-                      controller: MaterialApp.createMaterialHeroController(),
-                      child: Navigator(
-                        key: _navigatorKeys[0],
-                        onGenerateRoute: (_) => HomePage.route(),
-                      ),
+            body: Stack(
+              children: [
+                Offstage(
+                  offstage: state.tabIndex != 0,
+                  child: HeroControllerScope(
+                    controller: MaterialApp.createMaterialHeroController(),
+                    child: Navigator(
+                      key: _navigatorKeys[0],
+                      onGenerateRoute: (_) => HomePage.route(),
                     ),
                   ),
-                  Offstage(
-                    offstage: state.tabIndex != 1,
-                    child: HeroControllerScope(
-                      controller: MaterialApp.createMaterialHeroController(),
-                      child: Navigator(
-                        key: _navigatorKeys[1],
-                        onGenerateRoute: (_) => SearchPage.route(),
-                      ),
+                ),
+                Offstage(
+                  offstage: state.tabIndex != 1,
+                  child: HeroControllerScope(
+                    controller: MaterialApp.createMaterialHeroController(),
+                    child: Navigator(
+                      key: _navigatorKeys[1],
+                      onGenerateRoute: (_) => SearchPage.route(),
                     ),
                   ),
-                  Offstage(
-                    offstage: state.tabIndex != 2,
-                    child: HeroControllerScope(
-                      controller: MaterialApp.createMaterialHeroController(),
-                      child: Navigator(
-                        key: _navigatorKeys[2],
-                        onGenerateRoute: (_) => PlaylistsPage.route(),
-                      ),
+                ),
+                Offstage(
+                  offstage: state.tabIndex != 2,
+                  child: HeroControllerScope(
+                    controller: MaterialApp.createMaterialHeroController(),
+                    child: Navigator(
+                      key: _navigatorKeys[2],
+                      onGenerateRoute: (_) => PlaylistsPage.route(),
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
             bottomNavigationBar: BottomNavigation(
               currentIndex: state.tabIndex,
