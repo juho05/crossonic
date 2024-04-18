@@ -1,33 +1,27 @@
-import 'package:crossonic/features/auth/state/auth_bloc.dart';
+import 'package:crossonic/features/home/state/nav_bloc.dart';
+import 'package:crossonic/features/playlists/playlists.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
+
   static Route<void> route() {
-    return MaterialPageRoute<void>(builder: (_) => const HomePage());
+    return MaterialPageRoute(builder: (_) => const HomePage());
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
+    return Material(
+      child: Center(
         child: Column(
-          mainAxisSize: MainAxisSize.min,
           children: [
-            Builder(
-              builder: (context) {
-                final username =
-                    context.select((AuthBloc bloc) => bloc.state.username);
-                return Text('Username: $username');
-              },
-            ),
+            const Text('Home'),
             ElevatedButton(
-              child: const Text('Logout'),
-              onPressed: () {
-                context.read<AuthBloc>().add(AuthLogoutRequested());
-              },
-            ),
+              onPressed: () =>
+                  context.read<NavBloc>().add(NavPushed(PlaylistsPage.route())),
+              child: const Text("push"),
+            )
           ],
         ),
       ),
