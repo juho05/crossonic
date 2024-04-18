@@ -52,7 +52,7 @@ class AuthRepository {
     }
     if (_authToken.isNotEmpty &&
         _authTokenExpires <
-            (DateTime.now().millisecondsSinceEpoch / 1000.0) + (24 * 60 * 60)) {
+            (DateTime.now().millisecondsSinceEpoch / 1000.0) + (3 * 60 * 60)) {
       try {
         await login(_username, _password);
       } on InvalidCredentialsException {
@@ -90,7 +90,12 @@ class AuthRepository {
     try {
       final auth = LoginResponse.fromJson(
           jsonDecode(response.body) as Map<String, dynamic>);
-      if (_authToken.isEmpty) _controller.add(AuthStatus.authenticated);
+      if (_authToken.isEmpty) {
+        _controller.add(AuthStatus.authenticated);
+      } else if (_subsonicURL != auth.subsonicURL) {
+        logout();
+        throw InvalidCredentialsException();
+      }
       _authToken = auth.authToken;
       _authTokenExpires = auth.expires;
       _subsonicURL = auth.subsonicURL;
