@@ -22,7 +22,7 @@ func NewAuthService() *AuthService {
 
 func (a *AuthService) CreateAuthToken(username, password string) (authToken string, expires time.Time) {
 	authToken = generateToken(32)
-	expires = time.Now().Add(7 * 24 * time.Hour)
+	expires = time.Now().Add(24 * time.Hour)
 	a.tokens.Range(func(key, value any) bool {
 		v := value.(token)
 		if v.expires.Before(time.Now()) {
