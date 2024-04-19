@@ -3,6 +3,7 @@ import 'package:crossonic/features/home/home.dart';
 import 'package:crossonic/features/login/login.dart';
 import 'package:crossonic/features/splash/splash.dart';
 import 'package:crossonic/repositories/auth/auth_repository.dart';
+import 'package:crossonic/routing/router.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -55,55 +56,30 @@ class _AppViewState extends State<AppView> {
   static final _defaultDarkColorScheme = ColorScheme.fromSwatch(
       primarySwatch: Colors.blue, brightness: Brightness.dark);
 
-  final _navigatorKey = GlobalKey<NavigatorState>();
-  NavigatorState get _navigator => _navigatorKey.currentState!;
-
   bool noRestore = false;
 
   @override
   Widget build(BuildContext context) {
     return DynamicColorBuilder(
       builder: (lightColorScheme, darkColorScheme) {
-        return MaterialApp(
-          restorationScopeId: "crossonic_app",
-          navigatorKey: _navigatorKey,
-          title: 'Crossonic',
-          debugShowCheckedModeBanner: false,
-          theme: ThemeData(
-            useMaterial3: true,
-            colorScheme: lightColorScheme ?? _defaultLightColorScheme,
-          ),
-          darkTheme: ThemeData(
-            useMaterial3: true,
-            colorScheme: darkColorScheme ?? _defaultDarkColorScheme,
-          ),
-          builder: (context, child) {
-            return BlocListener<AuthBloc, AuthState>(
-              listener: (context, state) {
-                if (noRestore || !state.restored) {
-                  switch (state.status) {
-                    case AuthStatus.authenticated:
-                      _navigator.restorablePushAndRemoveUntil(
-                        MainPage.route,
-                        (route) => false,
-                      );
-                    case AuthStatus.unauthenticated:
-                      _navigator.restorablePushAndRemoveUntil(
-                        LoginPage.route,
-                        (route) => false,
-                      );
-                    default:
-                      break;
-                  }
-                }
-              },
-              child: child,
-            );
+        return BlocListener<AuthBloc, AuthState>(
+          listener: (context, state) {
+            goRouter.refresh();
           },
-          onGenerateRoute: (_) {
-            noRestore = true;
-            return SplashPage.route();
-          },
+          child: MaterialApp.router(
+            title: 'Crossonic',
+            restorationScopeId: "crossonic_app",
+            routerConfig: goRouter,
+            debugShowCheckedModeBanner: false,
+            theme: ThemeData(
+              useMaterial3: true,
+              colorScheme: lightColorScheme ?? _defaultLightColorScheme,
+            ),
+            darkTheme: ThemeData(
+              useMaterial3: true,
+              colorScheme: darkColorScheme ?? _defaultDarkColorScheme,
+            ),
+          ),
         );
       },
     );

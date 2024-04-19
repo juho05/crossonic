@@ -1,17 +1,22 @@
-import 'package:crossonic/page_transition.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class PlaylistsPage extends StatelessWidget {
   const PlaylistsPage({super.key});
 
-  static Route route(BuildContext context, Object? arguments) {
-    return PageTransition(const PlaylistsPage());
-  }
-
   @override
   Widget build(BuildContext context) {
-    return const Material(
-      child: Center(
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Crossonic | Playlists'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: () => context.push("/settings"),
+          )
+        ],
+      ),
+      body: const Center(
         child: Text('Playlists'),
       ),
     );

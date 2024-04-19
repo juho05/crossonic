@@ -7,13 +7,7 @@ import 'package:crossonic/repositories/auth/user_model.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
-enum AuthStatus {
-  unknown,
-  authenticated,
-  unauthenticated,
-  authenticatedRestored,
-  unauthenticatedRestored
-}
+enum AuthStatus { unknown, authenticated, unauthenticated }
 
 class AuthRepository {
   final _controller = StreamController<AuthStatus>();
@@ -23,11 +17,6 @@ class AuthRepository {
   AuthRepository(this._httpClient);
 
   Future<bool> _restoreState() async {
-    final authenticated = await _storage.read(key: "crossonic_authenticated");
-    if (authenticated == null) throw Exception("no auth state stored");
-    if (!bool.parse(authenticated)) {
-      return false;
-    }
     final baseURL = await _storage.read(key: "crossonic_auth_base_url");
     final subsonicURL = await _storage.read(key: "crossonic_auth_subsonic_url");
     final username = await _storage.read(key: "crossonic_auth_username");
@@ -41,7 +30,7 @@ class AuthRepository {
         password == null ||
         authToken == null ||
         authTokenExpiresStr == null) {
-      throw Exception("missing data in auth state");
+      return false;
     }
     int authTokenExpires = int.parse(authTokenExpiresStr);
     _baseURL = baseURL;
@@ -54,10 +43,6 @@ class AuthRepository {
   }
 
   Future<void> _storeState() async {
-    final authenticated =
-        _baseURL.isNotEmpty && _subsonicURL.isNotEmpty && _authToken.isNotEmpty;
-    await _storage.write(
-        key: "crossonic_authenticated", value: authenticated.toString());
     await _storage.write(key: "crossonic_auth_base_url", value: _baseURL);
     await _storage.write(
         key: "crossonic_auth_subsonic_url", value: _subsonicURL);
@@ -80,11 +65,10 @@ class AuthRepository {
 
   Stream<AuthStatus> get status async* {
     yield AuthStatus.unknown;
-    await Future<void>.delayed(const Duration(milliseconds: 500));
     try {
       final authenticated = await _restoreState();
       if (!authenticated) {
-        yield AuthStatus.unauthenticatedRestored;
+        yield AuthStatus.unauthenticated;
       } else {
         try {
           await connect(_baseURL);
@@ -94,9 +78,9 @@ class AuthRepository {
               !(await _testAuthToken())) {
             await login(_username, _password);
           }
-          yield AuthStatus.authenticatedRestored;
+          yield AuthStatus.authenticated;
         } on ServerUnreachableException {
-          yield AuthStatus.authenticatedRestored;
+          yield AuthStatus.authenticated;
         }
       }
     } catch (_) {

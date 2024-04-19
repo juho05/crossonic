@@ -1,27 +1,27 @@
-import 'package:crossonic/features/home/state/nav_bloc.dart';
-import 'package:crossonic/features/playlists/playlists.dart';
-import 'package:crossonic/page_transition.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
-  static Route route(BuildContext context, Object? arguments) {
-    print("home page route called");
-    return PageTransition(const HomePage());
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Material(
-      child: Center(
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Crossonic | Home'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: () => context.push("/settings"),
+          )
+        ],
+      ),
+      body: Center(
         child: Column(
           children: [
             const Text('Home'),
             ElevatedButton(
-              onPressed: () =>
-                  context.read<NavBloc>().add(NavPushed(PlaylistsPage.route)),
+              onPressed: () => context.push("/home/playlists"),
               child: const Text("push"),
             )
           ],

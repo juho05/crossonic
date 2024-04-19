@@ -27,15 +27,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     switch (event.status) {
       case AuthStatus.unauthenticated:
-        return emit(const AuthState.unauthenticated(false));
-      case AuthStatus.unauthenticatedRestored:
-        return emit(const AuthState.unauthenticated(true));
+        return emit(const AuthState.unauthenticated());
       case AuthStatus.authenticated:
-        return emit(AuthState.authenticated(
-            (await _authRepository.auth).username, false));
-      case AuthStatus.authenticatedRestored:
-        return emit(AuthState.authenticated(
-            (await _authRepository.auth).username, true));
+        return emit(
+            AuthState.authenticated((await _authRepository.auth).username));
       case AuthStatus.unknown:
         return emit(const AuthState.unknown());
     }

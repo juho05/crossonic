@@ -1,13 +1,9 @@
 import 'package:crossonic/features/auth/auth.dart';
-import 'package:crossonic/page_transition.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
-  static Route route(BuildContext context, Object? arguments) {
-    return PageTransition(const SettingsPage());
-  }
 
   @override
   Widget build(BuildContext context) {

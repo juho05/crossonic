@@ -1,17 +1,24 @@
-import 'package:crossonic/page_transition.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class SearchPage extends StatelessWidget {
   const SearchPage({super.key});
 
-  static Route route(BuildContext context, Object? arguments) {
-    return PageTransition(const SearchPage());
-  }
-
   @override
   Widget build(BuildContext context) {
-    return const Center(
-      child: Text('Search'),
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Crossonic | Search'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: () => context.push("/settings"),
+          )
+        ],
+      ),
+      body: const Center(
+        child: Text('Search'),
+      ),
     );
   }
 }
