@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+/*
 class _FadePageTransition extends StatelessWidget {
   _FadePageTransition({
     required Animation<double> routeAnimation,
@@ -20,6 +21,7 @@ class _FadePageTransition extends StatelessWidget {
     );
   }
 }
+*/
 
 class PageTransition extends PageRouteBuilder {
   PageTransition(Widget page)
@@ -29,6 +31,8 @@ class PageTransition extends PageRouteBuilder {
   @override
   Widget buildTransitions(BuildContext context, Animation<double> animation,
       Animation<double> secondaryAnimation, Widget child) {
-    return _FadePageTransition(routeAnimation: animation, child: child);
+    //return _FadePageTransition(routeAnimation: animation, child: child);
+    return const CupertinoPageTransitionsBuilder()
+        .buildTransitions(this, context, animation, secondaryAnimation, child);
   }
 }

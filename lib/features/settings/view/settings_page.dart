@@ -5,7 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
-  static Route<void> route() {
+  static Route route(BuildContext context, Object? arguments) {
     return PageTransition(const SettingsPage());
   }
 

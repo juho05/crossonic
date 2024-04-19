@@ -14,18 +14,27 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     required AuthRepository authRepository,
   })  : _authRepository = authRepository,
         super(const LoginState()) {
-    on<LoginServerURLChanged>(_onServerURLChanged);
-    on<LoginUsernameChanged>(_onUsernameChanged);
-    on<LoginPasswordChanged>(_onPasswordChanged);
+    on<LoginInputChanged>(_onLoginInputChanged);
     on<LoginErrorReset>(_onErrorReset);
     on<LoginSubmitted>(_onSubmitted);
   }
 
+  void _onLoginInputChanged(LoginInputChanged event, Emitter<LoginState> emit) {
+    switch (event.name) {
+      case "server_url":
+        _onServerURLChanged(event.value, emit);
+      case "username":
+        _onUsernameChanged(event.value, emit);
+      case "password":
+        _onPasswordChanged(event.value, emit);
+    }
+  }
+
   void _onServerURLChanged(
-    LoginServerURLChanged event,
+    String newValue,
     Emitter<LoginState> emit,
   ) {
-    final serverURL = ServerURL.dirty(event.serverURL);
+    final serverURL = ServerURL.dirty(newValue);
     emit(
       state.copyWith(
         status: FormzSubmissionStatus.initial,
@@ -36,10 +45,10 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
   }
 
   void _onUsernameChanged(
-    LoginUsernameChanged event,
+    String newValue,
     Emitter<LoginState> emit,
   ) {
-    final username = Username.dirty(event.username);
+    final username = Username.dirty(newValue);
     emit(
       state.copyWith(
         status: FormzSubmissionStatus.initial,
@@ -50,10 +59,10 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
   }
 
   void _onPasswordChanged(
-    LoginPasswordChanged event,
+    String newValue,
     Emitter<LoginState> emit,
   ) {
-    final password = Password.dirty(event.password);
+    final password = Password.dirty(newValue);
     emit(
       state.copyWith(
         status: FormzSubmissionStatus.initial,
@@ -93,7 +102,6 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
             status: FormzSubmissionStatus.failure,
             error: LoginError.credentials));
       } catch (e) {
-        print(e);
         emit(state.copyWith(
             status: FormzSubmissionStatus.failure,
             error: LoginError.unexpected));

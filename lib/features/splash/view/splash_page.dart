@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 
 class SplashPage extends StatelessWidget {
   const SplashPage({super.key});
-  static Route<void> route() {
+
+  static Route route() {
     return PageTransition(const SplashPage());
   }
 

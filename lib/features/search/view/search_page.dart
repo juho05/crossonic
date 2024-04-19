@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 class SearchPage extends StatelessWidget {
   const SearchPage({super.key});
 
-  static Route<void> route() {
+  static Route route(BuildContext context, Object? arguments) {
     return PageTransition(const SearchPage());
   }
 

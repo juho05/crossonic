@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 class PlaylistsPage extends StatelessWidget {
   const PlaylistsPage({super.key});
 
-  static Route<void> route() {
+  static Route route(BuildContext context, Object? arguments) {
     return PageTransition(const PlaylistsPage());
   }
 

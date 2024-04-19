@@ -10,7 +10,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
-  static Route route() {
+  static Route route(BuildContext context, Object? arguments) {
     return PageTransition(const MainPage());
   }
 
@@ -18,12 +18,14 @@ class MainPage extends StatefulWidget {
   State<MainPage> createState() => _MainPageState();
 }
 
-class _MainPageState extends State<MainPage> {
+class _MainPageState extends State<MainPage> with RestorationMixin {
   final List<GlobalKey<NavigatorState>> _navigatorKeys = [
     GlobalKey(debugLabel: "navigator (Home)"),
     GlobalKey(debugLabel: "navigator (Search)"),
     GlobalKey(debugLabel: "navigator (Playlists)"),
   ];
+
+  final _currentTab = RestorableInt(0);
 
   @override
   Widget build(BuildContext context) {
@@ -40,6 +42,9 @@ class _MainPageState extends State<MainPage> {
             tabName = "Playlists";
           default:
             tabName = "";
+        }
+        if (_currentTab.value != state.tabIndex) {
+          context.read<NavBloc>().add(NavTabChanged(_currentTab.value));
         }
         return PopScope(
           canPop: !state.canPop,
@@ -59,7 +64,7 @@ class _MainPageState extends State<MainPage> {
                 IconButton(
                   icon: const Icon(Icons.settings),
                   onPressed: () {
-                    Navigator.push(context, SettingsPage.route());
+                    Navigator.restorablePush(context, SettingsPage.route);
                   },
                 )
               ],
@@ -68,32 +73,23 @@ class _MainPageState extends State<MainPage> {
               children: [
                 Offstage(
                   offstage: state.tabIndex != 0,
-                  child: HeroControllerScope(
-                    controller: MaterialApp.createMaterialHeroController(),
-                    child: Navigator(
-                      key: _navigatorKeys[0],
-                      onGenerateRoute: (_) => HomePage.route(),
-                    ),
+                  child: Navigator(
+                    key: _navigatorKeys[0],
+                    onGenerateRoute: (_) => HomePage.route(context, null),
                   ),
                 ),
                 Offstage(
                   offstage: state.tabIndex != 1,
-                  child: HeroControllerScope(
-                    controller: MaterialApp.createMaterialHeroController(),
-                    child: Navigator(
-                      key: _navigatorKeys[1],
-                      onGenerateRoute: (_) => SearchPage.route(),
-                    ),
+                  child: Navigator(
+                    key: _navigatorKeys[1],
+                    onGenerateRoute: (_) => SearchPage.route(context, null),
                   ),
                 ),
                 Offstage(
                   offstage: state.tabIndex != 2,
-                  child: HeroControllerScope(
-                    controller: MaterialApp.createMaterialHeroController(),
-                    child: Navigator(
-                      key: _navigatorKeys[2],
-                      onGenerateRoute: (_) => PlaylistsPage.route(),
-                    ),
+                  child: Navigator(
+                    key: _navigatorKeys[2],
+                    onGenerateRoute: (_) => PlaylistsPage.route(context, null),
                   ),
                 ),
               ],
@@ -101,6 +97,7 @@ class _MainPageState extends State<MainPage> {
             bottomNavigationBar: BottomNavigation(
               currentIndex: state.tabIndex,
               onIndexChanged: (newIndex) {
+                _currentTab.value = newIndex;
                 context.read<NavBloc>().add(NavTabChanged(newIndex));
               },
             ),
@@ -108,5 +105,13 @@ class _MainPageState extends State<MainPage> {
         );
       }),
     );
+  }
+
+  @override
+  String? get restorationId => "main_page";
+
+  @override
+  void restoreState(RestorationBucket? oldBucket, bool initialRestore) {
+    registerForRestoration(_currentTab, "main_page_current_tab");
   }
 }

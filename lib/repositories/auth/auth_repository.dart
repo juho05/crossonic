@@ -4,21 +4,105 @@ import 'dart:convert';
 import 'package:crossonic/exceptions.dart';
 import 'package:crossonic/repositories/auth/auth_models.dart';
 import 'package:crossonic/repositories/auth/user_model.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
-enum AuthStatus { unknown, authenticated, unauthenticated }
+enum AuthStatus {
+  unknown,
+  authenticated,
+  unauthenticated,
+  authenticatedRestored,
+  unauthenticatedRestored
+}
 
 class AuthRepository {
   final _controller = StreamController<AuthStatus>();
-  final http.Client httpClient;
+  final http.Client _httpClient;
+  final _storage = const FlutterSecureStorage();
 
-  AuthRepository(this.httpClient);
+  AuthRepository(this._httpClient);
+
+  Future<bool> _restoreState() async {
+    final authenticated = await _storage.read(key: "crossonic_authenticated");
+    if (authenticated == null) throw Exception("no auth state stored");
+    if (!bool.parse(authenticated)) {
+      return false;
+    }
+    final baseURL = await _storage.read(key: "crossonic_auth_base_url");
+    final subsonicURL = await _storage.read(key: "crossonic_auth_subsonic_url");
+    final username = await _storage.read(key: "crossonic_auth_username");
+    final password = await _storage.read(key: "crossonic_auth_password");
+    final authToken = await _storage.read(key: "crossonic_auth_token");
+    final authTokenExpiresStr =
+        await _storage.read(key: "crossonic_auth_token_expires");
+    if (baseURL == null ||
+        subsonicURL == null ||
+        username == null ||
+        password == null ||
+        authToken == null ||
+        authTokenExpiresStr == null) {
+      throw Exception("missing data in auth state");
+    }
+    int authTokenExpires = int.parse(authTokenExpiresStr);
+    _baseURL = baseURL;
+    _subsonicURL = subsonicURL;
+    _username = username;
+    _password = password;
+    _authToken = authToken;
+    _authTokenExpires = authTokenExpires;
+    return true;
+  }
+
+  Future<void> _storeState() async {
+    final authenticated =
+        _baseURL.isNotEmpty && _subsonicURL.isNotEmpty && _authToken.isNotEmpty;
+    await _storage.write(
+        key: "crossonic_authenticated", value: authenticated.toString());
+    await _storage.write(key: "crossonic_auth_base_url", value: _baseURL);
+    await _storage.write(
+        key: "crossonic_auth_subsonic_url", value: _subsonicURL);
+    await _storage.write(key: "crossonic_auth_username", value: _username);
+    await _storage.write(key: "crossonic_auth_password", value: _password);
+    await _storage.write(key: "crossonic_auth_token", value: _authToken);
+    await _storage.write(
+        key: "crossonic_auth_token_expires",
+        value: _authTokenExpires.toString());
+  }
+
+  Future<bool> _testAuthToken() async {
+    try {
+      final response = await http.get(Uri.parse('$_baseURL/ping'));
+      return response.statusCode == 200;
+    } catch (_) {
+      return false;
+    }
+  }
 
   Stream<AuthStatus> get status async* {
     yield AuthStatus.unknown;
-    // TODO: load auth state from disk
     await Future<void>.delayed(const Duration(milliseconds: 500));
-    yield AuthStatus.unauthenticated;
+    try {
+      final authenticated = await _restoreState();
+      if (!authenticated) {
+        yield AuthStatus.unauthenticatedRestored;
+      } else {
+        try {
+          await connect(_baseURL);
+          if (_authTokenExpires <
+                  (DateTime.now().millisecondsSinceEpoch / 1000.0) +
+                      (3 * 60 * 60) ||
+              !(await _testAuthToken())) {
+            await login(_username, _password);
+          }
+          yield AuthStatus.authenticatedRestored;
+        } on ServerUnreachableException {
+          yield AuthStatus.authenticatedRestored;
+        }
+      }
+    } catch (_) {
+      yield AuthStatus.unauthenticated;
+    }
+    await _storeState();
     yield* _controller.stream;
   }
 
@@ -73,7 +157,7 @@ class AuthRepository {
       throw const InvalidStateException(
           "AuthRepository.connect must be successfully called before AuthRepository.login");
     }
-    final response = await httpClient.post(Uri.parse('$_baseURL/login'),
+    final response = await _httpClient.post(Uri.parse('$_baseURL/login'),
         body: jsonEncode({
           'username': username,
           'password': password,
@@ -88,19 +172,22 @@ class AuthRepository {
     }
 
     try {
+      final tokenExists = _authToken.isNotEmpty;
+      final oldSubsonicURL = _subsonicURL;
       final auth = LoginResponse.fromJson(
           jsonDecode(response.body) as Map<String, dynamic>);
-      if (_authToken.isEmpty) {
-        _controller.add(AuthStatus.authenticated);
-      } else if (_subsonicURL != auth.subsonicURL) {
-        logout();
-        throw InvalidCredentialsException();
-      }
       _authToken = auth.authToken;
       _authTokenExpires = auth.expires;
       _subsonicURL = auth.subsonicURL;
       _username = username;
       _password = password;
+      if (!tokenExists) {
+        _controller.add(AuthStatus.authenticated);
+        await _storeState();
+      } else if (oldSubsonicURL != auth.subsonicURL) {
+        logout();
+        throw InvalidCredentialsException();
+      }
     } catch (e) {
       throw UnexpectedServerResponseException();
     }
@@ -115,6 +202,7 @@ class AuthRepository {
     _authToken = "";
     _authTokenExpires = 0;
     _subsonicURL = "";
+    _storeState();
   }
 
   void dispose() => _controller.close();

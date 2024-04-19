@@ -58,11 +58,14 @@ class _AppViewState extends State<AppView> {
   final _navigatorKey = GlobalKey<NavigatorState>();
   NavigatorState get _navigator => _navigatorKey.currentState!;
 
+  bool noRestore = false;
+
   @override
   Widget build(BuildContext context) {
     return DynamicColorBuilder(
       builder: (lightColorScheme, darkColorScheme) {
         return MaterialApp(
+          restorationScopeId: "crossonic_app",
           navigatorKey: _navigatorKey,
           title: 'Crossonic',
           debugShowCheckedModeBanner: false,
@@ -77,25 +80,30 @@ class _AppViewState extends State<AppView> {
           builder: (context, child) {
             return BlocListener<AuthBloc, AuthState>(
               listener: (context, state) {
-                switch (state.status) {
-                  case AuthStatus.authenticated:
-                    _navigator.pushAndRemoveUntil<void>(
-                      MainPage.route(),
-                      (route) => false,
-                    );
-                  case AuthStatus.unauthenticated:
-                    _navigator.pushAndRemoveUntil<void>(
-                      LoginPage.route(),
-                      (route) => false,
-                    );
-                  case AuthStatus.unknown:
-                    break;
+                if (noRestore || !state.restored) {
+                  switch (state.status) {
+                    case AuthStatus.authenticated:
+                      _navigator.restorablePushAndRemoveUntil(
+                        MainPage.route,
+                        (route) => false,
+                      );
+                    case AuthStatus.unauthenticated:
+                      _navigator.restorablePushAndRemoveUntil(
+                        LoginPage.route,
+                        (route) => false,
+                      );
+                    default:
+                      break;
+                  }
                 }
               },
               child: child,
             );
           },
-          onGenerateRoute: (_) => SplashPage.route(),
+          onGenerateRoute: (_) {
+            noRestore = true;
+            return SplashPage.route();
+          },
         );
       },
     );

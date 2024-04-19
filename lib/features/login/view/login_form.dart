@@ -28,96 +28,127 @@ class LoginForm extends StatelessWidget {
           context.read<LoginBloc>().add(const LoginErrorReset());
         }
       },
-      child: Align(
-        alignment: const Alignment(0, -1 / 3),
-        child: SizedBox(
-          width: 430,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('Login', style: Theme.of(context).textTheme.displayMedium),
-              const SizedBox(height: 60),
-              _ServerURLInput(),
-              const SizedBox(height: 20),
-              _UsernameInput(),
-              const SizedBox(height: 20),
-              _PasswordInput(),
-              const SizedBox(height: 40),
-              _LoginButton(),
-            ],
+      child: Builder(builder: (context) {
+        final bloc = context.read<LoginBloc>();
+        return Align(
+          alignment: const Alignment(0, -1 / 3),
+          child: SizedBox(
+            width: 430,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('Login', style: Theme.of(context).textTheme.displayMedium),
+                const SizedBox(height: 60),
+                _LoginInput(
+                  bloc: bloc,
+                  inputName: "server_url",
+                  labelText: "Server URL",
+                  errorText: "invalid server URL",
+                ),
+                const SizedBox(height: 20),
+                _LoginInput(
+                  bloc: bloc,
+                  inputName: "username",
+                  labelText: "Username",
+                  errorText: "required",
+                ),
+                const SizedBox(height: 20),
+                _LoginInput(
+                  bloc: bloc,
+                  inputName: "password",
+                  labelText: "Password",
+                  errorText: "required1",
+                  obscureText: true,
+                ),
+                const SizedBox(height: 40),
+                _LoginButton(),
+              ],
+            ),
           ),
-        ),
-      ),
+        );
+      }),
     );
   }
 }
 
-class _ServerURLInput extends StatelessWidget {
+class _LoginInput extends StatefulWidget {
+  final LoginBloc bloc;
+  final String inputName;
+  final String labelText;
+  final String errorText;
+  final bool obscureText;
+  const _LoginInput({
+    required this.inputName,
+    required this.bloc,
+    required this.labelText,
+    required this.errorText,
+    this.obscureText = false,
+  });
+  @override
+  State<_LoginInput> createState() => _LoginInputState();
+}
+
+class _LoginInputState extends State<_LoginInput> with RestorationMixin {
+  final _controller = RestorableTextEditingController();
+
+  String _lastValue = "";
+
+  void _updateValue() {
+    if (_controller.value.text != _lastValue) {
+      widget.bloc
+          .add(LoginInputChanged(widget.inputName, _controller.value.text));
+      _lastValue = _controller.value.text;
+    }
+  }
+
+  _LoginInputState() {
+    _controller.addListener(_updateValue);
+  }
+
   @override
   Widget build(BuildContext context) {
+    _updateValue();
     return BlocBuilder<LoginBloc, LoginState>(
-      buildWhen: (previous, current) => previous.serverURL != current.serverURL,
+      buildWhen: (previous, current) {
+        switch (widget.inputName) {
+          case "server_url":
+            return previous.serverURL != current.serverURL;
+          case "username":
+            return previous.username != current.username;
+          case "password":
+            return previous.password != current.password;
+        }
+        return true;
+      },
       builder: (context, state) {
         return TextField(
-          onChanged: (serverURL) =>
-              context.read<LoginBloc>().add(LoginServerURLChanged(serverURL)),
+          controller: _controller.value,
           autofillHints: const [AutofillHints.url],
+          obscureText: widget.obscureText,
           decoration: InputDecoration(
-            labelText: 'Server URL',
+            labelText: widget.labelText,
             border: const OutlineInputBorder(),
             icon: const Icon(Icons.link),
-            errorText: state.serverURL.displayError != null
-                ? 'invalid server URL'
-                : null,
+            errorText:
+                state.serverURL.displayError != null ? widget.errorText : null,
           ),
         );
       },
     );
   }
-}
 
-class _UsernameInput extends StatelessWidget {
   @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<LoginBloc, LoginState>(
-      buildWhen: (previous, current) => previous.username != current.username,
-      builder: (context, state) {
-        return TextField(
-          onChanged: (username) =>
-              context.read<LoginBloc>().add(LoginUsernameChanged(username)),
-          autofillHints: const [AutofillHints.username],
-          decoration: InputDecoration(
-            labelText: 'Username',
-            border: const OutlineInputBorder(),
-            icon: const Icon(Icons.person),
-            errorText: state.username.displayError != null ? 'required' : null,
-          ),
-        );
-      },
-    );
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
-}
 
-class _PasswordInput extends StatelessWidget {
   @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<LoginBloc, LoginState>(
-      buildWhen: (previous, current) => previous.password != current.password,
-      builder: (context, state) {
-        return TextField(
-          onChanged: (password) =>
-              context.read<LoginBloc>().add(LoginPasswordChanged(password)),
-          autofillHints: const [AutofillHints.password],
-          obscureText: true,
-          decoration: InputDecoration(
-            labelText: 'Password',
-            border: const OutlineInputBorder(),
-            icon: const Icon(Icons.password),
-            errorText: state.password.displayError != null ? 'required' : null,
-          ),
-        );
-      },
-    );
+  String? get restorationId => "login_${widget.inputName}";
+
+  @override
+  void restoreState(RestorationBucket? oldBucket, bool initialRestore) {
+    registerForRestoration(_controller, "login_${widget.inputName}_controller");
   }
 }
 

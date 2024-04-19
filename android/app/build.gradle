@@ -42,7 +42,7 @@ android {
 
     defaultConfig {
         applicationId "de.julianh.crossonic"
-        minSdkVersion flutter.minSdkVersion
+        minSdkVersion 32 // flutter.minSdkVersion
         targetSdkVersion flutter.targetSdkVersion
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName

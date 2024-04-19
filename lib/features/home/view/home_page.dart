@@ -7,7 +7,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
-  static Route<void> route() {
+  static Route route(BuildContext context, Object? arguments) {
+    print("home page route called");
     return PageTransition(const HomePage());
   }
 
@@ -20,7 +21,7 @@ class HomePage extends StatelessWidget {
             const Text('Home'),
             ElevatedButton(
               onPressed: () =>
-                  context.read<NavBloc>().add(NavPushed(PlaylistsPage.route())),
+                  context.read<NavBloc>().add(NavPushed(PlaylistsPage.route)),
               child: const Text("push"),
             )
           ],

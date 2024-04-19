@@ -6,13 +6,15 @@ sealed class NavEvent extends Equatable {
   List<Object> get props => [];
 }
 
+typedef RouteBuilder = Route Function(BuildContext context, Object? arguments);
+
 final class NavPushed extends NavEvent {
-  final Route route;
+  final RouteBuilder route;
   const NavPushed(this.route);
 }
 
 final class NavReplaced extends NavEvent {
-  final Route route;
+  final RouteBuilder route;
   const NavReplaced(this.route);
 }
 
@@ -21,7 +23,7 @@ final class NavPopped extends NavEvent {
 }
 
 final class NavReset extends NavEvent {
-  final Route route;
+  final RouteBuilder route;
   const NavReset(this.route);
 }
 

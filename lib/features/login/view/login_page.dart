@@ -6,7 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
-  static Route route() {
+  static Route route(BuildContext context, Object? arguments) {
     return PageTransition(const LoginPage());
   }
 

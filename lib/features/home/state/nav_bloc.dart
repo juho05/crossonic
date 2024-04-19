@@ -28,17 +28,19 @@ class NavBloc extends Bloc<NavEvent, NavState> {
       ));
     });
     on<NavPushed>((event, emit) {
-      _navigatorKeys[_tabIndex].currentState?.push(event.route);
+      _navigatorKeys[_tabIndex].currentState?.restorablePush(event.route);
       _updateCanPop(emit);
     });
     on<NavReplaced>((event, emit) {
-      _navigatorKeys[_tabIndex].currentState?.pushReplacement(event.route);
+      _navigatorKeys[_tabIndex]
+          .currentState
+          ?.restorablePushReplacement(event.route);
       _updateCanPop(emit);
     });
     on<NavReset>((event, emit) {
       _navigatorKeys[_tabIndex]
           .currentState
-          ?.pushAndRemoveUntil(event.route, (route) => false);
+          ?.restorablePushAndRemoveUntil(event.route, (route) => false);
       _updateCanPop(emit);
     });
     on<NavPopped>((event, emit) {
