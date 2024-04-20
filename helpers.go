@@ -81,7 +81,7 @@ func createSubsonicRequest(ctx context.Context, username, password, uri string, 
 	values["u"] = username
 	values["c"] = "crossonic-server"
 	values["f"] = "json"
-	values["v"] = ""
+	values["v"] = "1.15.0"
 
 	salt := generateToken(10)
 	hash := md5.Sum([]byte(password + salt))
