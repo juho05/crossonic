@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:audio_service/audio_service.dart';
 import 'package:crossonic/repositories/subsonic/subsonic.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:rxdart/src/subjects/behavior_subject.dart';
 
 class CrossonicAudioHandler extends BaseAudioHandler
     with QueueHandler, SeekHandler {
@@ -42,16 +43,30 @@ class CrossonicAudioHandler extends BaseAudioHandler
   Future<void> playFromMediaId(String mediaId,
       [Map<String, dynamic>? extras]) async {
     final url = await _subsonicRepository.getStreamURL(songID: mediaId);
-    await playFromUri(url);
+    await playFromUri(url, {"id": mediaId});
   }
 
   @override
   Future<void> playFromUri(Uri uri, [Map<String, dynamic>? extras]) async {
-    await _player.setUrl(uri.toString());
+    Duration? duration = await _player.setUrl(uri.toString());
+    mediaItem.add(MediaItem(
+      id: extras?["id"] ?? "",
+      title: "Demo Song",
+      album: "Demo Album 1234",
+      artist: "Demo Artist 1234",
+      duration: duration,
+    ));
     if (Platform.isWindows) {
       await Future.delayed(const Duration(milliseconds: 200));
     }
     return play();
+  }
+
+  Future<void> togglePlayPause() async {
+    if (_player.playing) {
+      return _player.pause();
+    }
+    return _player.play();
   }
 
   @override

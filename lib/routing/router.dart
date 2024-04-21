@@ -7,7 +7,7 @@ import 'package:crossonic/features/search/view/search_page.dart';
 import 'package:crossonic/features/settings/settings.dart';
 import 'package:crossonic/features/splash/splash.dart';
 import 'package:crossonic/repositories/auth/auth.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 

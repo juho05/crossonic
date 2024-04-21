@@ -11,7 +11,7 @@ class HomeCubit extends Cubit<HomeState> {
   Future<void> fetchRandomSongs() async {
     emit(state.copyWith(randomSongsStatus: RandomSongsStatus.loading));
     try {
-      final songs = await _subsonicRepository.getRandomSongs(10);
+      final songs = await _subsonicRepository.getRandomSongs(50);
       emit(state.copyWith(
         randomSongsStatus: RandomSongsStatus.success,
         randomSongs: songs,

@@ -3,6 +3,7 @@ import 'package:audio_session/audio_session.dart';
 import 'package:crossonic/app.dart';
 import 'package:crossonic/features/auth/auth.dart';
 import 'package:crossonic/features/home/view/state/home_cubit.dart';
+import 'package:crossonic/features/home/view/state/now_playing_cubit.dart';
 import 'package:crossonic/repositories/auth/auth.dart';
 import 'package:crossonic/repositories/subsonic/subsonic.dart';
 import 'package:crossonic/services/audio_player/audio_handler.dart';
@@ -18,7 +19,6 @@ Future<void> main() async {
       config: const AudioServiceConfig(
         androidNotificationChannelId: "de.julianh.crossonic",
         androidNotificationChannelName: "Music playback",
-        androidStopForegroundOnPause: false,
       ));
   final audioSession = await AudioSession.instance;
   audioSession.configure(const AudioSessionConfiguration.music());
@@ -34,6 +34,7 @@ Future<void> main() async {
         BlocProvider(
           create: (_) => HomeCubit(subsonicRepository)..fetchRandomSongs(),
         ),
+        BlocProvider(create: (_) => NowPlayingCubit(audioHandler)),
       ],
       child: const App(),
     ),

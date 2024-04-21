@@ -1,9 +1,12 @@
 import 'package:crossonic/features/home/view/bottom_navigation.dart';
+import 'package:crossonic/features/home/view/now_playing.dart';
+import 'package:crossonic/features/home/view/state/now_playing_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:sliding_up_panel/sliding_up_panel.dart';
 
-class MainPage extends StatelessWidget {
+class MainPage extends StatefulWidget {
   final StatefulNavigationShell _navigationShell;
 
   const MainPage({
@@ -13,14 +16,42 @@ class MainPage extends StatelessWidget {
         super(key: key ?? const ValueKey("main_page_key"));
 
   @override
+  State<MainPage> createState() => _MainPageState();
+}
+
+class _MainPageState extends State<MainPage> {
+  final _slidingUpPanelController = PanelController();
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _navigationShell,
+      body: SafeArea(
+        child: LayoutBuilder(builder: (context, constraints) {
+          final hasMedia = context
+              .select<NowPlayingCubit, bool>((value) => value.state.hasMedia);
+          return SlidingUpPanel(
+            minHeight: hasMedia ? 50 : 0,
+            maxHeight: hasMedia ? constraints.maxHeight : 0,
+            borderRadius: BorderRadius.zero,
+            controller: _slidingUpPanelController,
+            collapsed:
+                NowPlayingCollapsed(panelController: _slidingUpPanelController),
+            panelBuilder: (_) => NowPlaying(
+              panelController: _slidingUpPanelController,
+            ),
+            body: widget._navigationShell,
+          );
+        }),
+      ),
       bottomNavigationBar: BottomNavigation(
-        currentIndex: _navigationShell.currentIndex,
+        currentIndex: widget._navigationShell.currentIndex,
         onIndexChanged: (newIndex) {
-          _navigationShell.goBranch(newIndex,
-              initialLocation: newIndex == _navigationShell.currentIndex);
+          if (_slidingUpPanelController.isAttached) {
+            _slidingUpPanelController.close();
+          }
+          widget._navigationShell.goBranch(newIndex,
+              initialLocation:
+                  newIndex == widget._navigationShell.currentIndex);
         },
       ),
     );
