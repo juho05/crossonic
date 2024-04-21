@@ -24,7 +24,7 @@ func respond(w http.ResponseWriter, status int, body any) {
 		serverError(w, fmt.Errorf("respond: %w", err))
 		return
 	}
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(status)
 	w.Write(data)
 }
