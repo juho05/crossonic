@@ -13,6 +13,16 @@ class InvalidStateException implements Exception {
 
 class UnexpectedServerResponseException implements Exception {}
 
+class SubsonicException implements Exception {
+  final int code;
+  final String? message;
+  const SubsonicException(this.code, [this.message]);
+  @override
+  String toString() {
+    return "SubsonicException ($code): $message";
+  }
+}
+
 class ServerException implements Exception {
   final int statusCode;
   const ServerException(this.statusCode);

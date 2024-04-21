@@ -1,4 +1,6 @@
+import 'package:crossonic/features/home/view/state/home_cubit.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 class HomePage extends StatelessWidget {
@@ -16,16 +18,30 @@ class HomePage extends StatelessWidget {
           )
         ],
       ),
-      body: Center(
-        child: Column(
-          children: [
-            const Text('Home'),
-            ElevatedButton(
-              onPressed: () => context.push("/home/playlists"),
-              child: const Text("push"),
-            )
-          ],
-        ),
+      body: BlocBuilder<HomeCubit, HomeState>(
+        builder: (context, state) {
+          return RefreshIndicator.adaptive(
+            child: switch (state.randomSongsStatus) {
+              RandomSongsStatus.initial ||
+              RandomSongsStatus.loading =>
+                const Center(child: CircularProgressIndicator.adaptive()),
+              RandomSongsStatus.failure =>
+                const Center(child: Icon(Icons.wifi_off)),
+              RandomSongsStatus.success => ListView.builder(
+                  itemCount: state.randomSongs.length,
+                  itemBuilder: (context, i) {
+                    return ListTile(
+                      title: Text(
+                          '${state.randomSongs[i].title} by ${state.randomSongs[i].artist}'),
+                    );
+                  },
+                )
+            },
+            onRefresh: () async {
+              await context.read<HomeCubit>().fetchRandomSongs();
+            },
+          );
+        },
       ),
     );
   }

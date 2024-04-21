@@ -11,10 +11,7 @@ enum AuthStatus { unknown, authenticated, unauthenticated }
 
 class AuthRepository {
   final _controller = StreamController<AuthStatus>();
-  final http.Client _httpClient;
   final _storage = const FlutterSecureStorage();
-
-  AuthRepository(this._httpClient);
 
   Future<bool> _restoreState() async {
     final baseURL = await _storage.read(key: "crossonic_auth_base_url");
@@ -141,7 +138,7 @@ class AuthRepository {
       throw const InvalidStateException(
           "AuthRepository.connect must be successfully called before AuthRepository.login");
     }
-    final response = await _httpClient.post(Uri.parse('$_baseURL/login'),
+    final response = await http.post(Uri.parse('$_baseURL/login'),
         body: jsonEncode({
           'username': username,
           'password': password,

@@ -158,7 +158,7 @@ class _LoginButton extends StatelessWidget {
     return BlocBuilder<LoginBloc, LoginState>(
       builder: (context, state) {
         return state.status.isInProgress
-            ? const CircularProgressIndicator()
+            ? const CircularProgressIndicator.adaptive()
             : ElevatedButton(
                 style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(

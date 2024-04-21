@@ -1,12 +1,10 @@
 import 'package:crossonic/features/auth/state/auth_bloc.dart';
-import 'package:crossonic/features/home/home.dart';
-import 'package:crossonic/features/login/login.dart';
-import 'package:crossonic/features/splash/splash.dart';
+import 'package:crossonic/features/home/view/state/home_cubit.dart';
 import 'package:crossonic/repositories/auth/auth_repository.dart';
+import 'package:crossonic/repositories/subsonic/subsonic.dart';
 import 'package:crossonic/routing/router.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class App extends StatefulWidget {
@@ -18,11 +16,13 @@ class App extends StatefulWidget {
 
 class _AppState extends State<App> {
   late final AuthRepository _authRepository;
+  late final SubsonicRepository _subsonicRepository;
 
   @override
   void initState() {
     super.initState();
-    _authRepository = AuthRepository(http.Client());
+    _authRepository = AuthRepository();
+    _subsonicRepository = SubsonicRepository(_authRepository);
   }
 
   @override
@@ -33,10 +33,19 @@ class _AppState extends State<App> {
 
   @override
   Widget build(BuildContext context) {
-    return RepositoryProvider.value(
-      value: _authRepository,
-      child: BlocProvider(
-        create: (_) => AuthBloc(authRepository: _authRepository),
+    return MultiRepositoryProvider(
+      providers: [
+        RepositoryProvider.value(value: _authRepository),
+        RepositoryProvider.value(value: _subsonicRepository),
+      ],
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider(
+              create: (_) => AuthBloc(authRepository: _authRepository)),
+          BlocProvider(
+            create: (_) => HomeCubit(_subsonicRepository)..fetchRandomSongs(),
+          ),
+        ],
         child: const AppView(),
       ),
     );
