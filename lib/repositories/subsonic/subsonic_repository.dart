@@ -11,6 +11,17 @@ class SubsonicRepository {
   final AuthRepository _authRepo;
   SubsonicRepository(this._authRepo);
 
+  Future<Uri> getStreamURL({required String songID}) async {
+    final auth = await _authRepo.auth;
+    final queryParams = _generateQuery({
+      'id': songID,
+      'format': 'raw',
+      'estimateContentLength': 'true',
+    }, auth.username, auth.password);
+    return Uri.parse(
+        '${auth.subsonicURL}/rest/stream${Uri(queryParameters: queryParams)}');
+  }
+
   Future<List<Child>> getRandomSongs(int size) async {
     final response = await _jsonRequest(
         "getRandomSongs",
@@ -59,13 +70,7 @@ class SubsonicRepository {
   Future<http.Response> _request(
       String endpointName, Map<String, String> queryParams) async {
     final auth = await _authRepo.auth;
-    queryParams['u'] = auth.username;
-    queryParams['c'] = "Crossonic";
-    queryParams['f'] = 'json';
-    queryParams['v'] = '1.15.0';
-    final (token, salt) = _generateAuth(auth.password);
-    queryParams['t'] = token;
-    queryParams['s'] = salt;
+    queryParams = _generateQuery(queryParams, auth.username, auth.password);
     try {
       final response = await http.post(
           Uri.parse('${auth.subsonicURL}/rest/$endpointName'),
@@ -81,6 +86,20 @@ class SubsonicRepository {
     } catch (_) {
       throw ServerUnreachableException();
     }
+  }
+
+  Map<String, String> _generateQuery(
+      Map<String, String> query, String username, String password) {
+    final (token, salt) = _generateAuth(password);
+    return {
+      ...query,
+      'u': username,
+      'c': 'Crossonic',
+      'f': 'json',
+      'v': '1.15.0',
+      't': token,
+      's': salt,
+    };
   }
 
   (String, String) _generateAuth(String password) {

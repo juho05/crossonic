@@ -1,4 +1,6 @@
+import 'package:audio_service/audio_service.dart';
 import 'package:crossonic/features/home/view/state/home_cubit.dart';
+import 'package:crossonic/services/audio_player/audio_handler.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -33,6 +35,11 @@ class HomePage extends StatelessWidget {
                     return ListTile(
                       title: Text(
                           '${state.randomSongs[i].title} by ${state.randomSongs[i].artist}'),
+                      onTap: () {
+                        context
+                            .read<CrossonicAudioHandler>()
+                            .playFromMediaId(state.randomSongs[i].id);
+                      },
                     );
                   },
                 )
