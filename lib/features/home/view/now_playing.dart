@@ -79,17 +79,25 @@ class NowPlayingCollapsed extends StatelessWidget {
                     children: [
                       if (state.duration.inMilliseconds > 0)
                         CircularProgressIndicator.adaptive(
-                            value: state.position.inMilliseconds.toDouble() /
+                            value: state.playbackState.position.inMilliseconds
+                                    .toDouble() /
                                 state.duration.inMilliseconds.toDouble()),
-                      IconButton(
-                        icon: Icon(
-                            state.playing ? Icons.pause : Icons.play_arrow),
-                        onPressed: () {
-                          context
-                              .read<CrossonicAudioHandler>()
-                              .togglePlayPause();
-                        },
-                      ),
+                      if (state.playbackState.status ==
+                          CrossonicPlaybackStatus.loading)
+                        const CircularProgressIndicator.adaptive(),
+                      if (state.playbackState.status !=
+                              CrossonicPlaybackStatus.idle &&
+                          state.playbackState.status !=
+                              CrossonicPlaybackStatus.loading)
+                        IconButton(
+                          icon: Icon(state.playbackState.status ==
+                                  CrossonicPlaybackStatus.playing
+                              ? Icons.pause
+                              : Icons.play_arrow),
+                          onPressed: () {
+                            context.read<CrossonicAudioHandler>().playPause();
+                          },
+                        ),
                     ],
                   ),
                   IconButton(

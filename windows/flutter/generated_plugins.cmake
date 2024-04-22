@@ -3,12 +3,13 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
+  audioplayers_windows
   dynamic_color
   flutter_secure_storage_windows
-  just_audio_windows
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST
+  smtc_windows
 )
 
 set(PLUGIN_BUNDLED_LIBRARIES)

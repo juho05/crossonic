@@ -9,8 +9,7 @@ class NowPlayingState extends Equatable {
   final String coverArtURL;
   bool get hasMedia => songID != "";
 
-  final bool playing;
-  final Duration position;
+  final CrossonicPlaybackState playbackState;
 
   const NowPlayingState({
     this.songID = "",
@@ -19,8 +18,7 @@ class NowPlayingState extends Equatable {
     this.album = "",
     this.duration = Duration.zero,
     this.coverArtURL = "",
-    required this.playing,
-    this.position = Duration.zero,
+    required this.playbackState,
   });
 
   NowPlayingState copyWith({
@@ -30,8 +28,7 @@ class NowPlayingState extends Equatable {
     String? album,
     Duration? duration,
     String? coverArtURL,
-    bool? playing,
-    Duration? position,
+    CrossonicPlaybackState? playbackState,
   }) {
     return NowPlayingState(
       songID: songID ?? this.songID,
@@ -40,8 +37,7 @@ class NowPlayingState extends Equatable {
       album: album ?? this.album,
       duration: duration ?? this.duration,
       coverArtURL: coverArtURL ?? this.coverArtURL,
-      playing: playing ?? this.playing,
-      position: position ?? this.position,
+      playbackState: playbackState ?? this.playbackState,
     );
   }
 
@@ -53,7 +49,6 @@ class NowPlayingState extends Equatable {
         album,
         duration,
         coverArtURL,
-        playing,
-        position
+        playbackState,
       ];
 }
