@@ -27,7 +27,7 @@ class CrossonicAudioHandlerJustAudio extends BaseAudioHandler
     _crossonicPlaybackState.add(
         const CrossonicPlaybackState(status: CrossonicPlaybackStatus.idle));
 
-    _player.playerStateStream.listen((event) {
+    _player.playerStateStream.listen((event) async {
       if (event.playing) {
         _positionTimer ??=
             Timer.periodic(const Duration(milliseconds: 500), (timer) {
@@ -51,6 +51,8 @@ class CrossonicAudioHandlerJustAudio extends BaseAudioHandler
         },
         position: _player.position,
       ));
+
+      if (event.processingState == ProcessingState.completed) await stop();
 
       playbackState.add(playbackState.value.copyWith(
         playing: event.playing,
@@ -94,16 +96,7 @@ class CrossonicAudioHandlerJustAudio extends BaseAudioHandler
 
     _queue.current.listen((value) async {
       if (value == null) {
-        if (_queue.length > 0) {
-          await _player.pause();
-          _queue.goto(0);
-        } else {
-          await _player.stop();
-          _playlist?.clear();
-          _playlist = null;
-          _lastIndex = 0;
-          _updateMediaItem(null);
-        }
+        await stop();
         return;
       }
       _updateMediaItem(value.item);
@@ -162,7 +155,11 @@ class CrossonicAudioHandlerJustAudio extends BaseAudioHandler
 
   @override
   Future<void> stop() async {
+    _playlist?.clear();
+    _playlist = null;
+    _lastIndex = 0;
     _queue.clear();
+    _updateMediaItem(null);
     return _player.stop();
   }
 

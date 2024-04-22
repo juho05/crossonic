@@ -49,7 +49,7 @@ class CrossonicAudioHandlerWindows implements CrossonicAudioHandler {
       });
     });
 
-    _player.onPlayerStateChanged.listen((event) {
+    _player.onPlayerStateChanged.listen((event) async {
       _playbackState.add(_playbackState.value.copyWith(
           status: switch (event) {
         PlayerState.completed => CrossonicPlaybackStatus.completed,
@@ -69,7 +69,13 @@ class CrossonicAudioHandlerWindows implements CrossonicAudioHandler {
       }
     });
 
-    _player.onPlayerComplete.listen((_) => skipToNext());
+    _player.onPlayerComplete.listen((_) async {
+      if (mediaQueue.canAdvance) {
+        await skipToNext();
+      } else {
+        await stop();
+      }
+    });
 
     _player.onPositionChanged.listen((event) {
       _playbackState.add(
