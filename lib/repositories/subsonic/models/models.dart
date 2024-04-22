@@ -1,4 +1,4 @@
-export 'child_model.dart';
+export 'media_model.dart';
 export 'item_genre_model.dart';
 export 'replay_gain_model.dart';
 export 'artistid3_model.dart';

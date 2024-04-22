@@ -1,10 +1,10 @@
 import 'package:crossonic/repositories/subsonic/models/models.dart';
 import 'package:json_annotation/json_annotation.dart';
 
-part 'child_model.g.dart';
+part 'media_model.g.dart';
 
 @JsonSerializable()
-class Child {
+class Media {
   final String id;
   final String? parent;
   final bool isDir;
@@ -55,7 +55,7 @@ class Child {
   final List<String>? moods;
   final ReplayGain? replayGain;
 
-  Child({
+  Media({
     required this.id,
     required this.parent,
     required this.isDir,
@@ -107,5 +107,5 @@ class Child {
     required this.replayGain,
   });
 
-  factory Child.fromJson(Map<String, dynamic> json) => _$ChildFromJson(json);
+  factory Media.fromJson(Map<String, dynamic> json) => _$MediaFromJson(json);
 }

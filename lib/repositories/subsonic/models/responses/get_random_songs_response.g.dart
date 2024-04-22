@@ -17,7 +17,7 @@ GetRandomSongs _$GetRandomSongsFromJson(Map<String, dynamic> json) =>
           song: $checkedConvert(
               'song',
               (v) => (v as List<dynamic>)
-                  .map((e) => Child.fromJson(e as Map<String, dynamic>))
+                  .map((e) => Media.fromJson(e as Map<String, dynamic>))
                   .toList()),
         );
         return val;

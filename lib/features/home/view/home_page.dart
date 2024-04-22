@@ -36,9 +36,11 @@ class HomePage extends StatelessWidget {
                       title: Text(
                           '${state.randomSongs[i].title} by ${state.randomSongs[i].artist}'),
                       onTap: () {
-                        context
-                            .read<CrossonicAudioHandler>()
-                            .playFromMediaId(state.randomSongs[i].id);
+                        final audioHandler =
+                            context.read<CrossonicAudioHandler>();
+                        audioHandler.mediaQueue
+                            .replaceQueue(state.randomSongs.sublist(i));
+                        audioHandler.play();
                       },
                     );
                   },

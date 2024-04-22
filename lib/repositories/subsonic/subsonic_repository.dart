@@ -22,7 +22,17 @@ class SubsonicRepository {
         '${auth.subsonicURL}/rest/stream${Uri(queryParameters: queryParams)}');
   }
 
-  Future<List<Child>> getRandomSongs(int size) async {
+  Future<Uri> getCoverArtURL({required String coverArtID}) async {
+    final auth = await _authRepo.auth;
+    final queryParams = _generateQuery({
+      'id': coverArtID,
+      'size': '500',
+    }, auth.username, auth.password);
+    return Uri.parse(
+        '${auth.subsonicURL}/rest/getCoverArt${Uri(queryParameters: queryParams)}');
+  }
+
+  Future<List<Media>> getRandomSongs(int size) async {
     final response = await _jsonRequest(
         "getRandomSongs",
         {

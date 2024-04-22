@@ -2,17 +2,17 @@
 
 // ignore_for_file: implicit_dynamic_parameter
 
-part of 'child_model.dart';
+part of 'media_model.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
 // **************************************************************************
 
-Child _$ChildFromJson(Map<String, dynamic> json) => $checkedCreate(
-      'Child',
+Media _$MediaFromJson(Map<String, dynamic> json) => $checkedCreate(
+      'Media',
       json,
       ($checkedConvert) {
-        final val = Child(
+        final val = Media(
           id: $checkedConvert('id', (v) => v as String),
           parent: $checkedConvert('parent', (v) => v as String?),
           isDir: $checkedConvert('isDir', (v) => v as bool),

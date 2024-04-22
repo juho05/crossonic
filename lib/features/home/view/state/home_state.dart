@@ -8,11 +8,11 @@ class HomeState extends Equatable {
       this.randomSongs = const []});
 
   final RandomSongsStatus randomSongsStatus;
-  final List<Child> randomSongs;
+  final List<Media> randomSongs;
 
   HomeState copyWith({
     RandomSongsStatus? randomSongsStatus,
-    List<Child>? randomSongs,
+    List<Media>? randomSongs,
   }) {
     return HomeState(
       randomSongsStatus: randomSongsStatus ?? this.randomSongsStatus,

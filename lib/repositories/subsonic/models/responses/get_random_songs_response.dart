@@ -6,7 +6,7 @@ part 'get_random_songs_response.g.dart';
 
 @JsonSerializable()
 class GetRandomSongs {
-  final List<Child> song;
+  final List<Media> song;
 
   GetRandomSongs({
     required this.song,
