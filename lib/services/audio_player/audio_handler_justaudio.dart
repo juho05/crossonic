@@ -96,7 +96,10 @@ class CrossonicAudioHandlerJustAudio extends BaseAudioHandler
 
     _queue.current.listen((value) async {
       if (value == null) {
-        await stop();
+        if (_crossonicPlaybackState.value.status !=
+            CrossonicPlaybackStatus.idle) {
+          await stop();
+        }
         return;
       }
       _updateMediaItem(value.item);
