@@ -1,4 +1,3 @@
-import 'package:audio_service/audio_service.dart';
 import 'package:crossonic/features/home/view/state/home_cubit.dart';
 import 'package:crossonic/services/audio_player/audio_handler.dart';
 import 'package:flutter/material.dart';

@@ -22,12 +22,13 @@ class SubsonicRepository {
         '${auth.subsonicURL}/rest/stream${Uri(queryParameters: queryParams)}');
   }
 
-  Future<Uri> getCoverArtURL({required String coverArtID}) async {
+  Future<Uri> getCoverArtURL({required String coverArtID, int? size}) async {
     final auth = await _authRepo.auth;
     final queryParams = _generateQuery({
       'id': coverArtID,
-      'size': '500',
-    }, auth.username, auth.password);
+      if (size != null) 'size': '$size',
+    }, auth.username, auth.password,
+        auth.username.substring(0, min(auth.username.length, 4)) + coverArtID);
     return Uri.parse(
         '${auth.subsonicURL}/rest/getCoverArt${Uri(queryParameters: queryParams)}');
   }
@@ -99,8 +100,9 @@ class SubsonicRepository {
   }
 
   Map<String, String> _generateQuery(
-      Map<String, String> query, String username, String password) {
-    final (token, salt) = _generateAuth(password);
+      Map<String, String> query, String username, String password,
+      [String? salt]) {
+    final (token, usedSalt) = _generateAuth(password, salt);
     return {
       ...query,
       'u': username,
@@ -108,18 +110,20 @@ class SubsonicRepository {
       'f': 'json',
       'v': '1.15.0',
       't': token,
-      's': salt,
+      's': usedSalt,
     };
   }
 
-  (String, String) _generateAuth(String password) {
+  (String, String) _generateAuth(String password, [String? salt]) {
     const letters =
         "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-    final buffer = StringBuffer();
-    for (var i = 0; i < 10; i++) {
-      buffer.write(letters[Random.secure().nextInt(letters.length)]);
+    if (salt == null) {
+      final buffer = StringBuffer();
+      for (var i = 0; i < 10; i++) {
+        buffer.write(letters[Random.secure().nextInt(letters.length)]);
+      }
+      salt = buffer.toString();
     }
-    final salt = buffer.toString();
     final hash = md5.convert(utf8.encode(password + salt)).toString();
     return (hash, salt);
   }

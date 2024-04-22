@@ -6,6 +6,7 @@ class NowPlayingState extends Equatable {
   final String artist;
   final String album;
   final Duration duration;
+  final String coverArtURL;
   bool get hasMedia => songID != "";
 
   final bool playing;
@@ -17,6 +18,7 @@ class NowPlayingState extends Equatable {
     this.artist = "",
     this.album = "",
     this.duration = Duration.zero,
+    this.coverArtURL = "",
     required this.playing,
     this.position = Duration.zero,
   });
@@ -27,6 +29,7 @@ class NowPlayingState extends Equatable {
     String? artist,
     String? album,
     Duration? duration,
+    String? coverArtURL,
     bool? playing,
     Duration? position,
   }) {
@@ -36,12 +39,21 @@ class NowPlayingState extends Equatable {
       artist: artist ?? this.artist,
       album: album ?? this.album,
       duration: duration ?? this.duration,
+      coverArtURL: coverArtURL ?? this.coverArtURL,
       playing: playing ?? this.playing,
       position: position ?? this.position,
     );
   }
 
   @override
-  List<Object> get props =>
-      [songID, songName, artist, album, duration, playing, position];
+  List<Object> get props => [
+        songID,
+        songName,
+        artist,
+        album,
+        duration,
+        coverArtURL,
+        playing,
+        position
+      ];
 }

@@ -105,8 +105,15 @@ class CrossonicAudioHandler extends BaseAudioHandler
                 await _subsonicRepository.getStreamURL(songID: value.next!.id)),
         ],
       );
-      _player.setAudioSource(_playlist!);
-      if (playing) _player.play();
+      await _player.setAudioSource(_playlist!);
+      if (playing) {
+        play();
+      } else {
+        playbackState.add(playbackState.value.copyWith(
+          updatePosition: _player.position,
+          bufferedPosition: _player.bufferedPosition,
+        ));
+      }
     });
   }
 
@@ -128,12 +135,20 @@ class CrossonicAudioHandler extends BaseAudioHandler
 
   @override
   Future<void> play() async {
-    return _player.play();
+    await _player.play();
+    playbackState.add(playbackState.value.copyWith(
+      updatePosition: _player.position,
+      bufferedPosition: _player.bufferedPosition,
+    ));
   }
 
   @override
   Future<void> pause() async {
-    return _player.pause();
+    await _player.pause();
+    playbackState.add(playbackState.value.copyWith(
+      updatePosition: _player.position,
+      bufferedPosition: _player.bufferedPosition,
+    ));
   }
 
   @override
@@ -175,13 +190,14 @@ class CrossonicAudioHandler extends BaseAudioHandler
     if (media == null) {
       mediaItem.add(null);
     } else {
+      print(media.title);
       mediaItem.add(MediaItem(
         id: media.id,
         title: media.title,
         album: media.album,
         artUri: media.coverArt != null
             ? await _subsonicRepository.getCoverArtURL(
-                coverArtID: media.coverArt!)
+                coverArtID: media.coverArt!, size: 500)
             : null,
         artist: media.artist,
         duration:

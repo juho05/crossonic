@@ -17,10 +17,19 @@ class NowPlayingCubit extends Cubit<NowPlayingState> {
         super(const NowPlayingState(playing: true)) {
     _mediaItemSubscription = _audioHandler.mediaItem.listen((value) {
       emit(state.copyWith(
-        songID: value?.id ?? "",
-        artist: value?.artist ?? "",
-        songName: value?.displayTitle ?? (value?.title ?? ""),
-      ));
+          songID: value?.id ?? "",
+          artist: value?.artist ?? "",
+          songName: value?.displayTitle ?? (value?.title ?? ""),
+          album: value?.album ?? "",
+          duration: value?.duration ?? Duration.zero,
+          coverArtURL: value?.artUri != null
+              ? value!.artUri!
+                  .replace(
+                      queryParameters: Map<String, String>.from(
+                          value.artUri!.queryParameters)
+                        ..remove('size'))
+                  .toString()
+              : ""));
     });
     _playbackStateSubscription = _audioHandler.playbackState.listen((value) {
       _setPositionTimerActive(value.playing);

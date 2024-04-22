@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:crossonic/features/home/view/state/now_playing_cubit.dart';
 import 'package:crossonic/services/audio_player/audio_handler.dart';
 import 'package:flutter/material.dart';
@@ -25,30 +26,76 @@ class NowPlayingCollapsed extends StatelessWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  const SizedBox(
+                  SizedBox(
                     height: 35,
                     width: 35,
-                    child: ColoredBox(color: Colors.red),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(5),
+                      child: CachedNetworkImage(
+                          width: 35,
+                          height: 35,
+                          imageUrl: "${state.coverArtURL}&size=64",
+                          useOldImageOnUrlChange: false,
+                          placeholder: (context, url) =>
+                              const CircularProgressIndicator.adaptive(),
+                          fadeInDuration: const Duration(milliseconds: 300),
+                          fadeOutDuration: const Duration(milliseconds: 100),
+                          errorWidget: (context, url, error) {
+                            return const Icon(Icons.album);
+                          }),
+                    ),
                   ),
                   const SizedBox(width: 7.5),
                   Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(state.songName, style: textStyle.bodyMedium),
                       Text(
-                        state.artist,
-                        style: textStyle.bodySmall,
+                        state.songName,
+                        style: textStyle.bodyMedium!.copyWith(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onPrimaryContainer),
                       ),
+                      Text(state.artist,
+                          style: textStyle.bodySmall!.copyWith(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onPrimaryContainer)),
                     ],
                   ),
                   const Expanded(
                     child: SizedBox(),
                   ),
                   IconButton(
-                    icon: Icon(state.playing ? Icons.pause : Icons.play_arrow),
+                    icon: const Icon(Icons.skip_previous),
                     onPressed: () {
-                      context.read<CrossonicAudioHandler>().togglePlayPause();
+                      context.read<CrossonicAudioHandler>().skipToPrevious();
+                    },
+                  ),
+                  Stack(
+                    alignment: Alignment.center,
+                    fit: StackFit.passthrough,
+                    children: [
+                      if (state.duration.inMilliseconds > 0)
+                        CircularProgressIndicator.adaptive(
+                            value: state.position.inMilliseconds.toDouble() /
+                                state.duration.inMilliseconds.toDouble()),
+                      IconButton(
+                        icon: Icon(
+                            state.playing ? Icons.pause : Icons.play_arrow),
+                        onPressed: () {
+                          context
+                              .read<CrossonicAudioHandler>()
+                              .togglePlayPause();
+                        },
+                      ),
+                    ],
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.skip_next),
+                    onPressed: () {
+                      context.read<CrossonicAudioHandler>().skipToNext();
                     },
                   ),
                 ],
