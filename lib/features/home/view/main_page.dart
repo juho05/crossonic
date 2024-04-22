@@ -1,6 +1,7 @@
 import 'package:crossonic/features/home/view/bottom_navigation.dart';
 import 'package:crossonic/features/home/view/now_playing.dart';
 import 'package:crossonic/features/home/view/state/now_playing_cubit.dart';
+import 'package:crossonic/services/audio_player/audio_handler.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -46,7 +47,19 @@ class _MainPageState extends State<MainPage> {
             ),
             body: Padding(
               padding: EdgeInsets.only(bottom: hasMedia ? 110 : 60),
-              child: widget._navigationShell,
+              child: BlocListener<NowPlayingCubit, NowPlayingState>(
+                listenWhen: (previous, current) =>
+                    previous.playbackState.status !=
+                    current.playbackState.status,
+                listener: (context, state) {
+                  if (state.playbackState.status ==
+                          CrossonicPlaybackStatus.idle &&
+                      _slidingUpPanelController.isPanelOpen) {
+                    _slidingUpPanelController.close();
+                  }
+                },
+                child: widget._navigationShell,
+              ),
             ),
             onPanelSlide: (position) {
               setState(() {

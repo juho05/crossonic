@@ -7,7 +7,6 @@ enum CrossonicPlaybackStatus {
   loading,
   playing,
   paused,
-  completed,
 }
 
 class CrossonicPlaybackState extends Equatable {
@@ -36,6 +35,7 @@ abstract interface class CrossonicAudioHandler {
   MediaQueue get mediaQueue;
   BehaviorSubject<CrossonicPlaybackState> get crossonicPlaybackStatus;
 
+  void playOnNextMediaChange();
   Future<void> playPause();
   Future<void> play();
   Future<void> pause();

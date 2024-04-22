@@ -34,12 +34,12 @@ class HomePage extends StatelessWidget {
                     return ListTile(
                       title: Text(
                           '${state.randomSongs[i].title} by ${state.randomSongs[i].artist}'),
-                      onTap: () {
+                      onTap: () async {
                         final audioHandler =
                             context.read<CrossonicAudioHandler>();
+                        audioHandler.playOnNextMediaChange();
                         audioHandler.mediaQueue
-                            .replaceQueue(state.randomSongs.sublist(i));
-                        audioHandler.play();
+                            .replaceQueue(state.randomSongs, i);
                       },
                     );
                   },

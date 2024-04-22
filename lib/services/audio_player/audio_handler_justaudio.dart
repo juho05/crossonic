@@ -196,7 +196,6 @@ class CrossonicAudioHandlerJustAudio extends BaseAudioHandler
     if (media == null) {
       mediaItem.add(null);
     } else {
-      print(media.title);
       mediaItem.add(MediaItem(
         id: media.id,
         title: media.title,
@@ -240,5 +239,10 @@ class CrossonicAudioHandlerJustAudio extends BaseAudioHandler
   @override
   Future<Uri> getCoverArtURL(String id, [int? size]) async {
     return await _subsonicRepository.getCoverArtURL(coverArtID: id, size: size);
+  }
+
+  @override
+  void playOnNextMediaChange() {
+    throw UnimplementedError();
   }
 }
