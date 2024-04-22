@@ -1,3 +1,6 @@
+import 'dart:math';
+
+import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:crossonic/features/home/view/state/now_playing_cubit.dart';
 import 'package:crossonic/services/audio_player/audio_handler.dart';
@@ -31,9 +34,9 @@ class NowPlayingCollapsed extends StatelessWidget {
                     width: 35,
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(5),
+                      clipBehavior: Clip.antiAlias,
                       child: CachedNetworkImage(
-                          width: 35,
-                          height: 35,
+                          fit: BoxFit.cover,
                           imageUrl: "${state.coverArtURL}&size=64",
                           useOldImageOnUrlChange: false,
                           placeholder: (context, url) =>
@@ -124,6 +127,161 @@ class NowPlaying extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Placeholder();
+    return Scaffold(
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.expand_more),
+          onPressed: () {
+            _panelController.close();
+          },
+        ),
+        titleSpacing: 0,
+        title: const Text('Now playing'),
+      ),
+      body: BlocBuilder<NowPlayingCubit, NowPlayingState>(
+        buildWhen: (previous, current) => previous.songID != current.songID,
+        builder: (context, state) {
+          return LayoutBuilder(
+            builder: (context, constraints) {
+              return Center(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                      height: min(constraints.maxHeight * 0.50,
+                          constraints.maxWidth - 20),
+                      width: min(constraints.maxHeight * 0.50,
+                          constraints.maxWidth - 20),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        clipBehavior: Clip.antiAlias,
+                        child: CachedNetworkImage(
+                            fit: BoxFit.cover,
+                            imageUrl: "${state.coverArtURL}&size=1000",
+                            useOldImageOnUrlChange: false,
+                            placeholder: (context, url) => Icon(
+                                  Icons.album,
+                                  opticalSize: constraints.maxHeight != 0
+                                      ? min(constraints.maxHeight * 0.45,
+                                          constraints.maxWidth - 35)
+                                      : 100,
+                                  size: constraints.maxHeight != 0
+                                      ? min(constraints.maxHeight * 0.45,
+                                          constraints.maxWidth - 35)
+                                      : 100,
+                                ),
+                            fadeInDuration: const Duration(milliseconds: 300),
+                            fadeOutDuration: const Duration(milliseconds: 100),
+                            errorWidget: (context, url, error) {
+                              return Icon(
+                                Icons.album,
+                                opticalSize: constraints.maxHeight != 0
+                                    ? min(constraints.maxHeight * 0.45,
+                                        constraints.maxWidth - 35)
+                                    : 100,
+                                size: constraints.maxHeight != 0
+                                    ? min(constraints.maxHeight * 0.45,
+                                        constraints.maxWidth - 35)
+                                    : 100,
+                              );
+                            }),
+                      ),
+                    ),
+                    BlocBuilder<NowPlayingCubit, NowPlayingState>(
+                      buildWhen: (previous, current) =>
+                          previous.duration != current.duration ||
+                          previous.playbackState.position !=
+                              current.playbackState.position,
+                      builder: (context, state) {
+                        return Padding(
+                          padding: const EdgeInsets.only(top: 10),
+                          child: SizedBox(
+                            width: min(constraints.maxHeight * 0.50,
+                                constraints.maxWidth - 25),
+                            child: ProgressBar(
+                              progress: state.playbackState.position,
+                              total: state.duration,
+                              onDragUpdate: (details) {
+                                _panelController.panelPosition = 1;
+                              },
+                              onSeek: (value) {
+                                context
+                                    .read<CrossonicAudioHandler>()
+                                    .seek(value);
+                              },
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 7),
+                    Text(
+                      state.songName,
+                      style: Theme.of(context).textTheme.bodyLarge!.copyWith(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 18,
+                          ),
+                    ),
+                    Text(
+                      state.album,
+                      style: Theme.of(context).textTheme.bodyLarge!.copyWith(
+                            fontWeight: FontWeight.w500,
+                            fontSize: 15,
+                          ),
+                    ),
+                    Text(
+                      state.artist,
+                      style: Theme.of(context).textTheme.bodyLarge!.copyWith(
+                            fontWeight: FontWeight.w400,
+                            fontSize: 12,
+                          ),
+                    ),
+                    const SizedBox(height: 20),
+                    BlocBuilder<NowPlayingCubit, NowPlayingState>(
+                      buildWhen: (previous, current) =>
+                          previous.playbackState != current.playbackState,
+                      builder: (context, state) {
+                        return Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.skip_previous, size: 35),
+                              onPressed: () {
+                                context
+                                    .read<CrossonicAudioHandler>()
+                                    .skipToPrevious();
+                              },
+                            ),
+                            IconButton(
+                              icon: state.playbackState.status ==
+                                      CrossonicPlaybackStatus.playing
+                                  ? const Icon(Icons.pause_circle, size: 60)
+                                  : const Icon(Icons.play_circle, size: 60),
+                              onPressed: () {
+                                context
+                                    .read<CrossonicAudioHandler>()
+                                    .playPause();
+                              },
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.skip_next, size: 35),
+                              onPressed: () {
+                                context
+                                    .read<CrossonicAudioHandler>()
+                                    .skipToNext();
+                              },
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              );
+            },
+          );
+        },
+      ),
+    );
   }
 }

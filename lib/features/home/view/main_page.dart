@@ -22,6 +22,8 @@ class MainPage extends StatefulWidget {
 class _MainPageState extends State<MainPage> {
   final _slidingUpPanelController = PanelController();
 
+  var _collapsedVisible = true;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -34,25 +36,49 @@ class _MainPageState extends State<MainPage> {
             maxHeight: hasMedia ? constraints.maxHeight : 0,
             borderRadius: BorderRadius.zero,
             controller: _slidingUpPanelController,
-            collapsed:
-                NowPlayingCollapsed(panelController: _slidingUpPanelController),
+            collapsed: Visibility(
+              visible: _collapsedVisible,
+              child: NowPlayingCollapsed(
+                  panelController: _slidingUpPanelController),
+            ),
             panelBuilder: (_) => NowPlaying(
               panelController: _slidingUpPanelController,
             ),
-            body: widget._navigationShell,
+            body: Padding(
+              padding: EdgeInsets.only(bottom: hasMedia ? 110 : 60),
+              child: widget._navigationShell,
+            ),
+            onPanelSlide: (position) {
+              setState(() {
+                _collapsedVisible = true;
+              });
+            },
+            onPanelClosed: () {
+              setState(() {
+                _collapsedVisible = true;
+              });
+            },
+            onPanelOpened: () {
+              setState(() {
+                _collapsedVisible = false;
+              });
+            },
           );
         }),
       ),
-      bottomNavigationBar: BottomNavigation(
-        currentIndex: widget._navigationShell.currentIndex,
-        onIndexChanged: (newIndex) {
-          if (_slidingUpPanelController.isAttached) {
-            _slidingUpPanelController.close();
-          }
-          widget._navigationShell.goBranch(newIndex,
-              initialLocation:
-                  newIndex == widget._navigationShell.currentIndex);
-        },
+      bottomNavigationBar: SizedBox(
+        height: 60,
+        child: BottomNavigation(
+          currentIndex: widget._navigationShell.currentIndex,
+          onIndexChanged: (newIndex) {
+            if (_slidingUpPanelController.isAttached) {
+              _slidingUpPanelController.close();
+            }
+            widget._navigationShell.goBranch(newIndex,
+                initialLocation:
+                    newIndex == widget._navigationShell.currentIndex);
+          },
+        ),
       ),
     );
   }
