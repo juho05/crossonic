@@ -214,29 +214,29 @@ class NowPlaying extends StatelessWidget {
                         );
                       },
                     ),
-                    const SizedBox(height: 7),
+                    const SizedBox(height: 10),
                     Text(
                       state.songName,
                       style: Theme.of(context).textTheme.bodyLarge!.copyWith(
                             fontWeight: FontWeight.w600,
-                            fontSize: 18,
+                            fontSize: 20,
                           ),
                     ),
                     Text(
                       state.album,
                       style: Theme.of(context).textTheme.bodyLarge!.copyWith(
                             fontWeight: FontWeight.w500,
-                            fontSize: 15,
+                            fontSize: 17,
                           ),
                     ),
                     Text(
                       state.artist,
                       style: Theme.of(context).textTheme.bodyLarge!.copyWith(
                             fontWeight: FontWeight.w400,
-                            fontSize: 12,
+                            fontSize: 14,
                           ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 30),
                     BlocBuilder<NowPlayingCubit, NowPlayingState>(
                       buildWhen: (previous, current) =>
                           previous.playbackState != current.playbackState,
@@ -255,8 +255,8 @@ class NowPlaying extends StatelessWidget {
                             IconButton(
                               icon: state.playbackState.status ==
                                       CrossonicPlaybackStatus.playing
-                                  ? const Icon(Icons.pause_circle, size: 60)
-                                  : const Icon(Icons.play_circle, size: 60),
+                                  ? const Icon(Icons.pause_circle, size: 75)
+                                  : const Icon(Icons.play_circle, size: 75),
                               onPressed: () {
                                 context
                                     .read<CrossonicAudioHandler>()

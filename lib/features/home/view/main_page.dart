@@ -62,19 +62,25 @@ class _MainPageState extends State<MainPage> {
               ),
             ),
             onPanelSlide: (position) {
-              setState(() {
-                _collapsedVisible = true;
-              });
+              if (!_collapsedVisible) {
+                setState(() {
+                  _collapsedVisible = true;
+                });
+              }
             },
             onPanelClosed: () {
-              setState(() {
-                _collapsedVisible = true;
-              });
+              if (!_collapsedVisible) {
+                setState(() {
+                  _collapsedVisible = true;
+                });
+              }
             },
             onPanelOpened: () {
-              setState(() {
-                _collapsedVisible = false;
-              });
+              if (_collapsedVisible) {
+                setState(() {
+                  _collapsedVisible = false;
+                });
+              }
             },
           );
         }),
