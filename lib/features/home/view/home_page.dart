@@ -1,5 +1,8 @@
-import 'package:crossonic/features/home/view/state/home_cubit.dart';
-import 'package:crossonic/services/audio_player/audio_handler.dart';
+import 'package:crossonic/features/home/view/home_carousel.dart';
+import 'package:crossonic/features/home/view/random_songs.dart';
+import 'package:crossonic/features/home/view/recently_added_albums.dart';
+import 'package:crossonic/features/home/view/state/random_songs_cubit.dart';
+import 'package:crossonic/features/home/view/state/recently_added_albums_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -19,37 +22,28 @@ class HomePage extends StatelessWidget {
           )
         ],
       ),
-      body: BlocBuilder<HomeCubit, HomeState>(
-        builder: (context, state) {
-          return RefreshIndicator.adaptive(
-            child: switch (state.randomSongsStatus) {
-              RandomSongsStatus.initial ||
-              RandomSongsStatus.loading =>
-                const Center(child: CircularProgressIndicator.adaptive()),
-              RandomSongsStatus.failure =>
-                const Center(child: Icon(Icons.wifi_off)),
-              RandomSongsStatus.success => ListView.builder(
-                  itemCount: state.randomSongs.length,
-                  itemBuilder: (context, i) {
-                    return ListTile(
-                      title: Text(
-                          '${state.randomSongs[i].title} by ${state.randomSongs[i].artist}'),
-                      onTap: () async {
-                        final audioHandler =
-                            context.read<CrossonicAudioHandler>();
-                        audioHandler.playOnNextMediaChange();
-                        audioHandler.mediaQueue
-                            .replaceQueue(state.randomSongs, i);
-                      },
-                    );
-                  },
-                )
-            },
-            onRefresh: () async {
-              await context.read<HomeCubit>().fetchRandomSongs();
-            },
-          );
+      body: RefreshIndicator.adaptive(
+        onRefresh: () async {
+          context.read<RecentlyAddedAlbumsCubit>().fetch(15);
+          context.read<RandomSongsCubit>().fetch(50);
         },
+        child: const SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              HomeCarousel(
+                title: "Recently added albums",
+                content: RecentlyAddedAlbums(),
+              ),
+              SizedBox(height: 8),
+              HomeCarousel(
+                title: "Random songs",
+                content: RandomSongs(),
+              )
+            ],
+          ),
+        ),
       ),
     );
   }

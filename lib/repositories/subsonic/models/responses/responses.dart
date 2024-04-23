@@ -1,1 +1,1 @@
-export 'get_random_songs_response.dart';
+export 'getrandom_songs_response.dart';

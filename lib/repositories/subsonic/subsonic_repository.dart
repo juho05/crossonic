@@ -3,9 +3,25 @@ import 'dart:math';
 
 import 'package:crossonic/exceptions.dart';
 import 'package:crossonic/repositories/auth/auth.dart';
+import 'package:crossonic/repositories/subsonic/models/albumid3_model.dart';
 import 'package:crossonic/repositories/subsonic/models/models.dart';
+import 'package:crossonic/repositories/subsonic/models/responses/getalbumlist2_response.dart';
+import 'package:crossonic/repositories/subsonic/models/responses/search3_response.dart';
 import 'package:http/http.dart' as http;
 import 'package:crypto/crypto.dart';
+
+enum GetAlbumList2Type {
+  random,
+  newest,
+  highest,
+  frequent,
+  recent,
+  alphabeticalByName,
+  alphabeticalByArtist,
+  starred,
+  byYear,
+  byGenre
+}
 
 class SubsonicRepository {
   final AuthRepository _authRepo;
@@ -39,9 +55,60 @@ class SubsonicRepository {
         {
           "size": size.toString(),
         },
-        GetRandomSongs.fromJson,
+        GetRandomSongsResponse.fromJson,
         "randomSongs");
-    return response.song;
+    return response.song ?? [];
+  }
+
+  Future<(List<ArtistID3>, List<AlbumID3>, List<Media>)> search3(
+    String query, {
+    int artistCount = 0,
+    int artistOffset = 0,
+    int albumCount = 0,
+    int albumOffset = 0,
+    int songCount = 0,
+    int songOffset = 0,
+    String? musicFolderId,
+  }) async {
+    final response = await _jsonRequest(
+      "search3",
+      {
+        "query": query,
+        "artistCount": artistCount.toString(),
+        "artistOffset": artistOffset.toString(),
+        "songCount": songCount.toString(),
+        "songOffset": songOffset.toString(),
+        if (musicFolderId != null) "musicFolderId": musicFolderId,
+      },
+      Search3Response.fromJson,
+      "searchResult3",
+    );
+    return (response.artist ?? [], response.album ?? [], response.song ?? []);
+  }
+
+  Future<List<AlbumID3>> getAlbumList2(
+    GetAlbumList2Type type, {
+    int size = 10,
+    int offset = 0,
+    int? fromYear,
+    int? toYear,
+    String? genre,
+    String? musicFolderId,
+  }) async {
+    final response = await _jsonRequest(
+        "getAlbumList2",
+        {
+          "type": type.name,
+          "size": size.toString(),
+          "offset": offset.toString(),
+          if (fromYear != null) "fromYear": fromYear.toString(),
+          if (toYear != null) "toYear": toYear.toString(),
+          if (genre != null) "genre": genre,
+          if (musicFolderId != null) "musicFolderId": musicFolderId,
+        },
+        AlbumList2Response.fromJson,
+        "albumList2");
+    return response.album ?? [];
   }
 
   Future<T> _jsonRequest<T>(
