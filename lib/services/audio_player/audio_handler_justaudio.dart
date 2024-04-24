@@ -180,6 +180,7 @@ class CrossonicAudioHandlerJustAudio extends BaseAudioHandler
     bufferedPosition ??= _player.bufferedPosition;
     _playbackState.add(_playbackState.value.copyWith(
       position: position,
+      bufferedPosition: bufferedPosition,
     ));
     if (updateNative) {
       playbackState.add(playbackState.value.copyWith(

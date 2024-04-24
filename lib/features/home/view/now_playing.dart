@@ -211,6 +211,10 @@ class NowPlaying extends StatelessWidget {
                                 constraints.maxWidth - 25),
                             child: ProgressBar(
                               progress: state.playbackState.position,
+                              buffered: state.playbackState.bufferedPosition !=
+                                      Duration.zero
+                                  ? state.playbackState.bufferedPosition
+                                  : null,
                               total: state.duration,
                               onDragUpdate: (details) {
                                 _panelController.panelPosition = 1;

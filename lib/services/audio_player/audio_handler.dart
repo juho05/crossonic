@@ -12,23 +12,27 @@ enum CrossonicPlaybackStatus {
 class CrossonicPlaybackState extends Equatable {
   final CrossonicPlaybackStatus status;
   final Duration position;
+  final Duration bufferedPosition;
 
   const CrossonicPlaybackState({
     required this.status,
     this.position = Duration.zero,
+    this.bufferedPosition = Duration.zero,
   });
 
   CrossonicPlaybackState copyWith({
     CrossonicPlaybackStatus? status,
     Duration? position,
+    Duration? bufferedPosition,
   }) =>
       CrossonicPlaybackState(
         status: status ?? this.status,
         position: position ?? this.position,
+        bufferedPosition: bufferedPosition ?? this.bufferedPosition,
       );
 
   @override
-  List<Object?> get props => [status, position];
+  List<Object?> get props => [status, position, bufferedPosition];
 }
 
 abstract interface class CrossonicAudioHandler {

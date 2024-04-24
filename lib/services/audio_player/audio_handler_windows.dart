@@ -36,6 +36,7 @@ class CrossonicAudioHandlerWindows implements CrossonicAudioHandler {
       prevEnabled: true,
       stopEnabled: true,
     ));
+    _smtc.disableSmtc();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       _smtc.buttonPressStream.listen((event) async {
         switch (event) {
@@ -51,6 +52,22 @@ class CrossonicAudioHandlerWindows implements CrossonicAudioHandler {
             break;
         }
       });
+    });
+
+    CrossonicPlaybackStatus lastStatus = CrossonicPlaybackStatus.stopped;
+    _playbackState.listen((value) {
+      if (value.status == lastStatus) return;
+      lastStatus = value.status;
+      switch (value.status) {
+        case CrossonicPlaybackStatus.playing:
+          _smtc.setPlaybackStatus(PlaybackStatus.Playing);
+        case CrossonicPlaybackStatus.paused:
+          _smtc.setPlaybackStatus(PlaybackStatus.Paused);
+        case CrossonicPlaybackStatus.stopped:
+          _smtc.disableSmtc();
+        default:
+          break;
+      }
     });
 
     for (var i = 0; i < _players.length; i++) {
@@ -77,14 +94,6 @@ class CrossonicAudioHandlerWindows implements CrossonicAudioHandler {
           _playbackState.value.copyWith(position: pos),
         );
         if (_queue.current.value != null) {
-          _smtc.updateTimeline(PlaybackTimeline(
-            startTimeMs: 0,
-            endTimeMs: (_queue.current.value!.item.duration ?? 0) * 1000,
-            positionMs: pos.inMilliseconds,
-            minSeekTimeMs: 0,
-            maxSeekTimeMs: (_queue.current.value!.item.duration ?? 0) * 1000,
-          ));
-
           if (_queue.current.value!.item.duration != null &&
               _queue.current.value!.item.duration! - pos.inSeconds < 8 &&
               _nextURL != null &&
@@ -121,9 +130,11 @@ class CrossonicAudioHandlerWindows implements CrossonicAudioHandler {
         }
         return;
       }
+      if (!_smtc.enabled) {
+        await _smtc.enableSmtc();
+      }
       if (value.currentChanged) {
         _playOnNextMediaChange = false;
-        await _smtc.enableSmtc();
         _smtc.updateMetadata(MusicMetadata(
           album: value.item.album,
           albumArtist: value.item.displayAlbumArtist,
@@ -237,7 +248,7 @@ class CrossonicAudioHandlerWindows implements CrossonicAudioHandler {
     _playbackState.add(
         const CrossonicPlaybackState(status: CrossonicPlaybackStatus.stopped));
     _queue.clear();
-    await _smtc.disableSmtc();
+    _smtc.clearMetadata();
     _nextURL = null;
     _nextPlayerURL = null;
     for (var i = 0; i < _players.length; i++) {
