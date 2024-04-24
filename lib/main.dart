@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:audio_service/audio_service.dart';
 import 'package:audio_session/audio_session.dart';
 import 'package:crossonic/app.dart';
+import 'package:crossonic/features/album/state/album_cubit.dart';
 import 'package:crossonic/features/auth/auth.dart';
 import 'package:crossonic/features/home/view/state/random_songs_cubit.dart';
 import 'package:crossonic/features/home/view/state/now_playing_cubit.dart';
@@ -52,6 +53,7 @@ Future<void> main() async {
               RecentlyAddedAlbumsCubit(subsonicRepository)..fetch(15),
         ),
         BlocProvider(create: (_) => NowPlayingCubit(audioHandler)),
+        BlocProvider(create: (_) => AlbumCubit(subsonicRepository)),
       ],
       child: const App(),
     ),

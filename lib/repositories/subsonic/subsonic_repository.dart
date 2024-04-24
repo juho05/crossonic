@@ -111,6 +111,17 @@ class SubsonicRepository {
     return response.album ?? [];
   }
 
+  Future<AlbumID3> getAlbum(String id) async {
+    return await _jsonRequest(
+      "getAlbum",
+      {
+        "id": id,
+      },
+      AlbumID3.fromJson,
+      "album",
+    );
+  }
+
   Future<T> _jsonRequest<T>(
     String endpointName,
     Map<String, String> queryParams,

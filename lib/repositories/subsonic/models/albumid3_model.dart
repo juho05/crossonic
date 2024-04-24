@@ -1,8 +1,7 @@
-import 'package:crossonic/repositories/subsonic/models/artistid3_model.dart';
 import 'package:crossonic/repositories/subsonic/models/disc_title_model.dart';
 import 'package:crossonic/repositories/subsonic/models/item_date_model.dart';
-import 'package:crossonic/repositories/subsonic/models/item_genre_model.dart';
 import 'package:crossonic/repositories/subsonic/models/record_label_model.dart';
+import 'package:crossonic/repositories/subsonic/subsonic.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'albumid3_model.g.dart';
@@ -35,6 +34,7 @@ class AlbumID3 {
   final ItemDate? releaseDate;
   final bool? isCompilation;
   final List<DiscTitle>? discTitles;
+  final List<Media>? song;
 
   factory AlbumID3.fromJson(Map<String, dynamic> json) =>
       _$AlbumID3FromJson(json);
@@ -66,5 +66,6 @@ class AlbumID3 {
     this.releaseDate,
     this.isCompilation,
     this.discTitles,
+    this.song,
   });
 }

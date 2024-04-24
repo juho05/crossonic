@@ -37,7 +37,7 @@ class NowPlayingCollapsed extends StatelessWidget {
                       clipBehavior: Clip.antiAlias,
                       child: CachedNetworkImage(
                           fit: BoxFit.cover,
-                          imageUrl: "${state.coverArtURL}&size=64",
+                          imageUrl: state.coverArtURL,
                           useOldImageOnUrlChange: false,
                           placeholder: (context, url) =>
                               const CircularProgressIndicator.adaptive(),
@@ -157,7 +157,7 @@ class NowPlaying extends StatelessWidget {
                         clipBehavior: Clip.antiAlias,
                         child: CachedNetworkImage(
                             fit: BoxFit.cover,
-                            imageUrl: "${state.coverArtURL}&size=1000",
+                            imageUrl: state.coverArtURL,
                             useOldImageOnUrlChange: false,
                             placeholder: (context, url) => Icon(
                                   Icons.album,

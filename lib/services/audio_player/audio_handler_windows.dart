@@ -113,51 +113,53 @@ class CrossonicAudioHandlerWindows implements CrossonicAudioHandler {
 
     _queue.current.listen((value) async {
       CrossonicPlaybackStatus status = _playbackState.value.status;
+      var playAfterChange = _playOnNextMediaChange;
       if (value == null) {
+        _playOnNextMediaChange = false;
         if (status != CrossonicPlaybackStatus.idle) {
           stop();
         }
         return;
       }
+      if (value.currentChanged) {
+        _playOnNextMediaChange = false;
+        await _smtc.enableSmtc();
+        _smtc.updateMetadata(MusicMetadata(
+          album: value.item.album,
+          albumArtist: value.item.displayAlbumArtist,
+          artist: value.item.artist,
+          thumbnail: value.item.coverArt != null
+              ? (await getCoverArtURL(value.item.coverArt!, 500)).toString()
+              : null,
+          title: value.item.title,
+        ));
 
-      await _smtc.enableSmtc();
-      _smtc.updateMetadata(MusicMetadata(
-        album: value.item.album,
-        albumArtist: value.item.displayAlbumArtist,
-        artist: value.item.artist,
-        thumbnail: value.item.coverArt != null
-            ? (await getCoverArtURL(value.item.coverArt!, 500)).toString()
-            : null,
-        title: value.item.title,
-      ));
-
-      _playbackState.add(const CrossonicPlaybackState(
-          status: CrossonicPlaybackStatus.loading, position: Duration.zero));
-
-      final oldPlayer = _currentPlayer;
-      _currentPlayer = _nextPlayerIndex();
-
-      final streamURL =
-          (await _subsonicRepository.getStreamURL(songID: value.item.id))
-              .toString();
-
-      _players[oldPlayer].release();
-      if (!value.fromNext ||
-          _nextPlayerURL == null ||
-          _nextPlayerURL != _nextURL) {
-        await _players[_currentPlayer].setSourceUrl(streamURL);
-        await Future.delayed(const Duration(milliseconds: 250));
-      }
-      _nextPlayerURL = null;
-
-      if (status == CrossonicPlaybackStatus.playing || _playOnNextMediaChange) {
-        await play();
-      } else {
         _playbackState.add(const CrossonicPlaybackState(
-            status: CrossonicPlaybackStatus.paused));
-      }
-      _playOnNextMediaChange = false;
+            status: CrossonicPlaybackStatus.loading, position: Duration.zero));
 
+        final oldPlayer = _currentPlayer;
+        _currentPlayer = _nextPlayerIndex();
+
+        final streamURL =
+            (await _subsonicRepository.getStreamURL(songID: value.item.id))
+                .toString();
+
+        _players[oldPlayer].release();
+        if (!value.fromNext ||
+            _nextPlayerURL == null ||
+            _nextPlayerURL != _nextURL) {
+          await _players[_currentPlayer].setSourceUrl(streamURL);
+          await Future.delayed(const Duration(milliseconds: 250));
+        }
+        _nextPlayerURL = null;
+
+        if (status == CrossonicPlaybackStatus.playing || playAfterChange) {
+          await play();
+        } else {
+          _playbackState.add(const CrossonicPlaybackState(
+              status: CrossonicPlaybackStatus.paused));
+        }
+      }
       if (value.next != null) {
         _nextURL =
             (await _subsonicRepository.getStreamURL(songID: value.next!.id))

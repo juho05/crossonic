@@ -1,11 +1,13 @@
 part of 'recently_added_albums_cubit.dart';
 
 class RecentlyAddedAlbum extends Equatable {
+  final String id;
   final String name;
   final String artist;
   final String? coverURL;
 
   const RecentlyAddedAlbum({
+    required this.id,
     required this.name,
     required this.artist,
     required this.coverURL,

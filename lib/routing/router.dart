@@ -1,3 +1,4 @@
+import 'package:crossonic/features/album/album_page.dart';
 import 'package:crossonic/features/auth/auth.dart';
 import 'package:crossonic/features/home/home.dart';
 import 'package:crossonic/features/home/view/home_page.dart';
@@ -29,6 +30,14 @@ List<RouteBase> _tabRoutes(String prefix) => [
       _newRoute(_tabRoutePath(prefix, "/home"), const HomePage()),
       _newRoute(_tabRoutePath(prefix, "/search"), const SearchPage()),
       _newRoute(_tabRoutePath(prefix, "/playlists"), const PlaylistsPage()),
+      GoRoute(
+        path: _tabRoutePath(prefix, "/album/:albumID"),
+        pageBuilder: (context, state) => NoTransitionPage(
+          child: AlbumPage(albumID: state.pathParameters["albumID"] ?? ""),
+          restorationId: _tabRoutePath(
+              prefix, "/album/${state.pathParameters["albumID"] ?? ""}"),
+        ),
+      )
     ];
 
 final goRouter = GoRouter(

@@ -1,6 +1,4 @@
 import 'package:crossonic/repositories/subsonic/models/albumid3_model.dart';
-import 'package:crossonic/repositories/subsonic/models/models.dart';
-import 'package:crossonic/repositories/subsonic/subsonic.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'getalbumlist2_response.g.dart';

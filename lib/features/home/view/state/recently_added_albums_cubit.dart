@@ -30,11 +30,12 @@ class RecentlyAddedAlbumsCubit extends Cubit<RecentlyAddedAlbumsState> {
             size: count,
             offset: offset))
         .map((album) async => RecentlyAddedAlbum(
+              id: album.id,
               name: album.name,
               artist: album.artist ?? "Unknown artist",
               coverURL: album.coverArt != null
                   ? (await _subsonicRepository.getCoverArtURL(
-                          coverArtID: album.coverArt!))
+                          coverArtID: album.coverArt!, size: 256))
                       .toString()
                   : null,
             ));

@@ -40,6 +40,12 @@ class CrossonicAudioHandlerJustAudio extends BaseAudioHandler
         _positionTimer = null;
       }
 
+      if ((event.processingState == ProcessingState.idle ||
+              event.processingState == ProcessingState.completed) &&
+          _queue.current.value != null) {
+        await stop();
+      }
+
       _crossonicPlaybackState.add(CrossonicPlaybackState(
         status: switch (event.processingState) {
           ProcessingState.idle => CrossonicPlaybackStatus.idle,
@@ -95,11 +101,18 @@ class CrossonicAudioHandlerJustAudio extends BaseAudioHandler
 
     _queue.current.listen((value) async {
       var playAfterChange = _playOnNextMediaChange;
-      _playOnNextMediaChange = false;
       if (value == null) {
-        if (_crossonicPlaybackState.value.status !=
-            CrossonicPlaybackStatus.idle) {
-          await stop();
+        _playOnNextMediaChange = false;
+        await stop();
+        return;
+      }
+      if (value.currentChanged) {
+        _playOnNextMediaChange = false;
+      } else if (_playlist != null) {
+        _playlist!.removeAt(1);
+        if (value.next != null) {
+          _playlist!.add(AudioSource.uri(
+              await _subsonicRepository.getStreamURL(songID: value.next!.id)));
         }
         return;
       }
@@ -159,12 +172,13 @@ class CrossonicAudioHandlerJustAudio extends BaseAudioHandler
 
   @override
   Future<void> stop() async {
+    await _player.stop();
     _playlist?.clear();
     _playlist = null;
     _lastIndex = 0;
+    await Future.delayed(const Duration(milliseconds: 200));
     _queue.clear();
     _updateMediaItem(null);
-    return _player.stop();
   }
 
   @override
@@ -174,14 +188,16 @@ class CrossonicAudioHandlerJustAudio extends BaseAudioHandler
 
   @override
   Future<void> skipToNext() async {
-    if (_player.hasNext) {
-      await _player.seekToNext();
-      await play();
-    } else {
-      _queue.advance();
-      await play();
+    if (_queue.canAdvance) {
+      if (_player.hasNext) {
+        await _player.seekToNext();
+        await play();
+      } else {
+        playOnNextMediaChange();
+        _queue.advance();
+      }
+      _updatePosition();
     }
-    _updatePosition();
   }
 
   @override

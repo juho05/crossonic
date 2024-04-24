@@ -68,6 +68,11 @@ AlbumID3 _$AlbumID3FromJson(Map<String, dynamic> json) => $checkedCreate(
               (v) => (v as List<dynamic>?)
                   ?.map((e) => DiscTitle.fromJson(e as Map<String, dynamic>))
                   .toList()),
+          song: $checkedConvert(
+              'song',
+              (v) => (v as List<dynamic>?)
+                  ?.map((e) => Media.fromJson(e as Map<String, dynamic>))
+                  .toList()),
         );
         return val;
       },

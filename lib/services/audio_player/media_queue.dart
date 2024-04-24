@@ -6,8 +6,13 @@ import 'package:rxdart/rxdart.dart';
 class CurrentMedia {
   final Media item;
   final Media? next;
+  final bool currentChanged;
   final bool fromNext;
-  const CurrentMedia(this.item, this.next, [this.fromNext = false]);
+  final bool inPriorityQueue;
+  const CurrentMedia(this.item, this.next,
+      {this.currentChanged = true,
+      this.fromNext = false,
+      this.inPriorityQueue = false});
 }
 
 class MediaQueue {
@@ -49,6 +54,7 @@ class MediaQueue {
         _priorityQueue.isNotEmpty
             ? _priorityQueue.first
             : _queue.elementAtOrNull(_nextIndex),
+        currentChanged: false,
       ));
     }
   }
@@ -59,6 +65,7 @@ class MediaQueue {
       current.add(CurrentMedia(
         current.value!.item,
         _queue.elementAtOrNull(_nextIndex),
+        currentChanged: false,
       ));
     }
     if (index < _nextIndex) _nextIndex--;
@@ -68,7 +75,9 @@ class MediaQueue {
     clearPriorityQueue();
     _queue.clear();
     _nextIndex = 0;
-    current.add(null);
+    if (current.value != null) {
+      current.add(null);
+    }
   }
 
   void addToPriorityQueue(Media song) {
@@ -77,11 +86,21 @@ class MediaQueue {
 
   void addAllToPriorityQueue(Iterable<Media> songs) {
     _priorityQueue.addAll(songs);
-    if (current.value == null) {}
+    if (current.value == null) {
+      final next = _priorityQueue.removeFirst();
+      current.add(CurrentMedia(
+        next,
+        _priorityQueue.isNotEmpty
+            ? _priorityQueue.first
+            : _queue.elementAtOrNull(_nextIndex),
+      ));
+      return;
+    }
     if (_priorityQueue.length == songs.length) {
       current.add(CurrentMedia(
         current.value!.item,
         _priorityQueue.first,
+        currentChanged: false,
       ));
     }
   }
@@ -94,6 +113,7 @@ class MediaQueue {
         _priorityQueue.isNotEmpty
             ? _priorityQueue.first
             : _queue.elementAtOrNull(_nextIndex),
+        currentChanged: false,
       ));
     } else if (index == _priorityQueue.length - 1) {
       _priorityQueue.removeLast();
@@ -111,6 +131,7 @@ class MediaQueue {
     current.add(CurrentMedia(
       current.value!.item,
       _queue.elementAtOrNull(_nextIndex),
+      currentChanged: false,
     ));
   }
 
@@ -125,11 +146,13 @@ class MediaQueue {
       _priorityQueue.isNotEmpty
           ? _priorityQueue.first
           : _queue.elementAtOrNull(_nextIndex),
-      true,
+      fromNext: true,
     ));
   }
 
-  bool get canGoBack => _nextIndex - 1 > 0;
+  bool get canGoBack => current.value?.inPriorityQueue ?? false
+      ? _nextIndex > 0
+      : _nextIndex - 1 > 0;
   bool get canAdvance =>
       _priorityQueue.isNotEmpty || _nextIndex < _queue.length;
   int get length => _queue.length;
@@ -138,7 +161,7 @@ class MediaQueue {
     if (!canGoBack) {
       throw const InvalidStateException("Cannot go back in empty queue");
     }
-    _nextIndex--;
+    if (!(current.value?.inPriorityQueue ?? false)) _nextIndex--;
     current.add(CurrentMedia(
       _queue[_nextIndex - 1],
       _priorityQueue.isNotEmpty
@@ -149,8 +172,10 @@ class MediaQueue {
 
   bool advance() {
     Media next;
+    bool inPriorityQueue = false;
     if (_priorityQueue.isNotEmpty) {
       next = _priorityQueue.removeFirst();
+      inPriorityQueue = true;
     } else if (_nextIndex < _queue.length) {
       next = _queue[_nextIndex];
       _nextIndex++;
@@ -165,7 +190,8 @@ class MediaQueue {
       _priorityQueue.isNotEmpty
           ? _priorityQueue.first
           : _queue.elementAtOrNull(_nextIndex),
-      true,
+      fromNext: true,
+      inPriorityQueue: inPriorityQueue,
     ));
     return true;
   }
