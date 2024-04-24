@@ -53,7 +53,7 @@ class _MainPageState extends State<MainPage> {
                     current.playbackState.status,
                 listener: (context, state) {
                   if (state.playbackState.status ==
-                          CrossonicPlaybackStatus.idle &&
+                          CrossonicPlaybackStatus.stopped &&
                       _slidingUpPanelController.isPanelOpen) {
                     _slidingUpPanelController.close();
                   }

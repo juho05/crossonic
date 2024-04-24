@@ -15,8 +15,8 @@ class NowPlayingCubit extends Cubit<NowPlayingState> {
   NowPlayingCubit(CrossonicAudioHandler audioHandler)
       : _audioHandler = audioHandler,
         super(const NowPlayingState(
-            playbackState:
-                CrossonicPlaybackState(status: CrossonicPlaybackStatus.idle))) {
+            playbackState: CrossonicPlaybackState(
+                status: CrossonicPlaybackStatus.stopped))) {
     _currentMediaSubscription =
         _audioHandler.mediaQueue.current.listen((value) async {
       emit(

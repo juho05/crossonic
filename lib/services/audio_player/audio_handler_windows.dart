@@ -24,7 +24,7 @@ class CrossonicAudioHandlerWindows implements CrossonicAudioHandler {
     required SubsonicRepository subsonicRepository,
   }) : _subsonicRepository = subsonicRepository {
     _playbackState.add(
-        const CrossonicPlaybackState(status: CrossonicPlaybackStatus.idle));
+        const CrossonicPlaybackState(status: CrossonicPlaybackStatus.stopped));
 
     _smtc = SMTCWindows(
         config: const SMTCConfig(
@@ -90,7 +90,7 @@ class CrossonicAudioHandlerWindows implements CrossonicAudioHandler {
               _nextURL != null &&
               _nextPlayerURL != _nextURL) {
             _nextPlayerURL = _nextURL;
-            await _players[_nextPlayerIndex()].setSourceUrl(_nextURL!);
+            await _players[_nextPlayerIndex].setSourceUrl(_nextURL!);
           }
         }
       });
@@ -116,8 +116,8 @@ class CrossonicAudioHandlerWindows implements CrossonicAudioHandler {
       var playAfterChange = _playOnNextMediaChange;
       if (value == null) {
         _playOnNextMediaChange = false;
-        if (status != CrossonicPlaybackStatus.idle) {
-          stop();
+        if (status != CrossonicPlaybackStatus.stopped) {
+          await stop();
         }
         return;
       }
@@ -138,7 +138,7 @@ class CrossonicAudioHandlerWindows implements CrossonicAudioHandler {
             status: CrossonicPlaybackStatus.loading, position: Duration.zero));
 
         final oldPlayer = _currentPlayer;
-        _currentPlayer = _nextPlayerIndex();
+        _currentPlayer = _nextPlayerIndex;
 
         final streamURL =
             (await _subsonicRepository.getStreamURL(songID: value.item.id))
@@ -149,7 +149,7 @@ class CrossonicAudioHandlerWindows implements CrossonicAudioHandler {
             _nextPlayerURL == null ||
             _nextPlayerURL != _nextURL) {
           await _players[_currentPlayer].setSourceUrl(streamURL);
-          await Future.delayed(const Duration(milliseconds: 250));
+          await Future.delayed(const Duration(milliseconds: 100));
         }
         _nextPlayerURL = null;
 
@@ -170,7 +170,7 @@ class CrossonicAudioHandlerWindows implements CrossonicAudioHandler {
     });
   }
 
-  int _nextPlayerIndex() {
+  int get _nextPlayerIndex {
     var next = _currentPlayer + 1;
     if (next >= _players.length) {
       next = 0;
@@ -211,7 +211,7 @@ class CrossonicAudioHandlerWindows implements CrossonicAudioHandler {
 
   @override
   Future<void> seek(Duration position) async {
-    if (_playbackState.value.status == CrossonicPlaybackStatus.idle ||
+    if (_playbackState.value.status == CrossonicPlaybackStatus.stopped ||
         _playbackState.value.status == CrossonicPlaybackStatus.loading) return;
     return await _players[_currentPlayer].seek(position);
   }
@@ -235,7 +235,7 @@ class CrossonicAudioHandlerWindows implements CrossonicAudioHandler {
   @override
   Future<void> stop() async {
     _playbackState.add(
-        const CrossonicPlaybackState(status: CrossonicPlaybackStatus.idle));
+        const CrossonicPlaybackState(status: CrossonicPlaybackStatus.stopped));
     _queue.clear();
     await _smtc.disableSmtc();
     _nextURL = null;

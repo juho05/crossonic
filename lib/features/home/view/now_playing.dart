@@ -80,27 +80,38 @@ class NowPlayingCollapsed extends StatelessWidget {
                     alignment: Alignment.center,
                     fit: StackFit.passthrough,
                     children: [
-                      if (state.duration.inMilliseconds > 0)
+                      if (state.duration.inMilliseconds > 0 &&
+                          state.playbackState.status !=
+                              CrossonicPlaybackStatus.loading)
                         CircularProgressIndicator.adaptive(
                             value: state.playbackState.position.inMilliseconds
                                     .toDouble() /
                                 state.duration.inMilliseconds.toDouble()),
-                      if (state.playbackState.status ==
-                          CrossonicPlaybackStatus.loading)
-                        const CircularProgressIndicator.adaptive(),
                       if (state.playbackState.status !=
-                              CrossonicPlaybackStatus.idle &&
+                              CrossonicPlaybackStatus.playing &&
                           state.playbackState.status !=
-                              CrossonicPlaybackStatus.loading)
-                        IconButton(
-                          icon: Icon(state.playbackState.status ==
-                                  CrossonicPlaybackStatus.playing
-                              ? Icons.pause
-                              : Icons.play_arrow),
-                          onPressed: () {
-                            context.read<CrossonicAudioHandler>().playPause();
-                          },
-                        ),
+                              CrossonicPlaybackStatus.paused)
+                        const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator.adaptive()),
+                      IconButton(
+                        icon: switch (state.playbackState.status) {
+                          CrossonicPlaybackStatus.stopped ||
+                          CrossonicPlaybackStatus.loading =>
+                            const SizedBox(width: 24, height: 24),
+                          _ => Icon(
+                              state.playbackState.status ==
+                                      CrossonicPlaybackStatus.playing
+                                  ? Icons.pause
+                                  : Icons.play_arrow,
+                              size: 24,
+                            )
+                        },
+                        onPressed: () {
+                          context.read<CrossonicAudioHandler>().playPause();
+                        },
+                      ),
                     ],
                   ),
                   IconButton(
@@ -253,10 +264,17 @@ class NowPlaying extends StatelessWidget {
                               },
                             ),
                             IconButton(
-                              icon: state.playbackState.status ==
-                                      CrossonicPlaybackStatus.playing
-                                  ? const Icon(Icons.pause_circle, size: 75)
-                                  : const Icon(Icons.play_circle, size: 75),
+                              icon: switch (state.playbackState.status) {
+                                CrossonicPlaybackStatus.playing =>
+                                  const Icon(Icons.pause_circle, size: 75),
+                                CrossonicPlaybackStatus.paused =>
+                                  const Icon(Icons.play_circle, size: 75),
+                                _ => const SizedBox(
+                                    width: 75,
+                                    height: 75,
+                                    child:
+                                        CircularProgressIndicator.adaptive()),
+                              },
                               onPressed: () {
                                 context
                                     .read<CrossonicAudioHandler>()

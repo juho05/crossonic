@@ -3,7 +3,7 @@ import 'package:equatable/equatable.dart';
 import 'package:rxdart/rxdart.dart';
 
 enum CrossonicPlaybackStatus {
-  idle,
+  stopped,
   loading,
   playing,
   paused,
