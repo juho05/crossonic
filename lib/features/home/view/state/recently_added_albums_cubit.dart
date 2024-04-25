@@ -32,6 +32,7 @@ class RecentlyAddedAlbumsCubit extends Cubit<RecentlyAddedAlbumsState> {
               name: album.name,
               artist: album.artist ?? "Unknown artist",
               coverID: album.coverArt ?? "",
+              year: album.year,
             ))
         .toList();
   }

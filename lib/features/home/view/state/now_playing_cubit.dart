@@ -22,9 +22,11 @@ class NowPlayingCubit extends Cubit<NowPlayingState> {
       emit(
         state.copyWith(
           songID: value?.item.id ?? "",
-          artist: value?.item.artist ?? "",
+          artist: value?.item.artist ?? "Unknown artist",
+          artistID: value?.item.artistId ?? "",
           songName: value?.item.title ?? "",
-          album: value?.item.album ?? "",
+          album: value?.item.album ?? "Unknown album",
+          albumID: value?.item.albumId,
           duration: value != null
               ? Duration(seconds: value.item.duration ?? 0)
               : Duration.zero,

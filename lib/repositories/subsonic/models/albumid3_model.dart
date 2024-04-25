@@ -11,7 +11,7 @@ class AlbumID3 {
   final String id;
   final String name;
   final String? artist;
-  final String? artistID;
+  final String? artistId;
   final String? coverArt;
   final int songCount;
   final int duration;
@@ -43,7 +43,7 @@ class AlbumID3 {
     required this.id,
     required this.name,
     this.artist,
-    this.artistID,
+    this.artistId,
     this.coverArt,
     required this.songCount,
     required this.duration,

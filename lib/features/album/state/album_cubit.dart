@@ -53,7 +53,7 @@ class AlbumCubit extends Cubit<AlbumState> {
           status: FetchStatus.success,
           name: album.name,
           year: album.year ?? 0,
-          artistID: album.artistID ?? "",
+          artistID: album.artistId ?? "",
           artistName: album.artist ?? "Unknown artist",
           songs: songs,
           subsonicSongs: album.song ?? [],

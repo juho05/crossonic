@@ -62,14 +62,23 @@ class AlbumPage extends StatelessWidget {
                                       fontSize: 22,
                                     ),
                           ),
-                          Text(
-                            album.artistName +
-                                (album.year > 0 ? ' • ${album.year}' : ''),
-                            style:
-                                Theme.of(context).textTheme.bodyLarge!.copyWith(
-                                      fontWeight: FontWeight.w400,
-                                      fontSize: 15,
-                                    ),
+                          TextButton(
+                            onPressed: () {
+                              if (album.artistID != "") {
+                                context.push("/home/artist/${album.artistID}");
+                              }
+                            },
+                            child: Text(
+                              album.artistName +
+                                  (album.year > 0 ? ' • ${album.year}' : ''),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyLarge!
+                                  .copyWith(
+                                    fontWeight: FontWeight.w400,
+                                    fontSize: 15,
+                                  ),
+                            ),
                           ),
                           Padding(
                             padding: const EdgeInsets.symmetric(

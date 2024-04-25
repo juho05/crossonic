@@ -4,8 +4,11 @@ import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
 import 'package:crossonic/features/home/view/state/now_playing_cubit.dart';
 import 'package:crossonic/services/audio_player/audio_handler.dart';
 import 'package:crossonic/widgets/cover_art.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 
 class NowPlayingCollapsed extends StatelessWidget {
@@ -198,23 +201,52 @@ class NowPlaying extends StatelessWidget {
                             ),
                         overflow: TextOverflow.ellipsis,
                       ),
-                      Text(
-                        state.album,
-                        style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-                              fontWeight: FontWeight.w500,
-                              fontSize: 17,
-                            ),
-                        overflow: TextOverflow.ellipsis,
+                      MouseRegion(
+                        cursor: SystemMouseCursors.click,
+                        child: GestureDetector(
+                          onTap: () {
+                            if (state.albumID != "") {
+                              context.push("/home/album/${state.albumID}");
+                              _panelController.close();
+                            }
+                          },
+                          child: Text(
+                            state.album,
+                            style:
+                                Theme.of(context).textTheme.bodyLarge!.copyWith(
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 17,
+                                    ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
                       ),
-                      Text(
-                        state.artist,
-                        style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-                              fontWeight: FontWeight.w400,
-                              fontSize: 14,
+                      MouseRegion(
+                        cursor: SystemMouseCursors.click,
+                        child: GestureDetector(
+                          onTap: () {
+                            if (state.artistID != "") {
+                              context.push("/home/artist/${state.artistID}");
+                              _panelController.close();
+                            }
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.only(top: 3),
+                            child: Text(
+                              state.artist,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyLarge!
+                                  .copyWith(
+                                    fontWeight: FontWeight.w400,
+                                    fontSize: 14,
+                                  ),
+                              overflow: TextOverflow.ellipsis,
                             ),
-                        overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
                       ),
-                      const SizedBox(height: 30),
+                      const SizedBox(height: 25),
                       BlocBuilder<NowPlayingCubit, NowPlayingState>(
                         buildWhen: (previous, current) =>
                             previous.playbackState != current.playbackState,
