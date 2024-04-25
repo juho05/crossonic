@@ -30,32 +30,35 @@ class NowPlayingCollapsed extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   CoverArt(
-                    size: 35,
+                    size: 40,
                     coverID: state.coverArtID,
                     borderRadius: BorderRadius.circular(5),
                     resolution: const CoverResolution.tiny(),
                   ),
                   const SizedBox(width: 7.5),
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        state.songName,
-                        style: textStyle.bodyMedium!.copyWith(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onPrimaryContainer),
-                      ),
-                      Text(state.artist,
+                  Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          state.songName,
+                          style: textStyle.bodyMedium!.copyWith(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onPrimaryContainer),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        Text(
+                          state.artist,
                           style: textStyle.bodySmall!.copyWith(
                               color: Theme.of(context)
                                   .colorScheme
-                                  .onPrimaryContainer)),
-                    ],
-                  ),
-                  const Expanded(
-                    child: SizedBox(),
+                                  .onPrimaryContainer),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
                   ),
                   IconButton(
                     icon: const Icon(Icons.skip_previous),
@@ -142,116 +145,123 @@ class NowPlaying extends StatelessWidget {
           return LayoutBuilder(
             builder: (context, constraints) {
               return Center(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    CoverArt(
-                      size: min(constraints.maxHeight * 0.50,
-                          constraints.maxWidth - 20),
-                      coverID: state.coverArtID,
-                      resolution: const CoverResolution.extraLarge(),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    BlocBuilder<NowPlayingCubit, NowPlayingState>(
-                      buildWhen: (previous, current) =>
-                          previous.duration != current.duration ||
-                          previous.playbackState.position !=
-                              current.playbackState.position,
-                      builder: (context, state) {
-                        return Padding(
-                          padding: const EdgeInsets.only(top: 10),
-                          child: SizedBox(
-                            width: min(constraints.maxHeight * 0.50,
-                                constraints.maxWidth - 25),
-                            child: ProgressBar(
-                              progress: state.playbackState.position,
-                              buffered: state.playbackState.bufferedPosition !=
-                                      Duration.zero
-                                  ? state.playbackState.bufferedPosition
-                                  : null,
-                              total: state.duration,
-                              onDragUpdate: (details) {
-                                _panelController.panelPosition = 1;
-                              },
-                              onSeek: (value) {
-                                context
-                                    .read<CrossonicAudioHandler>()
-                                    .seek(value);
-                              },
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      CoverArt(
+                        size: min(constraints.maxHeight * 0.50,
+                            constraints.maxWidth - 12),
+                        coverID: state.coverArtID,
+                        resolution: const CoverResolution.extraLarge(),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      BlocBuilder<NowPlayingCubit, NowPlayingState>(
+                        buildWhen: (previous, current) =>
+                            previous.duration != current.duration ||
+                            previous.playbackState.position !=
+                                current.playbackState.position,
+                        builder: (context, state) {
+                          return Padding(
+                            padding: const EdgeInsets.only(top: 10),
+                            child: SizedBox(
+                              width: min(constraints.maxHeight * 0.50,
+                                  constraints.maxWidth - 25),
+                              child: ProgressBar(
+                                progress: state.playbackState.position,
+                                buffered:
+                                    state.playbackState.bufferedPosition !=
+                                            Duration.zero
+                                        ? state.playbackState.bufferedPosition
+                                        : null,
+                                total: state.duration,
+                                onDragUpdate: (details) {
+                                  _panelController.panelPosition = 1;
+                                },
+                                onSeek: (value) {
+                                  context
+                                      .read<CrossonicAudioHandler>()
+                                      .seek(value);
+                                },
+                              ),
                             ),
-                          ),
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      state.songName,
-                      style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 20,
-                          ),
-                    ),
-                    Text(
-                      state.album,
-                      style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-                            fontWeight: FontWeight.w500,
-                            fontSize: 17,
-                          ),
-                    ),
-                    Text(
-                      state.artist,
-                      style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-                            fontWeight: FontWeight.w400,
-                            fontSize: 14,
-                          ),
-                    ),
-                    const SizedBox(height: 30),
-                    BlocBuilder<NowPlayingCubit, NowPlayingState>(
-                      buildWhen: (previous, current) =>
-                          previous.playbackState != current.playbackState,
-                      builder: (context, state) {
-                        return Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.skip_previous, size: 35),
-                              onPressed: () {
-                                context
-                                    .read<CrossonicAudioHandler>()
-                                    .skipToPrevious();
-                              },
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        state.songName,
+                        style: Theme.of(context).textTheme.bodyLarge!.copyWith(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 20,
                             ),
-                            IconButton(
-                              icon: switch (state.playbackState.status) {
-                                CrossonicPlaybackStatus.playing =>
-                                  const Icon(Icons.pause_circle, size: 75),
-                                CrossonicPlaybackStatus.paused =>
-                                  const Icon(Icons.play_circle, size: 75),
-                                _ => const SizedBox(
-                                    width: 75,
-                                    height: 75,
-                                    child:
-                                        CircularProgressIndicator.adaptive()),
-                              },
-                              onPressed: () {
-                                context
-                                    .read<CrossonicAudioHandler>()
-                                    .playPause();
-                              },
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      Text(
+                        state.album,
+                        style: Theme.of(context).textTheme.bodyLarge!.copyWith(
+                              fontWeight: FontWeight.w500,
+                              fontSize: 17,
                             ),
-                            IconButton(
-                              icon: const Icon(Icons.skip_next, size: 35),
-                              onPressed: () {
-                                context
-                                    .read<CrossonicAudioHandler>()
-                                    .skipToNext();
-                              },
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      Text(
+                        state.artist,
+                        style: Theme.of(context).textTheme.bodyLarge!.copyWith(
+                              fontWeight: FontWeight.w400,
+                              fontSize: 14,
                             ),
-                          ],
-                        );
-                      },
-                    ),
-                  ],
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 30),
+                      BlocBuilder<NowPlayingCubit, NowPlayingState>(
+                        buildWhen: (previous, current) =>
+                            previous.playbackState != current.playbackState,
+                        builder: (context, state) {
+                          return Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.skip_previous, size: 35),
+                                onPressed: () {
+                                  context
+                                      .read<CrossonicAudioHandler>()
+                                      .skipToPrevious();
+                                },
+                              ),
+                              IconButton(
+                                icon: switch (state.playbackState.status) {
+                                  CrossonicPlaybackStatus.playing =>
+                                    const Icon(Icons.pause_circle, size: 75),
+                                  CrossonicPlaybackStatus.paused =>
+                                    const Icon(Icons.play_circle, size: 75),
+                                  _ => const SizedBox(
+                                      width: 75,
+                                      height: 75,
+                                      child:
+                                          CircularProgressIndicator.adaptive()),
+                                },
+                                onPressed: () {
+                                  context
+                                      .read<CrossonicAudioHandler>()
+                                      .playPause();
+                                },
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.skip_next, size: 35),
+                                onPressed: () {
+                                  context
+                                      .read<CrossonicAudioHandler>()
+                                      .skipToNext();
+                                },
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+                    ],
+                  ),
                 ),
               );
             },

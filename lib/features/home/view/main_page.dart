@@ -32,7 +32,7 @@ class _MainPageState extends State<MainPage> {
         final hasMedia = context
             .select<NowPlayingCubit, bool>((value) => value.state.hasMedia);
         return SlidingUpPanel(
-          minHeight: hasMedia ? 50 : 0,
+          minHeight: hasMedia ? 53 : 0,
           maxHeight: hasMedia ? constraints.maxHeight : 0,
           borderRadius: BorderRadius.zero,
           controller: _slidingUpPanelController,
@@ -46,7 +46,7 @@ class _MainPageState extends State<MainPage> {
           ),
           body: SafeArea(
             child: Padding(
-              padding: EdgeInsets.only(bottom: hasMedia ? 110 : 60),
+              padding: EdgeInsets.only(bottom: hasMedia ? 113 : 60),
               child: BlocListener<NowPlayingCubit, NowPlayingState>(
                 listenWhen: (previous, current) =>
                     previous.playbackState.status !=

@@ -118,7 +118,6 @@ class AlbumPage extends StatelessWidget {
                             children: List<Widget>.generate(
                                 album.songs.length,
                                 (i) => Song(
-                                      id: album.songs[i].id,
                                       title: album.songs[i].title,
                                       track: album.songs[i].number,
                                       duration: album.songs[i].duration !=

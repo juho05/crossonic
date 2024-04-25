@@ -2,22 +2,26 @@ import 'package:crossonic/widgets/cover_art.dart';
 import 'package:flutter/material.dart';
 
 class Song extends StatelessWidget {
-  final String id;
   final String title;
   final int? track;
   final String? coverID;
   final Duration? duration;
   final bool? isFavorite;
+  final String? artist;
+  final String? album;
+  final int? year;
   final void Function()? onTap;
   const Song({
     super.key,
-    required this.id,
     required this.title,
     this.track,
     this.coverID,
     this.duration,
     this.isFavorite,
     this.onTap,
+    this.artist,
+    this.album,
+    this.year,
   });
 
   @override
@@ -34,7 +38,7 @@ class Song extends StatelessWidget {
             )
           : (coverID != null
               ? CoverArt(
-                  size: 35,
+                  size: 40,
                   coverID: coverID!,
                   resolution: const CoverResolution.tiny(),
                   borderRadius: BorderRadius.circular(5),
@@ -42,7 +46,29 @@ class Song extends StatelessWidget {
               : null),
       title: Row(
         children: [
-          Expanded(child: Text(title)),
+          Expanded(
+              child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: textTheme.bodyMedium!
+                    .copyWith(fontWeight: FontWeight.w400, fontSize: 15),
+                overflow: TextOverflow.ellipsis,
+              ),
+              if (artist != null || album != null || year != null)
+                Text(
+                  [
+                    if (artist != null) artist,
+                    if (album != null) album,
+                    if (year != null) year.toString(),
+                  ].join(" • "),
+                  style: textTheme.bodySmall!
+                      .copyWith(fontWeight: FontWeight.w300, fontSize: 12),
+                  overflow: TextOverflow.ellipsis,
+                ),
+            ],
+          )),
           if (isFavorite ?? false) const Icon(Icons.favorite, size: 15),
           if (duration != null)
             Padding(
