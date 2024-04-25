@@ -10,6 +10,7 @@ class Song extends StatelessWidget {
   final String? artist;
   final String? album;
   final int? year;
+  final EdgeInsetsGeometry padding;
   final void Function()? onTap;
   const Song({
     super.key,
@@ -22,6 +23,7 @@ class Song extends StatelessWidget {
     this.artist,
     this.album,
     this.year,
+    this.padding = const EdgeInsets.only(left: 16, right: 5),
   });
 
   @override
@@ -47,27 +49,30 @@ class Song extends StatelessWidget {
       title: Row(
         children: [
           Expanded(
-              child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: textTheme.bodyMedium!
-                    .copyWith(fontWeight: FontWeight.w400, fontSize: 15),
-                overflow: TextOverflow.ellipsis,
-              ),
-              if (artist != null || album != null || year != null)
+              child: Padding(
+            padding: const EdgeInsets.only(left: 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
                 Text(
-                  [
-                    if (artist != null) artist,
-                    if (album != null) album,
-                    if (year != null) year.toString(),
-                  ].join(" • "),
-                  style: textTheme.bodySmall!
-                      .copyWith(fontWeight: FontWeight.w300, fontSize: 12),
+                  title,
+                  style: textTheme.bodyMedium!
+                      .copyWith(fontWeight: FontWeight.w400, fontSize: 15),
                   overflow: TextOverflow.ellipsis,
                 ),
-            ],
+                if (artist != null || album != null || year != null)
+                  Text(
+                    [
+                      if (artist != null) artist,
+                      if (album != null) album,
+                      if (year != null) year.toString(),
+                    ].join(" • "),
+                    style: textTheme.bodySmall!
+                        .copyWith(fontWeight: FontWeight.w300, fontSize: 12),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+              ],
+            ),
           )),
           if (isFavorite ?? false) const Icon(Icons.favorite, size: 15),
           if (duration != null)
@@ -80,7 +85,8 @@ class Song extends StatelessWidget {
             ),
         ],
       ),
-      horizontalTitleGap: track != null ? 8 : null,
+      horizontalTitleGap: 0,
+      contentPadding: padding,
       trailing: IconButton(
         icon: const Icon(Icons.more_vert),
         onPressed: () {},

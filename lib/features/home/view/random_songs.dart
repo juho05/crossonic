@@ -10,35 +10,57 @@ class RandomSongs extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<RandomSongsCubit, RandomSongsState>(
-      builder: (context, state) {
-        return switch (state.status) {
-          FetchStatus.initial ||
-          FetchStatus.loading ||
-          FetchStatus.loadingMore =>
-            const Center(child: CircularProgressIndicator.adaptive()),
-          FetchStatus.failure => const Center(child: Icon(Icons.wifi_off)),
-          FetchStatus.success => Column(
-              children: List<Widget>.generate(state.songs.length, (i) {
-                return Song(
-                  title: state.songs[i].title,
-                  coverID: state.songs[i].coverArt,
-                  duration: state.songs[i].duration != null
-                      ? Duration(seconds: state.songs[i].duration!)
-                      : null,
-                  isFavorite: state.songs[i].starred != null,
-                  artist: state.songs[i].artist,
-                  year: state.songs[i].year,
-                  onTap: () async {
-                    final audioHandler = context.read<CrossonicAudioHandler>();
-                    audioHandler.playOnNextMediaChange();
-                    audioHandler.mediaQueue.replaceQueue(state.songs, i);
-                  },
-                );
-              }),
-            )
-        };
-      },
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        TextButton(
+          onPressed: () {},
+          style: TextButton.styleFrom(
+            foregroundColor: theme.colorScheme.onBackground,
+            textStyle: theme.textTheme.headlineSmall!.copyWith(fontSize: 20),
+          ),
+          child: const Row(
+            children: [
+              Text("Random songs"),
+              Icon(
+                Icons.arrow_forward_ios,
+              )
+            ],
+          ),
+        ),
+        BlocBuilder<RandomSongsCubit, RandomSongsState>(
+          builder: (context, state) {
+            return switch (state.status) {
+              FetchStatus.initial ||
+              FetchStatus.loading ||
+              FetchStatus.loadingMore =>
+                const Center(child: CircularProgressIndicator.adaptive()),
+              FetchStatus.failure => const Center(child: Icon(Icons.wifi_off)),
+              FetchStatus.success => Column(
+                  children: List<Widget>.generate(state.songs.length, (i) {
+                    return Song(
+                      title: state.songs[i].title,
+                      coverID: state.songs[i].coverArt,
+                      duration: state.songs[i].duration != null
+                          ? Duration(seconds: state.songs[i].duration!)
+                          : null,
+                      isFavorite: state.songs[i].starred != null,
+                      artist: state.songs[i].artist,
+                      year: state.songs[i].year,
+                      onTap: () async {
+                        final audioHandler =
+                            context.read<CrossonicAudioHandler>();
+                        audioHandler.playOnNextMediaChange();
+                        audioHandler.mediaQueue.replaceQueue(state.songs, i);
+                      },
+                    );
+                  }),
+                )
+            };
+          },
+        ),
+      ],
     );
   }
 }

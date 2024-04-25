@@ -37,10 +37,7 @@ class HomePage extends StatelessWidget {
                 content: RecentlyAddedAlbums(),
               ),
               SizedBox(height: 8),
-              HomeCarousel(
-                title: "Random songs",
-                content: RandomSongs(),
-              )
+              RandomSongs(),
             ],
           ),
         ),
