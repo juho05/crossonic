@@ -58,27 +58,24 @@ class _CoverArtState extends State<CoverArt> {
       opticalSize: (widget.size ?? 0) > 0 ? widget.size : null,
     );
 
-    Widget image;
-    if (_url != null) {
-      image = CachedNetworkImage(
-        imageUrl: _url!,
-        fit: BoxFit.cover,
-        fadeInDuration: const Duration(milliseconds: 300),
-        fadeOutDuration: const Duration(milliseconds: 100),
-        placeholder: (context, url) => placeholder,
-        errorWidget: (context, url, error) => placeholder,
-      );
-    } else {
-      image = placeholder;
-    }
     return SizedBox(
       height: widget.size,
       width: widget.size,
-      child: ClipRRect(
-        borderRadius: widget.borderRadius,
-        clipBehavior: Clip.antiAlias,
-        child: image,
-      ),
+      child: _loadedID == widget.coverID
+          ? ClipRRect(
+              borderRadius: widget.borderRadius,
+              clipBehavior: Clip.antiAlias,
+              child: CachedNetworkImage(
+                imageUrl: _url ?? "",
+                fit: BoxFit.cover,
+                fadeInDuration: const Duration(milliseconds: 300),
+                fadeOutDuration: const Duration(milliseconds: 100),
+                placeholder: (context, url) =>
+                    const CircularProgressIndicator.adaptive(),
+                errorWidget: (context, url, error) => placeholder,
+              ),
+            )
+          : null,
     );
   }
 }
