@@ -40,14 +40,10 @@ class RandomSongs extends StatelessWidget {
               FetchStatus.success => Column(
                   children: List<Widget>.generate(state.songs.length, (i) {
                     return Song(
-                      title: state.songs[i].title,
-                      coverID: state.songs[i].coverArt,
-                      duration: state.songs[i].duration != null
-                          ? Duration(seconds: state.songs[i].duration!)
-                          : null,
-                      isFavorite: state.songs[i].starred != null,
-                      artist: state.songs[i].artist,
-                      year: state.songs[i].year,
+                      song: state.songs[i],
+                      leadingItem: SongLeadingItem.cover,
+                      showArtist: true,
+                      showYear: true,
                       onTap: () async {
                         final audioHandler =
                             context.read<CrossonicAudioHandler>();

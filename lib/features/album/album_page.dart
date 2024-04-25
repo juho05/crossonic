@@ -106,6 +106,14 @@ class AlbumPage extends StatelessWidget {
                                         audioHandler.mediaQueue
                                             .addAllToPriorityQueue(
                                                 album.subsonicSongs);
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(SnackBar(
+                                          content: Text(
+                                              'Added "${album.name}" to priority queue'),
+                                          behavior: SnackBarBehavior.floating,
+                                          duration: const Duration(
+                                              milliseconds: 1250),
+                                        ));
                                       },
                                     ),
                                     const SizedBox(width: 8),
@@ -116,6 +124,14 @@ class AlbumPage extends StatelessWidget {
                                       onPressed: () {
                                         audioHandler.mediaQueue
                                             .addAll(album.subsonicSongs);
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(SnackBar(
+                                          content: Text(
+                                              'Added "${album.name}" to queue'),
+                                          behavior: SnackBarBehavior.floating,
+                                          duration: const Duration(
+                                              milliseconds: 1250),
+                                        ));
                                       },
                                     )
                                   ],
@@ -127,14 +143,9 @@ class AlbumPage extends StatelessWidget {
                             children: List<Widget>.generate(
                                 album.songs.length,
                                 (i) => Song(
-                                      title: album.songs[i].title,
-                                      track: album.songs[i].number,
-                                      duration: album.songs[i].duration !=
-                                              Duration.zero
-                                          ? album.songs[i].duration
-                                          : null,
-                                      isFavorite: album.songs[i].isFavorite,
-                                      // coverURL: album.coverURL,
+                                      song: album.subsonicSongs[i],
+                                      leadingItem: SongLeadingItem.track,
+                                      showGotoAlbum: false,
                                       onTap: () {
                                         audioHandler.playOnNextMediaChange();
                                         audioHandler.mediaQueue.replaceQueue(
