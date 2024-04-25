@@ -25,20 +25,14 @@ class RecentlyAddedAlbumsCubit extends Cubit<RecentlyAddedAlbumsState> {
   }
 
   Future<List<RecentlyAddedAlbum>> _fetch(int count, int offset) async {
-    final albumFutures = (await _subsonicRepository.getAlbumList2(
-            GetAlbumList2Type.newest,
-            size: count,
-            offset: offset))
-        .map((album) async => RecentlyAddedAlbum(
+    return (await _subsonicRepository.getAlbumList2(GetAlbumList2Type.newest,
+            size: count, offset: offset))
+        .map((album) => RecentlyAddedAlbum(
               id: album.id,
               name: album.name,
               artist: album.artist ?? "Unknown artist",
-              coverURL: album.coverArt != null
-                  ? (await _subsonicRepository.getCoverArtURL(
-                          coverArtID: album.coverArt!, size: 256))
-                      .toString()
-                  : null,
-            ));
-    return await Future.wait(albumFutures);
+              coverID: album.coverArt ?? "",
+            ))
+        .toList();
   }
 }

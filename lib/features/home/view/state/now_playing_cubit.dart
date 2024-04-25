@@ -21,23 +21,15 @@ class NowPlayingCubit extends Cubit<NowPlayingState> {
         _audioHandler.mediaQueue.current.listen((value) async {
       emit(
         state.copyWith(
-            songID: value?.item.id ?? "",
-            artist: value?.item.artist ?? "",
-            songName: value?.item.title ?? "",
-            album: value?.item.album ?? "",
-            duration: value != null
-                ? Duration(seconds: value.item.duration ?? 0)
-                : Duration.zero,
-            coverArtURL: value != null && value.item.coverArt != null
-                ? (await _audioHandler.getCoverArtURL(
-                        value.item.coverArt!, 1024))
-                    .toString()
-                : "",
-            coverArtURLSmall: value != null && value.item.coverArt != null
-                ? (await _audioHandler.getCoverArtURL(
-                        value.item.coverArt!, 128))
-                    .toString()
-                : ""),
+          songID: value?.item.id ?? "",
+          artist: value?.item.artist ?? "",
+          songName: value?.item.title ?? "",
+          album: value?.item.album ?? "",
+          duration: value != null
+              ? Duration(seconds: value.item.duration ?? 0)
+              : Duration.zero,
+          coverArtID: value?.item.coverArt ?? "",
+        ),
       );
     });
     _playbackStateSubscription =

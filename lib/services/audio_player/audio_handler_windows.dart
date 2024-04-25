@@ -2,6 +2,7 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:crossonic/repositories/subsonic/subsonic.dart';
 import 'package:crossonic/services/audio_player/audio_handler.dart';
 import 'package:crossonic/services/audio_player/media_queue.dart';
+import 'package:crossonic/widgets/cover_art.dart';
 import 'package:flutter/material.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:smtc_windows/smtc_windows.dart';
@@ -140,7 +141,10 @@ class CrossonicAudioHandlerWindows implements CrossonicAudioHandler {
           albumArtist: value.item.displayAlbumArtist,
           artist: value.item.artist,
           thumbnail: value.item.coverArt != null
-              ? (await getCoverArtURL(value.item.coverArt!, 500)).toString()
+              ? (await _subsonicRepository.getCoverArtURL(
+                      coverArtID: value.item.coverArt!,
+                      size: const CoverResolution.large().size))
+                  .toString()
               : null,
           title: value.item.title,
         ));
@@ -258,11 +262,6 @@ class CrossonicAudioHandlerWindows implements CrossonicAudioHandler {
 
   @override
   MediaQueue get mediaQueue => _queue;
-
-  @override
-  Future<Uri> getCoverArtURL(String id, [int? size]) async {
-    return await _subsonicRepository.getCoverArtURL(coverArtID: id, size: size);
-  }
 
   @override
   Future<void> dispose() async {

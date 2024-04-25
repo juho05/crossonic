@@ -1,11 +1,11 @@
-import 'package:cached_network_image/cached_network_image.dart';
+import 'package:crossonic/widgets/cover_art.dart';
 import 'package:flutter/material.dart';
 
 class Song extends StatelessWidget {
   final String id;
   final String title;
   final int? track;
-  final String? coverURL;
+  final String? coverID;
   final Duration? duration;
   final bool? isFavorite;
   final void Function()? onTap;
@@ -14,7 +14,7 @@ class Song extends StatelessWidget {
     required this.id,
     required this.title,
     this.track,
-    this.coverURL,
+    this.coverID,
     this.duration,
     this.isFavorite,
     this.onTap,
@@ -32,24 +32,12 @@ class Song extends StatelessWidget {
                 fontWeight: FontWeight.w500,
               ),
             )
-          : (coverURL != null
-              ? SizedBox(
-                  width: 35,
-                  height: 35,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(5),
-                    clipBehavior: Clip.antiAlias,
-                    child: CachedNetworkImage(
-                        imageUrl: coverURL!,
-                        fit: BoxFit.cover,
-                        placeholder: (context, url) =>
-                            const Icon(Icons.album, size: 30),
-                        fadeInDuration: const Duration(milliseconds: 300),
-                        fadeOutDuration: const Duration(milliseconds: 100),
-                        errorWidget: (context, url, error) {
-                          return const Icon(Icons.album, size: 30);
-                        }),
-                  ),
+          : (coverID != null
+              ? CoverArt(
+                  size: 35,
+                  coverID: coverID!,
+                  resolution: const CoverResolution.tiny(),
+                  borderRadius: BorderRadius.circular(5),
                 )
               : null),
       title: Row(

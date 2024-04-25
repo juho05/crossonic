@@ -12,7 +12,7 @@ class AlbumCubit extends Cubit<AlbumState> {
           id: "",
           name: "",
           year: 0,
-          coverURL: "",
+          coverID: "",
           artistID: "",
           artistName: "",
           songs: [],
@@ -34,33 +34,31 @@ class AlbumCubit extends Cubit<AlbumState> {
       final album = await _subsonicRepository.getAlbum(albumID);
       final List<Track> songs;
       if (album.song != null) {
-        final songFutures = album.song!.map((s) async => Track(
-              id: s.id,
-              title: s.title,
-              duration: s.duration != null
-                  ? Duration(seconds: s.duration!)
-                  : Duration.zero,
-              number: s.track ?? 0,
-              isFavorite: s.starred != null,
-            ));
-        songs = await Future.wait(songFutures);
+        songs = album.song!
+            .map((s) => Track(
+                  id: s.id,
+                  title: s.title,
+                  duration: s.duration != null
+                      ? Duration(seconds: s.duration!)
+                      : Duration.zero,
+                  number: s.track ?? 0,
+                  isFavorite: s.starred != null,
+                ))
+            .toList();
       } else {
         songs = [];
       }
       emit(
         state.copyWith(
-            status: FetchStatus.success,
-            name: album.name,
-            year: album.year ?? 0,
-            artistID: album.artistID ?? "",
-            artistName: album.artist ?? "Unknown artist",
-            songs: songs,
-            subsonicSongs: album.song ?? [],
-            coverURL: album.coverArt != null
-                ? (await _subsonicRepository.getCoverArtURL(
-                        coverArtID: album.coverArt!, size: 1024))
-                    .toString()
-                : ""),
+          status: FetchStatus.success,
+          name: album.name,
+          year: album.year ?? 0,
+          artistID: album.artistID ?? "",
+          artistName: album.artist ?? "Unknown artist",
+          songs: songs,
+          subsonicSongs: album.song ?? [],
+          coverID: album.coverArt ?? "",
+        ),
       );
     } catch (e) {
       print(e);

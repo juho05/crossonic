@@ -48,5 +48,4 @@ abstract interface class CrossonicAudioHandler {
   Future<void> skipToNext();
   Future<void> skipToPrevious();
   Future<void> dispose();
-  Future<Uri> getCoverArtURL(String id, [int? size]);
 }

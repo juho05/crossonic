@@ -1,9 +1,9 @@
 import 'dart:math';
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:crossonic/features/album/state/album_cubit.dart';
 import 'package:crossonic/fetch_status.dart';
 import 'package:crossonic/services/audio_player/audio_handler.dart';
+import 'package:crossonic/widgets/cover_art.dart';
 import 'package:crossonic/widgets/song.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -46,47 +46,12 @@ class AlbumPage extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          SizedBox(
-                            height: min(constraints.maxHeight * 0.60,
+                          CoverArt(
+                            size: min(constraints.maxHeight * 0.60,
                                 constraints.maxWidth - 25),
-                            width: min(constraints.maxHeight * 0.60,
-                                constraints.maxWidth - 25),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(10),
-                              clipBehavior: Clip.antiAlias,
-                              child: CachedNetworkImage(
-                                  fit: BoxFit.cover,
-                                  imageUrl: album.coverURL,
-                                  useOldImageOnUrlChange: false,
-                                  placeholder: (context, url) => Icon(
-                                        Icons.album,
-                                        opticalSize: constraints.maxHeight != 0
-                                            ? min(constraints.maxHeight * 0.55,
-                                                constraints.maxWidth - 35)
-                                            : 100,
-                                        size: constraints.maxHeight != 0
-                                            ? min(constraints.maxHeight * 0.55,
-                                                constraints.maxWidth - 35)
-                                            : 100,
-                                      ),
-                                  fadeInDuration:
-                                      const Duration(milliseconds: 300),
-                                  fadeOutDuration:
-                                      const Duration(milliseconds: 100),
-                                  errorWidget: (context, url, error) {
-                                    return Icon(
-                                      Icons.album,
-                                      opticalSize: constraints.maxHeight != 0
-                                          ? min(constraints.maxHeight * 0.45,
-                                              constraints.maxWidth - 35)
-                                          : 100,
-                                      size: constraints.maxHeight != 0
-                                          ? min(constraints.maxHeight * 0.45,
-                                              constraints.maxWidth - 35)
-                                          : 100,
-                                    );
-                                  }),
-                            ),
+                            resolution: const CoverResolution.extraLarge(),
+                            coverID: album.coverID,
+                            borderRadius: BorderRadius.circular(10),
                           ),
                           const SizedBox(height: 10),
                           Text(

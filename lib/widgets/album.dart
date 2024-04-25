@@ -1,4 +1,4 @@
-import 'package:cached_network_image/cached_network_image.dart';
+import 'package:crossonic/widgets/cover_art.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -6,13 +6,13 @@ class Album extends StatelessWidget {
   final String id;
   final String name;
   final String extraInfo;
-  final String? coverURL;
+  final String? coverID;
   const Album({
     super.key,
     required this.id,
     required this.name,
     required this.extraInfo,
-    this.coverURL,
+    this.coverID,
   });
 
   @override
@@ -31,37 +31,11 @@ class Album extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  SizedBox(
-                    height: constraints.maxHeight * (4 / 5),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(7),
-                      clipBehavior: Clip.antiAlias,
-                      child: coverURL != null
-                          ? CachedNetworkImage(
-                              imageUrl: coverURL!,
-                              fit: BoxFit.cover,
-                              fadeInDuration: const Duration(milliseconds: 300),
-                              fadeOutDuration:
-                                  const Duration(milliseconds: 100),
-                              placeholder: (context, url) => Icon(
-                                Icons.album,
-                                size: (constraints.maxHeight - 50) * 0.95,
-                                opticalSize:
-                                    (constraints.maxHeight - 50) * 0.95,
-                              ),
-                              errorWidget: (context, url, error) => Icon(
-                                Icons.album,
-                                size: (constraints.maxHeight - 50) * 0.95,
-                                opticalSize:
-                                    (constraints.maxHeight - 50) * 0.95,
-                              ),
-                            )
-                          : Icon(
-                              Icons.album,
-                              size: (constraints.maxHeight - 50) * 0.95,
-                              opticalSize: (constraints.maxHeight - 50) * 0.95,
-                            ),
-                    ),
+                  CoverArt(
+                    coverID: coverID ?? "",
+                    resolution: const CoverResolution.medium(),
+                    borderRadius: BorderRadius.circular(7),
+                    size: constraints.maxHeight * (4 / 5),
                   ),
                   const SizedBox(height: 2),
                   Text(

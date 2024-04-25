@@ -4,6 +4,7 @@ import 'package:audio_service/audio_service.dart';
 import 'package:crossonic/repositories/subsonic/subsonic.dart';
 import 'package:crossonic/services/audio_player/audio_handler.dart';
 import 'package:crossonic/services/audio_player/media_queue.dart';
+import 'package:crossonic/widgets/cover_art.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -265,7 +266,8 @@ class CrossonicAudioHandlerJustAudio extends BaseAudioHandler
         album: media.album,
         artUri: media.coverArt != null
             ? await _subsonicRepository.getCoverArtURL(
-                coverArtID: media.coverArt!, size: 500)
+                coverArtID: media.coverArt!,
+                size: const CoverResolution.large().size)
             : null,
         artist: media.artist,
         duration:
@@ -290,11 +292,6 @@ class CrossonicAudioHandlerJustAudio extends BaseAudioHandler
   @override
   BehaviorSubject<CrossonicPlaybackState> get crossonicPlaybackStatus =>
       _playbackState;
-
-  @override
-  Future<Uri> getCoverArtURL(String id, [int? size]) async {
-    return await _subsonicRepository.getCoverArtURL(coverArtID: id, size: size);
-  }
 
   @override
   void playOnNextMediaChange() {

@@ -4,17 +4,17 @@ class RecentlyAddedAlbum extends Equatable {
   final String id;
   final String name;
   final String artist;
-  final String? coverURL;
+  final String? coverID;
 
   const RecentlyAddedAlbum({
     required this.id,
     required this.name,
     required this.artist,
-    required this.coverURL,
+    required this.coverID,
   });
 
   @override
-  List<Object?> get props => [name, artist, coverURL];
+  List<Object?> get props => [name, artist, coverID];
 }
 
 class RecentlyAddedAlbumsState extends Equatable {

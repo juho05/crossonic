@@ -25,7 +25,7 @@ class AlbumState extends Equatable {
     required this.id,
     required this.name,
     required this.year,
-    required this.coverURL,
+    required this.coverID,
     required this.artistID,
     required this.artistName,
     required this.songs,
@@ -36,7 +36,7 @@ class AlbumState extends Equatable {
   final String id;
   final String name;
   final int year;
-  final String coverURL;
+  final String coverID;
   final String artistID;
   final String artistName;
   final List<Track> songs;
@@ -47,7 +47,7 @@ class AlbumState extends Equatable {
     String? id,
     String? name,
     int? year,
-    String? coverURL,
+    String? coverID,
     String? artistID,
     String? artistName,
     List<Track>? songs,
@@ -58,7 +58,7 @@ class AlbumState extends Equatable {
       id: id ?? this.id,
       name: name ?? this.name,
       year: year ?? this.year,
-      coverURL: coverURL ?? this.coverURL,
+      coverID: coverID ?? this.coverID,
       artistID: artistID ?? this.artistID,
       artistName: artistName ?? this.artistName,
       songs: songs ?? this.songs,
@@ -72,7 +72,7 @@ class AlbumState extends Equatable {
         id,
         name,
         year,
-        coverURL,
+        coverID,
         artistID,
         artistName,
         songs,

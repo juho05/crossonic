@@ -1,9 +1,9 @@
 import 'dart:math';
 
 import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:crossonic/features/home/view/state/now_playing_cubit.dart';
 import 'package:crossonic/services/audio_player/audio_handler.dart';
+import 'package:crossonic/widgets/cover_art.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
@@ -29,24 +29,11 @@ class NowPlayingCollapsed extends StatelessWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  SizedBox(
-                    height: 35,
-                    width: 35,
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(5),
-                      clipBehavior: Clip.antiAlias,
-                      child: CachedNetworkImage(
-                          fit: BoxFit.cover,
-                          imageUrl: state.coverArtURL,
-                          useOldImageOnUrlChange: false,
-                          placeholder: (context, url) =>
-                              const CircularProgressIndicator.adaptive(),
-                          fadeInDuration: const Duration(milliseconds: 300),
-                          fadeOutDuration: const Duration(milliseconds: 100),
-                          errorWidget: (context, url, error) {
-                            return const Icon(Icons.album);
-                          }),
-                    ),
+                  CoverArt(
+                    size: 35,
+                    coverID: state.coverArtID,
+                    borderRadius: BorderRadius.circular(5),
+                    resolution: const CoverResolution.tiny(),
                   ),
                   const SizedBox(width: 7.5),
                   Column(
@@ -158,45 +145,12 @@ class NowPlaying extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    SizedBox(
-                      height: min(constraints.maxHeight * 0.50,
+                    CoverArt(
+                      size: min(constraints.maxHeight * 0.50,
                           constraints.maxWidth - 20),
-                      width: min(constraints.maxHeight * 0.50,
-                          constraints.maxWidth - 20),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(10),
-                        clipBehavior: Clip.antiAlias,
-                        child: CachedNetworkImage(
-                            fit: BoxFit.cover,
-                            imageUrl: state.coverArtURL,
-                            useOldImageOnUrlChange: false,
-                            placeholder: (context, url) => Icon(
-                                  Icons.album,
-                                  opticalSize: constraints.maxHeight != 0
-                                      ? min(constraints.maxHeight * 0.45,
-                                          constraints.maxWidth - 35)
-                                      : 100,
-                                  size: constraints.maxHeight != 0
-                                      ? min(constraints.maxHeight * 0.45,
-                                          constraints.maxWidth - 35)
-                                      : 100,
-                                ),
-                            fadeInDuration: const Duration(milliseconds: 300),
-                            fadeOutDuration: const Duration(milliseconds: 100),
-                            errorWidget: (context, url, error) {
-                              return Icon(
-                                Icons.album,
-                                opticalSize: constraints.maxHeight != 0
-                                    ? min(constraints.maxHeight * 0.45,
-                                        constraints.maxWidth - 35)
-                                    : 100,
-                                size: constraints.maxHeight != 0
-                                    ? min(constraints.maxHeight * 0.45,
-                                        constraints.maxWidth - 35)
-                                    : 100,
-                              );
-                            }),
-                      ),
+                      coverID: state.coverArtID,
+                      resolution: const CoverResolution.extraLarge(),
+                      borderRadius: BorderRadius.circular(10),
                     ),
                     BlocBuilder<NowPlayingCubit, NowPlayingState>(
                       buildWhen: (previous, current) =>
