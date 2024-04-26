@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:audioplayers/audioplayers.dart';
 import 'package:crossonic/repositories/subsonic/subsonic.dart';
 import 'package:crossonic/services/audio_player/audio_handler.dart';
@@ -20,6 +22,9 @@ class CrossonicAudioHandlerWindows implements CrossonicAudioHandler {
   String? _nextURL;
   String? _nextPlayerURL;
   var _playOnNextMediaChange = false;
+
+  DateTime _lastPositionUpdate = DateTime.now();
+  Timer? _positionTimer;
 
   CrossonicAudioHandlerWindows({
     required SubsonicRepository subsonicRepository,
@@ -62,10 +67,13 @@ class CrossonicAudioHandlerWindows implements CrossonicAudioHandler {
       switch (value.status) {
         case CrossonicPlaybackStatus.playing:
           _smtc.setPlaybackStatus(PlaybackStatus.Playing);
+          _startPositionTimer();
         case CrossonicPlaybackStatus.paused:
           _smtc.setPlaybackStatus(PlaybackStatus.Paused);
+          _stopPositionTimer();
         case CrossonicPlaybackStatus.stopped:
           _smtc.disableSmtc();
+          _stopPositionTimer();
         default:
           break;
       }
@@ -87,22 +95,11 @@ class CrossonicAudioHandlerWindows implements CrossonicAudioHandler {
     }
 
     for (var i = 0; i < _players.length; i++) {
-      _players[i].onPositionChanged.listen((pos) async {
+      _players[i].onPositionChanged.listen((pos) {
         if (i != _currentPlayer) {
           return;
         }
-        _playbackState.add(
-          _playbackState.value.copyWith(position: pos),
-        );
-        if (_queue.current.value != null) {
-          if (_queue.current.value!.item.duration != null &&
-              _queue.current.value!.item.duration! - pos.inSeconds < 8 &&
-              _nextURL != null &&
-              _nextPlayerURL != _nextURL) {
-            _nextPlayerURL = _nextURL;
-            await _players[_nextPlayerIndex].setSourceUrl(_nextURL!);
-          }
-        }
+        _updatePosition(pos);
       });
       _players[i].onPlayerStateChanged.listen((state) {
         if (i != _currentPlayer) {
@@ -191,6 +188,39 @@ class CrossonicAudioHandlerWindows implements CrossonicAudioHandler {
       next = 0;
     }
     return next;
+  }
+
+  void _startPositionTimer() {
+    if (_positionTimer != null) return;
+    _positionTimer = Timer.periodic(const Duration(seconds: 3), (timer) async {
+      if (DateTime.now().difference(_lastPositionUpdate).inSeconds > 2) {
+        final pos = await _players[_currentPlayer].getCurrentPosition();
+        if (pos != null) {
+          _updatePosition(pos);
+        }
+      }
+    });
+  }
+
+  void _stopPositionTimer() {
+    _positionTimer?.cancel();
+    _positionTimer = null;
+  }
+
+  void _updatePosition(Duration pos) async {
+    _lastPositionUpdate = DateTime.now();
+    _playbackState.add(
+      _playbackState.value.copyWith(position: pos),
+    );
+    if (_queue.current.value != null) {
+      if (_queue.current.value!.item.duration != null &&
+          _queue.current.value!.item.duration! - pos.inSeconds < 10) {
+        if (_nextURL != null && _nextPlayerURL != _nextURL) {
+          _nextPlayerURL = _nextURL;
+          await _players[_nextPlayerIndex].setSourceUrl(_nextURL!);
+        }
+      }
+    }
   }
 
   @override
