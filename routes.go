@@ -2,8 +2,11 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
+
+	"github.com/juho05/log"
 )
 
 func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
@@ -58,4 +61,99 @@ func (h *Handler) handlePing(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	respond(w, http.StatusOK, "crossonic-success")
+}
+
+type scrobble struct {
+	TimeUnixMS    int64   `json:"timeUnixMS"`
+	DurationMS    *int64  `json:"durationMS"`
+	SongID        string  `json:"songID"`
+	SongName      string  `json:"songName"`
+	SongDuration  *int    `json:"songDuration"`
+	MusicBrainzID *string `json:"musicBrainzId"`
+	AlbumID       *string `json:"albumID"`
+	AlbumName     *string `json:"albumName"`
+	ArtistID      *string `json:"artistID"`
+	ArtistName    *string `json:"artistName"`
+	ScrobbleID    *string `json:"scrobbleID"`
+}
+
+func (h *Handler) handleNowPlaying(w http.ResponseWriter, r *http.Request) {
+	username, password, ok := h.authUser(r)
+	if !ok {
+		clientError(w, http.StatusUnauthorized)
+		return
+	}
+	type request struct {
+		Scrobble *scrobble `json:"scrobble"`
+	}
+	body, err := decodeBody[request](r)
+	if err != nil {
+		badRequest(w)
+		return
+	}
+	if body.Scrobble == nil {
+		// subsonic does not support setting now playing to null
+		respond(w, http.StatusOK, nil)
+		return
+	}
+	_, err = subsonicRequest[struct{}](r.Context(), username, password, "/scrobble", map[string]string{
+		"submission": "false",
+		"id":         body.Scrobble.SongID,
+		"time":       fmt.Sprint(body.Scrobble.TimeUnixMS),
+	}, "")
+	if err != nil {
+		if errors.Is(err, ErrSubsonicInvalidCredentials) {
+			clientError(w, http.StatusUnauthorized)
+		} else {
+			serverError(w, err)
+		}
+		return
+	}
+	respond(w, http.StatusOK, nil)
+}
+
+func (h *Handler) handleScrobble(w http.ResponseWriter, r *http.Request) {
+	username, password, ok := h.authUser(r)
+	if !ok {
+		clientError(w, http.StatusUnauthorized)
+		return
+	}
+	type request struct {
+		Scrobbles []scrobble `json:"scrobbles"`
+	}
+	body, err := decodeBody[request](r)
+	if err != nil || body.Scrobbles == nil {
+		badRequest(w)
+		return
+	}
+	var successes int
+	for _, s := range body.Scrobbles {
+		if s.ScrobbleID != nil {
+			continue
+		}
+		_, err = subsonicRequest[struct{}](r.Context(), username, password, "/scrobble", map[string]string{
+			"submission": "true",
+			"id":         s.SongID,
+			"time":       fmt.Sprint(s.TimeUnixMS),
+		}, "")
+		if err != nil {
+			if errors.Is(err, ErrSubsonicInvalidCredentials) {
+				clientError(w, http.StatusUnauthorized)
+				return
+			} else if !errors.Is(err, ErrSubsonicNotFound) {
+				log.Error("scrobble error:", err)
+			}
+			continue
+		}
+		successes++
+	}
+	if len(body.Scrobbles) > 0 && successes == 0 {
+		if errors.Is(err, ErrSubsonicNotFound) {
+			clientError(w, http.StatusNotFound)
+		} else {
+			respond(w, http.StatusInternalServerError, nil)
+		}
+		return
+	}
+	respond(w, http.StatusOK, nil)
 }

@@ -24,6 +24,8 @@ func (h *Handler) registerRoutes() {
 	r := chi.NewRouter()
 	r.Post("/login", h.handleLogin)
 	r.Get("/ping", h.handlePing)
+	r.Post("/nowPlaying", h.handleNowPlaying)
+	r.Post("/scrobble", h.handleScrobble)
 	h.router = r
 }
 
