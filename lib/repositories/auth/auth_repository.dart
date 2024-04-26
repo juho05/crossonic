@@ -53,7 +53,8 @@ class AuthRepository {
 
   Future<bool> _testAuthToken() async {
     try {
-      final response = await http.get(Uri.parse('$_baseURL/ping'));
+      final response = await http.get(Uri.parse('$_baseURL/ping'),
+          headers: {"Authorization": "Bearer $_authToken"});
       return response.statusCode == 200;
     } catch (_) {
       return false;
@@ -121,6 +122,7 @@ class AuthRepository {
       try {
         await login(_username, _password);
       } on InvalidCredentialsException {
+        logout();
         throw UnauthenticatedException();
       }
     }

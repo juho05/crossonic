@@ -9,19 +9,24 @@ import 'package:crossonic/features/home/view/state/random_songs_cubit.dart';
 import 'package:crossonic/features/home/view/state/now_playing_cubit.dart';
 import 'package:crossonic/features/home/view/state/recently_added_albums_cubit.dart';
 import 'package:crossonic/repositories/auth/auth.dart';
+import 'package:crossonic/repositories/crossonic/crossonic.dart';
 import 'package:crossonic/repositories/subsonic/subsonic.dart';
 import 'package:crossonic/services/audio_player/audio_handler.dart';
 import 'package:crossonic/services/audio_player/audio_handler_justaudio.dart';
 import 'package:crossonic/services/audio_player/audio_handler_windows.dart';
+import 'package:crossonic/services/audio_player/scrobble/scrobbler.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final sharedPreferences = await SharedPreferences.getInstance();
   final authRepository = AuthRepository();
+  final crossonicRepository = CrossonicRepository(authRepository);
   final subsonicRepository = SubsonicRepository(authRepository);
   final CrossonicAudioHandler audioHandler;
   if (Platform.isWindows) {
-    WidgetsFlutterBinding.ensureInitialized();
     audioHandler =
         CrossonicAudioHandlerWindows(subsonicRepository: subsonicRepository);
   } else {
@@ -36,10 +41,18 @@ Future<void> main() async {
   }
   final audioSession = await AudioSession.instance;
   audioSession.configure(const AudioSessionConfiguration.music());
+
+  Scrobbler.enable(
+    sharedPreferences: sharedPreferences,
+    audioHandler: audioHandler,
+    crossonicRepository: crossonicRepository,
+  );
+
   runApp(MultiRepositoryProvider(
     providers: [
       RepositoryProvider.value(value: authRepository),
       RepositoryProvider.value(value: subsonicRepository),
+      RepositoryProvider.value(value: crossonicRepository),
       RepositoryProvider.value(value: audioHandler),
     ],
     child: MultiBlocProvider(

@@ -18,3 +18,7 @@ ItemGenre _$ItemGenreFromJson(Map<String, dynamic> json) => $checkedCreate(
         return val;
       },
     );
+
+Map<String, dynamic> _$ItemGenreToJson(ItemGenre instance) => <String, dynamic>{
+      'name': instance.name,
+    };

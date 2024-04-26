@@ -7,6 +7,6 @@ targets:
             - implicit_dynamic_parameter
       json_serializable:
         options:
-          create_to_json: false
+          create_to_json: true
           checked: true
           include_if_null: false

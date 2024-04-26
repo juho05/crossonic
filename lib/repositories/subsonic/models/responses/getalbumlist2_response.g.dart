@@ -23,3 +23,16 @@ AlbumList2Response _$AlbumList2ResponseFromJson(Map<String, dynamic> json) =>
         return val;
       },
     );
+
+Map<String, dynamic> _$AlbumList2ResponseToJson(AlbumList2Response instance) {
+  final val = <String, dynamic>{};
+
+  void writeNotNull(String key, dynamic value) {
+    if (value != null) {
+      val[key] = value;
+    }
+  }
+
+  writeNotNull('album', instance.album);
+  return val;
+}

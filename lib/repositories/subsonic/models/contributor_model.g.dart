@@ -21,3 +21,19 @@ Contributor _$ContributorFromJson(Map<String, dynamic> json) => $checkedCreate(
         return val;
       },
     );
+
+Map<String, dynamic> _$ContributorToJson(Contributor instance) {
+  final val = <String, dynamic>{
+    'role': instance.role,
+  };
+
+  void writeNotNull(String key, dynamic value) {
+    if (value != null) {
+      val[key] = value;
+    }
+  }
+
+  writeNotNull('subRole', instance.subRole);
+  val['artist'] = instance.artist;
+  return val;
+}

@@ -18,3 +18,8 @@ RecordLabel _$RecordLabelFromJson(Map<String, dynamic> json) => $checkedCreate(
         return val;
       },
     );
+
+Map<String, dynamic> _$RecordLabelToJson(RecordLabel instance) =>
+    <String, dynamic>{
+      'name': instance.name,
+    };

@@ -13,9 +13,14 @@ DiscTitle _$DiscTitleFromJson(Map<String, dynamic> json) => $checkedCreate(
       json,
       ($checkedConvert) {
         final val = DiscTitle(
-          disc: $checkedConvert('disc', (v) => v as int),
+          disc: $checkedConvert('disc', (v) => (v as num).toInt()),
           title: $checkedConvert('title', (v) => v as String),
         );
         return val;
       },
     );
+
+Map<String, dynamic> _$DiscTitleToJson(DiscTitle instance) => <String, dynamic>{
+      'disc': instance.disc,
+      'title': instance.title,
+    };

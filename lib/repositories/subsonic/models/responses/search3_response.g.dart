@@ -33,3 +33,18 @@ Search3Response _$Search3ResponseFromJson(Map<String, dynamic> json) =>
         return val;
       },
     );
+
+Map<String, dynamic> _$Search3ResponseToJson(Search3Response instance) {
+  final val = <String, dynamic>{};
+
+  void writeNotNull(String key, dynamic value) {
+    if (value != null) {
+      val[key] = value;
+    }
+  }
+
+  writeNotNull('artist', instance.artist);
+  writeNotNull('album', instance.album);
+  writeNotNull('song', instance.song);
+  return val;
+}

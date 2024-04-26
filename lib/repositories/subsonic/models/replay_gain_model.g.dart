@@ -28,3 +28,21 @@ ReplayGain _$ReplayGainFromJson(Map<String, dynamic> json) => $checkedCreate(
         return val;
       },
     );
+
+Map<String, dynamic> _$ReplayGainToJson(ReplayGain instance) {
+  final val = <String, dynamic>{};
+
+  void writeNotNull(String key, dynamic value) {
+    if (value != null) {
+      val[key] = value;
+    }
+  }
+
+  writeNotNull('trackGain', instance.trackGain);
+  writeNotNull('albumGain', instance.albumGain);
+  writeNotNull('trackPeak', instance.trackPeak);
+  writeNotNull('albumPeak', instance.albumPeak);
+  writeNotNull('baseGain', instance.baseGain);
+  writeNotNull('fallbackGain', instance.fallbackGain);
+  return val;
+}

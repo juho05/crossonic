@@ -13,10 +13,25 @@ ItemDate _$ItemDateFromJson(Map<String, dynamic> json) => $checkedCreate(
       json,
       ($checkedConvert) {
         final val = ItemDate(
-          year: $checkedConvert('year', (v) => v as int?),
-          month: $checkedConvert('month', (v) => v as int?),
-          day: $checkedConvert('day', (v) => v as int?),
+          year: $checkedConvert('year', (v) => (v as num?)?.toInt()),
+          month: $checkedConvert('month', (v) => (v as num?)?.toInt()),
+          day: $checkedConvert('day', (v) => (v as num?)?.toInt()),
         );
         return val;
       },
     );
+
+Map<String, dynamic> _$ItemDateToJson(ItemDate instance) {
+  final val = <String, dynamic>{};
+
+  void writeNotNull(String key, dynamic value) {
+    if (value != null) {
+      val[key] = value;
+    }
+  }
+
+  writeNotNull('year', instance.year);
+  writeNotNull('month', instance.month);
+  writeNotNull('day', instance.day);
+  return val;
+}

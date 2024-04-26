@@ -18,18 +18,19 @@ AlbumID3 _$AlbumID3FromJson(Map<String, dynamic> json) => $checkedCreate(
           artist: $checkedConvert('artist', (v) => v as String?),
           artistId: $checkedConvert('artistId', (v) => v as String?),
           coverArt: $checkedConvert('coverArt', (v) => v as String?),
-          songCount: $checkedConvert('songCount', (v) => v as int),
-          duration: $checkedConvert('duration', (v) => v as int),
-          playCount: $checkedConvert('playCount', (v) => v as int?),
+          songCount: $checkedConvert('songCount', (v) => (v as num).toInt()),
+          duration: $checkedConvert('duration', (v) => (v as num).toInt()),
+          playCount: $checkedConvert('playCount', (v) => (v as num?)?.toInt()),
           created:
               $checkedConvert('created', (v) => DateTime.parse(v as String)),
           starred: $checkedConvert(
               'starred', (v) => v == null ? null : DateTime.parse(v as String)),
-          year: $checkedConvert('year', (v) => v as int?),
+          year: $checkedConvert('year', (v) => (v as num?)?.toInt()),
           genre: $checkedConvert('genre', (v) => v as String?),
           played: $checkedConvert(
               'played', (v) => v == null ? null : DateTime.parse(v as String)),
-          userRating: $checkedConvert('userRating', (v) => v as int?),
+          userRating:
+              $checkedConvert('userRating', (v) => (v as num?)?.toInt()),
           recordLabels: $checkedConvert(
               'recordLabels',
               (v) => (v as List<dynamic>?)
@@ -77,3 +78,43 @@ AlbumID3 _$AlbumID3FromJson(Map<String, dynamic> json) => $checkedCreate(
         return val;
       },
     );
+
+Map<String, dynamic> _$AlbumID3ToJson(AlbumID3 instance) {
+  final val = <String, dynamic>{
+    'id': instance.id,
+    'name': instance.name,
+  };
+
+  void writeNotNull(String key, dynamic value) {
+    if (value != null) {
+      val[key] = value;
+    }
+  }
+
+  writeNotNull('artist', instance.artist);
+  writeNotNull('artistId', instance.artistId);
+  writeNotNull('coverArt', instance.coverArt);
+  val['songCount'] = instance.songCount;
+  val['duration'] = instance.duration;
+  writeNotNull('playCount', instance.playCount);
+  val['created'] = instance.created.toIso8601String();
+  writeNotNull('starred', instance.starred?.toIso8601String());
+  writeNotNull('year', instance.year);
+  writeNotNull('genre', instance.genre);
+  writeNotNull('played', instance.played?.toIso8601String());
+  writeNotNull('userRating', instance.userRating);
+  writeNotNull('recordLabels', instance.recordLabels);
+  writeNotNull('musicBrainzId', instance.musicBrainzId);
+  writeNotNull('genres', instance.genres);
+  writeNotNull('artists', instance.artists);
+  writeNotNull('displayArtist', instance.displayArtist);
+  writeNotNull('releaseTypes', instance.releaseTypes);
+  writeNotNull('moods', instance.moods);
+  writeNotNull('sortName', instance.sortName);
+  writeNotNull('originalReleaseDate', instance.originalReleaseDate);
+  writeNotNull('releaseDate', instance.releaseDate);
+  writeNotNull('isCompilation', instance.isCompilation);
+  writeNotNull('discTitles', instance.discTitles);
+  writeNotNull('song', instance.song);
+  return val;
+}
