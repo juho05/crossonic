@@ -128,8 +128,11 @@ func (h *Handler) handleScrobble(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var successes int
+	var skipped int
 	for _, s := range body.Scrobbles {
 		if s.ScrobbleID != nil {
+			skipped++
+			log.Tracef("Skipping scrobble '%s' (id: %s) for user '%s', because updating scrobbles by assigning a scrobble ID (here: %s) is not yet supported.", s.SongName, s.SongID, username, *s.ScrobbleID)
 			continue
 		}
 		_, err = subsonicRequest[struct{}](r.Context(), username, password, "/scrobble", map[string]string{
@@ -138,17 +141,17 @@ func (h *Handler) handleScrobble(w http.ResponseWriter, r *http.Request) {
 			"time":       fmt.Sprint(s.TimeUnixMS),
 		}, "")
 		if err != nil {
+			log.Errorf("Failed to scrobble '%s' (id: %s) for user '%s': %s", s.SongName, s.SongID, username, err)
 			if errors.Is(err, ErrSubsonicInvalidCredentials) {
 				clientError(w, http.StatusUnauthorized)
 				return
-			} else if !errors.Is(err, ErrSubsonicNotFound) {
-				log.Error("scrobble error:", err)
 			}
 			continue
 		}
+		log.Tracef("Scrobbled '%s' (id: %s) for user '%s'", s.SongName, s.SongID, username)
 		successes++
 	}
-	if len(body.Scrobbles) > 0 && successes == 0 {
+	if len(body.Scrobbles) > 0 && successes == 0 && skipped < len(body.Scrobbles) {
 		if errors.Is(err, ErrSubsonicNotFound) {
 			clientError(w, http.StatusNotFound)
 		} else {
