@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/google/uuid"
 	"github.com/juho05/log"
 )
 
@@ -75,7 +74,7 @@ type scrobble struct {
 	AlbumName     *string `json:"albumName"`
 	ArtistID      *string `json:"artistID"`
 	ArtistName    *string `json:"artistName"`
-	ScrobbleID    *string `json:"scrobbleID"`
+	Update        bool    `json:"update"`
 }
 
 func (h *Handler) handleNowPlaying(w http.ResponseWriter, r *http.Request) {
@@ -130,9 +129,9 @@ func (h *Handler) handleScrobble(w http.ResponseWriter, r *http.Request) {
 	var successes int
 	var skipped int
 	for _, s := range body.Scrobbles {
-		if s.ScrobbleID != nil {
+		if s.Update {
 			skipped++
-			log.Tracef("Skipping scrobble '%s' (id: %s) for user '%s', because updating scrobbles by assigning a scrobble ID (here: %s) is not yet supported.", s.SongName, s.SongID, username, *s.ScrobbleID)
+			log.Tracef("Skipping scrobble '%s' (id: %s) for user '%s' because updating is not yet supported.", s.SongName, s.SongID, username)
 			continue
 		}
 		_, err = subsonicRequest[struct{}](r.Context(), username, password, "/scrobble", map[string]string{
@@ -159,10 +158,5 @@ func (h *Handler) handleScrobble(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	type response struct {
-		ScrobbleID string `json:"scrobbleID"`
-	}
-	respond(w, http.StatusOK, response{
-		ScrobbleID: uuid.NewString(),
-	})
+	respond(w, http.StatusOK, nil)
 }
