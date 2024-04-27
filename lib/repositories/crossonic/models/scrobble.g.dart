@@ -25,7 +25,7 @@ Scrobble _$ScrobbleFromJson(Map<String, dynamic> json) => $checkedCreate(
           albumName: $checkedConvert('albumName', (v) => v as String?),
           artistID: $checkedConvert('artistID', (v) => v as String?),
           artistName: $checkedConvert('artistName', (v) => v as String?),
-          scrobbleID: $checkedConvert('scrobbleID', (v) => v as String?),
+          update: $checkedConvert('update', (v) => v as bool? ?? false),
         );
         return val;
       },
@@ -51,6 +51,6 @@ Map<String, dynamic> _$ScrobbleToJson(Scrobble instance) {
   writeNotNull('albumName', instance.albumName);
   writeNotNull('artistID', instance.artistID);
   writeNotNull('artistName', instance.artistName);
-  writeNotNull('scrobbleID', instance.scrobbleID);
+  val['update'] = instance.update;
   return val;
 }

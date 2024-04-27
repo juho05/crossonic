@@ -28,7 +28,7 @@ class CrossonicRepository {
     }
   }
 
-  Future<String> sendScrobbles(List<Scrobble> scrobbles) async {
+  Future<void> sendScrobbles(List<Scrobble> scrobbles) async {
     final auth = await _authRepo.auth;
     final response = await http.post(Uri.parse("${auth.crossonicURL}/scrobble"),
         body: jsonEncode({
@@ -38,7 +38,5 @@ class CrossonicRepository {
     if (response.statusCode != 200) {
       throw ServerException(response.statusCode);
     }
-    final body = jsonDecode(response.body);
-    return body["scrobbleID"];
   }
 }

@@ -18,7 +18,7 @@ class Scrobble {
   final String? artistID;
   final String? artistName;
 
-  final String? scrobbleID;
+  final bool update;
 
   Scrobble({
     required this.timeUnixMS,
@@ -31,7 +31,7 @@ class Scrobble {
     this.albumName,
     this.artistID,
     this.artistName,
-    this.scrobbleID,
+    this.update = false,
   });
 
   factory Scrobble.fromJson(Map<String, dynamic> json) =>

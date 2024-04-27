@@ -14,7 +14,6 @@ class Scrobbler {
   Media? _currentMedia;
   Duration _accumulatedDuration = Duration.zero;
   bool _scrobbled = false;
-  String? _scrobbleID;
   final SharedPreferences _sharedPreferences;
   final List<Scrobble> _cachedScrobbles = [];
   bool _sendingCachedScrobbles = false;
@@ -22,7 +21,8 @@ class Scrobbler {
 
   Future<void> _cacheScrobble(Scrobble scrobble) async {
     _cachedScrobbles.add(scrobble);
-    await _sharedPreferences.setInt(scrobbleCacheKey, _cachedScrobbles.length);
+    await _sharedPreferences.setInt(
+        scrobbleCacheSizeKey, _cachedScrobbles.length);
     await _sharedPreferences.setString(
         "$scrobbleCacheKey${_cachedScrobbles.length - 1}",
         jsonEncode(scrobble.toJson()));
@@ -139,9 +139,7 @@ class Scrobbler {
     required Duration duration,
     required DateTime time,
   }) async {
-    if (_scrobbled && _scrobbleID == null) {
-      return;
-    }
+    final update = _scrobbled;
     _scrobbled = true;
     final scrobble = Scrobble(
       timeUnixMS: time.millisecondsSinceEpoch,
@@ -154,7 +152,7 @@ class Scrobbler {
       artistID: media.artistId,
       artistName: media.artist,
       musicBrainzID: media.musicBrainzId,
-      scrobbleID: _scrobbleID,
+      update: update,
     );
     try {
       await _crossonicRepository.sendScrobbles([scrobble]);
