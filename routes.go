@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/google/uuid"
 	"github.com/juho05/log"
 )
 
@@ -155,5 +156,10 @@ func (h *Handler) handleScrobble(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	respond(w, http.StatusOK, nil)
+	type response struct {
+		ScrobbleID string `json:"scrobbleID"`
+	}
+	respond(w, http.StatusOK, response{
+		ScrobbleID: uuid.NewString(),
+	})
 }
