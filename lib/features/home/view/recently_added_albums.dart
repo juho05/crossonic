@@ -18,9 +18,7 @@ class RecentlyAddedAlbums extends StatelessWidget {
               FetchStatus.loading =>
                 const Center(child: CircularProgressIndicator.adaptive()),
               FetchStatus.failure => const Center(child: Icon(Icons.wifi_off)),
-              FetchStatus.success ||
-              FetchStatus.loadingMore =>
-                SingleChildScrollView(
+              FetchStatus.success => SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Row(
                     children: List<Widget>.generate(

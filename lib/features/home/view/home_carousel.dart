@@ -3,10 +3,12 @@ import 'package:flutter/material.dart';
 class HomeCarousel extends StatelessWidget {
   final String title;
   final Widget content;
+  final void Function()? onMore;
   const HomeCarousel({
     super.key,
     required this.title,
     required this.content,
+    this.onMore,
   });
 
   @override
@@ -16,7 +18,7 @@ class HomeCarousel extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         TextButton(
-          onPressed: () {},
+          onPressed: onMore,
           style: TextButton.styleFrom(
             foregroundColor: theme.colorScheme.onBackground,
             textStyle: theme.textTheme.headlineSmall!.copyWith(fontSize: 20),

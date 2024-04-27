@@ -1,1 +1,1 @@
-enum FetchStatus { initial, loading, loadingMore, success, failure }
+enum FetchStatus { initial, loading, success, failure }

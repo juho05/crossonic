@@ -30,6 +30,8 @@ dependencies:
   audioplayers: ^6.0.0
   smtc_windows: ^0.1.2
   audio_video_progress_bar: ^2.0.2
+  stream_transform: ^2.1.0
+  bloc_concurrency: ^0.2.5
 
 dev_dependencies:
   flutter_test:

@@ -27,17 +27,20 @@ class HomePage extends StatelessWidget {
           context.read<RecentlyAddedAlbumsCubit>().fetch(15);
           context.read<RandomSongsCubit>().fetch(50);
         },
-        child: const SingleChildScrollView(
+        child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               HomeCarousel(
                 title: "Recently added albums",
-                content: RecentlyAddedAlbums(),
+                content: const RecentlyAddedAlbums(),
+                onMore: () {
+                  context.push("/home/albums/added");
+                },
               ),
-              SizedBox(height: 8),
-              RandomSongs(),
+              const SizedBox(height: 8),
+              const RandomSongs(),
             ],
           ),
         ),

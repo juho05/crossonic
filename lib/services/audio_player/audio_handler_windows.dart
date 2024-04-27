@@ -193,7 +193,7 @@ class CrossonicAudioHandlerWindows implements CrossonicAudioHandler {
   void _startPositionTimer() {
     if (_positionTimer != null) return;
     _positionTimer = Timer.periodic(const Duration(seconds: 3), (timer) async {
-      if (DateTime.now().difference(_lastPositionUpdate).inSeconds > 2) {
+      if (DateTime.now().difference(_lastPositionUpdate).inSeconds >= 2) {
         final pos = await _players[_currentPlayer].getCurrentPosition();
         if (pos != null) {
           _updatePosition(pos);

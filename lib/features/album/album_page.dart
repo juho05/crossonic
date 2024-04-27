@@ -35,8 +35,7 @@ class AlbumPage extends StatelessWidget {
           final audioHandler = context.read<CrossonicAudioHandler>();
           return switch (album.status) {
             FetchStatus.initial ||
-            FetchStatus.loading ||
-            FetchStatus.loadingMore =>
+            FetchStatus.loading =>
               const Center(child: CircularProgressIndicator.adaptive()),
             FetchStatus.failure => const Center(child: Icon(Icons.wifi_off)),
             FetchStatus.success => LayoutBuilder(

@@ -33,8 +33,7 @@ class RandomSongs extends StatelessWidget {
           builder: (context, state) {
             return switch (state.status) {
               FetchStatus.initial ||
-              FetchStatus.loading ||
-              FetchStatus.loadingMore =>
+              FetchStatus.loading =>
                 const Center(child: CircularProgressIndicator.adaptive()),
               FetchStatus.failure => const Center(child: Icon(Icons.wifi_off)),
               FetchStatus.success => Column(
