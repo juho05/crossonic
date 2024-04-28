@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:crossonic/exceptions.dart';
 import 'package:crossonic/repositories/auth/auth.dart';
 import 'package:crossonic/repositories/subsonic/models/albumid3_model.dart';
+import 'package:crossonic/repositories/subsonic/models/artist_model.dart';
 import 'package:crossonic/repositories/subsonic/models/models.dart';
 import 'package:crossonic/repositories/subsonic/models/responses/getalbumlist2_response.dart';
 import 'package:crossonic/repositories/subsonic/models/responses/search3_response.dart';
@@ -84,6 +85,16 @@ class SubsonicRepository {
       "searchResult3",
     );
     return (response.artist ?? [], response.album ?? [], response.song ?? []);
+  }
+
+  Future<Artist> getArtist(String id) async {
+    return await _jsonRequest(
+        "getArtist",
+        {
+          "id": id,
+        },
+        Artist.fromJson,
+        "artist");
   }
 
   Future<List<AlbumID3>> getAlbumList2(

@@ -6,7 +6,7 @@ import 'package:crossonic/features/home/home.dart';
 import 'package:crossonic/features/home/view/home_page.dart';
 import 'package:crossonic/features/login/login.dart';
 import 'package:crossonic/features/playlists/playlists.dart';
-import 'package:crossonic/features/search/view/search_page.dart';
+import 'package:crossonic/features/search/search_page.dart';
 import 'package:crossonic/features/settings/settings.dart';
 import 'package:crossonic/features/splash/splash.dart';
 import 'package:crossonic/repositories/auth/auth.dart';

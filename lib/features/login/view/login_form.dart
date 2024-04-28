@@ -44,6 +44,7 @@ class LoginForm extends StatelessWidget {
                   inputName: "server_url",
                   labelText: "Server URL",
                   errorText: "invalid server URL",
+                  icon: Icons.link,
                 ),
                 const SizedBox(height: 20),
                 _LoginInput(
@@ -51,6 +52,7 @@ class LoginForm extends StatelessWidget {
                   inputName: "username",
                   labelText: "Username",
                   errorText: "required",
+                  icon: Icons.person,
                 ),
                 const SizedBox(height: 20),
                 _LoginInput(
@@ -59,6 +61,7 @@ class LoginForm extends StatelessWidget {
                   labelText: "Password",
                   errorText: "required1",
                   obscureText: true,
+                  icon: Icons.password,
                 ),
                 const SizedBox(height: 40),
                 _LoginButton(),
@@ -73,6 +76,7 @@ class LoginForm extends StatelessWidget {
 
 class _LoginInput extends StatefulWidget {
   final LoginBloc bloc;
+  final IconData icon;
   final String inputName;
   final String labelText;
   final String errorText;
@@ -82,6 +86,7 @@ class _LoginInput extends StatefulWidget {
     required this.bloc,
     required this.labelText,
     required this.errorText,
+    required this.icon,
     this.obscureText = false,
   });
   @override
@@ -128,7 +133,7 @@ class _LoginInputState extends State<_LoginInput> with RestorationMixin {
           decoration: InputDecoration(
             labelText: widget.labelText,
             border: const OutlineInputBorder(),
-            icon: const Icon(Icons.link),
+            icon: Icon(widget.icon),
             errorText:
                 state.serverURL.displayError != null ? widget.errorText : null,
           ),
