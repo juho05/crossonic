@@ -142,7 +142,7 @@ class _SearchPageState extends State<SearchPage> {
                                     scaffoldMessenger: scaffoldMessenger,
                                     successMessage:
                                         "Added '${state.results[i].name}' to priority queue",
-                                    errorMessage: "An unexpected error occured",
+                                    showErrorMessage: true,
                                     callback: (songs) {
                                       audioHandler.mediaQueue
                                           .addAllToPriorityQueue(songs);
@@ -155,7 +155,7 @@ class _SearchPageState extends State<SearchPage> {
                                     scaffoldMessenger: scaffoldMessenger,
                                     successMessage:
                                         "Added '${state.results[i].name}' to queue",
-                                    errorMessage: "An unexpected error occured",
+                                    showErrorMessage: true,
                                     callback: (songs) {
                                       audioHandler.mediaQueue.addAll(songs);
                                     },
@@ -178,7 +178,7 @@ class _SearchPageState extends State<SearchPage> {
                                     scaffoldMessenger: scaffoldMessenger,
                                     successMessage:
                                         "Added '${state.results[i].name}' to priority queue",
-                                    errorMessage: "An unexpected error occured",
+                                    showErrorMessage: true,
                                     callback: (songs) {
                                       audioHandler.mediaQueue
                                           .addAllToPriorityQueue(songs);
@@ -192,7 +192,7 @@ class _SearchPageState extends State<SearchPage> {
                                     scaffoldMessenger: scaffoldMessenger,
                                     successMessage:
                                         "Added '${state.results[i].name}' to queue",
-                                    errorMessage: "An unexpected error occured",
+                                    showErrorMessage: true,
                                     callback: (songs) {
                                       audioHandler.mediaQueue.addAll(songs);
                                     },
@@ -220,7 +220,7 @@ class _SearchPageState extends State<SearchPage> {
     required SubsonicRepository repository,
     required ScaffoldMessengerState scaffoldMessenger,
     String? successMessage,
-    String? errorMessage,
+    bool showErrorMessage = false,
   }) async {
     try {
       final result = await repository.getAlbum(albumID);
@@ -233,7 +233,7 @@ class _SearchPageState extends State<SearchPage> {
         ));
       }
     } catch (e) {
-      if (errorMessage != null) {
+      if (showErrorMessage) {
         print(e);
         scaffoldMessenger.showSnackBar(const SnackBar(
           content: Text('An unexpected error occured'),
@@ -253,11 +253,11 @@ class _SearchPageState extends State<SearchPage> {
     required SubsonicRepository repository,
     required ScaffoldMessengerState scaffoldMessenger,
     String? successMessage,
-    String? errorMessage,
+    bool showErrorMessage = false,
   }) async {
     try {
       final result = await repository.getArtist(artistID);
-      final songLists = await Future.wait(result.album.map((a) async {
+      final songLists = await Future.wait((result.album ?? []).map((a) async {
         final album = await repository.getAlbum(a.id);
         return album.song ?? <Media>[];
       }));
@@ -270,7 +270,7 @@ class _SearchPageState extends State<SearchPage> {
         ));
       }
     } catch (e) {
-      if (errorMessage != null) {
+      if (showErrorMessage) {
         print(e);
         scaffoldMessenger.showSnackBar(const SnackBar(
           content: Text('An unexpected error occured'),

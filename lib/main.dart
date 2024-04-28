@@ -5,6 +5,7 @@ import 'package:audio_session/audio_session.dart';
 import 'package:crossonic/app.dart';
 import 'package:crossonic/features/album/state/album_cubit.dart';
 import 'package:crossonic/features/albums/state/albums_bloc.dart';
+import 'package:crossonic/features/artist/state/artist_cubit.dart';
 import 'package:crossonic/features/auth/auth.dart';
 import 'package:crossonic/features/home/view/state/random_songs_cubit.dart';
 import 'package:crossonic/features/home/view/state/now_playing_cubit.dart';
@@ -71,6 +72,7 @@ Future<void> main() async {
         BlocProvider(create: (_) => AlbumCubit(subsonicRepository)),
         BlocProvider(create: (_) => AlbumsBloc(subsonicRepository)),
         BlocProvider(create: (_) => SearchBloc(subsonicRepository)),
+        BlocProvider(create: (_) => ArtistCubit(subsonicRepository)),
       ],
       child: const App(),
     ),

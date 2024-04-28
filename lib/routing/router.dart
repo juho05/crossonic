@@ -1,6 +1,7 @@
 import 'package:crossonic/features/album/album_page.dart';
 import 'package:crossonic/features/albums/albums_page.dart';
 import 'package:crossonic/features/albums/state/albums_bloc.dart';
+import 'package:crossonic/features/artist/artist_page.dart';
 import 'package:crossonic/features/auth/auth.dart';
 import 'package:crossonic/features/home/home.dart';
 import 'package:crossonic/features/home/view/home_page.dart';
@@ -38,6 +39,14 @@ List<RouteBase> _tabRoutes(String prefix) => [
           child: AlbumPage(albumID: state.pathParameters["albumID"] ?? ""),
           restorationId: _tabRoutePath(
               prefix, "/album/${state.pathParameters["albumID"] ?? ""}"),
+        ),
+      ),
+      GoRoute(
+        path: _tabRoutePath(prefix, "/artist/:artistID"),
+        pageBuilder: (context, state) => NoTransitionPage(
+          child: ArtistPage(artistID: state.pathParameters["artistID"] ?? ""),
+          restorationId: _tabRoutePath(
+              prefix, "/artist/${state.pathParameters["artistID"] ?? ""}"),
         ),
       ),
       GoRoute(

@@ -7,6 +7,7 @@ import 'package:crossonic/repositories/subsonic/models/albumid3_model.dart';
 import 'package:crossonic/repositories/subsonic/models/artist_model.dart';
 import 'package:crossonic/repositories/subsonic/models/models.dart';
 import 'package:crossonic/repositories/subsonic/models/responses/getalbumlist2_response.dart';
+import 'package:crossonic/repositories/subsonic/models/responses/gettopsongs_response.dart';
 import 'package:crossonic/repositories/subsonic/models/responses/search3_response.dart';
 import 'package:http/http.dart' as http;
 import 'package:crypto/crypto.dart';
@@ -95,6 +96,18 @@ class SubsonicRepository {
         },
         Artist.fromJson,
         "artist");
+  }
+
+  Future<List<Media>> getTopSongs(String artistName, int count) async {
+    final response = await _jsonRequest(
+        "getTopSongs",
+        {
+          "artist": artistName,
+          "count": count.toString(),
+        },
+        GetTopSongsResponse.fromJson,
+        "topSongs");
+    return response.song ?? [];
   }
 
   Future<List<AlbumID3>> getAlbumList2(

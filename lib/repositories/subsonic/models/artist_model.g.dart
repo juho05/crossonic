@@ -22,8 +22,8 @@ Artist _$ArtistFromJson(Map<String, dynamic> json) => $checkedCreate(
               'starred', (v) => v == null ? null : DateTime.parse(v as String)),
           album: $checkedConvert(
               'album',
-              (v) => (v as List<dynamic>)
-                  .map((e) => AlbumID3.fromJson(e as Map<String, dynamic>))
+              (v) => (v as List<dynamic>?)
+                  ?.map((e) => AlbumID3.fromJson(e as Map<String, dynamic>))
                   .toList()),
           artistImageUrl:
               $checkedConvert('artistImageUrl', (v) => v as String?),
@@ -54,6 +54,6 @@ Map<String, dynamic> _$ArtistToJson(Artist instance) {
   writeNotNull('starred', instance.starred?.toIso8601String());
   writeNotNull('userRating', instance.userRating);
   writeNotNull('averageRating', instance.averageRating);
-  val['album'] = instance.album;
+  writeNotNull('album', instance.album);
   return val;
 }

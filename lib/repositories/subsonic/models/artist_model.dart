@@ -13,7 +13,7 @@ class Artist {
   final DateTime? starred;
   final int? userRating;
   final double? averageRating;
-  final List<AlbumID3> album;
+  final List<AlbumID3>? album;
 
   Artist({
     required this.id,
