@@ -49,6 +49,7 @@ class _SearchPageState extends State<SearchPage> {
                       labelText: "Search...",
                       icon: Icon(Icons.search),
                     ),
+                    autofocus: true,
                     restorationId: "search-page-search-input",
                     onChanged: (value) {
                       context.read<SearchBloc>().add(SearchTextChanged(value));

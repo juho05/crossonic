@@ -33,10 +33,11 @@ class AlbumsBloc extends Bloc<AlbumsEvent, AlbumsState> {
   final SubsonicRepository _subsonicRepository;
 
   AlbumsBloc(this._subsonicRepository) : super(const AlbumsState()) {
-    on<AlbumsNextPageFetched>(
-        (event, emit) async =>
-            await _fetch(albumsPerPage, state.albums.length, emit),
-        transformer: throttleDroppable(throttleDuration));
+    on<AlbumsNextPageFetched>((event, emit) async {
+      if (!state.reachedEnd) {
+        await _fetch(albumsPerPage, state.albums.length, emit);
+      }
+    }, transformer: throttleDroppable(throttleDuration));
     on<AlbumSortModeSelected>((event, emit) async {
       if (_sortMode == event.mode) return;
       _sortMode = event.mode;

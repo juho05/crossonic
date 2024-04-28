@@ -90,29 +90,39 @@ class _AlbumsPageState extends State<AlbumsPage> {
                     return const CircularProgressIndicator.adaptive();
                   }
                   return Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Wrap(
-                        spacing: 15,
-                        runSpacing: 12,
-                        alignment: WrapAlignment.spaceEvenly,
-                        children: List<Widget>.generate(
-                            state.albums.length,
-                            (i) => SizedBox(
-                                  height: 200,
-                                  child: Album(
-                                    id: state.albums[i].id,
-                                    name: state.albums[i].name,
-                                    coverID: state.albums[i].coverID,
-                                    extraInfo:
-                                        "${state.albums[i].artist}${state.albums[i].year != null ? " • ${state.albums[i].year}" : ""}",
-                                  ),
-                                )),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Wrap(
+                            spacing: 15,
+                            runSpacing: 12,
+                            alignment: WrapAlignment.spaceEvenly,
+                            children: List<Widget>.generate(
+                                state.albums.length,
+                                (i) => SizedBox(
+                                      height: 200,
+                                      child: Album(
+                                        id: state.albums[i].id,
+                                        name: state.albums[i].name,
+                                        coverID: state.albums[i].coverID,
+                                        extraInfo:
+                                            "${state.albums[i].artist}${state.albums[i].year != null ? " • ${state.albums[i].year}" : ""}",
+                                      ),
+                                    )),
+                          ),
+                        ],
                       ),
                       if (state.status == FetchStatus.loading)
-                        const CircularProgressIndicator.adaptive(),
+                        const Padding(
+                          padding: EdgeInsets.only(top: 15, bottom: 8),
+                          child: CircularProgressIndicator.adaptive(),
+                        ),
                       if (state.status == FetchStatus.failure)
-                        const Icon(Icons.wifi_off),
+                        const Padding(
+                          padding: EdgeInsets.only(top: 15, bottom: 8),
+                          child: Icon(Icons.wifi_off),
+                        ),
                     ],
                   );
                 },
