@@ -149,19 +149,20 @@ class CrossonicAudioHandlerWindows implements CrossonicAudioHandler {
         _playbackState.add(const CrossonicPlaybackState(
             status: CrossonicPlaybackStatus.loading, position: Duration.zero));
 
-        final oldPlayer = _currentPlayer;
-        _currentPlayer = _nextPlayerIndex;
-
         final streamURL =
             (await _subsonicRepository.getStreamURL(songID: value.item.id))
                 .toString();
 
-        _players[oldPlayer].release();
-        if (!value.fromNext ||
-            _nextPlayerURL == null ||
-            _nextPlayerURL != _nextURL) {
+        final prefetched = value.fromNext &&
+            _nextPlayerURL != null &&
+            _nextPlayerURL == _nextURL;
+
+        final oldPlayer = _currentPlayer;
+        if (prefetched) {
+          _currentPlayer = _nextPlayerIndex;
+          _players[oldPlayer].release();
+        } else {
           await _players[_currentPlayer].setSourceUrl(streamURL);
-          await Future.delayed(const Duration(milliseconds: 100));
         }
         _nextPlayerURL = null;
 

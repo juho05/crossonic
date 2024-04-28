@@ -118,6 +118,7 @@ class _SearchPageState extends State<SearchPage> {
                                   showArtist: true,
                                   showYear: true,
                                   onTap: () {
+                                    audioHandler.playOnNextMediaChange();
                                     audioHandler.mediaQueue.replaceQueue(
                                         state.results
                                             .map((e) => e.media!)
