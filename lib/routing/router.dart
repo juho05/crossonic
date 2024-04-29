@@ -7,6 +7,7 @@ import 'package:crossonic/features/home/home.dart';
 import 'package:crossonic/features/home/view/home_page.dart';
 import 'package:crossonic/features/login/login.dart';
 import 'package:crossonic/features/playlists/playlists.dart';
+import 'package:crossonic/features/queue/queue_page.dart';
 import 'package:crossonic/features/search/search_page.dart';
 import 'package:crossonic/features/settings/settings.dart';
 import 'package:crossonic/features/splash/splash.dart';
@@ -24,6 +25,7 @@ final _topLevelRoutes = [
   _newRoute("/", const SplashPage()),
   _newRoute("/login", const LoginPage()),
   _newRoute("/settings", const SettingsPage()),
+  _newRoute("/queue", const QueuePage()),
 ];
 
 String _tabRoutePath(String prefix, String path) =>

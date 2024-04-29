@@ -21,9 +21,23 @@ import 'package:crossonic/services/audio_player/scrobble/scrobbler.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:window_manager/window_manager.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
+    await windowManager.ensureInitialized();
+    const windowOptions = WindowOptions(
+      size: Size(1200, 800),
+      center: true,
+      title: "Crossonic",
+    );
+    windowManager.waitUntilReadyToShow(windowOptions, () async {
+      await windowManager.show();
+      await windowManager.focus();
+    });
+  }
+
   final sharedPreferences = await SharedPreferences.getInstance();
   final authRepository = AuthRepository();
   final crossonicRepository = CrossonicRepository(authRepository);

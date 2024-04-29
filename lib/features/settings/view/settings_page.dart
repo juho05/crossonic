@@ -10,7 +10,6 @@ class SettingsPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Crossonic | Settings'),
-        titleSpacing: 5,
       ),
       body: Center(
         child: ElevatedButton(

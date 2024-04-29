@@ -9,16 +9,24 @@ class CurrentMedia {
   final bool currentChanged;
   final bool fromNext;
   final bool inPriorityQueue;
-  const CurrentMedia(this.item, this.next,
-      {this.currentChanged = true,
-      this.fromNext = false,
-      this.inPriorityQueue = false});
+  final int index;
+  const CurrentMedia(
+    this.item,
+    this.next, {
+    required this.index,
+    this.currentChanged = true,
+    this.fromNext = false,
+    required this.inPriorityQueue,
+  });
 }
 
 class MediaQueue {
   final _priorityQueue = Queue<Media>();
   final _queue = <Media>[];
   final BehaviorSubject<CurrentMedia?> current = BehaviorSubject()..add(null);
+
+  List<Media> get queue => _queue;
+  Queue<Media> get priorityQueue => _priorityQueue;
 
   var _nextIndex = 0;
 
@@ -31,6 +39,8 @@ class MediaQueue {
       _priorityQueue.isNotEmpty
           ? _priorityQueue.first
           : _queue.elementAtOrNull(_nextIndex),
+      index: startIndex,
+      inPriorityQueue: false,
     ));
   }
 
@@ -47,6 +57,8 @@ class MediaQueue {
         _priorityQueue.isNotEmpty
             ? _priorityQueue.first
             : _queue.elementAtOrNull(_nextIndex),
+        index: 0,
+        inPriorityQueue: false,
       ));
     } else if (current.value!.next == null && _nextIndex < songs.length) {
       current.add(CurrentMedia(
@@ -54,9 +66,29 @@ class MediaQueue {
         _priorityQueue.isNotEmpty
             ? _priorityQueue.first
             : _queue.elementAtOrNull(_nextIndex),
+        index: current.value!.index,
         currentChanged: false,
+        inPriorityQueue: current.value!.inPriorityQueue,
       ));
     }
+  }
+
+  void insert(int index, Media song) {
+    if (index == _queue.length) {
+      add(song);
+      return;
+    }
+    _queue.insert(index, song);
+    if (index == _nextIndex && _priorityQueue.isEmpty) {
+      current.add(CurrentMedia(
+        current.value!.item,
+        _queue.elementAtOrNull(_nextIndex),
+        index: current.value!.index,
+        currentChanged: false,
+        inPriorityQueue: current.value!.inPriorityQueue,
+      ));
+    }
+    if (index < _nextIndex) _nextIndex++;
   }
 
   void remove(int index) {
@@ -65,7 +97,9 @@ class MediaQueue {
       current.add(CurrentMedia(
         current.value!.item,
         _queue.elementAtOrNull(_nextIndex),
+        index: current.value!.index,
         currentChanged: false,
+        inPriorityQueue: current.value!.inPriorityQueue,
       ));
     }
     if (index < _nextIndex) _nextIndex--;
@@ -93,6 +127,8 @@ class MediaQueue {
         _priorityQueue.isNotEmpty
             ? _priorityQueue.first
             : _queue.elementAtOrNull(_nextIndex),
+        inPriorityQueue: true,
+        index: -1,
       ));
       return;
     }
@@ -101,6 +137,8 @@ class MediaQueue {
         current.value!.item,
         _priorityQueue.first,
         currentChanged: false,
+        inPriorityQueue: current.value!.inPriorityQueue,
+        index: current.value!.index,
       ));
     }
   }
@@ -114,12 +152,36 @@ class MediaQueue {
             ? _priorityQueue.first
             : _queue.elementAtOrNull(_nextIndex),
         currentChanged: false,
+        inPriorityQueue: current.value!.inPriorityQueue,
+        index: current.value!.index,
       ));
     } else if (index == _priorityQueue.length - 1) {
       _priorityQueue.removeLast();
     } else {
       final list = _priorityQueue.toList();
       list.removeAt(index);
+      _priorityQueue.clear();
+      _priorityQueue.addAll(list);
+    }
+  }
+
+  void insertIntoPriorityQueue(int index, Media song) {
+    if (index == 0) {
+      _priorityQueue.addFirst(song);
+      current.add(CurrentMedia(
+        current.value!.item,
+        _priorityQueue.isNotEmpty
+            ? _priorityQueue.first
+            : _queue.elementAtOrNull(_nextIndex),
+        currentChanged: false,
+        inPriorityQueue: current.value!.inPriorityQueue,
+        index: current.value!.index,
+      ));
+    } else if (index == _priorityQueue.length) {
+      _priorityQueue.addLast(song);
+    } else {
+      final list = _priorityQueue.toList();
+      list.insert(index, song);
       _priorityQueue.clear();
       _priorityQueue.addAll(list);
     }
@@ -132,6 +194,28 @@ class MediaQueue {
       current.value!.item,
       _queue.elementAtOrNull(_nextIndex),
       currentChanged: false,
+      inPriorityQueue: current.value!.inPriorityQueue,
+      index: current.value!.index,
+    ));
+  }
+
+  void gotoPriorityQueue(int index) {
+    if (index < 0 || index >= _priorityQueue.length) {
+      throw InvalidStateException(
+          "Priority queue index out of bounds: no index $index in priority queue of length ${_priorityQueue.length}");
+    }
+    for (var i = 0; i < index; i++) {
+      _priorityQueue.removeFirst();
+    }
+    final next = _priorityQueue.removeFirst();
+    current.add(CurrentMedia(
+      next,
+      _priorityQueue.isNotEmpty
+          ? _priorityQueue.first
+          : _queue.elementAtOrNull(_nextIndex),
+      inPriorityQueue: true,
+      currentChanged: true,
+      index: current.value!.index,
     ));
   }
 
@@ -147,6 +231,8 @@ class MediaQueue {
           ? _priorityQueue.first
           : _queue.elementAtOrNull(_nextIndex),
       fromNext: true,
+      inPriorityQueue: false,
+      index: index,
     ));
   }
 
@@ -167,6 +253,8 @@ class MediaQueue {
       _priorityQueue.isNotEmpty
           ? _priorityQueue.first
           : _queue.elementAtOrNull(_nextIndex),
+      inPriorityQueue: false,
+      index: _nextIndex - 1,
     ));
   }
 
@@ -192,6 +280,7 @@ class MediaQueue {
           : _queue.elementAtOrNull(_nextIndex),
       fromNext: true,
       inPriorityQueue: inPriorityQueue,
+      index: _nextIndex - 1,
     ));
     return true;
   }

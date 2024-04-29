@@ -1,6 +1,5 @@
 import 'dart:math';
 
-import 'package:crossonic/features/album/state/album_cubit.dart';
 import 'package:crossonic/features/artist/state/artist_cubit.dart';
 import 'package:crossonic/fetch_status.dart';
 import 'package:crossonic/repositories/subsonic/models/media_model.dart';
@@ -8,7 +7,6 @@ import 'package:crossonic/repositories/subsonic/subsonic_repository.dart';
 import 'package:crossonic/services/audio_player/audio_handler.dart';
 import 'package:crossonic/widgets/album.dart';
 import 'package:crossonic/widgets/cover_art.dart';
-import 'package:crossonic/widgets/song.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';

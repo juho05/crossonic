@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 enum SongPopupMenuValue {
   addToPriorityQueue,
   addToQueue,
+  remove,
   gotoAlbum,
   gotoArtist
 }
@@ -22,9 +23,13 @@ class Song extends StatelessWidget {
   final bool showYear;
   final bool showGotoAlbum;
   final bool showGotoArtist;
-  final EdgeInsetsGeometry padding;
+  final bool showAddToQueue;
+  final int? reorderIndex;
+  final IconData? leadingIcon;
+  final void Function()? onRemove;
+  late final EdgeInsetsGeometry? padding;
   final void Function()? onTap;
-  const Song({
+  Song({
     super.key,
     required this.song,
     this.leadingItem = SongLeadingItem.none,
@@ -33,32 +38,66 @@ class Song extends StatelessWidget {
     this.showYear = false,
     this.showGotoAlbum = true,
     this.showGotoArtist = true,
+    this.showAddToQueue = true,
+    this.leadingIcon,
+    this.reorderIndex,
+    this.onRemove,
     this.onTap,
-    this.padding = const EdgeInsets.only(left: 16, right: 5),
-  });
+    padding,
+  }) {
+    this.padding = padding ??
+        EdgeInsets.only(
+            left: reorderIndex != null || leadingIcon != null ? 8 : 16,
+            right: 5);
+  }
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final duration =
         song.duration != null ? Duration(seconds: song.duration!) : null;
+    final leadingChildren = [
+      if (leadingIcon != null)
+        Padding(
+          padding: const EdgeInsets.only(right: 8.0),
+          child: SizedBox(height: 40, child: Icon(leadingIcon)),
+        ),
+      if (reorderIndex != null)
+        const Padding(
+          padding: EdgeInsets.only(right: 8.0),
+          child: Icon(Icons.drag_handle),
+        ),
+      if (song.track != null && leadingItem == SongLeadingItem.track)
+        Text(
+          song.track.toString().padLeft(2, '0'),
+          overflow: TextOverflow.ellipsis,
+          style: textTheme.bodyMedium?.copyWith(
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      if (song.coverArt != null && leadingItem == SongLeadingItem.cover)
+        CoverArt(
+          size: 40,
+          coverID: song.coverArt!,
+          resolution: const CoverResolution.tiny(),
+          borderRadius: BorderRadius.circular(5),
+        ),
+    ];
     return ListTile(
-      leading: (song.track != null && leadingItem == SongLeadingItem.track)
-          ? Text(
-              song.track.toString().padLeft(2, '0'),
-              overflow: TextOverflow.ellipsis,
-              style: textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w500,
-              ),
+      leading: reorderIndex == null
+          ? Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: leadingChildren,
             )
-          : (song.coverArt != null && leadingItem == SongLeadingItem.cover
-              ? CoverArt(
-                  size: 40,
-                  coverID: song.coverArt!,
-                  resolution: const CoverResolution.tiny(),
-                  borderRadius: BorderRadius.circular(5),
-                )
-              : null),
+          : ReorderableDragStartListener(
+              index: reorderIndex!,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: leadingChildren,
+              ),
+            ),
       title: Row(
         children: [
           Expanded(
@@ -102,64 +141,81 @@ class Song extends StatelessWidget {
       ),
       horizontalTitleGap: 0,
       contentPadding: padding,
-      trailing: PopupMenuButton<SongPopupMenuValue>(
-        icon: const Icon(Icons.more_vert),
-        onSelected: (value) {
-          final audioHandler = context.read<CrossonicAudioHandler>();
-          switch (value) {
-            case SongPopupMenuValue.addToPriorityQueue:
-              audioHandler.mediaQueue.addToPriorityQueue(song);
-              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                content: Text('Added "${song.title}" to priority queue'),
-                behavior: SnackBarBehavior.floating,
-                duration: const Duration(milliseconds: 1250),
-              ));
-            case SongPopupMenuValue.addToQueue:
-              audioHandler.mediaQueue.add(song);
-              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                content: Text('Added "${song.title}" to queue'),
-                behavior: SnackBarBehavior.floating,
-                duration: const Duration(milliseconds: 1250),
-              ));
-            case SongPopupMenuValue.gotoAlbum:
-              context.push("/home/album/${song.albumId}");
-            case SongPopupMenuValue.gotoArtist:
-              context.push("/home/artist/${song.artistId}");
-          }
-        },
-        itemBuilder: (BuildContext context) => [
-          const PopupMenuItem(
-            value: SongPopupMenuValue.addToPriorityQueue,
-            child: ListTile(
-              leading: Icon(Icons.playlist_play),
-              title: Text('Add to priority queue'),
-            ),
-          ),
-          const PopupMenuItem(
-            value: SongPopupMenuValue.addToQueue,
-            child: ListTile(
-              leading: Icon(Icons.playlist_add),
-              title: Text('Add to queue'),
-            ),
-          ),
-          if (showGotoAlbum && song.albumId != null)
-            const PopupMenuItem(
-              value: SongPopupMenuValue.gotoAlbum,
-              child: ListTile(
-                leading: Icon(Icons.album),
-                title: Text('Go to album'),
-              ),
-            ),
-          if (showGotoArtist && song.artistId != null)
-            const PopupMenuItem(
-              value: SongPopupMenuValue.gotoArtist,
-              child: ListTile(
-                leading: Icon(Icons.person),
-                title: Text('Go to artist'),
-              ),
-            ),
-        ],
-      ),
+      trailing: showAddToQueue ||
+              onRemove != null ||
+              showGotoAlbum ||
+              showGotoArtist
+          ? PopupMenuButton<SongPopupMenuValue>(
+              icon: const Icon(Icons.more_vert),
+              onSelected: (value) {
+                final audioHandler = context.read<CrossonicAudioHandler>();
+                switch (value) {
+                  case SongPopupMenuValue.addToPriorityQueue:
+                    audioHandler.mediaQueue.addToPriorityQueue(song);
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      content: Text('Added "${song.title}" to priority queue'),
+                      behavior: SnackBarBehavior.floating,
+                      duration: const Duration(milliseconds: 1250),
+                    ));
+                  case SongPopupMenuValue.addToQueue:
+                    audioHandler.mediaQueue.add(song);
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      content: Text('Added "${song.title}" to queue'),
+                      behavior: SnackBarBehavior.floating,
+                      duration: const Duration(milliseconds: 1250),
+                    ));
+                  case SongPopupMenuValue.remove:
+                    onRemove!();
+                  case SongPopupMenuValue.gotoAlbum:
+                    context.push("/home/album/${song.albumId}");
+                  case SongPopupMenuValue.gotoArtist:
+                    context.push("/home/artist/${song.artistId}");
+                }
+              },
+              itemBuilder: (BuildContext context) => [
+                if (showAddToQueue)
+                  const PopupMenuItem(
+                    value: SongPopupMenuValue.addToPriorityQueue,
+                    child: ListTile(
+                      leading: Icon(Icons.playlist_play),
+                      title: Text('Add to priority queue'),
+                    ),
+                  ),
+                if (showAddToQueue)
+                  const PopupMenuItem(
+                    value: SongPopupMenuValue.addToQueue,
+                    child: ListTile(
+                      leading: Icon(Icons.playlist_add),
+                      title: Text('Add to queue'),
+                    ),
+                  ),
+                if (onRemove != null)
+                  const PopupMenuItem(
+                    value: SongPopupMenuValue.remove,
+                    child: ListTile(
+                      leading: Icon(Icons.playlist_remove),
+                      title: Text('Remove'),
+                    ),
+                  ),
+                if (showGotoAlbum && song.albumId != null)
+                  const PopupMenuItem(
+                    value: SongPopupMenuValue.gotoAlbum,
+                    child: ListTile(
+                      leading: Icon(Icons.album),
+                      title: Text('Go to album'),
+                    ),
+                  ),
+                if (showGotoArtist && song.artistId != null)
+                  const PopupMenuItem(
+                    value: SongPopupMenuValue.gotoArtist,
+                    child: ListTile(
+                      leading: Icon(Icons.person),
+                      title: Text('Go to artist'),
+                    ),
+                  ),
+              ],
+            )
+          : const SizedBox(),
       onTap: onTap,
     );
   }
