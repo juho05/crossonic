@@ -67,6 +67,9 @@ class _SongState extends State<Song> {
         return rebuild;
       },
       builder: (context, state) {
+        final isCurrent = state.hasMedia && state.songID == widget.song.id;
+        _isCurrent = isCurrent;
+        _playbackStatus = state.playbackState.status;
         final leadingChildren = [
           if (widget.reorderIndex != null)
             const Padding(
