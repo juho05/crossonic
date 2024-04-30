@@ -52,7 +52,6 @@ class _QueuePageState extends State<QueuePage> {
                     Song(
                       song: state.current!,
                       leadingItem: SongLeadingItem.cover,
-                      leadingIcon: Icons.play_arrow,
                       showArtist: true,
                       showYear: true,
                       showAddToQueue: false,

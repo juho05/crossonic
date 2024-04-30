@@ -22,7 +22,6 @@ dependencies:
   audio_service: ^0.18.13
   just_audio: ^0.9.37
   audio_session: ^0.1.19
-  just_audio_mpv: ^0.1.7
   audio_service_mpris: ^0.1.3
   sliding_up_panel: ^2.0.0+1
   rxdart: ^0.27.7
