@@ -33,6 +33,7 @@ class AlbumsBloc extends Bloc<AlbumsEvent, AlbumsState> {
   final SubsonicRepository _subsonicRepository;
 
   AlbumsBloc(this._subsonicRepository) : super(const AlbumsState()) {
+    print("new albums bloc");
     on<AlbumsNextPageFetched>((event, emit) async {
       if (!state.reachedEnd) {
         await _fetch(albumsPerPage, state.albums.length, emit);

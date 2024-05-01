@@ -18,190 +18,201 @@ class ArtistPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Crossonic | Artist'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () => context.push("/settings"),
-          )
-        ],
-      ),
-      body: BlocBuilder<ArtistCubit, ArtistState>(
-        builder: (context, artist) {
-          if (artist.id != artistID && artist.status != FetchStatus.failure) {
-            context.read<ArtistCubit>().updateID(artistID);
-            return const Center(child: CircularProgressIndicator.adaptive());
-          }
-          final audioHandler = context.read<CrossonicAudioHandler>();
-          final subsonicRepository = context.read<SubsonicRepository>();
-          final scaffoldMessenger = ScaffoldMessenger.of(context);
-          return switch (artist.status) {
-            FetchStatus.initial ||
-            FetchStatus.loading =>
-              const Center(child: CircularProgressIndicator.adaptive()),
-            FetchStatus.failure => const Center(child: Icon(Icons.wifi_off)),
-            FetchStatus.success => LayoutBuilder(
-                builder: (context, constraints) {
-                  final theme = Theme.of(context);
-                  return SingleChildScrollView(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 13),
-                      child: Center(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            CoverArt(
-                              size: min(constraints.maxHeight * 0.60,
-                                  constraints.maxWidth - 25),
-                              resolution: const CoverResolution.extraLarge(),
-                              coverID: artist.coverID,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            const SizedBox(height: 10),
-                            Text(
-                              artist.name,
-                              style: theme.textTheme.bodyLarge!.copyWith(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 22,
+    return BlocProvider(
+      create: (context) => ArtistCubit(context.read<SubsonicRepository>()),
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Crossonic | Artist'),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.settings),
+              onPressed: () => context.push("/settings"),
+            )
+          ],
+        ),
+        body: BlocBuilder<ArtistCubit, ArtistState>(
+          builder: (context, artist) {
+            if (artist.id != artistID && artist.status != FetchStatus.failure) {
+              context.read<ArtistCubit>().updateID(artistID);
+              return const Center(child: CircularProgressIndicator.adaptive());
+            }
+            final audioHandler = context.read<CrossonicAudioHandler>();
+            final subsonicRepository = context.read<SubsonicRepository>();
+            final scaffoldMessenger = ScaffoldMessenger.of(context);
+            return switch (artist.status) {
+              FetchStatus.initial ||
+              FetchStatus.loading =>
+                const Center(child: CircularProgressIndicator.adaptive()),
+              FetchStatus.failure => const Center(child: Icon(Icons.wifi_off)),
+              FetchStatus.success => LayoutBuilder(
+                  builder: (context, constraints) {
+                    final theme = Theme.of(context);
+                    return SingleChildScrollView(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 13),
+                        child: Center(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              CoverArt(
+                                size: min(constraints.maxHeight * 0.60,
+                                    constraints.maxWidth - 25),
+                                resolution: const CoverResolution.extraLarge(),
+                                coverID: artist.coverID,
+                                borderRadius: BorderRadius.circular(10),
                               ),
-                            ),
-                            Text(
-                              artist.genres.isNotEmpty
-                                  ? artist.genres
-                                      .sublist(0, min(3, artist.genres.length))
-                                      .join(", ")
-                                  : "Unknown genre",
-                              overflow: TextOverflow.ellipsis,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyLarge!
-                                  .copyWith(
-                                    fontWeight: FontWeight.w400,
-                                    fontSize: 15,
-                                  ),
-                            ),
-                            const SizedBox(height: 10),
-                            SizedBox(
-                              width: 100000,
-                              child: SingleChildScrollView(
-                                scrollDirection: Axis.horizontal,
-                                child: Row(
-                                  children: [
-                                    ElevatedButton.icon(
-                                      icon: const Icon(Icons.play_arrow),
-                                      label: const Text('Play'),
-                                      onPressed: () {
-                                        doSomethingWithArtistSongs(
-                                          albums: artist.albums,
-                                          repository: subsonicRepository,
-                                          scaffoldMessenger: scaffoldMessenger,
-                                          callback: (songs) {
-                                            audioHandler
-                                                .playOnNextMediaChange();
-                                            audioHandler.mediaQueue
-                                                .replaceQueue(songs);
-                                          },
-                                        );
-                                      },
-                                    ),
-                                    const SizedBox(width: 8),
-                                    ElevatedButton.icon(
-                                      icon: const Icon(Icons.playlist_play),
-                                      label: const Text('Prio. Queue'),
-                                      onPressed: () {
-                                        doSomethingWithArtistSongs(
-                                          albums: artist.albums,
-                                          repository: subsonicRepository,
-                                          scaffoldMessenger: scaffoldMessenger,
-                                          successMessage:
-                                              "Added '${artist.name} to priority queue",
-                                          callback: (songs) {
-                                            audioHandler.mediaQueue
-                                                .addAllToPriorityQueue(songs);
-                                          },
-                                        );
-                                      },
-                                    ),
-                                    const SizedBox(width: 8),
-                                    ElevatedButton.icon(
-                                      icon: const Icon(
-                                          Icons.playlist_add_outlined),
-                                      label: const Text('Queue'),
-                                      onPressed: () {
-                                        doSomethingWithArtistSongs(
-                                          albums: artist.albums,
-                                          repository: subsonicRepository,
-                                          scaffoldMessenger: scaffoldMessenger,
-                                          successMessage:
-                                              "Added '${artist.name} to queue",
-                                          callback: (songs) {
-                                            audioHandler.mediaQueue
-                                                .addAll(songs);
-                                          },
-                                        );
-                                      },
-                                    )
-                                  ],
+                              const SizedBox(height: 10),
+                              Text(
+                                artist.name,
+                                style: theme.textTheme.bodyLarge!.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 22,
                                 ),
                               ),
-                            ),
-                            const SizedBox(height: 10),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                Text(
-                                  "Albums (${artist.albums.length})",
-                                  style: theme.textTheme.headlineSmall!
-                                      .copyWith(fontSize: 20),
-                                ),
-                                const SizedBox(height: 10),
-                                LayoutBuilder(builder: (context, constraints) {
-                                  return Column(
-                                    crossAxisAlignment:
-                                        constraints.maxWidth > 500
-                                            ? CrossAxisAlignment.stretch
-                                            : CrossAxisAlignment.center,
+                              Text(
+                                artist.genres.isNotEmpty
+                                    ? artist.genres
+                                        .sublist(
+                                            0, min(3, artist.genres.length))
+                                        .join(", ")
+                                    : "Unknown genre",
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyLarge!
+                                    .copyWith(
+                                      fontWeight: FontWeight.w400,
+                                      fontSize: 15,
+                                    ),
+                              ),
+                              const SizedBox(height: 10),
+                              SizedBox(
+                                width: 100000,
+                                child: SingleChildScrollView(
+                                  scrollDirection: Axis.horizontal,
+                                  child: Row(
                                     children: [
-                                      Wrap(
-                                        spacing: constraints.maxWidth <= 462 &&
-                                                constraints.maxWidth > 380
-                                            ? 30
-                                            : 15,
-                                        runSpacing: 12,
-                                        alignment: WrapAlignment.start,
-                                        children: List<Widget>.generate(
-                                            artist.albums.length,
-                                            (i) => SizedBox(
-                                                  height: 180,
-                                                  child: Album(
-                                                    id: artist.albums[i].id,
-                                                    name: artist.albums[i].name,
-                                                    coverID: artist
-                                                        .albums[i].coverID,
-                                                    extraInfo: artist.albums[i]
-                                                                .year !=
-                                                            null
-                                                        ? "${artist.albums[i].year}"
-                                                        : "Unknown year",
-                                                  ),
-                                                )),
+                                      ElevatedButton.icon(
+                                        icon: const Icon(Icons.play_arrow),
+                                        label: const Text('Play'),
+                                        onPressed: () {
+                                          doSomethingWithArtistSongs(
+                                            albums: artist.albums,
+                                            repository: subsonicRepository,
+                                            scaffoldMessenger:
+                                                scaffoldMessenger,
+                                            callback: (songs) {
+                                              audioHandler
+                                                  .playOnNextMediaChange();
+                                              audioHandler.mediaQueue
+                                                  .replaceQueue(songs);
+                                            },
+                                          );
+                                        },
                                       ),
+                                      const SizedBox(width: 8),
+                                      ElevatedButton.icon(
+                                        icon: const Icon(Icons.playlist_play),
+                                        label: const Text('Prio. Queue'),
+                                        onPressed: () {
+                                          doSomethingWithArtistSongs(
+                                            albums: artist.albums,
+                                            repository: subsonicRepository,
+                                            scaffoldMessenger:
+                                                scaffoldMessenger,
+                                            successMessage:
+                                                "Added '${artist.name} to priority queue",
+                                            callback: (songs) {
+                                              audioHandler.mediaQueue
+                                                  .addAllToPriorityQueue(songs);
+                                            },
+                                          );
+                                        },
+                                      ),
+                                      const SizedBox(width: 8),
+                                      ElevatedButton.icon(
+                                        icon: const Icon(
+                                            Icons.playlist_add_outlined),
+                                        label: const Text('Queue'),
+                                        onPressed: () {
+                                          doSomethingWithArtistSongs(
+                                            albums: artist.albums,
+                                            repository: subsonicRepository,
+                                            scaffoldMessenger:
+                                                scaffoldMessenger,
+                                            successMessage:
+                                                "Added '${artist.name} to queue",
+                                            callback: (songs) {
+                                              audioHandler.mediaQueue
+                                                  .addAll(songs);
+                                            },
+                                          );
+                                        },
+                                      )
                                     ],
-                                  );
-                                })
-                              ],
-                            )
-                          ],
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  Text(
+                                    "Albums (${artist.albums.length})",
+                                    style: theme.textTheme.headlineSmall!
+                                        .copyWith(fontSize: 20),
+                                  ),
+                                  const SizedBox(height: 10),
+                                  LayoutBuilder(
+                                      builder: (context, constraints) {
+                                    return Column(
+                                      crossAxisAlignment:
+                                          constraints.maxWidth > 500
+                                              ? CrossAxisAlignment.stretch
+                                              : CrossAxisAlignment.center,
+                                      children: [
+                                        Wrap(
+                                          spacing:
+                                              constraints.maxWidth <= 462 &&
+                                                      constraints.maxWidth > 380
+                                                  ? 30
+                                                  : 15,
+                                          runSpacing: 12,
+                                          alignment: WrapAlignment.start,
+                                          children: List<Widget>.generate(
+                                              artist.albums.length,
+                                              (i) => SizedBox(
+                                                    height: 180,
+                                                    child: Album(
+                                                      id: artist.albums[i].id,
+                                                      name:
+                                                          artist.albums[i].name,
+                                                      coverID: artist
+                                                          .albums[i].coverID,
+                                                      extraInfo: artist
+                                                                  .albums[i]
+                                                                  .year !=
+                                                              null
+                                                          ? "${artist.albums[i].year}"
+                                                          : "Unknown year",
+                                                    ),
+                                                  )),
+                                        ),
+                                      ],
+                                    );
+                                  })
+                                ],
+                              )
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                  );
-                },
-              ),
-          };
-        },
+                    );
+                  },
+                ),
+            };
+          },
+        ),
       ),
     );
   }
