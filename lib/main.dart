@@ -20,10 +20,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:window_manager/window_manager.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
+  if (!kIsWeb && (Platform.isWindows || Platform.isMacOS || Platform.isLinux)) {
     await windowManager.ensureInitialized();
     const windowOptions = WindowOptions(
       size: Size(1200, 800),
@@ -42,7 +43,7 @@ Future<void> main() async {
   final subsonicRepository = SubsonicRepository(authRepository);
   final CrossonicAudioHandler audioHandler;
   final NativeNotifier nativeNotifier;
-  if (Platform.isWindows) {
+  if (!kIsWeb && Platform.isWindows) {
     nativeNotifier = NativeNotifierSMTC();
   } else {
     final audioService = await AudioService.init(
@@ -54,7 +55,7 @@ Future<void> main() async {
     nativeNotifier = audioService;
   }
 
-  if (Platform.isWindows || Platform.isLinux) {
+  if (!kIsWeb && (Platform.isWindows || Platform.isLinux)) {
     audioHandler = CrossonicAudioHandlerAudioPlayers(
       subsonicRepository: subsonicRepository,
       notifier: nativeNotifier,

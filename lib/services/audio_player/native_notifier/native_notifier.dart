@@ -2,8 +2,8 @@ import 'package:crossonic/repositories/subsonic/models/media_model.dart';
 import 'package:crossonic/services/audio_player/audio_handler.dart';
 
 export 'native_notifier_audioservice.dart';
-export 'native_notifier_smtc.dart'
-    if (dart.library.io) 'native_notifier_smtc.dart';
+export 'native_notifier_smtc_stub.dart'
+    if (dart.library.ffi) 'native_notifier_smtc.dart';
 
 abstract interface class NativeNotifier {
   void ensureInitialized({

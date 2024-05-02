@@ -31,11 +31,10 @@ class AppView extends StatefulWidget {
 }
 
 class _AppViewState extends State<AppView> {
-  static final _defaultLightColorScheme =
-      ColorScheme.fromSwatch(primarySwatch: Colors.blue);
-  static final _defaultDarkColorScheme = ColorScheme.fromSwatch(
-      primarySwatch: Colors.blue, brightness: Brightness.dark);
-
+  static final _defaultLightColorScheme = ColorScheme.fromSeed(
+      seedColor: Colors.blue, brightness: Brightness.light);
+  static final _defaultDarkColorScheme =
+      ColorScheme.fromSeed(seedColor: Colors.blue, brightness: Brightness.dark);
   bool noRestore = false;
 
   @override
