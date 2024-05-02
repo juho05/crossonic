@@ -5,6 +5,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/cors"
 )
 
 type Handler struct {
@@ -22,6 +23,13 @@ func NewHandler() *Handler {
 
 func (h *Handler) registerRoutes() {
 	r := chi.NewRouter()
+
+	r.Use(cors.Handler(cors.Options{
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type"},
+		AllowCredentials: false,
+		MaxAge:           300,
+	}))
+
 	r.Post("/login", h.handleLogin)
 	r.Get("/ping", h.handlePing)
 	r.Post("/nowPlaying", h.handleNowPlaying)
