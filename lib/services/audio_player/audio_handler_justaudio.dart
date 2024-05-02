@@ -1,17 +1,16 @@
 import 'dart:async';
 
-import 'package:audio_service/audio_service.dart';
 import 'package:crossonic/repositories/subsonic/subsonic.dart';
 import 'package:crossonic/services/audio_player/audio_handler.dart';
 import 'package:crossonic/services/audio_player/media_queue.dart';
+import 'package:crossonic/services/audio_player/native_notifier/native_notifier.dart';
 import 'package:crossonic/widgets/cover_art.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:rxdart/rxdart.dart';
 
-class CrossonicAudioHandlerJustAudio extends BaseAudioHandler
-    with SeekHandler
-    implements CrossonicAudioHandler {
+class CrossonicAudioHandlerJustAudio implements CrossonicAudioHandler {
   final SubsonicRepository _subsonicRepository;
+  final NativeNotifier _notifier;
   final MediaQueue _queue = MediaQueue();
   final AudioPlayer _player = AudioPlayer();
   ConcatenatingAudioSource? _playlist;
@@ -26,53 +25,38 @@ class CrossonicAudioHandlerJustAudio extends BaseAudioHandler
 
   CrossonicAudioHandlerJustAudio({
     required SubsonicRepository subsonicRepository,
-  }) : _subsonicRepository = subsonicRepository {
+    required NativeNotifier notifier,
+  })  : _subsonicRepository = subsonicRepository,
+        _notifier = notifier {
     _playbackState.add(
         const CrossonicPlaybackState(status: CrossonicPlaybackStatus.stopped));
-    playbackState.add(PlaybackState(
-      controls: [
-        MediaControl.pause,
-        MediaControl.play,
-        MediaControl.skipToNext,
-        MediaControl.skipToPrevious,
-        MediaControl.stop,
-      ],
-      systemActions: {
-        MediaAction.pause,
-        MediaAction.play,
-        MediaAction.playPause,
-        MediaAction.seek,
-        MediaAction.seekForward,
-        MediaAction.seekBackward,
-        MediaAction.skipToNext,
-        MediaAction.skipToPrevious,
-        MediaAction.stop,
-      },
-      androidCompactActionIndices: [0, 1],
-    ));
+
+    _notifier.ensureInitialized(
+      onPlay: play,
+      onPause: pause,
+      onPlayNext: skipToNext,
+      onPlayPrev: skipToPrevious,
+      onSeek: seek,
+      onStop: stop,
+    );
+    _notifier.updateMedia(null, null);
 
     CrossonicPlaybackStatus? previousPlaybackStatus;
     _playbackState.listen((value) {
       if (previousPlaybackStatus == value.status) return;
+      previousPlaybackStatus = value.status;
+      _notifier.updatePlaybackState(value.status);
+      _updatePosition(updateNative: true);
       switch (value.status) {
         case CrossonicPlaybackStatus.playing:
-          playbackState.add(playbackState.value.copyWith(
-              playing: true, processingState: AudioProcessingState.ready));
           _startPositionTimer();
         case CrossonicPlaybackStatus.paused:
-          playbackState.add(playbackState.value.copyWith(
-              playing: false, processingState: AudioProcessingState.ready));
-          _updatePosition(updateNative: true);
           _stopPositionTimer();
         case CrossonicPlaybackStatus.loading:
-          playbackState.add(playbackState.value.copyWith(
-              playing: false, processingState: AudioProcessingState.loading));
+          break;
         case CrossonicPlaybackStatus.stopped:
-          playbackState.add(playbackState.value.copyWith(
-              playing: false, processingState: AudioProcessingState.idle));
           _stopPositionTimer();
       }
-      previousPlaybackStatus = value.status;
     });
 
     _player.playerStateStream.listen((event) async {
@@ -118,8 +102,13 @@ class CrossonicAudioHandlerJustAudio extends BaseAudioHandler
       CrossonicPlaybackStatus status = _playbackState.value.status;
       var playAfterChange = _playOnNextMediaChange;
 
-      _updateMediaItem(value?.item);
-      _updatePosition(position: Duration.zero, bufferedPosition: Duration.zero);
+      if (value?.currentChanged ?? false) {
+        _updateMediaItem(value?.item);
+        _updatePosition(
+            position: Duration.zero,
+            bufferedPosition: Duration.zero,
+            updateNative: true);
+      }
       if (value == null) {
         _playOnNextMediaChange = false;
         if (status != CrossonicPlaybackStatus.stopped) {
@@ -184,10 +173,7 @@ class CrossonicAudioHandlerJustAudio extends BaseAudioHandler
       bufferedPosition: bufferedPosition,
     ));
     if (updateNative) {
-      playbackState.add(playbackState.value.copyWith(
-        updatePosition: position,
-        bufferedPosition: bufferedPosition,
-      ));
+      _notifier.updatePosition(position, bufferedPosition);
     }
   }
 
@@ -221,7 +207,7 @@ class CrossonicAudioHandlerJustAudio extends BaseAudioHandler
     if (_playbackState.value.status == CrossonicPlaybackStatus.stopped ||
         _playbackState.value.status == CrossonicPlaybackStatus.loading) return;
     await _player.seek(position);
-    _updatePosition();
+    _updatePosition(position: position, updateNative: true);
   }
 
   @override
@@ -229,6 +215,7 @@ class CrossonicAudioHandlerJustAudio extends BaseAudioHandler
     if (_queue.canAdvance) {
       if (_player.hasNext) {
         await _player.seekToNext();
+        play();
       } else {
         playOnNextMediaChange();
         _queue.advance();
@@ -238,6 +225,10 @@ class CrossonicAudioHandlerJustAudio extends BaseAudioHandler
 
   @override
   Future<void> skipToPrevious() async {
+    if (_playbackState.value.position.inSeconds > 3) {
+      await seek(Duration.zero);
+      return;
+    }
     if (_queue.canGoBack) {
       playOnNextMediaChange();
       _queue.back();
@@ -257,28 +248,13 @@ class CrossonicAudioHandlerJustAudio extends BaseAudioHandler
   }
 
   Future<void> _updateMediaItem(Media? media) async {
-    if (media == null) {
-      mediaItem.add(null);
-    } else {
-      mediaItem.add(MediaItem(
-        id: media.id,
-        title: media.title,
-        album: media.album,
-        artUri: media.coverArt != null
+    _notifier.updateMedia(
+        media,
+        media?.coverArt != null
             ? await _subsonicRepository.getCoverArtURL(
-                coverArtID: media.coverArt!,
+                coverArtID: media!.coverArt!,
                 size: const CoverResolution.large().size)
-            : null,
-        artist: media.artist,
-        duration:
-            media.duration != null ? Duration(seconds: media.duration!) : null,
-        genre: media.genre,
-        rating: media.userRating != null
-            ? Rating.newStarRating(RatingStyle.range5stars, media.userRating!)
-            : null,
-        playable: true,
-      ));
-    }
+            : null);
   }
 
   @override

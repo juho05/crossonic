@@ -4,18 +4,17 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:crossonic/repositories/subsonic/subsonic.dart';
 import 'package:crossonic/services/audio_player/audio_handler.dart';
 import 'package:crossonic/services/audio_player/media_queue.dart';
+import 'package:crossonic/services/audio_player/native_notifier/native_notifier.dart';
 import 'package:crossonic/widgets/cover_art.dart';
-import 'package:flutter/material.dart';
 import 'package:rxdart/rxdart.dart';
-import 'package:smtc_windows/smtc_windows.dart';
 
-class CrossonicAudioHandlerWindows implements CrossonicAudioHandler {
+class CrossonicAudioHandlerAudioPlayers implements CrossonicAudioHandler {
   final SubsonicRepository _subsonicRepository;
+  final NativeNotifier _notifier;
   final MediaQueue _queue = MediaQueue();
   final List<AudioPlayer> _players = [AudioPlayer(), AudioPlayer()];
   int _currentPlayer = 0;
 
-  late final SMTCWindows _smtc;
   final BehaviorSubject<CrossonicPlaybackState> _playbackState =
       BehaviorSubject();
 
@@ -26,53 +25,36 @@ class CrossonicAudioHandlerWindows implements CrossonicAudioHandler {
   DateTime _lastPositionUpdate = DateTime.now();
   Timer? _positionTimer;
 
-  CrossonicAudioHandlerWindows({
+  CrossonicAudioHandlerAudioPlayers({
     required SubsonicRepository subsonicRepository,
-  }) : _subsonicRepository = subsonicRepository {
+    required NativeNotifier notifier,
+  })  : _subsonicRepository = subsonicRepository,
+        _notifier = notifier {
     _playbackState.add(
         const CrossonicPlaybackState(status: CrossonicPlaybackStatus.stopped));
 
-    _smtc = SMTCWindows(
-        config: const SMTCConfig(
-      fastForwardEnabled: true,
-      nextEnabled: true,
-      pauseEnabled: true,
-      playEnabled: true,
-      rewindEnabled: true,
-      prevEnabled: true,
-      stopEnabled: true,
-    ));
-    _smtc.disableSmtc();
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      _smtc.buttonPressStream.listen((event) async {
-        switch (event) {
-          case PressedButton.play || PressedButton.pause:
-            await playPause();
-          case PressedButton.stop:
-            await stop();
-          case PressedButton.next:
-            await skipToNext();
-          case PressedButton.previous:
-            await skipToPrevious();
-          default:
-            break;
-        }
-      });
-    });
+    _notifier.ensureInitialized(
+      onPause: pause,
+      onPlay: play,
+      onPlayNext: skipToNext,
+      onPlayPrev: skipToPrevious,
+      onSeek: seek,
+      onStop: stop,
+    );
+    _notifier.updateMedia(null, null);
 
     CrossonicPlaybackStatus lastStatus = CrossonicPlaybackStatus.stopped;
     _playbackState.listen((value) {
       if (value.status == lastStatus) return;
       lastStatus = value.status;
+      _notifier.updatePlaybackState(value.status);
+      _updatePosition(value.position, true);
       switch (value.status) {
         case CrossonicPlaybackStatus.playing:
-          _smtc.setPlaybackStatus(PlaybackStatus.Playing);
           _startPositionTimer();
         case CrossonicPlaybackStatus.paused:
-          _smtc.setPlaybackStatus(PlaybackStatus.Paused);
           _stopPositionTimer();
         case CrossonicPlaybackStatus.stopped:
-          _smtc.disableSmtc();
           _stopPositionTimer();
         default:
           break;
@@ -121,6 +103,17 @@ class CrossonicAudioHandlerWindows implements CrossonicAudioHandler {
     _queue.current.listen((value) async {
       CrossonicPlaybackStatus status = _playbackState.value.status;
       var playAfterChange = _playOnNextMediaChange;
+      if (value?.currentChanged ?? false) {
+        _notifier.updateMedia(
+          value?.item,
+          value?.item.coverArt != null
+              ? await _subsonicRepository.getCoverArtURL(
+                  coverArtID: value!.item.coverArt!,
+                  size: const CoverResolution.large().size)
+              : null,
+        );
+        _updatePosition(Duration.zero, true);
+      }
       if (value == null) {
         _playOnNextMediaChange = false;
         if (status != CrossonicPlaybackStatus.stopped) {
@@ -128,23 +121,8 @@ class CrossonicAudioHandlerWindows implements CrossonicAudioHandler {
         }
         return;
       }
-      if (!_smtc.enabled) {
-        await _smtc.enableSmtc();
-      }
       if (value.currentChanged) {
         _playOnNextMediaChange = false;
-        _smtc.updateMetadata(MusicMetadata(
-          album: value.item.album,
-          albumArtist: value.item.displayAlbumArtist,
-          artist: value.item.artist,
-          thumbnail: value.item.coverArt != null
-              ? (await _subsonicRepository.getCoverArtURL(
-                      coverArtID: value.item.coverArt!,
-                      size: const CoverResolution.large().size))
-                  .toString()
-              : null,
-          title: value.item.title,
-        ));
 
         _playbackState.add(const CrossonicPlaybackState(
             status: CrossonicPlaybackStatus.loading, position: Duration.zero));
@@ -208,11 +186,14 @@ class CrossonicAudioHandlerWindows implements CrossonicAudioHandler {
     _positionTimer = null;
   }
 
-  void _updatePosition(Duration pos) async {
+  void _updatePosition(Duration pos, [bool updateNative = false]) async {
     _lastPositionUpdate = DateTime.now();
     _playbackState.add(
       _playbackState.value.copyWith(position: pos),
     );
+    if (updateNative) {
+      _notifier.updatePosition(pos);
+    }
     if (_queue.current.value != null) {
       if (_queue.current.value!.item.duration != null &&
           _queue.current.value!.item.duration! - pos.inSeconds < 10) {
@@ -259,7 +240,8 @@ class CrossonicAudioHandlerWindows implements CrossonicAudioHandler {
   Future<void> seek(Duration position) async {
     if (_playbackState.value.status == CrossonicPlaybackStatus.stopped ||
         _playbackState.value.status == CrossonicPlaybackStatus.loading) return;
-    return await _players[_currentPlayer].seek(position);
+    await _players[_currentPlayer].seek(position);
+    _updatePosition(position, true);
   }
 
   @override
@@ -272,6 +254,10 @@ class CrossonicAudioHandlerWindows implements CrossonicAudioHandler {
 
   @override
   Future<void> skipToPrevious() async {
+    if (_playbackState.value.position.inSeconds > 3) {
+      await seek(Duration.zero);
+      return;
+    }
     if (_queue.canGoBack) {
       playOnNextMediaChange();
       _queue.back();
@@ -283,7 +269,6 @@ class CrossonicAudioHandlerWindows implements CrossonicAudioHandler {
     _playbackState.add(
         const CrossonicPlaybackState(status: CrossonicPlaybackStatus.stopped));
     _queue.clear();
-    _smtc.clearMetadata();
     _nextURL = null;
     _nextPlayerURL = null;
     for (var i = 0; i < _players.length; i++) {
