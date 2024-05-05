@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:crossonic/repositories/subsonic/subsonic.dart';
@@ -77,11 +79,15 @@ class CrossonicAudioHandlerAudioPlayers implements CrossonicAudioHandler {
     }
 
     for (var i = 0; i < _players.length; i++) {
+      int positionUpdateCount = 1;
       _players[i].onPositionChanged.listen((pos) {
+        if (!kIsWeb && Platform.isLinux) {
+          positionUpdateCount++;
+        }
         if (i != _currentPlayer) {
           return;
         }
-        _updatePosition(pos);
+        _updatePosition(pos, positionUpdateCount % 5 == 0);
       });
       _players[i].onPlayerStateChanged.listen((state) {
         if (i != _currentPlayer) {
@@ -175,7 +181,7 @@ class CrossonicAudioHandlerAudioPlayers implements CrossonicAudioHandler {
       if (DateTime.now().difference(_lastPositionUpdate).inSeconds >= 2) {
         final pos = await _players[_currentPlayer].getCurrentPosition();
         if (pos != null) {
-          _updatePosition(pos);
+          _updatePosition(pos, !kIsWeb && Platform.isLinux);
         }
       }
     });

@@ -30,6 +30,7 @@ Future<void> main() async {
       size: Size(1200, 800),
       center: true,
       title: "Crossonic",
+      titleBarStyle: TitleBarStyle.normal,
     );
     windowManager.waitUntilReadyToShow(windowOptions, () async {
       await windowManager.show();
