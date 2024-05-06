@@ -260,7 +260,7 @@ class CrossonicAudioHandlerAudioPlayers implements CrossonicAudioHandler {
 
   @override
   Future<void> skipToPrevious() async {
-    if (_playbackState.value.position.inSeconds > 3) {
+    if (_playbackState.value.position.inSeconds > 3 || !_queue.canGoBack) {
       await seek(Duration.zero);
       return;
     }
