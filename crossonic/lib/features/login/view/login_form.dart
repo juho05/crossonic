@@ -34,38 +34,44 @@ class LoginForm extends StatelessWidget {
           alignment: const Alignment(0, -1 / 3),
           child: SizedBox(
             width: 430,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text('Login', style: Theme.of(context).textTheme.displayMedium),
-                const SizedBox(height: 60),
-                _LoginInput(
-                  bloc: bloc,
-                  inputName: "server_url",
-                  labelText: "Server URL",
-                  errorText: "invalid server URL",
-                  icon: Icons.link,
-                ),
-                const SizedBox(height: 20),
-                _LoginInput(
-                  bloc: bloc,
-                  inputName: "username",
-                  labelText: "Username",
-                  errorText: "required",
-                  icon: Icons.person,
-                ),
-                const SizedBox(height: 20),
-                _LoginInput(
-                  bloc: bloc,
-                  inputName: "password",
-                  labelText: "Password",
-                  errorText: "required1",
-                  obscureText: true,
-                  icon: Icons.password,
-                ),
-                const SizedBox(height: 40),
-                _LoginButton(),
-              ],
+            child: AutofillGroup(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('Login',
+                      style: Theme.of(context).textTheme.displayMedium),
+                  const SizedBox(height: 60),
+                  _LoginInput(
+                    bloc: bloc,
+                    inputName: "server_url",
+                    labelText: "Server URL",
+                    errorText: "invalid server URL",
+                    icon: Icons.link,
+                    autofillHints: const [AutofillHints.url],
+                  ),
+                  const SizedBox(height: 20),
+                  _LoginInput(
+                    bloc: bloc,
+                    inputName: "username",
+                    labelText: "Username",
+                    errorText: "required",
+                    icon: Icons.person,
+                    autofillHints: const [AutofillHints.username],
+                  ),
+                  const SizedBox(height: 20),
+                  _LoginInput(
+                    bloc: bloc,
+                    inputName: "password",
+                    labelText: "Password",
+                    errorText: "required",
+                    obscureText: true,
+                    icon: Icons.password,
+                    autofillHints: const [AutofillHints.password],
+                  ),
+                  const SizedBox(height: 40),
+                  _LoginButton(),
+                ],
+              ),
             ),
           ),
         );
@@ -81,12 +87,14 @@ class _LoginInput extends StatefulWidget {
   final String labelText;
   final String errorText;
   final bool obscureText;
+  final Iterable<String>? autofillHints;
   const _LoginInput({
     required this.inputName,
     required this.bloc,
     required this.labelText,
     required this.errorText,
     required this.icon,
+    this.autofillHints,
     this.obscureText = false,
   });
   @override
@@ -128,14 +136,17 @@ class _LoginInputState extends State<_LoginInput> with RestorationMixin {
       builder: (context, state) {
         return TextField(
           controller: _controller.value,
-          autofillHints: const [AutofillHints.url],
+          autofillHints: widget.autofillHints,
           obscureText: widget.obscureText,
           decoration: InputDecoration(
             labelText: widget.labelText,
             border: const OutlineInputBorder(),
             icon: Icon(widget.icon),
-            errorText:
-                state.serverURL.displayError != null ? widget.errorText : null,
+            errorText: state.serverURL.displayError != null ||
+                    state.username.displayError != null ||
+                    state.password.displayError != null
+                ? widget.errorText
+                : null,
           ),
         );
       },
