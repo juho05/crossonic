@@ -262,6 +262,8 @@ class CrossonicAudioHandlerJustAudio implements CrossonicAudioHandler {
 
   @override
   Future<void> dispose() async {
+    _stopPositionTimer();
+    await stop();
     await _player.dispose();
   }
 

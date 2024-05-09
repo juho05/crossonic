@@ -12,6 +12,7 @@ import 'package:crossonic/repositories/auth/auth.dart';
 import 'package:crossonic/repositories/crossonic/crossonic.dart';
 import 'package:crossonic/repositories/subsonic/subsonic.dart';
 import 'package:crossonic/services/audio_player/audio_handler.dart';
+import 'package:crossonic/services/audio_player/audio_handler_gstreamer.dart';
 import 'package:crossonic/services/audio_player/audio_handler_justaudio.dart';
 import 'package:crossonic/services/audio_player/audio_handler_audioplayers.dart';
 import 'package:crossonic/services/audio_player/native_notifier/native_notifier.dart';
@@ -56,13 +57,18 @@ Future<void> main() async {
     nativeNotifier = audioService;
   }
 
-  if (!kIsWeb && (Platform.isWindows || Platform.isLinux)) {
-    audioHandler = CrossonicAudioHandlerAudioPlayers(
+  if (kIsWeb || Platform.isAndroid) {
+    audioHandler = CrossonicAudioHandlerJustAudio(
+      subsonicRepository: subsonicRepository,
+      notifier: nativeNotifier,
+    );
+  } else if (Platform.isLinux) {
+    audioHandler = CrossonicAudioHandlerGstreamer(
       subsonicRepository: subsonicRepository,
       notifier: nativeNotifier,
     );
   } else {
-    audioHandler = CrossonicAudioHandlerJustAudio(
+    audioHandler = CrossonicAudioHandlerAudioPlayers(
       subsonicRepository: subsonicRepository,
       notifier: nativeNotifier,
     );

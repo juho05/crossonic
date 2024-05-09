@@ -258,7 +258,7 @@ class MediaQueue {
     ));
   }
 
-  bool advance() {
+  bool advance([bool setFromNext = true]) {
     Media next;
     bool inPriorityQueue = false;
     if (_priorityQueue.isNotEmpty) {
@@ -278,7 +278,7 @@ class MediaQueue {
       _priorityQueue.isNotEmpty
           ? _priorityQueue.first
           : _queue.elementAtOrNull(_nextIndex),
-      fromNext: true,
+      fromNext: setFromNext,
       inPriorityQueue: inPriorityQueue,
       index: _nextIndex - 1,
     ));

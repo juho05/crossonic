@@ -32,6 +32,9 @@ dependencies:
   stream_transform: ^2.1.0
   bloc_concurrency: ^0.2.5
   window_manager: ^0.3.8
+dependency_overrides:
+  audioplayers_linux:
+    path: ./audioplayers_linux_stub
 
 dev_dependencies:
   flutter_test:

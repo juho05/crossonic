@@ -287,6 +287,8 @@ class CrossonicAudioHandlerAudioPlayers implements CrossonicAudioHandler {
 
   @override
   Future<void> dispose() async {
+    _stopPositionTimer();
+    await stop();
     for (var i = 0; i < _players.length; i++) {
       await _players[i].dispose();
     }

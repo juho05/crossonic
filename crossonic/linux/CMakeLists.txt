@@ -53,6 +53,17 @@ add_subdirectory(${FLUTTER_MANAGED_DIR})
 # System-level dependencies.
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(GTK REQUIRED IMPORTED_TARGET gtk+-3.0)
+pkg_search_module(GLIB REQUIRED IMPORTED_TARGET glib-2.0)
+pkg_check_modules(GSTREAMER REQUIRED IMPORTED_TARGET gstreamer-1.0)
+pkg_check_modules(GSTREAMER-AUDIO REQUIRED IMPORTED_TARGET gstreamer-audio-1.0)
+
+include_directories(
+  ${GLIB_INCLUDE_DIRS}
+  ${GSTREAMER_INCLUDE_DIRS}
+  ${GSTREAMER-APP_INCLUDE_DIRS}
+  ${GSTREAMER-AUDIO_INCLUDE_DIRS}
+  ${CMAKE_CURRENT_SOURCE_DIR}
+)
 
 add_definitions(-DAPPLICATION_ID="${APPLICATION_ID}")
 
@@ -63,6 +74,7 @@ add_definitions(-DAPPLICATION_ID="${APPLICATION_ID}")
 add_executable(${BINARY_NAME}
   "main.cc"
   "my_application.cc"
+  "gstreamer.cc"
   "${FLUTTER_MANAGED_DIR}/generated_plugin_registrant.cc"
 )
 
@@ -70,9 +82,14 @@ add_executable(${BINARY_NAME}
 # that need different build settings.
 apply_standard_settings(${BINARY_NAME})
 
+target_include_directories(${BINARY_NAME} PRIVATE ${GST_INCLUDE_DIRS} ${GLIB_INCLUDE_DIRS})
+
 # Add dependency libraries. Add any application-specific dependencies here.
 target_link_libraries(${BINARY_NAME} PRIVATE flutter)
 target_link_libraries(${BINARY_NAME} PRIVATE PkgConfig::GTK)
+target_link_libraries(${BINARY_NAME} PRIVATE PkgConfig::GLIB)
+target_link_libraries(${BINARY_NAME} PRIVATE PkgConfig::GSTREAMER)
+target_link_libraries(${BINARY_NAME} PRIVATE PkgConfig::GSTREAMER-AUDIO)
 
 # Run the Flutter tool portions of the build. This must not be removed.
 add_dependencies(${BINARY_NAME} flutter_assemble)
