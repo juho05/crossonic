@@ -5,18 +5,16 @@ class Track extends Equatable {
   final int number;
   final String title;
   final Duration duration;
-  final bool isFavorite;
 
   const Track({
     required this.id,
     required this.number,
     required this.title,
     required this.duration,
-    required this.isFavorite,
   });
 
   @override
-  List<Object?> get props => [id, number, title, duration, isFavorite];
+  List<Object?> get props => [id, number, title, duration];
 }
 
 class AlbumState extends Equatable {

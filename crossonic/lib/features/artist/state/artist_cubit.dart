@@ -39,7 +39,6 @@ class ArtistCubit extends Cubit<ArtistState> {
             id: a.id,
             name: a.name,
             coverID: a.coverArt ?? "",
-            isFavorite: a.starred != null,
             year: a.year,
           );
         }).toList()

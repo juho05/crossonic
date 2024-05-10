@@ -17,6 +17,7 @@ import 'package:crossonic/services/audio_player/audio_handler_justaudio.dart';
 import 'package:crossonic/services/audio_player/audio_handler_audioplayers.dart';
 import 'package:crossonic/services/audio_player/native_notifier/native_notifier.dart';
 import 'package:crossonic/services/audio_player/scrobble/scrobbler.dart';
+import 'package:crossonic/widgets/state/favorites_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -101,6 +102,7 @@ Future<void> main() async {
         ),
         BlocProvider(create: (_) => NowPlayingCubit(audioHandler)),
         BlocProvider(create: (_) => SearchBloc(subsonicRepository)),
+        BlocProvider(create: (_) => FavoritesCubit(subsonicRepository)),
       ],
       child: const App(),
     ),

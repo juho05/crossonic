@@ -132,7 +132,6 @@ class _SearchPageState extends State<SearchPage> {
                                   artist: state.results[i].artist,
                                   artistID: state.results[i].artistID,
                                   coverID: state.results[i].coverID,
-                                  isFavorite: state.results[i].isFavorite,
                                   year: state.results[i].year,
                                   onAddToPriorityQueue: () =>
                                       doSomethingWithAlbumSongs(
@@ -168,7 +167,6 @@ class _SearchPageState extends State<SearchPage> {
                               SearchType.artist => SongCollection(
                                   name: state.results[i].name,
                                   coverID: state.results[i].coverID,
-                                  isFavorite: state.results[i].isFavorite,
                                   albumCount: state.results[i].albumCount,
                                   onAddToPriorityQueue: () =>
                                       doSomethingWithArtistSongs(

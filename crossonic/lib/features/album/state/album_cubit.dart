@@ -42,7 +42,6 @@ class AlbumCubit extends Cubit<AlbumState> {
                       ? Duration(seconds: s.duration!)
                       : Duration.zero,
                   number: s.track ?? 0,
-                  isFavorite: s.starred != null,
                 ))
             .toList();
       } else {

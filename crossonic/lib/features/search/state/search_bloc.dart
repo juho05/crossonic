@@ -68,7 +68,6 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
               artist: s.artist ?? "Unknown artist",
               artistID: s.artistId ?? "",
               coverID: s.coverArt ?? "",
-              isFavorite: s.starred != null,
               name: s.title,
               year: s.year,
               media: s,
@@ -85,7 +84,6 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
               artist: a.artist ?? "Unknown artist",
               artistID: a.artistId ?? "",
               coverID: a.coverArt ?? "",
-              isFavorite: a.starred != null,
               name: a.name,
               year: a.year,
             ))
@@ -99,7 +97,6 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
         .map((a) => SearchResult(
               id: a.id,
               coverID: a.coverArt ?? "",
-              isFavorite: a.starred != null,
               name: a.name,
               albumCount: a.albumCount ?? 0,
             ))

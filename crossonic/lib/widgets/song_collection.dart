@@ -12,7 +12,6 @@ class SongCollection extends StatelessWidget {
   final String? genre;
   final int? albumCount;
   final int? year;
-  final bool isFavorite;
   final void Function()? onTap;
   final void Function()? onAddToQueue;
   final void Function()? onAddToPriorityQueue;
@@ -28,7 +27,6 @@ class SongCollection extends StatelessWidget {
     this.genre,
     this.albumCount,
     this.year,
-    this.isFavorite = false,
     this.padding = const EdgeInsets.only(left: 16, right: 5),
     this.coverID,
   });
@@ -77,7 +75,7 @@ class SongCollection extends StatelessWidget {
               ],
             ),
           )),
-          if (isFavorite) const Icon(Icons.favorite, size: 15),
+          if (false) const Icon(Icons.favorite, size: 15),
         ],
       ),
       horizontalTitleGap: 0,

@@ -11,7 +11,6 @@ class SearchResult {
   final int? year;
   final int? albumCount;
   final Media? media;
-  final bool isFavorite;
 
   SearchResult({
     required this.id,
@@ -24,7 +23,6 @@ class SearchResult {
     this.year,
     this.albumCount,
     this.media,
-    required this.isFavorite,
   });
 }
 

@@ -11,6 +11,7 @@ import 'package:crossonic/repositories/subsonic/models/responses/gettopsongs_res
 import 'package:crossonic/repositories/subsonic/models/responses/search3_response.dart';
 import 'package:http/http.dart' as http;
 import 'package:crypto/crypto.dart';
+import 'package:rxdart/rxdart.dart';
 
 enum GetAlbumList2Type {
   random,
@@ -28,6 +29,8 @@ enum GetAlbumList2Type {
 class SubsonicRepository {
   final AuthRepository _authRepo;
   SubsonicRepository(this._authRepo);
+
+  final BehaviorSubject<(String, bool)> favoriteUpdates = BehaviorSubject();
 
   Future<Uri> getStreamURL({required String songID}) async {
     final auth = await _authRepo.auth;
@@ -59,7 +62,43 @@ class SubsonicRepository {
         },
         GetRandomSongsResponse.fromJson,
         "randomSongs");
-    return response.song ?? [];
+    final songs = response!.song ?? [];
+    for (var s in songs) {
+      favoriteUpdates.add((s.id, s.starred != null));
+    }
+    return songs;
+  }
+
+  Future<void> star({
+    String? id,
+    String? albumId,
+    String? artistId,
+  }) async {
+    return _jsonRequest(
+        "star",
+        {
+          if (id != null) "id": id,
+          if (albumId != null) "albumId": albumId,
+          if (artistId != null) "artistId": artistId,
+        },
+        null,
+        null);
+  }
+
+  Future<void> unstar({
+    String? id,
+    String? albumId,
+    String? artistId,
+  }) async {
+    return _jsonRequest(
+        "unstar",
+        {
+          if (id != null) "id": id,
+          if (albumId != null) "albumId": albumId,
+          if (artistId != null) "artistId": artistId,
+        },
+        null,
+        null);
   }
 
   Future<(List<ArtistID3>, List<AlbumID3>, List<Media>)> search3(
@@ -85,17 +124,21 @@ class SubsonicRepository {
       Search3Response.fromJson,
       "searchResult3",
     );
-    return (response.artist ?? [], response.album ?? [], response.song ?? []);
+    final songs = response!.song ?? [];
+    for (var s in songs) {
+      favoriteUpdates.add((s.id, s.starred != null));
+    }
+    return (response.artist ?? [], response.album ?? [], songs);
   }
 
   Future<Artist> getArtist(String id) async {
-    return await _jsonRequest(
+    return (await _jsonRequest(
         "getArtist",
         {
           "id": id,
         },
         Artist.fromJson,
-        "artist");
+        "artist"))!;
   }
 
   Future<List<Media>> getTopSongs(String artistName, int count) async {
@@ -107,7 +150,11 @@ class SubsonicRepository {
         },
         GetTopSongsResponse.fromJson,
         "topSongs");
-    return response.song ?? [];
+    final songs = response!.song ?? [];
+    for (var s in songs) {
+      favoriteUpdates.add((s.id, s.starred != null));
+    }
+    return songs;
   }
 
   Future<List<AlbumID3>> getAlbumList2(
@@ -132,25 +179,25 @@ class SubsonicRepository {
         },
         AlbumList2Response.fromJson,
         "albumList2");
-    return response.album ?? [];
+    return response!.album ?? [];
   }
 
   Future<AlbumID3> getAlbum(String id) async {
-    return await _jsonRequest(
+    return (await _jsonRequest(
       "getAlbum",
       {
         "id": id,
       },
       AlbumID3.fromJson,
       "album",
-    );
+    ))!;
   }
 
-  Future<T> _jsonRequest<T>(
+  Future<T?> _jsonRequest<T>(
     String endpointName,
     Map<String, String> queryParams,
-    T Function(Map<String, dynamic>) fromJson,
-    String responseKey,
+    T Function(Map<String, dynamic>)? fromJson,
+    String? responseKey,
   ) async {
     final response = await _request(endpointName, queryParams);
     final json = response.headers["content-type"]?.contains("charset") ?? false
@@ -174,10 +221,13 @@ class SubsonicRepository {
           error.containsKey("message") ? error["message"] as String : null;
       throw SubsonicException(code, message);
     }
-    if (!res.containsKey(responseKey)) {
-      throw UnexpectedServerResponseException();
+    if (responseKey != null && fromJson != null) {
+      if (!res.containsKey(responseKey)) {
+        throw UnexpectedServerResponseException();
+      }
+      return fromJson(res[responseKey]);
     }
-    return fromJson(res[responseKey]);
+    return null;
   }
 
   Future<http.Response> _request(
