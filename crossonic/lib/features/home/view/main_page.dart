@@ -37,7 +37,7 @@ class _MainPageState extends State<MainPage> {
           borderRadius: BorderRadius.zero,
           controller: _slidingUpPanelController,
           collapsed: Visibility(
-            visible: _collapsedVisible,
+            visible: _collapsedVisible && hasMedia,
             child:
                 NowPlayingCollapsed(panelController: _slidingUpPanelController),
           ),

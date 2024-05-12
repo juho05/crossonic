@@ -74,7 +74,7 @@ class NowPlayingCollapsed extends StatelessWidget {
                       if (state.duration.inMilliseconds > 0 &&
                           state.playbackState.status !=
                               CrossonicPlaybackStatus.loading)
-                        CircularProgressIndicator.adaptive(
+                        CircularProgressIndicator(
                             value: state.playbackState.position.inMilliseconds
                                     .toDouble() /
                                 state.duration.inMilliseconds.toDouble()),
