@@ -24,8 +24,7 @@ class AlbumState extends Equatable {
     required this.name,
     required this.year,
     required this.coverID,
-    required this.artistID,
-    required this.artistName,
+    required this.artists,
     required this.songs,
     required this.subsonicSongs,
   });
@@ -35,8 +34,7 @@ class AlbumState extends Equatable {
   final String name;
   final int year;
   final String coverID;
-  final String artistID;
-  final String artistName;
+  final Artists artists;
   final List<Track> songs;
   final List<Media> subsonicSongs;
 
@@ -46,8 +44,8 @@ class AlbumState extends Equatable {
     String? name,
     int? year,
     String? coverID,
-    String? artistID,
-    String? artistName,
+    Artists? artists,
+    String? artistDisplayName,
     List<Track>? songs,
     List<Media>? subsonicSongs,
   }) {
@@ -57,23 +55,13 @@ class AlbumState extends Equatable {
       name: name ?? this.name,
       year: year ?? this.year,
       coverID: coverID ?? this.coverID,
-      artistID: artistID ?? this.artistID,
-      artistName: artistName ?? this.artistName,
+      artists: artists ?? this.artists,
       songs: songs ?? this.songs,
       subsonicSongs: subsonicSongs ?? this.subsonicSongs,
     );
   }
 
   @override
-  List<Object> get props => [
-        status,
-        id,
-        name,
-        year,
-        coverID,
-        artistID,
-        artistName,
-        songs,
-        subsonicSongs
-      ];
+  List<Object> get props =>
+      [status, id, name, year, coverID, artists, songs, subsonicSongs];
 }

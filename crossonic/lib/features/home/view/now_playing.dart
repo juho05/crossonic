@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
 import 'package:crossonic/features/home/view/state/now_playing_cubit.dart';
 import 'package:crossonic/services/audio_player/audio_handler.dart';
+import 'package:crossonic/widgets/artist_chooser.dart';
 import 'package:crossonic/widgets/cover_art.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -51,7 +52,7 @@ class NowPlayingCollapsed extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                         Text(
-                          state.artist,
+                          state.artists.displayName,
                           style: textStyle.bodySmall!.copyWith(
                               color: Theme.of(context)
                                   .colorScheme
@@ -222,16 +223,18 @@ class NowPlaying extends StatelessWidget {
                       MouseRegion(
                         cursor: SystemMouseCursors.click,
                         child: GestureDetector(
-                          onTap: () {
-                            if (state.artistID != "") {
-                              context.push("/home/artist/${state.artistID}");
-                              _panelController.close();
-                            }
+                          onTap: () async {
+                            final artistID = await ArtistChooserDialog.choose(
+                                context, state.artists.artists);
+                            if (artistID == null) return;
+                            // ignore: use_build_context_synchronously
+                            context.push("/home/artist/$artistID");
+                            _panelController.close();
                           },
                           child: Padding(
                             padding: const EdgeInsets.only(top: 3),
                             child: Text(
-                              state.artist,
+                              state.artists.displayName,
                               style: Theme.of(context)
                                   .textTheme
                                   .bodyLarge!

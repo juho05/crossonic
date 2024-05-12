@@ -9,6 +9,7 @@ import 'package:crossonic/repositories/subsonic/models/models.dart';
 import 'package:crossonic/repositories/subsonic/models/responses/getalbumlist2_response.dart';
 import 'package:crossonic/repositories/subsonic/models/responses/gettopsongs_response.dart';
 import 'package:crossonic/repositories/subsonic/models/responses/search3_response.dart';
+import 'package:equatable/equatable.dart';
 import 'package:http/http.dart' as http;
 import 'package:crypto/crypto.dart';
 import 'package:rxdart/rxdart.dart';
@@ -24,6 +25,26 @@ enum GetAlbumList2Type {
   starred,
   byYear,
   byGenre
+}
+
+class Artists extends Equatable {
+  final Iterable<ArtistIDName> artists;
+  final String displayName;
+
+  const Artists({required this.artists, required this.displayName});
+
+  @override
+  List<Object> get props => [artists, displayName];
+}
+
+class ArtistIDName extends Equatable {
+  final String id;
+  final String name;
+
+  const ArtistIDName({required this.id, required this.name});
+
+  @override
+  List<Object> get props => [id, name];
 }
 
 class SubsonicRepository {
@@ -183,7 +204,7 @@ class SubsonicRepository {
   }
 
   Future<AlbumID3> getAlbum(String id) async {
-    return (await _jsonRequest(
+    final albums = (await _jsonRequest(
       "getAlbum",
       {
         "id": id,
@@ -191,6 +212,53 @@ class SubsonicRepository {
       AlbumID3.fromJson,
       "album",
     ))!;
+    return albums;
+  }
+
+  static Artists getArtistsOfSong(Media song) {
+    Iterable<ArtistIDName> artists;
+    if (song.artists == null || song.artists!.isEmpty) {
+      artists = [
+        if (song.artist != null && song.artistId != null)
+          ArtistIDName(id: song.artistId!, name: song.artist!),
+      ];
+    } else {
+      artists = song.artists!.map((a) => ArtistIDName(id: a.id, name: a.name));
+    }
+
+    String displayArtist;
+    if (artists.isEmpty) {
+      displayArtist = "Unknown artist";
+    } else if (song.displayArtist != null &&
+        song.displayArtist != song.artist) {
+      displayArtist = song.displayArtist!;
+    } else {
+      displayArtist = artists.map((a) => a.name).join(", ");
+    }
+    return Artists(artists: artists, displayName: displayArtist);
+  }
+
+  static Artists getArtistsOfAlbum(AlbumID3 album) {
+    Iterable<ArtistIDName> artists;
+    if (album.artists == null || album.artists!.isEmpty) {
+      artists = [
+        if (album.artist != null && album.artistId != null)
+          ArtistIDName(id: album.artistId!, name: album.artist!),
+      ];
+    } else {
+      artists = album.artists!.map((a) => ArtistIDName(id: a.id, name: a.name));
+    }
+
+    String displayArtist;
+    if (artists.isEmpty) {
+      displayArtist = "Unknown artist";
+    } else if (album.displayArtist != null &&
+        album.displayArtist != album.artist) {
+      displayArtist = album.displayArtist!;
+    } else {
+      displayArtist = artists.map((a) => a.name).join(", ");
+    }
+    return Artists(artists: artists, displayName: displayArtist);
   }
 
   Future<T?> _jsonRequest<T>(

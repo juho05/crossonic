@@ -124,7 +124,7 @@ class _AlbumsPageBodyState extends State<AlbumsPageBody> {
                                       name: state.albums[i].name,
                                       coverID: state.albums[i].coverID,
                                       extraInfo:
-                                          "${state.albums[i].artist}${state.albums[i].year != null ? " • ${state.albums[i].year}" : ""}",
+                                          "${state.albums[i].artists.displayName}${state.albums[i].year != null ? " • ${state.albums[i].year}" : ""}",
                                     ),
                                   )),
                         ),

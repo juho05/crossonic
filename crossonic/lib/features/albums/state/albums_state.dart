@@ -3,20 +3,20 @@ part of 'albums_bloc.dart';
 class AlbumListItem extends Equatable {
   final String id;
   final String name;
-  final String artist;
+  final Artists artists;
   final String? coverID;
   final int? year;
 
   const AlbumListItem({
     required this.id,
     required this.name,
-    required this.artist,
+    required this.artists,
     required this.coverID,
     this.year,
   });
 
   @override
-  List<Object?> get props => [id, name, artist, coverID, year];
+  List<Object?> get props => [id, name, artists, coverID, year];
 }
 
 class AlbumsState extends Equatable {

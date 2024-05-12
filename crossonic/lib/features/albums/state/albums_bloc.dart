@@ -69,7 +69,7 @@ class AlbumsBloc extends Bloc<AlbumsEvent, AlbumsState> {
           .map((album) => AlbumListItem(
                 id: album.id,
                 name: album.name,
-                artist: album.artist ?? "Unknown artist",
+                artists: SubsonicRepository.getArtistsOfAlbum(album),
                 coverID: album.coverArt ?? "",
                 year: album.year,
               ));

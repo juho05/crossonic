@@ -3,8 +3,7 @@ part of 'now_playing_cubit.dart';
 class NowPlayingState extends Equatable {
   final String songID;
   final String songName;
-  final String artist;
-  final String artistID;
+  final Artists artists;
   final String album;
   final String albumID;
   final Duration duration;
@@ -16,8 +15,7 @@ class NowPlayingState extends Equatable {
   const NowPlayingState({
     this.songID = "",
     this.songName = "",
-    this.artist = "",
-    this.artistID = "",
+    this.artists = const Artists(artists: [], displayName: ""),
     this.album = "",
     this.albumID = "",
     this.duration = Duration.zero,
@@ -28,8 +26,7 @@ class NowPlayingState extends Equatable {
   NowPlayingState copyWith({
     String? songID,
     String? songName,
-    String? artist,
-    String? artistID,
+    Artists? artists,
     String? album,
     String? albumID,
     Duration? duration,
@@ -40,8 +37,7 @@ class NowPlayingState extends Equatable {
     return NowPlayingState(
       songID: songID ?? this.songID,
       songName: songName ?? this.songName,
-      artist: artist ?? this.artist,
-      artistID: artistID ?? this.artistID,
+      artists: artists ?? this.artists,
       album: album ?? this.album,
       albumID: albumID ?? this.albumID,
       duration: duration ?? this.duration,
@@ -54,7 +50,7 @@ class NowPlayingState extends Equatable {
   List<Object> get props => [
         songID,
         songName,
-        artist,
+        artists,
         album,
         duration,
         coverArtID,

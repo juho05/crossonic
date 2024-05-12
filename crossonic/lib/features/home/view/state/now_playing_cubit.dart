@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:bloc/bloc.dart';
+import 'package:crossonic/repositories/subsonic/subsonic_repository.dart';
 import 'package:crossonic/services/audio_player/audio_handler.dart';
 import 'package:crossonic/services/audio_player/media_queue.dart';
 import 'package:equatable/equatable.dart';
@@ -18,12 +19,13 @@ class NowPlayingCubit extends Cubit<NowPlayingState> {
             playbackState: CrossonicPlaybackState(
                 status: CrossonicPlaybackStatus.stopped))) {
     _currentMediaSubscription =
-        _audioHandler.mediaQueue.current.listen((value) async {
+        _audioHandler.mediaQueue.current.listen((value) {
       emit(
         state.copyWith(
           songID: value?.item.id ?? "",
-          artist: value?.item.artist ?? "Unknown artist",
-          artistID: value?.item.artistId ?? "",
+          artists: value != null
+              ? SubsonicRepository.getArtistsOfSong(value.item)
+              : const Artists(artists: [], displayName: ""),
           songName: value?.item.title ?? "",
           album: value?.item.album ?? "Unknown album",
           albumID: value?.item.albumId,

@@ -30,7 +30,7 @@ class RecentlyAddedAlbumsCubit extends Cubit<RecentlyAddedAlbumsState> {
         .map((album) => RecentlyAddedAlbum(
               id: album.id,
               name: album.name,
-              artist: album.artist ?? "Unknown artist",
+              artists: SubsonicRepository.getArtistsOfAlbum(album),
               coverID: album.coverArt ?? "",
               year: album.year,
             ))

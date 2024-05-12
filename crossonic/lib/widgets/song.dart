@@ -1,6 +1,8 @@
 import 'package:crossonic/features/home/view/state/now_playing_cubit.dart';
 import 'package:crossonic/repositories/subsonic/models/media_model.dart';
+import 'package:crossonic/repositories/subsonic/subsonic_repository.dart';
 import 'package:crossonic/services/audio_player/audio_handler.dart';
+import 'package:crossonic/widgets/artist_chooser.dart';
 import 'package:crossonic/widgets/cover_art.dart';
 import 'package:crossonic/widgets/state/favorites_cubit.dart';
 import 'package:flutter/material.dart';
@@ -150,16 +152,16 @@ class _SongState extends State<Song> {
                               fontWeight: FontWeight.w400, fontSize: 15),
                           overflow: TextOverflow.ellipsis,
                         ),
-                        if (widget.song.artist != null && widget.showArtist ||
-                            widget.song.album != null && widget.showAlbum ||
+                        if (widget.showArtist ||
+                            widget.showAlbum ||
                             widget.song.year != null && widget.showYear)
                           Text(
                             [
-                              if (widget.song.artist != null &&
-                                  widget.showArtist)
-                                widget.song.artist,
-                              if (widget.song.album != null && widget.showAlbum)
-                                widget.song.album,
+                              if (widget.showArtist)
+                                SubsonicRepository.getArtistsOfSong(widget.song)
+                                    .displayName,
+                              if (widget.showAlbum)
+                                widget.song.album ?? "Unknown album",
                               if (widget.song.year != null && widget.showYear)
                                 widget.song.year.toString(),
                             ].join(" • "),
@@ -191,7 +193,7 @@ class _SongState extends State<Song> {
                       widget.showGotoArtist
                   ? PopupMenuButton<SongPopupMenuValue>(
                       icon: const Icon(Icons.more_vert),
-                      onSelected: (value) {
+                      onSelected: (value) async {
                         final audioHandler =
                             context.read<CrossonicAudioHandler>();
                         switch (value) {
@@ -221,8 +223,13 @@ class _SongState extends State<Song> {
                           case SongPopupMenuValue.gotoAlbum:
                             context.push("/home/album/${widget.song.albumId}");
                           case SongPopupMenuValue.gotoArtist:
-                            context
-                                .push("/home/artist/${widget.song.artistId}");
+                            final artistID = await ArtistChooserDialog.choose(
+                                context,
+                                SubsonicRepository.getArtistsOfSong(widget.song)
+                                    .artists);
+                            if (artistID == null) return;
+                            // ignore: use_build_context_synchronously
+                            context.push("/home/artist/$artistID");
                         }
                       },
                       itemBuilder: (BuildContext context) => [
