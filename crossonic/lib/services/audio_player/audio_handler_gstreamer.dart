@@ -41,15 +41,19 @@ class CrossonicAudioHandlerGstreamer implements CrossonicAudioHandler {
       }
       final status = CrossonicPlaybackStatus.values.byName(statusStr);
       if (status != _playbackState.value.status) {
-        _notifier.updatePlaybackState(status);
-        _playbackState.add(_playbackState.value.copyWith(
-          status: status,
-        ));
-        _updatePosition(true);
-        if (status == CrossonicPlaybackStatus.playing) {
-          _startPositionTimer();
+        if (status == CrossonicPlaybackStatus.stopped) {
+          stop();
         } else {
-          _stopPositionTimer();
+          _notifier.updatePlaybackState(status);
+          _playbackState.add(_playbackState.value.copyWith(
+            status: status,
+          ));
+          _updatePosition(true);
+          if (status == CrossonicPlaybackStatus.playing) {
+            _startPositionTimer();
+          } else {
+            _stopPositionTimer();
+          }
         }
       }
     });
