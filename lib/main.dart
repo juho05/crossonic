@@ -13,8 +13,8 @@ import 'package:crossonic/services/audio_player/audio_handler.dart';
 import 'package:crossonic/services/audio_player/audio_handler_gstreamer.dart';
 import 'package:crossonic/services/audio_player/audio_handler_justaudio.dart';
 import 'package:crossonic/services/audio_player/audio_handler_audioplayers.dart';
-import 'package:crossonic/services/audio_player/native_notifier/native_notifier.dart';
-import 'package:crossonic/services/audio_player/scrobble/scrobbler.dart';
+import 'package:crossonic/services/native_notifier/native_notifier.dart';
+import 'package:crossonic/services/scrobble/scrobbler.dart';
 import 'package:crossonic/widgets/state/favorites_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -39,7 +39,7 @@ Future<void> main() async {
   }
 
   final sharedPreferences = await SharedPreferences.getInstance();
-  final apiRepository = APIRepository();
+  final apiRepository = await APIRepository.init();
   final CrossonicAudioHandler audioHandler;
   final NativeNotifier nativeNotifier;
   if (!kIsWeb && Platform.isWindows) {
@@ -76,6 +76,7 @@ Future<void> main() async {
   Scrobbler.enable(
     sharedPreferences: sharedPreferences,
     audioHandler: audioHandler,
+    apiRepository: apiRepository,
   );
 
   runApp(MultiRepositoryProvider(

@@ -1,6 +1,6 @@
 import 'package:crossonic/repositories/api/models/media_model.dart';
 import 'package:crossonic/services/audio_player/audio_handler.dart';
-import 'package:crossonic/services/audio_player/native_notifier/native_notifier.dart';
+import 'package:crossonic/services/native_notifier/native_notifier.dart';
 
 class NativeNotifierSMTC implements NativeNotifier {
   @override

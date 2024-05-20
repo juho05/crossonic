@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:crossonic/repositories/api/api_repository.dart';
 import 'package:crossonic/services/audio_player/audio_handler.dart';
 import 'package:crossonic/services/audio_player/media_queue.dart';
-import 'package:crossonic/services/audio_player/native_notifier/native_notifier.dart';
+import 'package:crossonic/services/native_notifier/native_notifier.dart';
 import 'package:crossonic/widgets/cover_art.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -31,6 +31,12 @@ class CrossonicAudioHandlerGstreamer implements CrossonicAudioHandler {
         _notifier = notifier {
     _playbackState.add(
         const CrossonicPlaybackState(status: CrossonicPlaybackStatus.stopped));
+
+    apiRepository.authStatus.listen((status) async {
+      if (status != AuthStatus.authenticated) {
+        await stop();
+      }
+    });
 
     _eventChan.receiveBroadcastStream().listen((event) {
       final statusStr = event as String;

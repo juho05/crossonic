@@ -52,7 +52,6 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
       emit(SearchState(
           status: FetchStatus.success, results: results, type: _type));
     } catch (e) {
-      print("Failed to fetch search results: $e");
       emit(SearchState(status: FetchStatus.failure, results: [], type: _type));
     }
   }

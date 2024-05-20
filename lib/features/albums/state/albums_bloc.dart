@@ -33,7 +33,6 @@ class AlbumsBloc extends Bloc<AlbumsEvent, AlbumsState> {
   final APIRepository _apiRepository;
 
   AlbumsBloc(this._apiRepository) : super(const AlbumsState()) {
-    print("new albums bloc");
     on<AlbumsNextPageFetched>((event, emit) async {
       if (!state.reachedEnd) {
         await _fetch(albumsPerPage, state.albums.length, emit);

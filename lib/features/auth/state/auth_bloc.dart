@@ -14,7 +14,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   AuthBloc({
     required APIRepository apiRepository,
   })  : _apiRepository = apiRepository,
-        super(const AuthState.unknown()) {
+        super(const AuthState.unauthenticated()) {
     on<_AuthStatusChanged>(_onAuthStatusChanged);
     on<AuthLogoutRequested>(_onAuthLogoutRequested);
     _authStatusSubscription = _apiRepository.authStatus
@@ -30,8 +30,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         return emit(const AuthState.unauthenticated());
       case AuthStatus.authenticated:
         return emit(AuthState.authenticated(_apiRepository.username));
-      case AuthStatus.unknown:
-        return emit(const AuthState.unknown());
     }
   }
 

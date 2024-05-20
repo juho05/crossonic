@@ -28,7 +28,7 @@ enum GetAlbumList2Type {
   byGenre
 }
 
-enum AuthStatus { unknown, authenticated, unauthenticated }
+enum AuthStatus { authenticated, unauthenticated }
 
 class Artists extends Equatable {
   final Iterable<ArtistIDName> artists;
@@ -50,8 +50,59 @@ class ArtistIDName extends Equatable {
   List<Object> get props => [id, name];
 }
 
+class ScrobbleData extends Equatable {
+  final String id;
+  final int timeUnixMS;
+  final int durationMS;
+
+  const ScrobbleData({
+    required this.id,
+    required this.timeUnixMS,
+    required this.durationMS,
+  });
+
+  @override
+  List<Object?> get props => [id, timeUnixMS, durationMS];
+}
+
 class APIRepository {
-  APIRepository();
+  APIRepository._({
+    String? serverURL,
+    String? username,
+    String? password,
+  })  : _serverURL = serverURL ?? "",
+        _username = username ?? "",
+        _password = password ?? "";
+
+  static const _storage = FlutterSecureStorage();
+
+  static Future<APIRepository> init() async {
+    final serverURL = await _storage.read(key: "crossonic_auth_server_url");
+    final username = await _storage.read(key: "crossonic_auth_username");
+    final password = await _storage.read(key: "crossonic_auth_password");
+    final apiRepository = APIRepository._(
+      serverURL: serverURL,
+      username: username,
+      password: password,
+    );
+    bool authenticated =
+        serverURL != null && username != null && password != null;
+    try {
+      if (!authenticated) {
+        apiRepository.authStatus.add(AuthStatus.unauthenticated);
+      } else {
+        try {
+          await apiRepository.login(serverURL, username, password);
+          apiRepository.authStatus.add(AuthStatus.authenticated);
+        } on ServerUnreachableException {
+          apiRepository.authStatus.add(AuthStatus.authenticated);
+        }
+      }
+    } catch (_) {
+      apiRepository.authStatus.add(AuthStatus.unauthenticated);
+    }
+    return apiRepository;
+  }
 
   final BehaviorSubject<(String, bool)> favoriteUpdates = BehaviorSubject();
 
@@ -61,11 +112,35 @@ class APIRepository {
   String get username => _username;
   String _password = "";
 
+  Future<void> submitScrobbles(Iterable<ScrobbleData> scrobbles) async {
+    return _jsonRequest(
+        "scrobble",
+        {
+          'id': scrobbles.map((s) => s.id),
+          'time': scrobbles.map((s) => s.timeUnixMS.toString()),
+          'duration_ms': scrobbles.map((s) => s.durationMS.toString()),
+          'submission': ['true'],
+        },
+        null,
+        null);
+  }
+
+  Future<void> sendNowPlaying(String id) async {
+    return _jsonRequest(
+        "scrobble",
+        {
+          'id': [id],
+          'submission': ['false'],
+        },
+        null,
+        null);
+  }
+
   Future<Uri> getStreamURL({required String songID}) async {
     final queryParams = _generateQuery({
-      'id': songID,
-      'format': 'raw',
-      'estimateContentLength': 'true',
+      'id': [songID],
+      'format': ['raw'],
+      'estimateContentLength': ['true'],
     });
     return Uri.parse(
         '$_serverURL/rest/stream${Uri(queryParameters: queryParams)}');
@@ -73,8 +148,8 @@ class APIRepository {
 
   Future<Uri> getCoverArtURL({required String coverArtID, int? size}) async {
     final queryParams = _generateQuery({
-      'id': coverArtID,
-      if (size != null) 'size': '$size',
+      'id': [coverArtID],
+      if (size != null) 'size': ['$size'],
     }, _username.substring(0, min(_username.length, 4)) + coverArtID);
     return Uri.parse(
         '$_serverURL/rest/getCoverArt${Uri(queryParameters: queryParams)}');
@@ -84,7 +159,7 @@ class APIRepository {
     final response = await _jsonRequest(
         "getRandomSongs",
         {
-          "size": size.toString(),
+          "size": [size.toString()],
         },
         GetRandomSongsResponse.fromJson,
         "randomSongs");
@@ -103,9 +178,9 @@ class APIRepository {
     return _jsonRequest(
         "star",
         {
-          if (id != null) "id": id,
-          if (albumId != null) "albumId": albumId,
-          if (artistId != null) "artistId": artistId,
+          if (id != null) "id": [id],
+          if (albumId != null) "albumId": [albumId],
+          if (artistId != null) "artistId": [artistId],
         },
         null,
         null);
@@ -119,9 +194,9 @@ class APIRepository {
     return _jsonRequest(
         "unstar",
         {
-          if (id != null) "id": id,
-          if (albumId != null) "albumId": albumId,
-          if (artistId != null) "artistId": artistId,
+          if (id != null) "id": [id],
+          if (albumId != null) "albumId": [albumId],
+          if (artistId != null) "artistId": [artistId],
         },
         null,
         null);
@@ -140,12 +215,12 @@ class APIRepository {
     final response = await _jsonRequest(
       "search3",
       {
-        "query": query,
-        "artistCount": artistCount.toString(),
-        "artistOffset": artistOffset.toString(),
-        "songCount": songCount.toString(),
-        "songOffset": songOffset.toString(),
-        if (musicFolderId != null) "musicFolderId": musicFolderId,
+        "query": [query],
+        "artistCount": [artistCount.toString()],
+        "artistOffset": [artistOffset.toString()],
+        "songCount": [songCount.toString()],
+        "songOffset": [songOffset.toString()],
+        if (musicFolderId != null) "musicFolderId": [musicFolderId],
       },
       Search3Response.fromJson,
       "searchResult3",
@@ -161,7 +236,7 @@ class APIRepository {
     return (await _jsonRequest(
         "getArtist",
         {
-          "id": id,
+          "id": [id],
         },
         Artist.fromJson,
         "artist"))!;
@@ -171,8 +246,8 @@ class APIRepository {
     final response = await _jsonRequest(
         "getTopSongs",
         {
-          "artist": artistName,
-          "count": count.toString(),
+          "artist": [artistName],
+          "count": [count.toString()],
         },
         GetTopSongsResponse.fromJson,
         "topSongs");
@@ -195,13 +270,13 @@ class APIRepository {
     final response = await _jsonRequest(
         "getAlbumList2",
         {
-          "type": type.name,
-          "size": size.toString(),
-          "offset": offset.toString(),
-          if (fromYear != null) "fromYear": fromYear.toString(),
-          if (toYear != null) "toYear": toYear.toString(),
-          if (genre != null) "genre": genre,
-          if (musicFolderId != null) "musicFolderId": musicFolderId,
+          "type": [type.name],
+          "size": [size.toString()],
+          "offset": [offset.toString()],
+          if (fromYear != null) "fromYear": [fromYear.toString()],
+          if (toYear != null) "toYear": [toYear.toString()],
+          if (genre != null) "genre": [genre],
+          if (musicFolderId != null) "musicFolderId": [musicFolderId],
         },
         AlbumList2Response.fromJson,
         "albumList2");
@@ -212,7 +287,7 @@ class APIRepository {
     final albums = (await _jsonRequest(
       "getAlbum",
       {
-        "id": id,
+        "id": [id],
       },
       AlbumID3.fromJson,
       "album",
@@ -268,7 +343,7 @@ class APIRepository {
 
   Future<T?> _jsonRequest<T>(
     String endpointName,
-    Map<String, String> queryParams,
+    Map<String, Iterable<String>> queryParams,
     T Function(Map<String, dynamic>)? fromJson,
     String? responseKey,
   ) async {
@@ -312,11 +387,12 @@ class APIRepository {
   }
 
   Future<http.Response> _request(
-      String endpointName, Map<String, String> queryParams) async {
+      String endpointName, Map<String, Iterable<String>> queryParams) async {
     queryParams = _generateQuery(queryParams);
+    final queryStr = Uri(queryParameters: queryParams).query;
     try {
       final response = await http
-          .post(Uri.parse('$_serverURL/rest/$endpointName'), body: queryParams);
+          .post(Uri.parse('$_serverURL/rest/$endpointName'), body: queryStr);
       if (response.statusCode != 200 && response.statusCode != 201) {
         if (response.statusCode == 401) {
           logout();
@@ -325,22 +401,24 @@ class APIRepository {
         throw ServerException(response.statusCode);
       }
       return response;
-    } catch (_) {
+    } catch (e) {
+      print(e);
       throw ServerUnreachableException();
     }
   }
 
-  Map<String, String> _generateQuery(Map<String, String> query,
+  Map<String, Iterable<String>> _generateQuery(
+      Map<String, Iterable<String>> query,
       [String? salt]) {
     final (token, usedSalt) = _generateAuth(_password, salt);
     return {
       ...query,
-      'u': _username,
-      'c': 'Crossonic',
-      'f': 'json',
-      'v': '1.16.1',
-      't': token,
-      's': usedSalt,
+      'u': [_username],
+      'c': ['Crossonic'],
+      'f': ['json'],
+      'v': ['1.16.1'],
+      't': [token],
+      's': [usedSalt],
     };
   }
 
@@ -373,14 +451,17 @@ class APIRepository {
     _password = password;
     await _jsonRequest("ping", {}, null, "");
     if (!wasSignedIn) {
-      _authStatusController.add(AuthStatus.authenticated);
+      authStatus.add(AuthStatus.authenticated);
     }
     await _storeAuthState();
   }
 
-  void logout() {
-    if (_username.isNotEmpty) {
-      _authStatusController.add(AuthStatus.unauthenticated);
+  Future<void> logout() async {
+    if (authStatus.value != AuthStatus.unauthenticated) {
+      for (var cb in _beforeLogoutCallbacks) {
+        await cb();
+      }
+      authStatus.add(AuthStatus.unauthenticated);
     }
     _username = "";
     _password = "";
@@ -388,40 +469,11 @@ class APIRepository {
     _storeAuthState();
   }
 
-  Stream<AuthStatus> get authStatus async* {
-    yield AuthStatus.unknown;
-    try {
-      final authenticated = await _restoreAuthState();
-      if (!authenticated) {
-        yield AuthStatus.unauthenticated;
-      } else {
-        try {
-          await login(_serverURL, _username, _password);
-          yield AuthStatus.authenticated;
-        } on ServerUnreachableException {
-          yield AuthStatus.authenticated;
-        }
-      }
-    } catch (_) {
-      yield AuthStatus.unauthenticated;
-    }
-    await _storeAuthState();
-    yield* _authStatusController.stream;
-  }
+  final BehaviorSubject<AuthStatus> authStatus = BehaviorSubject();
+  final List<Future<void> Function()> _beforeLogoutCallbacks = [];
 
-  final _authStatusController = StreamController<AuthStatus>();
-  final _storage = const FlutterSecureStorage();
-  Future<bool> _restoreAuthState() async {
-    final serverURL = await _storage.read(key: "crossonic_auth_server_url");
-    final username = await _storage.read(key: "crossonic_auth_username");
-    final password = await _storage.read(key: "crossonic_auth_password");
-    if (serverURL == null || username == null || password == null) {
-      return false;
-    }
-    _serverURL = serverURL;
-    _username = username;
-    _password = password;
-    return true;
+  void addBeforeLogoutCallback(Future<void> Function() cb) {
+    _beforeLogoutCallbacks.add(cb);
   }
 
   Future<void> _storeAuthState() async {
@@ -430,5 +482,5 @@ class APIRepository {
     await _storage.write(key: "crossonic_auth_password", value: _password);
   }
 
-  void dispose() => _authStatusController.close();
+  void dispose() => authStatus.close();
 }
