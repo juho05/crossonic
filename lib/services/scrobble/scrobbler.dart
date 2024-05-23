@@ -49,7 +49,7 @@ class Scrobbler {
     final current = _scrobbles.removeLast();
     _scrobbles.add(Scrobble(
       songID: current.songID,
-      timeUnixMS: DateTime.now().millisecondsSinceEpoch,
+      timeUnixMS: current.timeUnixMS,
       durationMS: duration.inMilliseconds,
     ));
     await _storeScrobbles();
