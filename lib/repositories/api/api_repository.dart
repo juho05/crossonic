@@ -5,6 +5,7 @@ import 'dart:math';
 import 'package:crossonic/exceptions.dart';
 import 'package:crossonic/repositories/api/models/albumid3_model.dart';
 import 'package:crossonic/repositories/api/models/artist_model.dart';
+import 'package:crossonic/repositories/api/models/listenbrainz_model.dart';
 import 'package:crossonic/repositories/api/models/models.dart';
 import 'package:crossonic/repositories/api/models/responses/getalbumlist2_response.dart';
 import 'package:crossonic/repositories/api/models/responses/gettopsongs_response.dart';
@@ -111,6 +112,23 @@ class APIRepository {
   String _username = "";
   String get username => _username;
   String _password = "";
+
+  Future<ListenBrainzConfig> connectListenBrainz(String token) async {
+    final response = await _jsonRequest(
+        "crossonic/connectListenBrainz",
+        {
+          "token": [token],
+        },
+        ListenBrainzConfig.fromJson,
+        "listenBrainzConfig");
+    return response!;
+  }
+
+  Future<ListenBrainzConfig> getListenBrainzConfig() async {
+    final response = await _jsonRequest("crossonic/getListenBrainzConfig", {},
+        ListenBrainzConfig.fromJson, "listenBrainzConfig");
+    return response!;
+  }
 
   Future<void> submitScrobbles(Iterable<ScrobbleData> scrobbles) async {
     return _jsonRequest(

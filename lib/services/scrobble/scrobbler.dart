@@ -89,7 +89,8 @@ class Scrobbler {
       if (value.status == CrossonicPlaybackStatus.playing) {
         await _setPlaying(true);
       } else {
-        await _setPlaying(false);
+        await _setPlaying(
+            false, value.status != CrossonicPlaybackStatus.stopped);
       }
     });
     audioHandler.mediaQueue.current.listen((value) async {
@@ -109,7 +110,7 @@ class Scrobbler {
       _accumulatedDuration += DateTime.now().difference(_playingSince!);
     }
     if (_accumulatedDuration > Duration.zero) {
-      _updateScrobble(_accumulatedDuration);
+      await _updateScrobble(_accumulatedDuration);
     }
     _playingSince = _playing ? DateTime.now() : null;
     _accumulatedDuration = Duration.zero;
@@ -120,14 +121,16 @@ class Scrobbler {
     }
   }
 
-  Future<void> _setPlaying(bool playing) async {
+  Future<void> _setPlaying(bool playing, [bool updateScrobble = true]) async {
     if (_playing == playing) return;
     _playing = playing;
     if (!playing) {
       if (_playingSince != null) {
-        _accumulatedDuration += DateTime.now().difference(_playingSince!);
-        _playingSince = null;
-        await _updateScrobble(_accumulatedDuration);
+        if (updateScrobble) {
+          _accumulatedDuration += DateTime.now().difference(_playingSince!);
+          _playingSince = null;
+          await _updateScrobble(_accumulatedDuration);
+        }
       }
       _storeTimer?.cancel();
       _storeTimer = null;
@@ -140,7 +143,9 @@ class Scrobbler {
           _accumulatedDuration += DateTime.now().difference(_playingSince!);
           _playingSince = _playing ? DateTime.now() : null;
         }
-        await _updateScrobble(_accumulatedDuration);
+        if (updateScrobble) {
+          await _updateScrobble(_accumulatedDuration);
+        }
       });
     }
   }
