@@ -1,7 +1,7 @@
 import 'package:crossonic/features/home/view/bottom_navigation.dart';
 import 'package:crossonic/features/home/view/now_playing.dart';
 import 'package:crossonic/features/home/view/state/now_playing_cubit.dart';
-import 'package:crossonic/services/audio_player/audio_handler.dart';
+import 'package:crossonic/services/audio_handler/audio_handler.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';

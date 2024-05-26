@@ -1,7 +1,7 @@
 import 'package:crossonic/features/search/state/search_bloc.dart';
 import 'package:crossonic/fetch_status.dart';
 import 'package:crossonic/repositories/api/api.dart';
-import 'package:crossonic/services/audio_player/audio_handler.dart';
+import 'package:crossonic/services/audio_handler/audio_handler.dart';
 import 'package:crossonic/widgets/song.dart';
 import 'package:crossonic/widgets/song_collection.dart';
 import 'package:flutter/material.dart';

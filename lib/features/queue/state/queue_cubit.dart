@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:bloc/bloc.dart';
 import 'package:crossonic/repositories/api/models/models.dart';
-import 'package:crossonic/services/audio_player/media_queue.dart';
+import 'package:crossonic/services/audio_handler/media_queue.dart';
 import 'package:equatable/equatable.dart';
 
 part 'queue_state.dart';

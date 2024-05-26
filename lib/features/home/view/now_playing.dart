@@ -2,7 +2,7 @@ import 'dart:math';
 
 import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
 import 'package:crossonic/features/home/view/state/now_playing_cubit.dart';
-import 'package:crossonic/services/audio_player/audio_handler.dart';
+import 'package:crossonic/services/audio_handler/audio_handler.dart';
 import 'package:crossonic/widgets/artist_chooser.dart';
 import 'package:crossonic/widgets/cover_art.dart';
 import 'package:flutter/material.dart';

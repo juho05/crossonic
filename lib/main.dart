@@ -9,11 +9,12 @@ import 'package:crossonic/features/home/view/state/now_playing_cubit.dart';
 import 'package:crossonic/features/home/view/state/recently_added_albums_cubit.dart';
 import 'package:crossonic/features/search/state/search_bloc.dart';
 import 'package:crossonic/repositories/api/api.dart';
-import 'package:crossonic/services/audio_player/audio_handler.dart';
-import 'package:crossonic/services/audio_player/audio_handler_gstreamer.dart';
-import 'package:crossonic/services/audio_player/audio_handler_justaudio.dart';
-import 'package:crossonic/services/audio_player/audio_handler_audioplayers.dart';
-import 'package:crossonic/services/native_notifier/native_notifier.dart';
+import 'package:crossonic/services/audio_handler/audio_handler.dart';
+import 'package:crossonic/services/audio_handler/players/audioplayers.dart';
+import 'package:crossonic/services/audio_handler/players/gstreamer.dart';
+import 'package:crossonic/services/audio_handler/players/justaudio.dart';
+import 'package:crossonic/services/audio_handler/players/player.dart';
+import 'package:crossonic/services/audio_handler/notifiers/notifier.dart';
 import 'package:crossonic/services/scrobble/scrobbler.dart';
 import 'package:crossonic/widgets/state/favorites_cubit.dart';
 import 'package:flutter/material.dart';
@@ -40,7 +41,7 @@ Future<void> main() async {
 
   final sharedPreferences = await SharedPreferences.getInstance();
   final apiRepository = await APIRepository.init();
-  final CrossonicAudioHandler audioHandler;
+  final CrossonicAudioPlayer audioPlayer;
   final NativeNotifier nativeNotifier;
   if (!kIsWeb && Platform.isWindows) {
     nativeNotifier = NativeNotifierSMTC();
@@ -55,23 +56,20 @@ Future<void> main() async {
   }
 
   if (kIsWeb || Platform.isAndroid) {
-    audioHandler = CrossonicAudioHandlerJustAudio(
-      apiRepository: apiRepository,
-      notifier: nativeNotifier,
-    );
+    audioPlayer = AudioPlayerJustAudio();
   } else if (Platform.isLinux) {
-    audioHandler = CrossonicAudioHandlerGstreamer(
-      apiRepository: apiRepository,
-      notifier: nativeNotifier,
-    );
+    audioPlayer = AudioPlayerGstreamer();
   } else {
-    audioHandler = CrossonicAudioHandlerAudioPlayers(
-      apiRepository: apiRepository,
-      notifier: nativeNotifier,
-    );
+    audioPlayer = AudioPlayerAudioPlayers();
   }
   final audioSession = await AudioSession.instance;
   audioSession.configure(const AudioSessionConfiguration.music());
+
+  final audioHandler = CrossonicAudioHandler(
+    apiRepository: apiRepository,
+    player: audioPlayer,
+    notifier: nativeNotifier,
+  );
 
   Scrobbler.enable(
     sharedPreferences: sharedPreferences,

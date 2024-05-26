@@ -1,7 +1,7 @@
 import 'package:crossonic/features/home/view/state/now_playing_cubit.dart';
 import 'package:crossonic/repositories/api/models/media_model.dart';
 import 'package:crossonic/repositories/api/api_repository.dart';
-import 'package:crossonic/services/audio_player/audio_handler.dart';
+import 'package:crossonic/services/audio_handler/audio_handler.dart';
 import 'package:crossonic/widgets/artist_chooser.dart';
 import 'package:crossonic/widgets/cover_art.dart';
 import 'package:crossonic/widgets/state/favorites_cubit.dart';

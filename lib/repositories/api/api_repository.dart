@@ -154,11 +154,16 @@ class APIRepository {
         null);
   }
 
-  Future<Uri> getStreamURL({required String songID}) async {
+  Future<Uri> getStreamURL(
+      {required String songID,
+      String? format,
+      int? maxBitRate,
+      int? timeOffset}) async {
     final queryParams = _generateQuery({
       'id': [songID],
-      'format': ['raw'],
-      'estimateContentLength': ['true'],
+      if (format != null) 'format': [format],
+      if (maxBitRate != null) 'maxBitRate': [maxBitRate.toString()],
+      if (timeOffset != null) 'timeOffset': [timeOffset.toString()]
     });
     return Uri.parse(
         '$_serverURL/rest/stream${Uri(queryParameters: queryParams)}');
