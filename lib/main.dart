@@ -9,6 +9,8 @@ import 'package:crossonic/features/home/view/state/now_playing_cubit.dart';
 import 'package:crossonic/features/home/view/state/recently_added_albums_cubit.dart';
 import 'package:crossonic/features/search/state/search_bloc.dart';
 import 'package:crossonic/repositories/api/api.dart';
+import 'package:crossonic/repositories/api/api_repository.dart';
+import 'package:crossonic/repositories/settings/settings_repository.dart';
 import 'package:crossonic/services/audio_handler/audio_handler.dart';
 import 'package:crossonic/services/audio_handler/players/audioplayers.dart';
 import 'package:crossonic/services/audio_handler/players/gstreamer.dart';
@@ -41,6 +43,10 @@ Future<void> main() async {
 
   final sharedPreferences = await SharedPreferences.getInstance();
   final apiRepository = await APIRepository.init();
+
+  final settings = Settings(
+      sharedPreferences: sharedPreferences, apiRepository: apiRepository);
+
   final CrossonicAudioPlayer audioPlayer;
   final NativeNotifier nativeNotifier;
   if (!kIsWeb && Platform.isWindows) {
@@ -69,6 +75,7 @@ Future<void> main() async {
     apiRepository: apiRepository,
     player: audioPlayer,
     notifier: nativeNotifier,
+    settings: settings,
   );
 
   Scrobbler.enable(
@@ -81,6 +88,7 @@ Future<void> main() async {
     providers: [
       RepositoryProvider.value(value: apiRepository),
       RepositoryProvider.value(value: audioHandler),
+      RepositoryProvider.value(value: settings),
     ],
     child: MultiBlocProvider(
       providers: [

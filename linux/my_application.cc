@@ -78,7 +78,11 @@ static void gstreamer_call_handler(FlMethodChannel *channel, FlMethodCall *metho
       response = FL_METHOD_RESPONSE(fl_method_not_implemented_response_new());
     }
   }
-  catch (void *e)
+  catch (const char* msg)
+  {
+    response = FL_METHOD_RESPONSE(fl_method_error_response_new("EXCEPTION", msg, nullptr));
+  }
+  catch (...)
   {
     response = FL_METHOD_RESPONSE(fl_method_error_response_new("EXCEPTION", "An unexpected error occured.", nullptr));
   }

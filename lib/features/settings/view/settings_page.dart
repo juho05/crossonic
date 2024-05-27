@@ -15,6 +15,13 @@ class SettingsPage extends StatelessWidget {
       body: ListView(
         children: [
           ListTile(
+            title: const Text("Transcoding"),
+            trailing: const Icon(Icons.arrow_forward_ios),
+            onTap: () {
+              context.push("/settings/transcoding");
+            },
+          ),
+          ListTile(
             title: const Text("ListenBrainz"),
             trailing: const Icon(Icons.arrow_forward_ios),
             onTap: () {

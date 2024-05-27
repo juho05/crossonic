@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:crossonic/repositories/api/api_repository.dart';
+import 'package:crossonic/repositories/settings/settings_repository.dart';
 import 'package:crossonic/services/audio_handler/players/player.dart';
 import 'package:crossonic/services/audio_handler/media_queue.dart';
 import 'package:crossonic/services/audio_handler/notifiers/notifier.dart';
@@ -55,21 +56,26 @@ class CrossonicAudioHandler {
   final CrossonicAudioPlayer _player;
   final APIRepository _apiRepository;
   final NativeNotifier _notifier;
+  final Settings _settings;
 
   bool _playOnNextMediaChange = false;
   Timer? _positionTimer;
 
-  bool _isRaw = false;
-  bool _nextIsRaw = false;
+  TranscodeSetting _currentTranscode =
+      const TranscodeSetting(format: null, maxBitRate: null);
+  TranscodeSetting _nextTranscode =
+      const TranscodeSetting(format: null, maxBitRate: null);
   Duration _positionOffset = Duration.zero;
 
   CrossonicAudioHandler({
     required APIRepository apiRepository,
     required CrossonicAudioPlayer player,
     required NativeNotifier notifier,
+    required Settings settings,
   })  : _apiRepository = apiRepository,
         _player = player,
-        _notifier = notifier {
+        _notifier = notifier,
+        _settings = settings {
     _apiRepository.authStatus.listen((status) async {
       if (status != AuthStatus.authenticated) {
         await stop();
@@ -84,6 +90,20 @@ class CrossonicAudioHandler {
       onStop: stop,
     );
     _notifier.updateMedia(null, null);
+
+    _settings.transcodeSetting.listen((transcode) async {
+      final next = _queue.current.value?.next;
+      if (next != null && _nextTranscode != transcode) {
+        _player.setNext(
+            next,
+            await _apiRepository.getStreamURL(
+              songID: next.id,
+              format: transcode.format,
+              maxBitRate: transcode.maxBitRate,
+            ));
+        _nextTranscode = transcode;
+      }
+    });
 
     _queue.current.listen(_mediaChanged);
 
@@ -145,11 +165,15 @@ class CrossonicAudioHandler {
     if (media.currentChanged) {
       _playOnNextMediaChange = false;
       if (!media.fromNext) {
-        await _player.setCurrent(media.item,
-            await _apiRepository.getStreamURL(songID: media.item.id));
-        // update _isRaw
+        _currentTranscode = await _settings.getTranscodeSettings();
+        await _player.setCurrent(
+            media.item,
+            await _apiRepository.getStreamURL(
+                songID: media.item.id,
+                format: _currentTranscode.format,
+                maxBitRate: _currentTranscode.maxBitRate));
       } else {
-        _isRaw = _nextIsRaw;
+        _currentTranscode = _nextTranscode;
       }
       _positionOffset = Duration.zero;
       if (status == CrossonicPlaybackStatus.playing || playAfterChange) {
@@ -161,10 +185,15 @@ class CrossonicAudioHandler {
 
     _updatePosition(true);
 
+    _nextTranscode = await _settings.getTranscodeSettings();
     if (media.next != null) {
-      await _player.setNext(media.next,
-          await _apiRepository.getStreamURL(songID: media.next!.id));
-      // TODO update _nextIsRaw
+      await _player.setNext(
+          media.next,
+          await _apiRepository.getStreamURL(
+            songID: media.next!.id,
+            format: _nextTranscode.format,
+            maxBitRate: _nextTranscode.maxBitRate,
+          ));
     } else {
       await _player.setNext(null, null);
     }
@@ -222,6 +251,7 @@ class CrossonicAudioHandler {
   }
 
   Future<void> play() async {
+    if (_queue.current.valueOrNull == null) return;
     await _player.play();
   }
 
@@ -239,16 +269,19 @@ class CrossonicAudioHandler {
   Future<void> seek(Duration position) async {
     final media = _queue.current.valueOrNull?.item;
     if (media == null) return;
-    if (_isRaw) {
+    if (_currentTranscode.format == "raw") {
       await _player.seek(position);
     } else {
       position = Duration(seconds: position.inSeconds);
+      _currentTranscode = await _settings.getTranscodeSettings();
       await _player.setCurrent(
           media,
           await _apiRepository.getStreamURL(
-              songID: media.id, timeOffset: position.inSeconds));
+              songID: media.id,
+              timeOffset: position.inSeconds,
+              format: _currentTranscode.format,
+              maxBitRate: _currentTranscode.maxBitRate));
       _positionOffset = position;
-      // update _isRaw
       await play();
     }
     _playbackState.add(_playbackState.value.copyWith(position: position));

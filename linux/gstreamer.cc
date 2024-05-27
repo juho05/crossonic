@@ -208,10 +208,12 @@ void Gstreamer::play()
 void Gstreamer::pause()
 {
   should_play = false;
+  if (current_url.empty())
+    return;
   auto ret = gst_element_set_state(playbin, GST_STATE_PAUSED);
   if (ret == GST_STATE_CHANGE_FAILURE)
   {
-    throw "Failed to set gstreamer playbin to PLAYING state";
+    throw "Failed to set gstreamer playbin to PAUSED state";
   }
   is_live = ret == GST_STATE_CHANGE_NO_PREROLL;
 }
