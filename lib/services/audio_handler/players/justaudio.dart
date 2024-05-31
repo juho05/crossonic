@@ -14,7 +14,9 @@ class AudioPlayerJustAudio implements CrossonicAudioPlayer {
 
   AudioPlayerJustAudio() {
     _player.playerStateStream.listen((event) async {
-      if (event.processingState == ProcessingState.buffering ||
+      if (event.processingState == ProcessingState.completed) {
+        _eventStream.add(AudioPlayerEvent.stopped);
+      } else if (event.processingState == ProcessingState.buffering ||
           event.processingState == ProcessingState.loading) {
         _eventStream.add(AudioPlayerEvent.loading);
       } else if (event.playing) {

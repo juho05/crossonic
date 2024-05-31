@@ -144,12 +144,14 @@ class CrossonicAudioHandler {
   Future<void> _mediaChanged(CurrentMedia? media) async {
     CrossonicPlaybackStatus status = _playbackState.value.status;
     var playAfterChange = _playOnNextMediaChange;
-    if (media?.currentChanged ?? false) {
+    if (media == null) {
+      _notifier.updateMedia(null, null);
+    } else if (media.currentChanged) {
       _notifier.updateMedia(
-        media?.item,
-        media?.item.coverArt != null
+        media.item,
+        media.item.coverArt != null
             ? await _apiRepository.getCoverArtURL(
-                coverArtID: media!.item.coverArt!,
+                coverArtID: media.item.coverArt!,
                 size: const CoverResolution.large().size)
             : null,
       );
@@ -262,6 +264,9 @@ class CrossonicAudioHandler {
   Future<void> stop() async {
     _playbackState.add(
         const CrossonicPlaybackState(status: CrossonicPlaybackStatus.stopped));
+    _notifier.updateMedia(null, null);
+    _notifier.updatePosition(Duration.zero);
+    _notifier.updatePlaybackState(CrossonicPlaybackStatus.stopped);
     await _player.stop();
     _queue.clear();
   }
