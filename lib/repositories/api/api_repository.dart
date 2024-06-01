@@ -8,6 +8,7 @@ import 'package:crossonic/repositories/api/models/artist_model.dart';
 import 'package:crossonic/repositories/api/models/listenbrainz_model.dart';
 import 'package:crossonic/repositories/api/models/models.dart';
 import 'package:crossonic/repositories/api/models/responses/getalbumlist2_response.dart';
+import 'package:crossonic/repositories/api/models/responses/getlyricsbysongid_response.dart';
 import 'package:crossonic/repositories/api/models/responses/gettopsongs_response.dart';
 import 'package:crossonic/repositories/api/models/responses/search3_response.dart';
 import 'package:crossonic/repositories/api/models/scan_status_model.dart';
@@ -165,6 +166,17 @@ class APIRepository {
     final status =
         await _jsonRequest("startScan", {}, ScanStatus.fromJson, "scanStatus");
     return status!;
+  }
+
+  Future<GetLyricsBySongIdResponse> getLyricsBySongId(String songID) async {
+    final response = await _jsonRequest(
+        "getLyricsBySongId",
+        {
+          "id": [songID]
+        },
+        GetLyricsBySongIdResponse.fromJson,
+        "lyricsList");
+    return response!;
   }
 
   Future<Uri> getStreamURL(

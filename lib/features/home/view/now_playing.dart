@@ -294,11 +294,22 @@ class NowPlaying extends StatelessWidget {
                         },
                       ),
                       const SizedBox(height: 5),
-                      IconButton(
-                        onPressed: () {
-                          context.push("/queue");
-                        },
-                        icon: const Icon(Icons.queue_music),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          IconButton(
+                            onPressed: () {
+                              context.push("/lyrics");
+                            },
+                            icon: const Icon(Icons.lyrics_outlined),
+                          ),
+                          IconButton(
+                            onPressed: () {
+                              context.push("/queue");
+                            },
+                            icon: const Icon(Icons.queue_music),
+                          ),
+                        ],
                       )
                     ],
                   ),

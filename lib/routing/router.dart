@@ -6,6 +6,7 @@ import 'package:crossonic/features/auth/auth.dart';
 import 'package:crossonic/features/home/home.dart';
 import 'package:crossonic/features/home/view/home_page.dart';
 import 'package:crossonic/features/login/login.dart';
+import 'package:crossonic/features/lyrics/lyrics_page.dart';
 import 'package:crossonic/features/playlists/playlists.dart';
 import 'package:crossonic/features/queue/queue_page.dart';
 import 'package:crossonic/features/search/search_page.dart';
@@ -32,6 +33,7 @@ final _topLevelRoutes = [
   _newRoute("/settings/transcoding", const TranscodingPage()),
   _newRoute("/settings/scan", const ScanPage()),
   _newRoute("/queue", const QueuePage()),
+  _newRoute("/lyrics", const LyricsPage()),
 ];
 
 String _tabRoutePath(String prefix, String path) =>
