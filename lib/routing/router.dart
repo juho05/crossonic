@@ -5,6 +5,7 @@ import 'package:crossonic/features/artist/artist_page.dart';
 import 'package:crossonic/features/auth/auth.dart';
 import 'package:crossonic/features/home/home.dart';
 import 'package:crossonic/features/home/view/home_page.dart';
+import 'package:crossonic/features/home/view/random_songs_page.dart';
 import 'package:crossonic/features/login/login.dart';
 import 'package:crossonic/features/lyrics/lyrics_page.dart';
 import 'package:crossonic/features/playlists/playlists.dart';
@@ -43,6 +44,7 @@ List<RouteBase> _tabRoutes(String prefix) => [
       _newRoute(_tabRoutePath(prefix, "/home"), const HomePage()),
       _newRoute(_tabRoutePath(prefix, "/search"), const SearchPage()),
       _newRoute(_tabRoutePath(prefix, "/playlists"), const PlaylistsPage()),
+      _newRoute(_tabRoutePath(prefix, "/randomSongs"), const RandomSongsPage()),
       GoRoute(
         path: _tabRoutePath(prefix, "/album/:albumID"),
         pageBuilder: (context, state) => NoTransitionPage(

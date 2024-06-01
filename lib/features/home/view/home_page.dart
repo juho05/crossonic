@@ -3,6 +3,7 @@ import 'package:crossonic/features/home/view/random_songs.dart';
 import 'package:crossonic/features/home/view/recently_added_albums.dart';
 import 'package:crossonic/features/home/view/state/random_songs_cubit.dart';
 import 'package:crossonic/features/home/view/state/recently_added_albums_cubit.dart';
+import 'package:crossonic/repositories/api/api_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -12,36 +13,47 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Crossonic | Home'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () => context.push("/settings"),
-          )
-        ],
-      ),
-      body: RefreshIndicator.adaptive(
-        onRefresh: () async {
-          context.read<RecentlyAddedAlbumsCubit>().fetch(15);
-          context.read<RandomSongsCubit>().fetch(50);
-        },
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              HomeCarousel(
-                title: "Recently added albums",
-                content: const RecentlyAddedAlbums(),
-                onMore: () {
-                  context.push("/home/albums/added");
-                },
-              ),
-              const SizedBox(height: 8),
-              const RandomSongs(),
-            ],
+    final apiRepository = context.read<APIRepository>();
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (_) => RandomSongsCubit(apiRepository)..fetch(50),
+        ),
+        BlocProvider(
+          create: (_) => RecentlyAddedAlbumsCubit(apiRepository)..fetch(15),
+        ),
+      ],
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Crossonic | Home'),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.settings),
+              onPressed: () => context.push("/settings"),
+            )
+          ],
+        ),
+        body: RefreshIndicator.adaptive(
+          onRefresh: () async {
+            context.read<RecentlyAddedAlbumsCubit>().fetch(15);
+            context.read<RandomSongsCubit>().fetch(50);
+          },
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                HomeCarousel(
+                  title: "Recently added albums",
+                  content: const RecentlyAddedAlbums(),
+                  onMore: () {
+                    context.push("/home/albums/added");
+                  },
+                ),
+                const SizedBox(height: 8),
+                const RandomSongs(),
+              ],
+            ),
           ),
         ),
       ),

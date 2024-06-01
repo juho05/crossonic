@@ -41,7 +41,8 @@ class AlbumsBloc extends Bloc<AlbumsEvent, AlbumsState> {
     on<AlbumSortModeSelected>((event, emit) async {
       if (_sortMode == event.mode) return;
       _sortMode = event.mode;
-      await _fetch(albumsPerPage, 0, emit);
+      await _fetch(
+          _sortMode == AlbumSortMode.random ? 500 : albumsPerPage, 0, emit);
     });
   }
 
@@ -78,7 +79,7 @@ class AlbumsBloc extends Bloc<AlbumsEvent, AlbumsState> {
           if (offset > 0) ...state.albums.sublist(0, offset),
           ...albums,
         ],
-        reachedEnd: albums.isEmpty,
+        reachedEnd: albums.isEmpty || _sortMode == AlbumSortMode.random,
       ));
     } catch (e) {
       print(e);

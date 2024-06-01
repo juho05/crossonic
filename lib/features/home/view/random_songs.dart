@@ -4,6 +4,7 @@ import 'package:crossonic/services/audio_handler/audio_handler.dart';
 import 'package:crossonic/widgets/song.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 class RandomSongs extends StatelessWidget {
   const RandomSongs({super.key});
@@ -15,7 +16,9 @@ class RandomSongs extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         TextButton(
-          onPressed: () {},
+          onPressed: () {
+            context.push("/home/randomSongs");
+          },
           style: TextButton.styleFrom(
             foregroundColor: theme.colorScheme.onBackground,
             textStyle: theme.textTheme.headlineSmall!.copyWith(fontSize: 20),

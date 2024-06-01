@@ -4,9 +4,7 @@ import 'package:audio_service/audio_service.dart';
 import 'package:audio_session/audio_session.dart';
 import 'package:crossonic/app.dart';
 import 'package:crossonic/features/auth/auth.dart';
-import 'package:crossonic/features/home/view/state/random_songs_cubit.dart';
 import 'package:crossonic/features/home/view/state/now_playing_cubit.dart';
-import 'package:crossonic/features/home/view/state/recently_added_albums_cubit.dart';
 import 'package:crossonic/features/search/state/search_bloc.dart';
 import 'package:crossonic/repositories/api/api.dart';
 import 'package:crossonic/repositories/api/api_repository.dart';
@@ -93,12 +91,6 @@ Future<void> main() async {
     child: MultiBlocProvider(
       providers: [
         BlocProvider(create: (_) => AuthBloc(apiRepository: apiRepository)),
-        BlocProvider(
-          create: (_) => RandomSongsCubit(apiRepository)..fetch(50),
-        ),
-        BlocProvider(
-          create: (_) => RecentlyAddedAlbumsCubit(apiRepository)..fetch(15),
-        ),
         BlocProvider(create: (_) => NowPlayingCubit(audioHandler)),
         BlocProvider(create: (_) => SearchBloc(apiRepository)),
         BlocProvider(create: (_) => FavoritesCubit(apiRepository)),
