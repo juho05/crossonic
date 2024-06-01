@@ -151,13 +151,18 @@ class Scrobbler {
   }
 
   Future<void> _sendScrobbles() async {
-    if (!_sendingCachedScrobbles && _scrobbles.isNotEmpty) {
+    if (!_sendingCachedScrobbles) {
       _sendingCachedScrobbles = true;
       try {
         _scrobbles.removeWhere((s) => s.durationMS < 1000);
-        await _apiRepository.submitScrobbles(_scrobbles.map((s) => ScrobbleData(
-            id: s.songID, timeUnixMS: s.timeUnixMS, durationMS: s.durationMS)));
-        await _clearScrobbles();
+        if (_scrobbles.isNotEmpty) {
+          await _apiRepository.submitScrobbles(_scrobbles.map((s) =>
+              ScrobbleData(
+                  id: s.songID,
+                  timeUnixMS: s.timeUnixMS,
+                  durationMS: s.durationMS)));
+          await _clearScrobbles();
+        }
       } catch (e) {
         print("Failed to scrobble: $e");
       }
