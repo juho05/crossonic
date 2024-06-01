@@ -33,77 +33,82 @@ class RandomSongsPage extends StatelessWidget {
               FetchStatus.loading =>
                 const Center(child: CircularProgressIndicator.adaptive()),
               FetchStatus.failure => const Center(child: Icon(Icons.wifi_off)),
-              FetchStatus.success => Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          children: [
-                            ElevatedButton.icon(
-                              icon: const Icon(Icons.play_arrow),
-                              label: const Text('Play'),
-                              onPressed: () {
-                                audioHandler.playOnNextMediaChange();
-                                audioHandler.mediaQueue
-                                    .replaceQueue(state.songs);
-                              },
-                            ),
-                            const SizedBox(width: 8),
-                            ElevatedButton.icon(
-                              icon: const Icon(Icons.playlist_play),
-                              label: const Text('Prio. Queue'),
-                              onPressed: () {
-                                audioHandler.mediaQueue
-                                    .addAllToPriorityQueue(state.songs);
-                                ScaffoldMessenger.of(context)
-                                    .showSnackBar(const SnackBar(
-                                  content:
-                                      Text('Added songs to priority queue'),
-                                  behavior: SnackBarBehavior.floating,
-                                  duration: Duration(milliseconds: 1250),
-                                ));
-                              },
-                            ),
-                            const SizedBox(width: 8),
-                            ElevatedButton.icon(
-                              icon: const Icon(Icons.playlist_add_outlined),
-                              label: const Text('Queue'),
-                              onPressed: () {
-                                audioHandler.mediaQueue.addAll(state.songs);
-                                ScaffoldMessenger.of(context)
-                                    .showSnackBar(const SnackBar(
-                                  content: Text('Added songs to queue'),
-                                  behavior: SnackBarBehavior.floating,
-                                  duration: Duration(milliseconds: 1250),
-                                ));
-                              },
-                            )
-                          ],
+              FetchStatus.success => RefreshIndicator.adaptive(
+                  onRefresh: () async {
+                    await context.read<RandomSongsCubit>().fetch(300);
+                  },
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            children: [
+                              ElevatedButton.icon(
+                                icon: const Icon(Icons.play_arrow),
+                                label: const Text('Play'),
+                                onPressed: () {
+                                  audioHandler.playOnNextMediaChange();
+                                  audioHandler.mediaQueue
+                                      .replaceQueue(state.songs);
+                                },
+                              ),
+                              const SizedBox(width: 8),
+                              ElevatedButton.icon(
+                                icon: const Icon(Icons.playlist_play),
+                                label: const Text('Prio. Queue'),
+                                onPressed: () {
+                                  audioHandler.mediaQueue
+                                      .addAllToPriorityQueue(state.songs);
+                                  ScaffoldMessenger.of(context)
+                                      .showSnackBar(const SnackBar(
+                                    content:
+                                        Text('Added songs to priority queue'),
+                                    behavior: SnackBarBehavior.floating,
+                                    duration: Duration(milliseconds: 1250),
+                                  ));
+                                },
+                              ),
+                              const SizedBox(width: 8),
+                              ElevatedButton.icon(
+                                icon: const Icon(Icons.playlist_add_outlined),
+                                label: const Text('Queue'),
+                                onPressed: () {
+                                  audioHandler.mediaQueue.addAll(state.songs);
+                                  ScaffoldMessenger.of(context)
+                                      .showSnackBar(const SnackBar(
+                                    content: Text('Added songs to queue'),
+                                    behavior: SnackBarBehavior.floating,
+                                    duration: Duration(milliseconds: 1250),
+                                  ));
+                                },
+                              )
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                    Expanded(
-                      child: ListView.builder(
-                        shrinkWrap: true,
-                        itemCount: state.songs.length,
-                        itemBuilder: (context, index) => Song(
-                          song: state.songs[index],
-                          leadingItem: SongLeadingItem.cover,
-                          showArtist: true,
-                          showYear: true,
-                          onTap: () async {
-                            audioHandler.playOnNextMediaChange();
-                            audioHandler.mediaQueue
-                                .replaceQueue(state.songs, index);
-                          },
+                      Expanded(
+                        child: ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: state.songs.length,
+                          itemBuilder: (context, index) => Song(
+                            song: state.songs[index],
+                            leadingItem: SongLeadingItem.cover,
+                            showArtist: true,
+                            showYear: true,
+                            onTap: () async {
+                              audioHandler.playOnNextMediaChange();
+                              audioHandler.mediaQueue
+                                  .replaceQueue(state.songs, index);
+                            },
+                          ),
+                          restorationId: "random_songs_page_scroll",
                         ),
-                        restorationId: "random_songs_page_scroll",
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 )
             };
           },
