@@ -29,6 +29,13 @@ class SettingsPage extends StatelessWidget {
             },
           ),
           ListTile(
+            title: const Text("Scan"),
+            trailing: const Icon(Icons.arrow_forward_ios),
+            onTap: () {
+              context.push("/settings/scan");
+            },
+          ),
+          ListTile(
             trailing: const Icon(Icons.logout),
             title: const Text("Logout"),
             onTap: () {

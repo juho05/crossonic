@@ -10,6 +10,7 @@ import 'package:crossonic/repositories/api/models/models.dart';
 import 'package:crossonic/repositories/api/models/responses/getalbumlist2_response.dart';
 import 'package:crossonic/repositories/api/models/responses/gettopsongs_response.dart';
 import 'package:crossonic/repositories/api/models/responses/search3_response.dart';
+import 'package:crossonic/repositories/api/models/scan_status_model.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
@@ -152,6 +153,18 @@ class APIRepository {
         },
         null,
         null);
+  }
+
+  Future<ScanStatus> getScanStatus() async {
+    final status = await _jsonRequest(
+        "getScanStatus", {}, ScanStatus.fromJson, "scanStatus");
+    return status!;
+  }
+
+  Future<ScanStatus> startScan() async {
+    final status =
+        await _jsonRequest("startScan", {}, ScanStatus.fromJson, "scanStatus");
+    return status!;
   }
 
   Future<Uri> getStreamURL(
