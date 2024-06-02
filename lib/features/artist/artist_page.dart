@@ -6,6 +6,7 @@ import 'package:crossonic/repositories/api/models/media_model.dart';
 import 'package:crossonic/repositories/api/api_repository.dart';
 import 'package:crossonic/services/audio_handler/audio_handler.dart';
 import 'package:crossonic/widgets/album.dart';
+import 'package:crossonic/widgets/chooser.dart';
 import 'package:crossonic/widgets/cover_art.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -88,69 +89,104 @@ class ArtistPage extends StatelessWidget {
                               const SizedBox(height: 10),
                               SizedBox(
                                 width: 100000,
-                                child: SingleChildScrollView(
-                                  scrollDirection: Axis.horizontal,
-                                  child: Row(
-                                    children: [
-                                      ElevatedButton.icon(
-                                        icon: const Icon(Icons.play_arrow),
-                                        label: const Text('Play'),
-                                        onPressed: () {
+                                child: Wrap(
+                                  spacing: 8,
+                                  runSpacing: 8,
+                                  children: [
+                                    ElevatedButton.icon(
+                                      icon: const Icon(Icons.play_arrow),
+                                      label: const Text('Play'),
+                                      onPressed: () {
+                                        doSomethingWithArtistSongs(
+                                          albums: artist.albums,
+                                          repository: apiRepository,
+                                          scaffoldMessenger: scaffoldMessenger,
+                                          callback: (songs) {
+                                            audioHandler
+                                                .playOnNextMediaChange();
+                                            audioHandler.mediaQueue
+                                                .replaceQueue(songs);
+                                          },
+                                        );
+                                      },
+                                    ),
+                                    ElevatedButton.icon(
+                                      icon: const Icon(Icons.shuffle),
+                                      label: const Text('Shuffle'),
+                                      onPressed: () async {
+                                        final option =
+                                            await ChooserDialog.choose(context,
+                                                "Shuffle", ["Albums", "Songs"]);
+                                        if (option == null) return;
+                                        if (option == 0) {
+                                          doSomethingWithArtistSongsByAlbum(
+                                            albums: artist.albums,
+                                            repository: apiRepository,
+                                            scaffoldMessenger:
+                                                scaffoldMessenger,
+                                            callback: (songs) {
+                                              songs.shuffle();
+                                              audioHandler
+                                                  .playOnNextMediaChange();
+                                              audioHandler.mediaQueue
+                                                  .replaceQueue(songs
+                                                      .expand((s) => s)
+                                                      .toList());
+                                            },
+                                          );
+                                        } else {
                                           doSomethingWithArtistSongs(
                                             albums: artist.albums,
                                             repository: apiRepository,
                                             scaffoldMessenger:
                                                 scaffoldMessenger,
                                             callback: (songs) {
+                                              songs.shuffle();
                                               audioHandler
                                                   .playOnNextMediaChange();
                                               audioHandler.mediaQueue
                                                   .replaceQueue(songs);
                                             },
                                           );
-                                        },
-                                      ),
-                                      const SizedBox(width: 8),
-                                      ElevatedButton.icon(
-                                        icon: const Icon(Icons.playlist_play),
-                                        label: const Text('Prio. Queue'),
-                                        onPressed: () {
-                                          doSomethingWithArtistSongs(
-                                            albums: artist.albums,
-                                            repository: apiRepository,
-                                            scaffoldMessenger:
-                                                scaffoldMessenger,
-                                            successMessage:
-                                                "Added '${artist.name} to priority queue",
-                                            callback: (songs) {
-                                              audioHandler.mediaQueue
-                                                  .addAllToPriorityQueue(songs);
-                                            },
-                                          );
-                                        },
-                                      ),
-                                      const SizedBox(width: 8),
-                                      ElevatedButton.icon(
-                                        icon: const Icon(
-                                            Icons.playlist_add_outlined),
-                                        label: const Text('Queue'),
-                                        onPressed: () {
-                                          doSomethingWithArtistSongs(
-                                            albums: artist.albums,
-                                            repository: apiRepository,
-                                            scaffoldMessenger:
-                                                scaffoldMessenger,
-                                            successMessage:
-                                                "Added '${artist.name} to queue",
-                                            callback: (songs) {
-                                              audioHandler.mediaQueue
-                                                  .addAll(songs);
-                                            },
-                                          );
-                                        },
-                                      )
-                                    ],
-                                  ),
+                                        }
+                                      },
+                                    ),
+                                    ElevatedButton.icon(
+                                      icon: const Icon(Icons.playlist_play),
+                                      label: const Text('Prio. Queue'),
+                                      onPressed: () {
+                                        doSomethingWithArtistSongs(
+                                          albums: artist.albums,
+                                          repository: apiRepository,
+                                          scaffoldMessenger: scaffoldMessenger,
+                                          successMessage:
+                                              "Added '${artist.name} to priority queue",
+                                          callback: (songs) {
+                                            audioHandler.mediaQueue
+                                                .addAllToPriorityQueue(songs);
+                                          },
+                                        );
+                                      },
+                                    ),
+                                    ElevatedButton.icon(
+                                      icon: const Icon(
+                                          Icons.playlist_add_outlined),
+                                      label: const Text('Queue'),
+                                      onPressed: () {
+                                        doSomethingWithArtistSongs(
+                                          albums: artist.albums,
+                                          repository: apiRepository,
+                                          scaffoldMessenger: scaffoldMessenger,
+                                          successMessage:
+                                              "Added '${artist.name} to queue",
+                                          callback: (songs) {
+                                            audioHandler.mediaQueue
+                                                .addAll(songs);
+                                          },
+                                        );
+                                      },
+                                    )
+                                  ],
                                 ),
                               ),
                               const SizedBox(height: 10),
@@ -215,6 +251,36 @@ class ArtistPage extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future<void> doSomethingWithArtistSongsByAlbum({
+    required List<ArtistAlbum> albums,
+    required void Function(List<List<Media>>) callback,
+    required APIRepository repository,
+    required ScaffoldMessengerState scaffoldMessenger,
+    String? successMessage,
+  }) async {
+    try {
+      final songLists = await Future.wait((albums).map((a) async {
+        final album = await repository.getAlbum(a.id);
+        return album.song ?? <Media>[];
+      }));
+      callback(songLists);
+      if (successMessage != null) {
+        scaffoldMessenger.showSnackBar(SnackBar(
+          content: Text(successMessage),
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(milliseconds: 1250),
+        ));
+      }
+    } catch (e) {
+      print(e);
+      scaffoldMessenger.showSnackBar(const SnackBar(
+        content: Text('An unexpected error occured'),
+        behavior: SnackBarBehavior.floating,
+        duration: Duration(milliseconds: 1250),
+      ));
+    }
   }
 
   Future<void> doSomethingWithArtistSongs({

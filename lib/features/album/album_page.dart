@@ -4,7 +4,7 @@ import 'package:crossonic/features/album/state/album_cubit.dart';
 import 'package:crossonic/fetch_status.dart';
 import 'package:crossonic/repositories/api/api_repository.dart';
 import 'package:crossonic/services/audio_handler/audio_handler.dart';
-import 'package:crossonic/widgets/artist_chooser.dart';
+import 'package:crossonic/widgets/chooser.dart';
 import 'package:crossonic/widgets/cover_art.dart';
 import 'package:crossonic/widgets/song.dart';
 import 'package:flutter/material.dart';
@@ -70,8 +70,8 @@ class AlbumPage extends StatelessWidget {
                             TextButton(
                               onPressed: () async {
                                 final artistID =
-                                    await ArtistChooserDialog.choose(
-                                        context, album.artists.artists);
+                                    await ChooserDialog.chooseArtist(context,
+                                        album.artists.artists.toList());
                                 if (artistID == null) return;
                                 // ignore: use_build_context_synchronously
                                 context.push("/home/artist/$artistID");

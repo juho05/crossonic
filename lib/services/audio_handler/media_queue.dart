@@ -105,6 +105,20 @@ class MediaQueue {
     if (index < _nextIndex) _nextIndex--;
   }
 
+  void removeAllFollowing() {
+    if (_nextIndex >= _queue.length) return;
+    _queue.removeRange(_nextIndex, _queue.length);
+    if (_priorityQueue.isEmpty) {
+      current.add(CurrentMedia(
+        current.value!.item,
+        _queue.elementAtOrNull(_nextIndex),
+        index: current.value!.index,
+        currentChanged: false,
+        inPriorityQueue: current.value!.inPriorityQueue,
+      ));
+    }
+  }
+
   void clear() {
     clearPriorityQueue();
     _queue.clear();
@@ -219,6 +233,36 @@ class MediaQueue {
     ));
   }
 
+  void shufflePriorityQueue() {
+    if (_priorityQueue.isEmpty) return;
+    final newQueue = _priorityQueue.toList()..shuffle();
+    _priorityQueue.clear();
+    _priorityQueue.addAll(newQueue);
+    current.add(CurrentMedia(
+      current.value!.item,
+      _priorityQueue.first,
+      currentChanged: false,
+      inPriorityQueue: current.value!.inPriorityQueue,
+      index: current.value!.index,
+    ));
+  }
+
+  void shuffleFollowing() {
+    if (_nextIndex >= _queue.length) return;
+    final following = _queue.sublist(_nextIndex);
+    _queue.removeRange(_nextIndex, _queue.length);
+    _queue.addAll(following..shuffle());
+    if (_priorityQueue.isEmpty) {
+      current.add(CurrentMedia(
+        current.value!.item,
+        _queue.elementAtOrNull(_nextIndex),
+        currentChanged: false,
+        inPriorityQueue: current.value!.inPriorityQueue,
+        index: current.value!.index,
+      ));
+    }
+  }
+
   void goto(int index) {
     if (index < 0 || index >= _queue.length) {
       throw InvalidStateException(
@@ -230,7 +274,7 @@ class MediaQueue {
       _priorityQueue.isNotEmpty
           ? _priorityQueue.first
           : _queue.elementAtOrNull(_nextIndex),
-      fromNext: true,
+      fromNext: false,
       inPriorityQueue: false,
       index: index,
     ));

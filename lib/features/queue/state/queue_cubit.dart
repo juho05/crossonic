@@ -24,6 +24,26 @@ class QueueCubit extends Cubit<QueueState> {
     _emitState(current);
   }
 
+  void clearPriorityQueue() {
+    _queue.clearPriorityQueue();
+    _emitState(_queue.current.value);
+  }
+
+  void shufflePriorityQueue() {
+    _queue.shufflePriorityQueue();
+    _emitState(_queue.current.value);
+  }
+
+  void clearQueue() {
+    _queue.removeAllFollowing();
+    _emitState(_queue.current.value);
+  }
+
+  void shuffleQueue() {
+    _queue.shuffleFollowing();
+    _emitState(_queue.current.value);
+  }
+
   void reorder(int oldIndex, int newIndex) {
     final Media song;
     if (_isPriorityQueue(oldIndex)) {

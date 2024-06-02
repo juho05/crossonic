@@ -2,7 +2,7 @@ import 'package:crossonic/features/home/view/state/now_playing_cubit.dart';
 import 'package:crossonic/repositories/api/models/media_model.dart';
 import 'package:crossonic/repositories/api/api_repository.dart';
 import 'package:crossonic/services/audio_handler/audio_handler.dart';
-import 'package:crossonic/widgets/artist_chooser.dart';
+import 'package:crossonic/widgets/chooser.dart';
 import 'package:crossonic/widgets/cover_art.dart';
 import 'package:crossonic/widgets/state/favorites_cubit.dart';
 import 'package:flutter/material.dart';
@@ -223,10 +223,11 @@ class _SongState extends State<Song> {
                           case SongPopupMenuValue.gotoAlbum:
                             context.push("/home/album/${widget.song.albumId}");
                           case SongPopupMenuValue.gotoArtist:
-                            final artistID = await ArtistChooserDialog.choose(
+                            final artistID = await ChooserDialog.chooseArtist(
                                 context,
                                 APIRepository.getArtistsOfSong(widget.song)
-                                    .artists);
+                                    .artists
+                                    .toList());
                             if (artistID == null) return;
                             // ignore: use_build_context_synchronously
                             context.push("/home/artist/$artistID");

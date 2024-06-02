@@ -1,5 +1,6 @@
 import 'package:crossonic/features/queue/state/queue_cubit.dart';
 import 'package:crossonic/services/audio_handler/audio_handler.dart';
+import 'package:crossonic/widgets/confirmation.dart';
 import 'package:crossonic/widgets/song.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -60,11 +61,39 @@ class _QueuePageState extends State<QueuePage> {
                     ),
                   if (state.current == null) const Text("Inactive playback"),
                   Padding(
-                    padding: const EdgeInsets.only(left: 8.0),
-                    child: Text(
-                      "Priority queue (${state.priorityQueue.length})",
-                      style:
-                          theme.textTheme.headlineSmall!.copyWith(fontSize: 20),
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            "Priority queue (${state.priorityQueue.length})",
+                            style: theme.textTheme.headlineSmall!
+                                .copyWith(fontSize: 20),
+                          ),
+                        ),
+                        if (state.priorityQueue.isNotEmpty)
+                          IconButton(
+                            onPressed: () async {
+                              if (!(await ConfirmationDialog.show(
+                                  context, "Shuffle priority queue?"))) {
+                                return;
+                              }
+                              queue.shufflePriorityQueue();
+                            },
+                            icon: const Icon(Icons.shuffle),
+                          ),
+                        if (state.priorityQueue.isNotEmpty)
+                          IconButton(
+                            onPressed: () async {
+                              if (!(await ConfirmationDialog.show(
+                                  context, "Clear priority queue?"))) {
+                                return;
+                              }
+                              queue.clearPriorityQueue();
+                            },
+                            icon: const Icon(Icons.delete_outline),
+                          )
+                      ],
                     ),
                   ),
                 ],
@@ -93,11 +122,39 @@ class _QueuePageState extends State<QueuePage> {
                 ),
                 Padding(
                   key: _queueSeparatorKey,
-                  padding: const EdgeInsets.only(left: 8.0),
-                  child: Text(
-                    "Queue (${state.queue.length})",
-                    style:
-                        theme.textTheme.headlineSmall!.copyWith(fontSize: 20),
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          "Queue (${state.queue.length})",
+                          style: theme.textTheme.headlineSmall!
+                              .copyWith(fontSize: 20),
+                        ),
+                      ),
+                      if (state.queue.isNotEmpty)
+                        IconButton(
+                          onPressed: () async {
+                            if (!(await ConfirmationDialog.show(
+                                context, "Shuffle queue?"))) {
+                              return;
+                            }
+                            queue.shuffleQueue();
+                          },
+                          icon: const Icon(Icons.shuffle),
+                        ),
+                      if (state.queue.isNotEmpty)
+                        IconButton(
+                          onPressed: () async {
+                            if (!(await ConfirmationDialog.show(
+                                context, "Clear queue?"))) {
+                              return;
+                            }
+                            queue.clearQueue();
+                          },
+                          icon: const Icon(Icons.delete_outline),
+                        )
+                    ],
                   ),
                 ),
                 ...List<Widget>.generate(
