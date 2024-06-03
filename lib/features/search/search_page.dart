@@ -15,14 +15,23 @@ class SearchPage extends StatefulWidget {
   State<SearchPage> createState() => _SearchPageState();
 }
 
-class _SearchPageState extends State<SearchPage> {
+class _SearchPageState extends State<SearchPage> with RestorationMixin {
   SearchType _selectedType = SearchType.song;
+
+  final _controller = RestorableTextEditingController();
+  final _focusNode = FocusNode();
 
   @override
   void initState() {
     super.initState();
     context.read<SearchBloc>().add(const SearchTextChanged(""));
     context.read<SearchBloc>().add(SearchTypeChanged(_selectedType));
+    _focusNode.addListener(() {
+      if (_focusNode.hasFocus) {
+        _controller.value.selection = TextSelection(
+            baseOffset: 0, extentOffset: _controller.value.text.length);
+      }
+    });
   }
 
   @override
@@ -45,11 +54,12 @@ class _SearchPageState extends State<SearchPage> {
               child: Column(
                 children: [
                   TextField(
+                    controller: _controller.value,
+                    focusNode: _focusNode,
                     decoration: const InputDecoration(
                       labelText: "Search...",
                       icon: Icon(Icons.search),
                     ),
-                    autofocus: true,
                     restorationId: "search-page-search-input",
                     onChanged: (value) {
                       context.read<SearchBloc>().add(SearchTextChanged(value));
@@ -279,5 +289,20 @@ class _SearchPageState extends State<SearchPage> {
         rethrow;
       }
     }
+  }
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  String? get restorationId => "search_page";
+
+  @override
+  void restoreState(RestorationBucket? oldBucket, bool initialRestore) {
+    registerForRestoration(_controller, "search_page_search_controller");
   }
 }
