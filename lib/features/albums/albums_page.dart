@@ -2,9 +2,9 @@ import 'package:crossonic/features/albums/state/albums_bloc.dart';
 import 'package:crossonic/fetch_status.dart';
 import 'package:crossonic/repositories/api/api.dart';
 import 'package:crossonic/widgets/album.dart';
+import 'package:crossonic/widgets/app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 
 class AlbumsPage extends StatelessWidget {
   final AlbumSortMode _initialSortMode;
@@ -18,15 +18,7 @@ class AlbumsPage extends StatelessWidget {
     return BlocProvider(
       create: (context) => AlbumsBloc(context.read<APIRepository>()),
       child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Crossonic | Albums'),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.settings),
-              onPressed: () => context.push("/settings"),
-            )
-          ],
-        ),
+        appBar: createAppBar(context, "Albums"),
         body: AlbumsPageBody(sortMode: _initialSortMode),
       ),
     );

@@ -4,6 +4,7 @@ import 'package:crossonic/features/album/state/album_cubit.dart';
 import 'package:crossonic/fetch_status.dart';
 import 'package:crossonic/repositories/api/api_repository.dart';
 import 'package:crossonic/services/audio_handler/audio_handler.dart';
+import 'package:crossonic/widgets/app_bar.dart';
 import 'package:crossonic/widgets/chooser.dart';
 import 'package:crossonic/widgets/cover_art.dart';
 import 'package:crossonic/widgets/song.dart';
@@ -21,15 +22,7 @@ class AlbumPage extends StatelessWidget {
     return BlocProvider(
       create: (context) => AlbumCubit(context.read<APIRepository>()),
       child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Crossonic | Album'),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.settings),
-              onPressed: () => context.push("/settings"),
-            )
-          ],
-        ),
+        appBar: createAppBar(context, "Album"),
         body: BlocBuilder<AlbumCubit, AlbumState>(
           builder: (context, album) {
             if (album.id != albumID && album.status != FetchStatus.failure) {

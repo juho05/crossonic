@@ -15,6 +15,7 @@ import 'package:crossonic/services/audio_handler/players/gstreamer.dart';
 import 'package:crossonic/services/audio_handler/players/justaudio.dart';
 import 'package:crossonic/services/audio_handler/players/player.dart';
 import 'package:crossonic/services/audio_handler/notifiers/notifier.dart';
+import 'package:crossonic/services/connect/connect_manager.dart';
 import 'package:crossonic/services/scrobble/scrobbler.dart';
 import 'package:crossonic/widgets/state/favorites_cubit.dart';
 import 'package:flutter/material.dart';
@@ -44,6 +45,8 @@ Future<void> main() async {
 
   final settings = Settings(
       sharedPreferences: sharedPreferences, apiRepository: apiRepository);
+
+  final connectManager = ConnectManager(apiRepository: apiRepository);
 
   final CrossonicAudioPlayer audioPlayer;
   final NativeNotifier nativeNotifier;
@@ -87,6 +90,7 @@ Future<void> main() async {
       RepositoryProvider.value(value: apiRepository),
       RepositoryProvider.value(value: audioHandler),
       RepositoryProvider.value(value: settings),
+      RepositoryProvider.value(value: connectManager),
     ],
     child: MultiBlocProvider(
       providers: [

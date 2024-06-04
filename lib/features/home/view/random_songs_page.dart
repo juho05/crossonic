@@ -2,10 +2,10 @@ import 'package:crossonic/features/home/view/state/random_songs_cubit.dart';
 import 'package:crossonic/fetch_status.dart';
 import 'package:crossonic/repositories/api/api_repository.dart';
 import 'package:crossonic/services/audio_handler/audio_handler.dart';
+import 'package:crossonic/widgets/app_bar.dart';
 import 'package:crossonic/widgets/song.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 
 class RandomSongsPage extends StatelessWidget {
   const RandomSongsPage({super.key});
@@ -13,15 +13,7 @@ class RandomSongsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Crossonic | Random Songs'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () => context.push("/settings"),
-          )
-        ],
-      ),
+      appBar: createAppBar(context, "Random Songs"),
       body: BlocProvider(
         create: (context) =>
             RandomSongsCubit(context.read<APIRepository>())..fetch(300),

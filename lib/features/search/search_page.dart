@@ -2,6 +2,7 @@ import 'package:crossonic/features/search/state/search_bloc.dart';
 import 'package:crossonic/fetch_status.dart';
 import 'package:crossonic/repositories/api/api.dart';
 import 'package:crossonic/services/audio_handler/audio_handler.dart';
+import 'package:crossonic/widgets/app_bar.dart';
 import 'package:crossonic/widgets/song.dart';
 import 'package:crossonic/widgets/song_collection.dart';
 import 'package:flutter/material.dart';
@@ -37,15 +38,7 @@ class _SearchPageState extends State<SearchPage> with RestorationMixin {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Crossonic | Search'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () => context.push("/settings"),
-          )
-        ],
-      ),
+      appBar: createAppBar(context, "Search"),
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -57,7 +50,7 @@ class _SearchPageState extends State<SearchPage> with RestorationMixin {
                     controller: _controller.value,
                     focusNode: _focusNode,
                     decoration: const InputDecoration(
-                      labelText: "Search...",
+                      labelText: "Search",
                       icon: Icon(Icons.search),
                     ),
                     restorationId: "search-page-search-input",

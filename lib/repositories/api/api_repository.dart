@@ -184,7 +184,7 @@ class APIRepository {
       String? format,
       int? maxBitRate,
       int? timeOffset}) async {
-    final queryParams = _generateQuery({
+    final queryParams = generateQuery({
       'id': [songID],
       if (format != null) 'format': [format],
       if (maxBitRate != null) 'maxBitRate': [maxBitRate.toString()],
@@ -195,7 +195,7 @@ class APIRepository {
   }
 
   Future<Uri> getCoverArtURL({required String coverArtID, int? size}) async {
-    final queryParams = _generateQuery({
+    final queryParams = generateQuery({
       'id': [coverArtID],
       if (size != null) 'size': ['$size'],
     }, _username.substring(0, min(_username.length, 4)) + coverArtID);
@@ -436,7 +436,7 @@ class APIRepository {
 
   Future<http.Response> _request(
       String endpointName, Map<String, Iterable<String>> queryParams) async {
-    queryParams = _generateQuery(queryParams);
+    queryParams = generateQuery(queryParams);
     final queryStr = Uri(queryParameters: queryParams).query;
     try {
       final response = await http
@@ -455,7 +455,7 @@ class APIRepository {
     }
   }
 
-  Map<String, Iterable<String>> _generateQuery(
+  Map<String, Iterable<String>> generateQuery(
       Map<String, Iterable<String>> query,
       [String? salt]) {
     final (token, usedSalt) = _generateAuth(_password, salt);

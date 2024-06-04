@@ -2,9 +2,9 @@ import 'package:crossonic/features/lyrics/state/lyrics_cubit.dart';
 import 'package:crossonic/fetch_status.dart';
 import 'package:crossonic/repositories/api/api_repository.dart';
 import 'package:crossonic/services/audio_handler/audio_handler.dart';
+import 'package:crossonic/widgets/app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 
 class LyricsPage extends StatelessWidget {
   const LyricsPage({super.key});
@@ -16,15 +16,7 @@ class LyricsPage extends StatelessWidget {
           audioHandler: context.read<CrossonicAudioHandler>(),
           apiRepository: context.read<APIRepository>()),
       child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Crossonic | Lyrics'),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.settings),
-              onPressed: () => context.push("/settings"),
-            )
-          ],
-        ),
+        appBar: createAppBar(context, "Lyrics"),
         body: BlocBuilder<LyricsCubit, LyricsState>(
           builder: (context, state) {
             if (state.status == FetchStatus.initial ||

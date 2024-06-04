@@ -1,10 +1,10 @@
 import 'package:crossonic/features/queue/state/queue_cubit.dart';
 import 'package:crossonic/services/audio_handler/audio_handler.dart';
+import 'package:crossonic/widgets/app_bar.dart';
 import 'package:crossonic/widgets/confirmation.dart';
 import 'package:crossonic/widgets/song.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 
 class QueuePage extends StatefulWidget {
   const QueuePage({super.key});
@@ -22,15 +22,7 @@ class _QueuePageState extends State<QueuePage> {
       create: (context) =>
           QueueCubit(context.read<CrossonicAudioHandler>().mediaQueue),
       child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Crossonic | Queue'),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.settings),
-              onPressed: () => context.push("/settings"),
-            )
-          ],
-        ),
+        appBar: createAppBar(context, "Queue"),
         body: BlocBuilder<QueueCubit, QueueState>(
           builder: (context, state) {
             final theme = Theme.of(context);

@@ -3,6 +3,7 @@ import 'package:crossonic/features/albums/albums_page.dart';
 import 'package:crossonic/features/albums/state/albums_bloc.dart';
 import 'package:crossonic/features/artist/artist_page.dart';
 import 'package:crossonic/features/auth/auth.dart';
+import 'package:crossonic/features/connect/connect_page.dart';
 import 'package:crossonic/features/home/home.dart';
 import 'package:crossonic/features/home/view/home_page.dart';
 import 'package:crossonic/features/home/view/random_songs_page.dart';
@@ -35,6 +36,7 @@ final _topLevelRoutes = [
   _newRoute("/settings/scan", const ScanPage()),
   _newRoute("/queue", const QueuePage()),
   _newRoute("/lyrics", const LyricsPage()),
+  _newRoute("/connect", const ConnectPage()),
 ];
 
 String _tabRoutePath(String prefix, String path) =>

@@ -6,11 +6,11 @@ import 'package:crossonic/repositories/api/models/media_model.dart';
 import 'package:crossonic/repositories/api/api_repository.dart';
 import 'package:crossonic/services/audio_handler/audio_handler.dart';
 import 'package:crossonic/widgets/album.dart';
+import 'package:crossonic/widgets/app_bar.dart';
 import 'package:crossonic/widgets/chooser.dart';
 import 'package:crossonic/widgets/cover_art.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 
 class ArtistPage extends StatelessWidget {
   const ArtistPage({super.key, required this.artistID});
@@ -22,15 +22,7 @@ class ArtistPage extends StatelessWidget {
     return BlocProvider(
       create: (context) => ArtistCubit(context.read<APIRepository>()),
       child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Crossonic | Artist'),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.settings),
-              onPressed: () => context.push("/settings"),
-            )
-          ],
-        ),
+        appBar: createAppBar(context, "Artist"),
         body: BlocBuilder<ArtistCubit, ArtistState>(
           builder: (context, artist) {
             if (artist.id != artistID && artist.status != FetchStatus.failure) {
