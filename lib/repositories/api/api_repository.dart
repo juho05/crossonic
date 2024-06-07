@@ -525,9 +525,21 @@ class APIRepository {
   }
 
   Future<void> _storeAuthState() async {
-    await _storage.write(key: "crossonic_auth_server_url", value: _serverURL);
-    await _storage.write(key: "crossonic_auth_username", value: _username);
-    await _storage.write(key: "crossonic_auth_password", value: _password);
+    if (_serverURL.isNotEmpty) {
+      await _storage.write(key: "crossonic_auth_server_url", value: _serverURL);
+    } else {
+      await _storage.delete(key: "crossonic_auth_server_url");
+    }
+    if (_username.isNotEmpty) {
+      await _storage.write(key: "crossonic_auth_username", value: _username);
+    } else {
+      await _storage.delete(key: "crossonic_auth_username");
+    }
+    if (_password.isNotEmpty) {
+      await _storage.write(key: "crossonic_auth_password", value: _password);
+    } else {
+      await _storage.delete(key: "crossonic_auth_password");
+    }
   }
 
   void dispose() => authStatus.close();

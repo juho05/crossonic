@@ -77,6 +77,7 @@ Future<void> main() async {
     player: audioPlayer,
     notifier: nativeNotifier,
     settings: settings,
+    connectManager: connectManager,
   );
 
   Scrobbler.enable(

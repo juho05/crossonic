@@ -6,6 +6,9 @@ import 'package:crossonic/repositories/settings/settings_repository.dart';
 import 'package:crossonic/services/audio_handler/players/player.dart';
 import 'package:crossonic/services/audio_handler/media_queue.dart';
 import 'package:crossonic/services/audio_handler/notifiers/notifier.dart';
+import 'package:crossonic/services/audio_handler/players/remoteplayer.dart';
+import 'package:crossonic/services/connect/connect_manager.dart';
+import 'package:crossonic/services/connect/models/device.dart';
 import 'package:crossonic/widgets/cover_art.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
@@ -53,10 +56,14 @@ class CrossonicAudioHandler {
   BehaviorSubject<CrossonicPlaybackState> get crossonicPlaybackStatus =>
       _playbackState;
 
-  final CrossonicAudioPlayer _player;
+  final CrossonicAudioPlayer _localPlayer;
+  CrossonicAudioPlayer _player;
   final APIRepository _apiRepository;
   final NativeNotifier _notifier;
   final Settings _settings;
+  final ConnectManager _connectManager;
+
+  StreamSubscription? _playerEventStream;
 
   bool _playOnNextMediaChange = false;
   Timer? _positionTimer;
@@ -72,15 +79,19 @@ class CrossonicAudioHandler {
     required CrossonicAudioPlayer player,
     required NativeNotifier notifier,
     required Settings settings,
+    required ConnectManager connectManager,
   })  : _apiRepository = apiRepository,
+        _localPlayer = player,
         _player = player,
         _notifier = notifier,
-        _settings = settings {
+        _settings = settings,
+        _connectManager = connectManager {
     _apiRepository.authStatus.listen((status) async {
       if (status != AuthStatus.authenticated) {
         await stop();
       }
     });
+    _connectManager.controllingDevice.listen(_controlDevice);
     _notifier.ensureInitialized(
       onPause: pause,
       onPlay: play,
@@ -107,38 +118,104 @@ class CrossonicAudioHandler {
 
     _queue.current.listen(_mediaChanged);
 
-    _player.eventStream.listen((event) {
-      if (event == AudioPlayerEvent.advance) {
-        _queue.advance();
-        return;
+    _playerEventStream = _localPlayer.eventStream.listen(_playerEvent);
+  }
+
+  Future<void> _controlDevice(Device? device) async {
+    if (device == null && _player == _localPlayer) return;
+    _playerEventStream?.cancel();
+    _playerEventStream = null;
+
+    final state = _playbackState.value;
+
+    if (_player == _localPlayer) {
+      await _player.stop();
+    } else {
+      await _player.dispose();
+    }
+
+    final media = _queue.current.value;
+    if (device == null) {
+      _player = _localPlayer;
+    } else {
+      _player = AudioPlayerRemote(device, _connectManager);
+      await _player.stop();
+      await Future.delayed(const Duration(seconds: 1));
+      if (media != null) {
+        _player.eventStream.add(AudioPlayerEvent.loading);
       }
-      var status = switch (event) {
-        AudioPlayerEvent.stopped => CrossonicPlaybackStatus.stopped,
-        AudioPlayerEvent.loading => CrossonicPlaybackStatus.loading,
-        AudioPlayerEvent.playing => CrossonicPlaybackStatus.playing,
-        AudioPlayerEvent.paused => CrossonicPlaybackStatus.paused,
-        AudioPlayerEvent.advance => throw Exception("should never happen"),
-      };
-      if (_queue.length == 0) {
-        status = CrossonicPlaybackStatus.stopped;
+    }
+
+    _positionOffset = Duration.zero;
+
+    _playerEventStream = _player.eventStream.listen(_playerEvent);
+    _currentTranscode = await _settings.getTranscodeSettings();
+    if (media != null) {
+      await _player.setCurrent(
+        media.item,
+        await _apiRepository.getStreamURL(
+          songID: media.item.id,
+          format: _currentTranscode.format,
+          maxBitRate: _currentTranscode.maxBitRate,
+          timeOffset: state.position.inSeconds,
+        ),
+      );
+      _positionOffset = state.position;
+      if (state.status == CrossonicPlaybackStatus.playing) {
+        await play();
+      } else {
+        await pause();
       }
-      if (status != _playbackState.value.status) {
-        if (status == CrossonicPlaybackStatus.stopped) {
-          stop();
+      _nextTranscode = await _settings.getTranscodeSettings();
+      if (media.next != null) {
+        await _player.setNext(
+            media.next,
+            await _apiRepository.getStreamURL(
+              songID: media.next!.id,
+              format: _nextTranscode.format,
+              maxBitRate: _nextTranscode.maxBitRate,
+            ));
+      } else {
+        await _player.setNext(null, null);
+      }
+    } else {
+      await stop();
+    }
+
+    _updatePosition(true);
+  }
+
+  void _playerEvent(AudioPlayerEvent event) {
+    if (event == AudioPlayerEvent.advance) {
+      _queue.advance();
+      return;
+    }
+    var status = switch (event) {
+      AudioPlayerEvent.stopped => CrossonicPlaybackStatus.stopped,
+      AudioPlayerEvent.loading => CrossonicPlaybackStatus.loading,
+      AudioPlayerEvent.playing => CrossonicPlaybackStatus.playing,
+      AudioPlayerEvent.paused => CrossonicPlaybackStatus.paused,
+      AudioPlayerEvent.advance => throw Exception("should never happen"),
+    };
+    if (_queue.length == 0) {
+      status = CrossonicPlaybackStatus.stopped;
+    }
+    if (status != _playbackState.value.status) {
+      if (status == CrossonicPlaybackStatus.stopped) {
+        stop();
+      } else {
+        _notifier.updatePlaybackState(status);
+        _playbackState.add(_playbackState.value.copyWith(
+          status: status,
+        ));
+        _updatePosition(true);
+        if (status == CrossonicPlaybackStatus.playing) {
+          _startPositionTimer();
         } else {
-          _notifier.updatePlaybackState(status);
-          _playbackState.add(_playbackState.value.copyWith(
-            status: status,
-          ));
-          _updatePosition(true);
-          if (status == CrossonicPlaybackStatus.playing) {
-            _startPositionTimer();
-          } else {
-            _stopPositionTimer();
-          }
+          _stopPositionTimer();
         }
       }
-    });
+    }
   }
 
   Future<void> _mediaChanged(CurrentMedia? media) async {

@@ -22,7 +22,8 @@ AppBar createAppBar(BuildContext context, String pageTitle,
                             switch (snapshot.data!.platform) {
                               "phone" => Icons.smartphone,
                               "desktop" => Icons.computer,
-                              "web" => Icons.web,
+                              "web" => Icons.language,
+                              "speaker" => Icons.speaker_outlined,
                               _ => Icons.cast_connected
                             },
                             color: Colors.green),
