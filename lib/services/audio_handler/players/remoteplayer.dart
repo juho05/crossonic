@@ -28,6 +28,7 @@ class AudioPlayerRemote implements CrossonicAudioPlayer {
       if (value == null) return;
       var state = AudioPlayerEvent.values.byName(value.state);
       if (state == AudioPlayerEvent.stopped &&
+          _eventStream.value == AudioPlayerEvent.loading &&
           !_stopRequested &&
           _current != null) {
         if (_current!.duration == null ||
