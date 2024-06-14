@@ -1,6 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:crossonic/fetch_status.dart';
 import 'package:crossonic/repositories/api/api.dart';
+import 'package:crossonic/repositories/api/models/albumid3_model.dart';
 import 'package:equatable/equatable.dart';
 
 part 'artist_state.dart';
@@ -40,6 +41,7 @@ class ArtistCubit extends Cubit<ArtistState> {
             name: a.name,
             coverID: a.coverArt ?? "",
             year: a.year,
+            artists: APIRepository.getArtistsOfAlbum(a).artists.toList(),
           );
         }).toList()
           ..sort((a, b) => (b.year ?? 0).compareTo(a.year ?? 0));

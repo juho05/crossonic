@@ -115,6 +115,8 @@ class _AlbumsPageBodyState extends State<AlbumsPageBody> {
                                       id: state.albums[i].id,
                                       name: state.albums[i].name,
                                       coverID: state.albums[i].coverID,
+                                      artists: state.albums[i].artists.artists
+                                          .toList(),
                                       extraInfo:
                                           "${state.albums[i].artists.displayName}${state.albums[i].year != null ? " • ${state.albums[i].year}" : ""}",
                                     ),

@@ -20,16 +20,18 @@ class ArtistAlbum extends Equatable {
   final String name;
   final String coverID;
   final int? year;
+  final List<ArtistIDName> artists;
 
   const ArtistAlbum({
     required this.id,
     required this.name,
     required this.coverID,
+    required this.artists,
     this.year,
   });
 
   @override
-  List<Object?> get props => [id, name, coverID, year];
+  List<Object?> get props => [id, name, coverID, year, artists];
 }
 
 class ArtistState extends Equatable {
