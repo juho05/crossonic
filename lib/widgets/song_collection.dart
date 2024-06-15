@@ -1,10 +1,18 @@
 import 'package:crossonic/widgets/cover_art.dart';
+import 'package:crossonic/widgets/state/favorites_cubit.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
-enum SongCollectionPopupMenuValue { addToPriorityQueue, addToQueue, gotoArtist }
+enum SongCollectionPopupMenuValue {
+  addToPriorityQueue,
+  addToQueue,
+  toggleFavorite,
+  gotoArtist
+}
 
 class SongCollection extends StatelessWidget {
+  final String id;
   final String name;
   final String? coverID;
   final String? artistID;
@@ -18,6 +26,7 @@ class SongCollection extends StatelessWidget {
   final EdgeInsetsGeometry padding;
   const SongCollection({
     super.key,
+    required this.id,
     required this.name,
     this.onTap,
     this.onAddToPriorityQueue,
@@ -34,92 +43,110 @@ class SongCollection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    return ListTile(
-      leading: coverID != null
-          ? CoverArt(
-              size: 40,
-              coverID: coverID!,
-              resolution: const CoverResolution.tiny(),
-              borderRadius: BorderRadius.circular(5),
-            )
-          : null,
-      title: Row(
-        children: [
-          Expanded(
-              child: Padding(
-            padding: const EdgeInsets.only(left: 12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  name,
-                  style: textTheme.bodyMedium!
-                      .copyWith(fontWeight: FontWeight.w400, fontSize: 15),
-                  overflow: TextOverflow.ellipsis,
+    return BlocBuilder<FavoritesCubit, FavoritesState>(
+      buildWhen: (previous, current) => current.changedId == id,
+      builder: (context, state) {
+        final isFavorite = state.favorites.contains(id);
+        return ListTile(
+          leading: coverID != null
+              ? CoverArt(
+                  size: 40,
+                  coverID: coverID!,
+                  resolution: const CoverResolution.tiny(),
+                  borderRadius: BorderRadius.circular(5),
+                )
+              : null,
+          title: Row(
+            children: [
+              Expanded(
+                  child: Padding(
+                padding: const EdgeInsets.only(left: 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      name,
+                      style: textTheme.bodyMedium!
+                          .copyWith(fontWeight: FontWeight.w400, fontSize: 15),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (artist != null ||
+                        genre != null ||
+                        albumCount != null ||
+                        year != null)
+                      Text(
+                        [
+                          if (artist != null) artist,
+                          if (genre != null) genre,
+                          if (albumCount != null) "Albums: $albumCount",
+                          if (year != null) year,
+                        ].join(" • "),
+                        style: textTheme.bodySmall!.copyWith(
+                            fontWeight: FontWeight.w300, fontSize: 12),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                  ],
                 ),
-                if (artist != null ||
-                    genre != null ||
-                    albumCount != null ||
-                    year != null)
-                  Text(
-                    [
-                      if (artist != null) artist,
-                      if (genre != null) genre,
-                      if (albumCount != null) "Albums: $albumCount",
-                      if (year != null) year,
-                    ].join(" • "),
-                    style: textTheme.bodySmall!
-                        .copyWith(fontWeight: FontWeight.w300, fontSize: 12),
-                    overflow: TextOverflow.ellipsis,
+              )),
+              if (isFavorite) const Icon(Icons.favorite, size: 15),
+            ],
+          ),
+          horizontalTitleGap: 0,
+          contentPadding: padding,
+          trailing: PopupMenuButton<SongCollectionPopupMenuValue>(
+            icon: const Icon(Icons.more_vert),
+            onSelected: (value) {
+              switch (value) {
+                case SongCollectionPopupMenuValue.addToPriorityQueue:
+                  if (onAddToPriorityQueue != null) onAddToPriorityQueue!();
+                case SongCollectionPopupMenuValue.addToQueue:
+                  if (onAddToQueue != null) onAddToQueue!();
+                case SongCollectionPopupMenuValue.toggleFavorite:
+                  context.read<FavoritesCubit>().toggleFavorite(id);
+                case SongCollectionPopupMenuValue.gotoArtist:
+                  context.push("/home/artist/$artistID");
+              }
+            },
+            itemBuilder: (BuildContext context) => [
+              if (onAddToPriorityQueue != null)
+                const PopupMenuItem(
+                  value: SongCollectionPopupMenuValue.addToPriorityQueue,
+                  child: ListTile(
+                    leading: Icon(Icons.playlist_play),
+                    title: Text('Add to priority queue'),
                   ),
-              ],
-            ),
-          )),
-          if (false) const Icon(Icons.favorite, size: 15),
-        ],
-      ),
-      horizontalTitleGap: 0,
-      contentPadding: padding,
-      trailing: PopupMenuButton<SongCollectionPopupMenuValue>(
-        icon: const Icon(Icons.more_vert),
-        onSelected: (value) {
-          switch (value) {
-            case SongCollectionPopupMenuValue.addToPriorityQueue:
-              if (onAddToPriorityQueue != null) onAddToPriorityQueue!();
-            case SongCollectionPopupMenuValue.addToQueue:
-              if (onAddToQueue != null) onAddToQueue!();
-            case SongCollectionPopupMenuValue.gotoArtist:
-              context.push("/home/artist/$artistID");
-          }
-        },
-        itemBuilder: (BuildContext context) => [
-          if (onAddToPriorityQueue != null)
-            const PopupMenuItem(
-              value: SongCollectionPopupMenuValue.addToPriorityQueue,
-              child: ListTile(
-                leading: Icon(Icons.playlist_play),
-                title: Text('Add to priority queue'),
+                ),
+              if (onAddToQueue != null)
+                const PopupMenuItem(
+                  value: SongCollectionPopupMenuValue.addToQueue,
+                  child: ListTile(
+                    leading: Icon(Icons.playlist_add),
+                    title: Text('Add to queue'),
+                  ),
+                ),
+              PopupMenuItem(
+                value: SongCollectionPopupMenuValue.toggleFavorite,
+                child: ListTile(
+                  leading:
+                      Icon(isFavorite ? Icons.heart_broken : Icons.favorite),
+                  title: Text(isFavorite
+                      ? 'Remove from favorites'
+                      : 'Add to favorites'),
+                ),
               ),
-            ),
-          if (onAddToQueue != null)
-            const PopupMenuItem(
-              value: SongCollectionPopupMenuValue.addToQueue,
-              child: ListTile(
-                leading: Icon(Icons.playlist_add),
-                title: Text('Add to queue'),
-              ),
-            ),
-          if (artistID != null)
-            const PopupMenuItem(
-              value: SongCollectionPopupMenuValue.gotoArtist,
-              child: ListTile(
-                leading: Icon(Icons.person),
-                title: Text('Go to artist'),
-              ),
-            ),
-        ],
-      ),
-      onTap: onTap,
+              if (artistID != null)
+                const PopupMenuItem(
+                  value: SongCollectionPopupMenuValue.gotoArtist,
+                  child: ListTile(
+                    leading: Icon(Icons.person),
+                    title: Text('Go to artist'),
+                  ),
+                ),
+            ],
+          ),
+          onTap: onTap,
+        );
+      },
     );
   }
 }

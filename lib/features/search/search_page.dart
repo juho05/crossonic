@@ -131,6 +131,7 @@ class _SearchPageState extends State<SearchPage> with RestorationMixin {
                                   },
                                 ),
                               SearchType.album => SongCollection(
+                                  id: state.results[i].id,
                                   name: state.results[i].name,
                                   artist: state.results[i].artist,
                                   artistID: state.results[i].artistID,
@@ -168,6 +169,7 @@ class _SearchPageState extends State<SearchPage> with RestorationMixin {
                                   },
                                 ),
                               SearchType.artist => SongCollection(
+                                  id: state.results[i].id,
                                   name: state.results[i].name,
                                   coverID: state.results[i].coverID,
                                   albumCount: state.results[i].albumCount,

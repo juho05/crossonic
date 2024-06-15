@@ -273,21 +273,35 @@ class APIRepository {
       Search3Response.fromJson,
       "searchResult3",
     );
-    final songs = response!.song ?? [];
+    final artists = response!.artist ?? [];
+    for (var a in artists) {
+      favoriteUpdates.add((a.id, a.starred != null));
+    }
+    final albums = response.album ?? [];
+    for (var a in albums) {
+      favoriteUpdates.add((a.id, a.starred != null));
+    }
+    final songs = response.song ?? [];
     for (var s in songs) {
       favoriteUpdates.add((s.id, s.starred != null));
     }
-    return (response.artist ?? [], response.album ?? [], songs);
+    return (artists, albums, songs);
   }
 
   Future<Artist> getArtist(String id) async {
-    return (await _jsonRequest(
+    final artist = (await _jsonRequest(
         "getArtist",
         {
           "id": [id],
         },
         Artist.fromJson,
         "artist"))!;
+    favoriteUpdates.add((artist.id, artist.starred != null));
+    final albums = artist.album ?? [];
+    for (var a in albums) {
+      favoriteUpdates.add((a.id, a.starred != null));
+    }
+    return artist;
   }
 
   Future<List<Media>> getTopSongs(String artistName, int count) async {
@@ -328,11 +342,15 @@ class APIRepository {
         },
         AlbumList2Response.fromJson,
         "albumList2");
-    return response!.album ?? [];
+    final albums = response!.album ?? [];
+    for (var a in albums) {
+      favoriteUpdates.add((a.id, a.starred != null));
+    }
+    return albums;
   }
 
   Future<AlbumID3> getAlbum(String id) async {
-    final albums = (await _jsonRequest(
+    final album = (await _jsonRequest(
       "getAlbum",
       {
         "id": [id],
@@ -340,7 +358,12 @@ class APIRepository {
       AlbumID3.fromJson,
       "album",
     ))!;
-    return albums;
+    favoriteUpdates.add((album.id, album.starred != null));
+    final songs = album.song ?? [];
+    for (var s in songs) {
+      favoriteUpdates.add((s.id, s.starred != null));
+    }
+    return album;
   }
 
   static Artists getArtistsOfSong(Media song) {

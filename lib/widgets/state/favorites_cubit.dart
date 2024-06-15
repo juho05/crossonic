@@ -16,7 +16,7 @@ class FavoritesCubit extends Cubit<FavoritesState> {
         apiRepository.favoriteUpdates.listen(_onFavoritesUpdate);
   }
 
-  Future<void> toggleSongFavorite(String id) async {
+  Future<void> toggleFavorite(String id) async {
     if (state.favorites.contains(id)) {
       await _apiRepository.unstar(id: id);
       state.favorites.remove(id);

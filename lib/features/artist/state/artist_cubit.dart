@@ -1,7 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:crossonic/fetch_status.dart';
 import 'package:crossonic/repositories/api/api.dart';
-import 'package:crossonic/repositories/api/models/albumid3_model.dart';
 import 'package:equatable/equatable.dart';
 
 part 'artist_state.dart';

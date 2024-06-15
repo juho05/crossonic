@@ -105,7 +105,7 @@ class _SongState extends State<Song> {
             return current.changedId == widget.song.id;
           },
           builder: (context, state) {
-            bool isFavorite = state.favorites.contains(widget.song.id);
+            final isFavorite = state.favorites.contains(widget.song.id);
             return ListTile(
               leading: widget.reorderIndex == null
                   ? Row(
@@ -217,7 +217,7 @@ class _SongState extends State<Song> {
                           case SongPopupMenuValue.toggleFavorite:
                             context
                                 .read<FavoritesCubit>()
-                                .toggleSongFavorite(widget.song.id);
+                                .toggleFavorite(widget.song.id);
                           case SongPopupMenuValue.remove:
                             widget.onRemove!();
                           case SongPopupMenuValue.gotoAlbum:
