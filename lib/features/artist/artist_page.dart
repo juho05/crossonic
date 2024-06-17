@@ -251,8 +251,6 @@ class ArtistPage extends StatelessWidget {
                                                           artist.albums[i].name,
                                                       coverID: artist
                                                           .albums[i].coverID,
-                                                      artists: artist
-                                                          .albums[i].artists,
                                                       extraInfo: artist
                                                                   .albums[i]
                                                                   .year !=
