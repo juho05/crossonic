@@ -103,7 +103,6 @@ class _SearchPageState extends State<SearchPage> with RestorationMixin {
                 }
                 final audioHandler = context.read<CrossonicAudioHandler>();
                 final apiRepository = context.read<APIRepository>();
-                final scaffoldMessenger = ScaffoldMessenger.of(context);
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -133,36 +132,15 @@ class _SearchPageState extends State<SearchPage> with RestorationMixin {
                               SearchType.album => SongCollection(
                                   id: state.results[i].id,
                                   name: state.results[i].name,
-                                  artist: state.results[i].artist,
-                                  artistID: state.results[i].artistID,
                                   coverID: state.results[i].coverID,
                                   year: state.results[i].year,
-                                  onAddToPriorityQueue: () =>
-                                      doSomethingWithAlbumSongs(
-                                    albumID: state.results[i].id,
-                                    albumName: state.results[i].name,
-                                    repository: apiRepository,
-                                    scaffoldMessenger: scaffoldMessenger,
-                                    successMessage:
-                                        "Added '${state.results[i].name}' to priority queue",
-                                    showErrorMessage: true,
-                                    callback: (songs) {
-                                      audioHandler.mediaQueue
-                                          .addAllToPriorityQueue(songs);
-                                    },
-                                  ),
-                                  onAddToQueue: () => doSomethingWithAlbumSongs(
-                                    albumID: state.results[i].id,
-                                    albumName: state.results[i].name,
-                                    repository: apiRepository,
-                                    scaffoldMessenger: scaffoldMessenger,
-                                    successMessage:
-                                        "Added '${state.results[i].name}' to queue",
-                                    showErrorMessage: true,
-                                    callback: (songs) {
-                                      audioHandler.mediaQueue.addAll(songs);
-                                    },
-                                  ),
+                                  artists: state.results[i].artists,
+                                  enablePlay: true,
+                                  enableShuffle: true,
+                                  enableQueue: true,
+                                  getSongs: () async => getAlbumSongs(
+                                      albumID: state.results[i].id,
+                                      repository: apiRepository),
                                   onTap: () {
                                     context.push(
                                         "/search/album/${state.results[i].id}");
@@ -173,33 +151,12 @@ class _SearchPageState extends State<SearchPage> with RestorationMixin {
                                   name: state.results[i].name,
                                   coverID: state.results[i].coverID,
                                   albumCount: state.results[i].albumCount,
-                                  onAddToPriorityQueue: () =>
-                                      doSomethingWithArtistSongs(
-                                    artistID: state.results[i].id,
-                                    artistName: state.results[i].name,
-                                    repository: apiRepository,
-                                    scaffoldMessenger: scaffoldMessenger,
-                                    successMessage:
-                                        "Added '${state.results[i].name}' to priority queue",
-                                    showErrorMessage: true,
-                                    callback: (songs) {
-                                      audioHandler.mediaQueue
-                                          .addAllToPriorityQueue(songs);
-                                    },
-                                  ),
-                                  onAddToQueue: () =>
-                                      doSomethingWithArtistSongs(
-                                    artistID: state.results[i].id,
-                                    artistName: state.results[i].name,
-                                    repository: apiRepository,
-                                    scaffoldMessenger: scaffoldMessenger,
-                                    successMessage:
-                                        "Added '${state.results[i].name}' to queue",
-                                    showErrorMessage: true,
-                                    callback: (songs) {
-                                      audioHandler.mediaQueue.addAll(songs);
-                                    },
-                                  ),
+                                  enablePlay: true,
+                                  enableShuffle: true,
+                                  enableQueue: true,
+                                  getSongs: () async => getArtistSongs(
+                                      artistID: state.results[i].id,
+                                      repository: apiRepository),
                                   onTap: () {
                                     context.push(
                                         "/search/artist/${state.results[i].id}");
@@ -216,74 +173,24 @@ class _SearchPageState extends State<SearchPage> with RestorationMixin {
     );
   }
 
-  Future<void> doSomethingWithAlbumSongs({
+  Future<List<Media>> getAlbumSongs({
     required String albumID,
-    required String albumName,
-    required void Function(List<Media>) callback,
     required APIRepository repository,
-    required ScaffoldMessengerState scaffoldMessenger,
-    String? successMessage,
-    bool showErrorMessage = false,
   }) async {
-    try {
-      final result = await repository.getAlbum(albumID);
-      callback(result.song ?? []);
-      if (successMessage != null) {
-        scaffoldMessenger.showSnackBar(SnackBar(
-          content: Text(successMessage),
-          behavior: SnackBarBehavior.floating,
-          duration: const Duration(milliseconds: 1250),
-        ));
-      }
-    } catch (e) {
-      if (showErrorMessage) {
-        print(e);
-        scaffoldMessenger.showSnackBar(const SnackBar(
-          content: Text('An unexpected error occured'),
-          behavior: SnackBarBehavior.floating,
-          duration: Duration(milliseconds: 1250),
-        ));
-      } else {
-        rethrow;
-      }
-    }
+    final result = await repository.getAlbum(albumID);
+    return result.song ?? [];
   }
 
-  Future<void> doSomethingWithArtistSongs({
+  Future<List<Media>> getArtistSongs({
     required String artistID,
-    required String artistName,
-    required void Function(List<Media>) callback,
     required APIRepository repository,
-    required ScaffoldMessengerState scaffoldMessenger,
-    String? successMessage,
-    bool showErrorMessage = false,
   }) async {
-    try {
-      final result = await repository.getArtist(artistID);
-      final songLists = await Future.wait((result.album ?? []).map((a) async {
-        final album = await repository.getAlbum(a.id);
-        return album.song ?? <Media>[];
-      }));
-      callback(songLists.expand((s) => s).toList());
-      if (successMessage != null) {
-        scaffoldMessenger.showSnackBar(SnackBar(
-          content: Text(successMessage),
-          behavior: SnackBarBehavior.floating,
-          duration: const Duration(milliseconds: 1250),
-        ));
-      }
-    } catch (e) {
-      if (showErrorMessage) {
-        print(e);
-        scaffoldMessenger.showSnackBar(const SnackBar(
-          content: Text('An unexpected error occured'),
-          behavior: SnackBarBehavior.floating,
-          duration: Duration(milliseconds: 1250),
-        ));
-      } else {
-        rethrow;
-      }
-    }
+    final result = await repository.getArtist(artistID);
+    final songLists = await Future.wait((result.album ?? []).map((a) async {
+      final album = await repository.getAlbum(a.id);
+      return album.song ?? <Media>[];
+    }));
+    return songLists.expand((s) => s).toList();
   }
 
   @override

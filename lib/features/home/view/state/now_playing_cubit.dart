@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:bloc/bloc.dart';
 import 'package:crossonic/repositories/api/api_repository.dart';
+import 'package:crossonic/repositories/api/models/media_model.dart';
+import 'package:crossonic/repositories/api/models/models.dart';
 import 'package:crossonic/services/audio_handler/audio_handler.dart';
 import 'package:crossonic/services/audio_handler/media_queue.dart';
 import 'package:equatable/equatable.dart';
@@ -16,8 +18,8 @@ class NowPlayingCubit extends Cubit<NowPlayingState> {
   NowPlayingCubit(CrossonicAudioHandler audioHandler)
       : _audioHandler = audioHandler,
         super(const NowPlayingState(
-            playbackState: CrossonicPlaybackState(
-                status: CrossonicPlaybackStatus.stopped))) {
+            playbackState:
+                CrossonicPlaybackState(status: CrossonicPlaybackStatus.stopped))) {
     _currentMediaSubscription =
         _audioHandler.mediaQueue.current.listen((value) {
       emit(
@@ -33,6 +35,7 @@ class NowPlayingCubit extends Cubit<NowPlayingState> {
               ? Duration(seconds: value.item.duration ?? 0)
               : Duration.zero,
           coverArtID: value?.item.coverArt ?? "",
+          media: value?.item,
         ),
       );
     });
@@ -40,6 +43,7 @@ class NowPlayingCubit extends Cubit<NowPlayingState> {
         _audioHandler.crossonicPlaybackStatus.listen((value) {
       emit(state.copyWith(
         playbackState: value,
+        media: _audioHandler.mediaQueue.current.value?.item,
       ));
     });
   }

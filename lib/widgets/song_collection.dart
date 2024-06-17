@@ -1,3 +1,7 @@
+import 'package:crossonic/repositories/api/api_repository.dart';
+import 'package:crossonic/repositories/api/models/media_model.dart';
+import 'package:crossonic/services/audio_handler/audio_handler.dart';
+import 'package:crossonic/widgets/chooser.dart';
 import 'package:crossonic/widgets/cover_art.dart';
 import 'package:crossonic/widgets/state/favorites_cubit.dart';
 import 'package:flutter/material.dart';
@@ -5,6 +9,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 enum SongCollectionPopupMenuValue {
+  play,
+  shuffle,
   addToPriorityQueue,
   addToQueue,
   toggleFavorite,
@@ -15,29 +21,36 @@ class SongCollection extends StatelessWidget {
   final String id;
   final String name;
   final String? coverID;
-  final String? artistID;
-  final String? artist;
-  final String? genre;
+  final String? genreText;
   final int? albumCount;
   final int? year;
   final void Function()? onTap;
-  final void Function()? onAddToQueue;
-  final void Function()? onAddToPriorityQueue;
   final EdgeInsetsGeometry padding;
+
+  final String? albumID;
+  final Artists? artists;
+  final Future<List<Media>> Function()? getSongs;
+
+  final bool enablePlay;
+  final bool enableShuffle;
+  final bool enableQueue;
+
   const SongCollection({
     super.key,
     required this.id,
     required this.name,
     this.onTap,
-    this.onAddToPriorityQueue,
-    this.onAddToQueue,
-    this.artist,
-    this.artistID,
-    this.genre,
+    this.genreText,
     this.albumCount,
     this.year,
     this.padding = const EdgeInsets.only(left: 16, right: 5),
     this.coverID,
+    this.albumID,
+    this.artists,
+    this.getSongs,
+    this.enablePlay = false,
+    this.enableShuffle = false,
+    this.enableQueue = true,
   });
 
   @override
@@ -70,14 +83,14 @@ class SongCollection extends StatelessWidget {
                           .copyWith(fontWeight: FontWeight.w400, fontSize: 15),
                       overflow: TextOverflow.ellipsis,
                     ),
-                    if (artist != null ||
-                        genre != null ||
+                    if (artists != null ||
+                        genreText != null ||
                         albumCount != null ||
                         year != null)
                       Text(
                         [
-                          if (artist != null) artist,
-                          if (genre != null) genre,
+                          if (artists != null) artists!.displayName,
+                          if (genreText != null) genreText,
                           if (albumCount != null) "Albums: $albumCount",
                           if (year != null) year,
                         ].join(" • "),
@@ -95,20 +108,66 @@ class SongCollection extends StatelessWidget {
           contentPadding: padding,
           trailing: PopupMenuButton<SongCollectionPopupMenuValue>(
             icon: const Icon(Icons.more_vert),
-            onSelected: (value) {
+            onSelected: (value) async {
+              final audioHandler = context.read<CrossonicAudioHandler>();
               switch (value) {
+                case SongCollectionPopupMenuValue.play:
+                  audioHandler.playOnNextMediaChange();
+                  audioHandler.mediaQueue.replaceQueue(await getSongs!());
+                case SongCollectionPopupMenuValue.shuffle:
+                  audioHandler.playOnNextMediaChange();
+                  audioHandler.mediaQueue.replaceQueue(await getSongs!()
+                    ..shuffle());
                 case SongCollectionPopupMenuValue.addToPriorityQueue:
-                  if (onAddToPriorityQueue != null) onAddToPriorityQueue!();
+                  audioHandler.mediaQueue
+                      .addAllToPriorityQueue(await getSongs!());
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      content: Text('Added "$name" to priority queue'),
+                      behavior: SnackBarBehavior.floating,
+                      duration: const Duration(milliseconds: 1250),
+                    ));
+                  }
                 case SongCollectionPopupMenuValue.addToQueue:
-                  if (onAddToQueue != null) onAddToQueue!();
+                  audioHandler.mediaQueue.addAll(await getSongs!());
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      content: Text('Added "$name" to queue'),
+                      behavior: SnackBarBehavior.floating,
+                      duration: const Duration(milliseconds: 1250),
+                    ));
+                  }
                 case SongCollectionPopupMenuValue.toggleFavorite:
                   context.read<FavoritesCubit>().toggleFavorite(id);
                 case SongCollectionPopupMenuValue.gotoArtist:
-                  context.push("/home/artist/$artistID");
+                  final artistID = await ChooserDialog.chooseArtist(
+                      context, artists!.artists.toList());
+                  if (artistID == null) {
+                    return;
+                  }
+                  if (context.mounted) {
+                    context.push("/home/artist/$artistID");
+                  }
               }
             },
             itemBuilder: (BuildContext context) => [
-              if (onAddToPriorityQueue != null)
+              if (enablePlay && getSongs != null)
+                const PopupMenuItem(
+                  value: SongCollectionPopupMenuValue.play,
+                  child: ListTile(
+                    leading: Icon(Icons.play_arrow),
+                    title: Text('Play'),
+                  ),
+                ),
+              if (enableShuffle && getSongs != null)
+                const PopupMenuItem(
+                  value: SongCollectionPopupMenuValue.shuffle,
+                  child: ListTile(
+                    leading: Icon(Icons.shuffle),
+                    title: Text('Shuffle'),
+                  ),
+                ),
+              if (enableQueue && getSongs != null)
                 const PopupMenuItem(
                   value: SongCollectionPopupMenuValue.addToPriorityQueue,
                   child: ListTile(
@@ -116,7 +175,7 @@ class SongCollection extends StatelessWidget {
                     title: Text('Add to priority queue'),
                   ),
                 ),
-              if (onAddToQueue != null)
+              if (enableQueue && getSongs != null)
                 const PopupMenuItem(
                   value: SongCollectionPopupMenuValue.addToQueue,
                   child: ListTile(
@@ -134,7 +193,7 @@ class SongCollection extends StatelessWidget {
                       : 'Add to favorites'),
                 ),
               ),
-              if (artistID != null)
+              if (artists != null)
                 const PopupMenuItem(
                   value: SongCollectionPopupMenuValue.gotoArtist,
                   child: ListTile(

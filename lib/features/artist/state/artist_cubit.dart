@@ -20,7 +20,7 @@ class ArtistCubit extends Cubit<ArtistState> {
   final APIRepository _apiRepository;
   String _artistID = "";
 
-  void updateID(String artistID) async {
+  void load(String artistID) async {
     if (artistID == _artistID) return;
     _artistID = artistID;
     emit(state.copyWith(

@@ -34,6 +34,7 @@ dependencies:
   window_manager: ^0.3.8
   connectivity_plus: ^6.0.3
   web_socket_channel: ^2.4.5
+  icon_decoration: ^2.0.2
 dependency_overrides:
   audioplayers_linux:
     path: ./audioplayers_linux_stub
@@ -41,7 +42,7 @@ dependency_overrides:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^3.0.0
+  flutter_lints: ^4.0.0
   build_runner: ^2.4.9
   json_serializable: ^6.7.1
 

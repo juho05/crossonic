@@ -8,6 +8,7 @@ class NowPlayingState extends Equatable {
   final String albumID;
   final Duration duration;
   final String coverArtID;
+  final Media? media;
   bool get hasMedia => songID != "";
 
   final CrossonicPlaybackState playbackState;
@@ -20,6 +21,7 @@ class NowPlayingState extends Equatable {
     this.albumID = "",
     this.duration = Duration.zero,
     this.coverArtID = "",
+    this.media,
     required this.playbackState,
   });
 
@@ -33,6 +35,7 @@ class NowPlayingState extends Equatable {
     String? coverArtID,
     String? coverArtURLSmall,
     CrossonicPlaybackState? playbackState,
+    required Media? media,
   }) {
     return NowPlayingState(
       songID: songID ?? this.songID,
@@ -43,11 +46,12 @@ class NowPlayingState extends Equatable {
       duration: duration ?? this.duration,
       coverArtID: coverArtID ?? this.coverArtID,
       playbackState: playbackState ?? this.playbackState,
+      media: media,
     );
   }
 
   @override
-  List<Object> get props => [
+  List<Object?> get props => [
         songID,
         songName,
         artists,
@@ -55,5 +59,6 @@ class NowPlayingState extends Equatable {
         duration,
         coverArtID,
         playbackState,
+        media,
       ];
 }

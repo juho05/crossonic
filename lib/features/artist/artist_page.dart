@@ -9,6 +9,8 @@ import 'package:crossonic/widgets/album.dart';
 import 'package:crossonic/widgets/app_bar.dart';
 import 'package:crossonic/widgets/chooser.dart';
 import 'package:crossonic/widgets/cover_art.dart';
+import 'package:crossonic/widgets/large_cover.dart';
+import 'package:crossonic/widgets/state/favorites_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -20,18 +22,14 @@ class ArtistPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => ArtistCubit(context.read<APIRepository>()),
+      create: (context) =>
+          ArtistCubit(context.read<APIRepository>())..load(artistID),
       child: Scaffold(
         appBar: createAppBar(context, "Artist"),
         body: BlocBuilder<ArtistCubit, ArtistState>(
           builder: (context, artist) {
-            if (artist.id != artistID && artist.status != FetchStatus.failure) {
-              context.read<ArtistCubit>().updateID(artistID);
-              return const Center(child: CircularProgressIndicator.adaptive());
-            }
             final audioHandler = context.read<CrossonicAudioHandler>();
             final apiRepository = context.read<APIRepository>();
-            final scaffoldMessenger = ScaffoldMessenger.of(context);
             return switch (artist.status) {
               FetchStatus.initial ||
               FetchStatus.loading =>
@@ -47,12 +45,54 @@ class ArtistPage extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              CoverArt(
-                                size: min(constraints.maxHeight * 0.60,
-                                    constraints.maxWidth - 25),
-                                resolution: const CoverResolution.extraLarge(),
-                                coverID: artist.coverID,
-                                borderRadius: BorderRadius.circular(10),
+                              BlocBuilder<FavoritesCubit, FavoritesState>(
+                                buildWhen: (previous, current) =>
+                                    current.changedId == artist.id,
+                                builder: (context, state) {
+                                  final isFavorite =
+                                      state.favorites.contains(artist.id);
+                                  return CoverArtWithMenu(
+                                    id: artist.id,
+                                    name: artist.name,
+                                    enablePlay: true,
+                                    enableShuffle: true,
+                                    enableQueue: true,
+                                    size: min(constraints.maxHeight * 0.60,
+                                        constraints.maxWidth - 25),
+                                    resolution:
+                                        const CoverResolution.extraLarge(),
+                                    coverID: artist.coverID,
+                                    borderRadius: 10,
+                                    isFavorite: isFavorite,
+                                    getSongs: () async => (await getArtistSongs(
+                                            albums: artist.albums,
+                                            repository: apiRepository))
+                                        .expand((a) => a)
+                                        .toList(),
+                                    getSongsShuffled: () async {
+                                      final option = await ChooserDialog.choose(
+                                          context,
+                                          "Shuffle",
+                                          ["Albums", "Songs"]);
+                                      if (option == null) return [];
+                                      if (option == 0) {
+                                        return ((await getArtistSongs(
+                                                albums: artist.albums,
+                                                repository: apiRepository))
+                                              ..shuffle())
+                                            .expand((a) => a)
+                                            .toList();
+                                      } else {
+                                        return (await getArtistSongs(
+                                                albums: artist.albums,
+                                                repository: apiRepository))
+                                            .expand((a) => a)
+                                            .toList()
+                                          ..shuffle();
+                                      }
+                                    },
+                                  );
+                                },
                               ),
                               const SizedBox(height: 10),
                               Text(
@@ -88,18 +128,15 @@ class ArtistPage extends StatelessWidget {
                                     ElevatedButton.icon(
                                       icon: const Icon(Icons.play_arrow),
                                       label: const Text('Play'),
-                                      onPressed: () {
-                                        doSomethingWithArtistSongs(
-                                          albums: artist.albums,
-                                          repository: apiRepository,
-                                          scaffoldMessenger: scaffoldMessenger,
-                                          callback: (songs) {
-                                            audioHandler
-                                                .playOnNextMediaChange();
-                                            audioHandler.mediaQueue
-                                                .replaceQueue(songs);
-                                          },
-                                        );
+                                      onPressed: () async {
+                                        final songs = (await getArtistSongs(
+                                                albums: artist.albums,
+                                                repository: apiRepository))
+                                            .expand((a) => a)
+                                            .toList();
+                                        audioHandler.playOnNextMediaChange();
+                                        audioHandler.mediaQueue
+                                            .replaceQueue(songs);
                                       },
                                     ),
                                     ElevatedButton.icon(
@@ -110,72 +147,69 @@ class ArtistPage extends StatelessWidget {
                                             await ChooserDialog.choose(context,
                                                 "Shuffle", ["Albums", "Songs"]);
                                         if (option == null) return;
+                                        List<Media> songs;
                                         if (option == 0) {
-                                          doSomethingWithArtistSongsByAlbum(
-                                            albums: artist.albums,
-                                            repository: apiRepository,
-                                            scaffoldMessenger:
-                                                scaffoldMessenger,
-                                            callback: (songs) {
-                                              songs.shuffle();
-                                              audioHandler
-                                                  .playOnNextMediaChange();
-                                              audioHandler.mediaQueue
-                                                  .replaceQueue(songs
-                                                      .expand((s) => s)
-                                                      .toList());
-                                            },
-                                          );
+                                          songs = ((await getArtistSongs(
+                                                  albums: artist.albums,
+                                                  repository: apiRepository))
+                                                ..shuffle())
+                                              .expand((a) => a)
+                                              .toList();
                                         } else {
-                                          doSomethingWithArtistSongs(
-                                            albums: artist.albums,
-                                            repository: apiRepository,
-                                            scaffoldMessenger:
-                                                scaffoldMessenger,
-                                            callback: (songs) {
-                                              songs.shuffle();
-                                              audioHandler
-                                                  .playOnNextMediaChange();
-                                              audioHandler.mediaQueue
-                                                  .replaceQueue(songs);
-                                            },
-                                          );
+                                          songs = (await getArtistSongs(
+                                                  albums: artist.albums,
+                                                  repository: apiRepository))
+                                              .expand((a) => a)
+                                              .toList()
+                                            ..shuffle();
                                         }
+                                        audioHandler.playOnNextMediaChange();
+                                        audioHandler.mediaQueue
+                                            .replaceQueue(songs);
                                       },
                                     ),
                                     ElevatedButton.icon(
                                       icon: const Icon(Icons.playlist_play),
                                       label: const Text('Prio. Queue'),
-                                      onPressed: () {
-                                        doSomethingWithArtistSongs(
-                                          albums: artist.albums,
-                                          repository: apiRepository,
-                                          scaffoldMessenger: scaffoldMessenger,
-                                          successMessage:
-                                              "Added '${artist.name} to priority queue",
-                                          callback: (songs) {
-                                            audioHandler.mediaQueue
-                                                .addAllToPriorityQueue(songs);
-                                          },
-                                        );
+                                      onPressed: () async {
+                                        final songs = (await getArtistSongs(
+                                                albums: artist.albums,
+                                                repository: apiRepository))
+                                            .expand((a) => a)
+                                            .toList();
+                                        audioHandler.mediaQueue
+                                            .addAllToPriorityQueue(songs);
+                                        if (!context.mounted) return;
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(SnackBar(
+                                          content: Text(
+                                              'Added "${artist.name}" to priority queue'),
+                                          behavior: SnackBarBehavior.floating,
+                                          duration: const Duration(
+                                              milliseconds: 1250),
+                                        ));
                                       },
                                     ),
                                     ElevatedButton.icon(
                                       icon: const Icon(
                                           Icons.playlist_add_outlined),
                                       label: const Text('Queue'),
-                                      onPressed: () {
-                                        doSomethingWithArtistSongs(
-                                          albums: artist.albums,
-                                          repository: apiRepository,
-                                          scaffoldMessenger: scaffoldMessenger,
-                                          successMessage:
-                                              "Added '${artist.name} to queue",
-                                          callback: (songs) {
-                                            audioHandler.mediaQueue
-                                                .addAll(songs);
-                                          },
-                                        );
+                                      onPressed: () async {
+                                        final songs = (await getArtistSongs(
+                                                albums: artist.albums,
+                                                repository: apiRepository))
+                                            .expand((a) => a)
+                                            .toList();
+                                        audioHandler.mediaQueue.addAll(songs);
+                                        if (!context.mounted) return;
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(SnackBar(
+                                          content: Text(
+                                              'Added "${artist.name}" to queue'),
+                                          behavior: SnackBarBehavior.floating,
+                                          duration: const Duration(
+                                              milliseconds: 1250),
+                                        ));
                                       },
                                     )
                                   ],
@@ -247,63 +281,13 @@ class ArtistPage extends StatelessWidget {
     );
   }
 
-  Future<void> doSomethingWithArtistSongsByAlbum({
+  Future<List<List<Media>>> getArtistSongs({
     required List<ArtistAlbum> albums,
-    required void Function(List<List<Media>>) callback,
     required APIRepository repository,
-    required ScaffoldMessengerState scaffoldMessenger,
-    String? successMessage,
   }) async {
-    try {
-      final songLists = await Future.wait((albums).map((a) async {
-        final album = await repository.getAlbum(a.id);
-        return album.song ?? <Media>[];
-      }));
-      callback(songLists);
-      if (successMessage != null) {
-        scaffoldMessenger.showSnackBar(SnackBar(
-          content: Text(successMessage),
-          behavior: SnackBarBehavior.floating,
-          duration: const Duration(milliseconds: 1250),
-        ));
-      }
-    } catch (e) {
-      print(e);
-      scaffoldMessenger.showSnackBar(const SnackBar(
-        content: Text('An unexpected error occured'),
-        behavior: SnackBarBehavior.floating,
-        duration: Duration(milliseconds: 1250),
-      ));
-    }
-  }
-
-  Future<void> doSomethingWithArtistSongs({
-    required List<ArtistAlbum> albums,
-    required void Function(List<Media>) callback,
-    required APIRepository repository,
-    required ScaffoldMessengerState scaffoldMessenger,
-    String? successMessage,
-  }) async {
-    try {
-      final songLists = await Future.wait((albums).map((a) async {
-        final album = await repository.getAlbum(a.id);
-        return album.song ?? <Media>[];
-      }));
-      callback(songLists.expand((s) => s).toList());
-      if (successMessage != null) {
-        scaffoldMessenger.showSnackBar(SnackBar(
-          content: Text(successMessage),
-          behavior: SnackBarBehavior.floating,
-          duration: const Duration(milliseconds: 1250),
-        ));
-      }
-    } catch (e) {
-      print(e);
-      scaffoldMessenger.showSnackBar(const SnackBar(
-        content: Text('An unexpected error occured'),
-        behavior: SnackBarBehavior.floating,
-        duration: Duration(milliseconds: 1250),
-      ));
-    }
+    return await Future.wait((albums).map((a) async {
+      final album = await repository.getAlbum(a.id);
+      return album.song ?? <Media>[];
+    }));
   }
 }

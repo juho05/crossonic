@@ -64,8 +64,7 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
               id: s.id,
               album: s.album ?? "Unknown album",
               albumID: s.albumId ?? "",
-              artist: s.artist ?? "Unknown artist",
-              artistID: s.artistId ?? "",
+              artists: APIRepository.getArtistsOfSong(s),
               coverID: s.coverArt ?? "",
               name: s.title,
               year: s.year,
@@ -80,8 +79,7 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     return albums
         .map((a) => SearchResult(
               id: a.id,
-              artist: a.artist ?? "Unknown artist",
-              artistID: a.artistId ?? "",
+              artists: APIRepository.getArtistsOfAlbum(a),
               coverID: a.coverArt ?? "",
               name: a.name,
               year: a.year,

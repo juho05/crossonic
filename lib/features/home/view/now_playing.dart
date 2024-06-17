@@ -5,6 +5,8 @@ import 'package:crossonic/features/home/view/state/now_playing_cubit.dart';
 import 'package:crossonic/services/audio_handler/audio_handler.dart';
 import 'package:crossonic/widgets/chooser.dart';
 import 'package:crossonic/widgets/cover_art.dart';
+import 'package:crossonic/widgets/large_cover.dart';
+import 'package:crossonic/widgets/state/favorites_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -62,11 +64,39 @@ class NowPlayingCollapsed extends StatelessWidget {
                       ],
                     ),
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.skip_previous),
-                    onPressed: () {
-                      context.read<CrossonicAudioHandler>().skipToPrevious();
+                  BlocBuilder<FavoritesCubit, FavoritesState>(
+                    buildWhen: (previous, current) =>
+                        current.changedId == state.songID,
+                    builder: (context, favState) {
+                      final isFavorite =
+                          favState.favorites.contains(state.songID);
+                      return SizedBox(
+                        width: 32,
+                        height: 40,
+                        child: IconButton(
+                          icon: isFavorite
+                              ? const Icon(Icons.favorite, size: 20)
+                              : const Icon(Icons.favorite_border, size: 20),
+                          padding: const EdgeInsets.all(0),
+                          onPressed: () {
+                            context
+                                .read<FavoritesCubit>()
+                                .toggleFavorite(state.songID);
+                          },
+                        ),
+                      );
                     },
+                  ),
+                  SizedBox(
+                    width: 32,
+                    height: 40,
+                    child: IconButton(
+                      icon: const Icon(Icons.skip_previous),
+                      padding: const EdgeInsets.all(0),
+                      onPressed: () {
+                        context.read<CrossonicAudioHandler>().skipToPrevious();
+                      },
+                    ),
                   ),
                   Stack(
                     alignment: Alignment.center,
@@ -106,12 +136,18 @@ class NowPlayingCollapsed extends StatelessWidget {
                       ),
                     ],
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.skip_next),
-                    onPressed: () {
-                      context.read<CrossonicAudioHandler>().skipToNext();
-                    },
+                  SizedBox(
+                    width: 32,
+                    height: 40,
+                    child: IconButton(
+                      icon: const Icon(Icons.skip_next),
+                      padding: const EdgeInsets.all(0),
+                      onPressed: () {
+                        context.read<CrossonicAudioHandler>().skipToNext();
+                      },
+                    ),
                   ),
+                  const SizedBox(width: 2),
                 ],
               ),
             );
@@ -152,12 +188,31 @@ class NowPlaying extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      CoverArt(
-                        size: min(constraints.maxHeight * 0.50,
-                            constraints.maxWidth - 12),
-                        coverID: state.coverArtID,
-                        resolution: const CoverResolution.extraLarge(),
-                        borderRadius: BorderRadius.circular(10),
+                      BlocBuilder<FavoritesCubit, FavoritesState>(
+                        buildWhen: (previous, current) =>
+                            current.changedId == state.songID,
+                        builder: (context, favState) {
+                          final isFavorite =
+                              favState.favorites.contains(state.songID);
+                          return CoverArtWithMenu(
+                            id: state.songID,
+                            name: state.songName,
+                            albumID: state.albumID,
+                            artists: state.artists.artists.toList(),
+                            enablePlay: false,
+                            enableShuffle: false,
+                            enableQueue: true,
+                            getSongs: () async =>
+                                state.media != null ? [state.media!] : [],
+                            size: min(constraints.maxHeight * 0.50,
+                                constraints.maxWidth - 12),
+                            coverID: state.coverArtID,
+                            resolution: const CoverResolution.extraLarge(),
+                            borderRadius: 10,
+                            isFavorite: isFavorite,
+                            onGoTo: () => _panelController.close(),
+                          );
+                        },
                       ),
                       BlocBuilder<NowPlayingCubit, NowPlayingState>(
                         buildWhen: (previous, current) =>

@@ -101,9 +101,7 @@ class _SongState extends State<Song> {
         ];
         final theme = Theme.of(context);
         return BlocBuilder<FavoritesCubit, FavoritesState>(
-          buildWhen: (previous, current) {
-            return current.changedId == widget.song.id;
-          },
+          buildWhen: (previous, current) => current.changedId == widget.song.id,
           builder: (context, state) {
             final isFavorite = state.favorites.contains(widget.song.id);
             return ListTile(

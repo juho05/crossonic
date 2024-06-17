@@ -7,7 +7,9 @@ import 'package:crossonic/services/audio_handler/audio_handler.dart';
 import 'package:crossonic/widgets/app_bar.dart';
 import 'package:crossonic/widgets/chooser.dart';
 import 'package:crossonic/widgets/cover_art.dart';
+import 'package:crossonic/widgets/large_cover.dart';
 import 'package:crossonic/widgets/song.dart';
+import 'package:crossonic/widgets/state/favorites_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -42,12 +44,28 @@ class AlbumPage extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            CoverArt(
-                              size: min(constraints.maxHeight * 0.60,
-                                  constraints.maxWidth - 25),
-                              resolution: const CoverResolution.extraLarge(),
-                              coverID: album.coverID,
-                              borderRadius: BorderRadius.circular(10),
+                            BlocBuilder<FavoritesCubit, FavoritesState>(
+                              buildWhen: (previous, current) => current.changedId == album.id,
+                              builder: (context, state) {
+                                final isFavorite =
+                                    state.favorites.contains(album.id);
+                                return CoverArtWithMenu(
+                                  id: album.id,
+                                  name: album.name,
+                                  artists: album.artists.artists.toList(),
+                                  enablePlay: true,
+                                  enableShuffle: true,
+                                  enableQueue: true,
+                                  isFavorite: isFavorite,
+                                  size: min(constraints.maxHeight * 0.60,
+                                      constraints.maxWidth - 25),
+                                  resolution:
+                                      const CoverResolution.extraLarge(),
+                                  coverID: album.coverID,
+                                  borderRadius: 10,
+                                  getSongs: () async => album.subsonicSongs,
+                                );
+                              },
                             ),
                             const SizedBox(height: 10),
                             Text(

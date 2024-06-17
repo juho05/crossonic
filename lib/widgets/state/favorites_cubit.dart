@@ -18,11 +18,19 @@ class FavoritesCubit extends Cubit<FavoritesState> {
 
   Future<void> toggleFavorite(String id) async {
     if (state.favorites.contains(id)) {
-      await _apiRepository.unstar(id: id);
       state.favorites.remove(id);
+      try {
+        await _apiRepository.unstar(id: id);
+      } catch (_) {
+        state.favorites.add(id);
+      }
     } else {
-      await _apiRepository.star(id: id);
       state.favorites.add(id);
+      try {
+        await _apiRepository.star(id: id);
+      } catch (_) {
+        state.favorites.remove(id);
+      }
     }
     emit(FavoritesState(state.favorites, id));
   }

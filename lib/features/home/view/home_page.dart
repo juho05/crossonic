@@ -18,7 +18,7 @@ class HomePage extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider(
-          create: (_) => RandomSongsCubit(apiRepository)..fetch(50),
+          create: (_) => RandomSongsCubit(apiRepository)..fetch(10),
         ),
         BlocProvider(
           create: (_) => RecentlyAddedAlbumsCubit(apiRepository)..fetch(15),

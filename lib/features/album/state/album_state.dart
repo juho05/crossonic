@@ -62,6 +62,14 @@ class AlbumState extends Equatable {
   }
 
   @override
-  List<Object> get props =>
-      [status, id, name, year, coverID, artists, songs, subsonicSongs];
+  List<Object> get props => [
+        status,
+        id,
+        name,
+        year,
+        coverID,
+        artists,
+        songs,
+        subsonicSongs,
+      ];
 }

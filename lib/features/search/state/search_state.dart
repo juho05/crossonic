@@ -6,8 +6,7 @@ class SearchResult {
   final String name;
   final String? albumID;
   final String? album;
-  final String? artistID;
-  final String? artist;
+  final Artists? artists;
   final int? year;
   final int? albumCount;
   final Media? media;
@@ -18,8 +17,7 @@ class SearchResult {
     required this.name,
     this.albumID,
     this.album,
-    this.artistID,
-    this.artist,
+    this.artists,
     this.year,
     this.albumCount,
     this.media,
