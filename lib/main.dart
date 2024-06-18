@@ -58,6 +58,8 @@ Future<void> main() async {
         config: const AudioServiceConfig(
           androidNotificationChannelId: "de.julianh.crossonic",
           androidNotificationChannelName: "Music playback",
+          androidStopForegroundOnPause: false,
+          androidNotificationChannelDescription: "Playback notification",
         ));
     nativeNotifier = audioService;
   }
@@ -70,7 +72,7 @@ Future<void> main() async {
     audioPlayer = AudioPlayerAudioPlayers();
   }
   final audioSession = await AudioSession.instance;
-  audioSession.configure(const AudioSessionConfiguration.music());
+  await audioSession.configure(const AudioSessionConfiguration.music());
 
   final audioHandler = CrossonicAudioHandler(
     apiRepository: apiRepository,

@@ -98,9 +98,6 @@ class NativeNotifierAudioService extends BaseAudioHandler
         duration:
             media.duration != null ? Duration(seconds: media.duration!) : null,
         genre: media.genre,
-        rating: media.userRating != null
-            ? Rating.newStarRating(RatingStyle.range5stars, media.userRating!)
-            : null,
         playable: true,
       ));
     }
@@ -131,5 +128,18 @@ class NativeNotifierAudioService extends BaseAudioHandler
       updatePosition: position,
       bufferedPosition: bufferedPosition,
     ));
+  }
+
+  @override
+  Future<void> onTaskRemoved() async {
+    if (_onStop == null) return;
+    if (playbackState.value.playing) return;
+    await _onStop!();
+  }
+
+  @override
+  Future<void> onNotificationDeleted() async {
+    if (_onStop == null) return;
+    await _onStop!();
   }
 }
