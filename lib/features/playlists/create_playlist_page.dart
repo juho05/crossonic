@@ -65,41 +65,44 @@ class _CreatePlaylistPageState extends State<CreatePlaylistPage>
           },
           builder: (context, state) {
             cubit = context.read<CreatePlaylistCubit>();
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Text('Playlist',
-                    style: Theme.of(context).textTheme.displayMedium),
-                Expanded(
-                  child: Align(
-                    alignment: const Alignment(0, -1 / 3),
-                    child: SizedBox(
-                      width: 430,
-                      child: AutofillGroup(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            TextField(
-                              controller: _nameController.value,
-                              decoration: InputDecoration(
-                                labelText: "Name",
-                                border: const OutlineInputBorder(),
-                                errorText: state.status !=
-                                            CreatePlaylistStatus.initial &&
-                                        state.name.isEmpty
-                                    ? "Playlist name is required"
-                                    : null,
+            return Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text('Playlist',
+                      style: Theme.of(context).textTheme.displayMedium),
+                  Expanded(
+                    child: Align(
+                      alignment: const Alignment(0, -1 / 3),
+                      child: SizedBox(
+                        width: 430,
+                        child: AutofillGroup(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              TextField(
+                                controller: _nameController.value,
+                                decoration: InputDecoration(
+                                  labelText: "Name",
+                                  border: const OutlineInputBorder(),
+                                  errorText: state.status !=
+                                              CreatePlaylistStatus.initial &&
+                                          state.name.isEmpty
+                                      ? "Playlist name is required"
+                                      : null,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-                _CreateButton(),
-                const SizedBox(height: 30),
-              ],
+                  _CreateButton(),
+                  const SizedBox(height: 30),
+                ],
+              ),
             );
           },
         ),
