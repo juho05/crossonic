@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:crossonic/exceptions.dart';
 import 'package:crossonic/repositories/api/models/albumid3_model.dart';
@@ -194,6 +195,40 @@ class APIRepository {
         null);
   }
 
+  Future<void> setPlaylistCover(String id, String ext, Uint8List cover) async {
+    final queryParams = generateQuery({
+      "id": [id],
+    });
+    final queryStr = Uri(queryParameters: queryParams).query;
+    try {
+      if (ext.startsWith(".")) ext = ext.substring(1);
+      final contentType = switch (ext.toLowerCase()) {
+        "jpg" => "image/jpeg",
+        "jpeg" => "image/jpeg",
+        "png" => "image/png",
+        "gif" => "image/gif",
+        "bmp" => "image/bmp",
+        "tiff" => "image/tiff",
+        "tif" => "image/tiff",
+        _ => "application/octet-stream",
+      };
+      final response = await http.post(
+          Uri.parse('$_serverURL/rest/crossonic/setPlaylistCover?$queryStr'),
+          body: cover,
+          headers: {"Content-Type": contentType});
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        if (response.statusCode == 401) {
+          logout();
+          throw UnauthenticatedException();
+        }
+        throw ServerException(response.statusCode);
+      }
+    } catch (e) {
+      print(e);
+      throw ServerUnreachableException();
+    }
+  }
+
   Future<ListenBrainzConfig> connectListenBrainz(String token) async {
     final response = await _jsonRequest(
         "crossonic/connectListenBrainz",
@@ -273,7 +308,7 @@ class APIRepository {
         '$_serverURL/rest/stream${Uri(queryParameters: queryParams)}');
   }
 
-  Future<Uri> getCoverArtURL({required String coverArtID, int? size}) async {
+  Uri getCoverArtURL({required String coverArtID, int? size}) {
     final queryParams = generateQuery({
       'id': [coverArtID],
       if (size != null) 'size': ['$size'],

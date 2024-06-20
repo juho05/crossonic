@@ -45,15 +45,11 @@ class _CoverArtState extends State<CoverArt> {
       if (widget.coverID == null) {
         _url = null;
       } else {
-        context
+        _url = context
             .read<APIRepository>()
             .getCoverArtURL(
                 coverArtID: widget.coverID!, size: widget.resolution.size)
-            .then(
-              (value) => setState(() {
-                _url = value.toString();
-              }),
-            );
+            .toString();
       }
     }
 

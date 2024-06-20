@@ -1,10 +1,12 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:bloc/bloc.dart';
 import 'package:crossonic/fetch_status.dart';
 import 'package:crossonic/repositories/api/api.dart';
 import 'package:crossonic/repositories/playlist/playlist_repository.dart';
 import 'package:equatable/equatable.dart';
+import 'package:file_picker/file_picker.dart';
 
 part 'playlist_state.dart';
 
@@ -20,6 +22,7 @@ class PlaylistCubit extends Cubit<PlaylistState> {
           duration: Duration.zero,
           coverID: null,
           songs: [],
+          coverStatus: CoverStatus.none,
         )) {
     _playlistsSubscription = _playlistRepository.playlists.listen((playlists) {
       if (state.id.isEmpty) return;
@@ -46,6 +49,44 @@ class PlaylistCubit extends Cubit<PlaylistState> {
   void toggleReorder() {
     emit(state.copyWith(
         coverID: state.coverID, reorderEnabled: !state.reorderEnabled));
+  }
+
+  Future<void> setCover() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.image,
+      withData: true,
+    );
+    if (result == null || result.files.isEmpty) {
+      return;
+    }
+    emit(state.copyWith(
+        coverID: state.coverID, coverStatus: CoverStatus.uploading));
+    final file = result.files[0];
+    if (file.size > 15e6) {
+      emit(state.copyWith(
+          coverID: state.coverID, coverStatus: CoverStatus.fileTooBig));
+      return;
+    }
+    try {
+      await _playlistRepository.setPlaylistCover(
+          state.id, file.extension ?? "", file.bytes!);
+    } catch (e) {
+      print(e);
+      emit(state.copyWith(
+          coverID: state.coverID, coverStatus: CoverStatus.uploadFailed));
+    }
+  }
+
+  Future<void> removeCover() async {
+    emit(state.copyWith(
+        coverID: state.coverID, coverStatus: CoverStatus.uploading));
+    try {
+      await _playlistRepository.setPlaylistCover(state.id, "", Uint8List(0));
+    } catch (e) {
+      print(e);
+      emit(state.copyWith(
+          coverID: state.coverID, coverStatus: CoverStatus.uploadFailed));
+    }
   }
 
   void reorder(int oldIndex, int newIndex) {

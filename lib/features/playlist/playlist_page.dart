@@ -25,7 +25,20 @@ class PlaylistPage extends StatelessWidget {
           PlaylistCubit(context.read<PlaylistRepository>(), playlistID),
       child: Scaffold(
         appBar: createAppBar(context, "Playlist"),
-        body: BlocBuilder<PlaylistCubit, PlaylistState>(
+        body: BlocConsumer<PlaylistCubit, PlaylistState>(
+          listener: (context, state) {
+            if (state.coverStatus == CoverStatus.uploadFailed) {
+              ScaffoldMessenger.of(context)
+                ..hideCurrentSnackBar()
+                ..showSnackBar(
+                    const SnackBar(content: Text("Failed to upload image")));
+            } else if (state.coverStatus == CoverStatus.fileTooBig) {
+              ScaffoldMessenger.of(context)
+                ..hideCurrentSnackBar()
+                ..showSnackBar(const SnackBar(
+                    content: Text("Only files <= 15 MB are allowed")));
+            }
+          },
           builder: (context, state) {
             final audioHandler = context.read<CrossonicAudioHandler>();
             return switch (state.status) {
@@ -48,6 +61,8 @@ class PlaylistPage extends StatelessWidget {
                               enableQueue: true,
                               enablePlaylist: true,
                               enableToggleFavorite: false,
+                              uploading:
+                                  state.coverStatus == CoverStatus.uploading,
                               size: min(constraints.maxHeight * 0.60,
                                   constraints.maxWidth - 25),
                               resolution: const CoverResolution.extraLarge(),
@@ -58,6 +73,10 @@ class PlaylistPage extends StatelessWidget {
                               onEdit: () {
                                 context.read<PlaylistCubit>().toggleReorder();
                               },
+                              onChangePicture:
+                                  context.read<PlaylistCubit>().setCover,
+                              onRemovePicture: state.coverID != null ?
+                                  context.read<PlaylistCubit>().removeCover : null,
                               onDelete: () async {
                                 if (!(await ConfirmationDialog.show(context))) {
                                   return;

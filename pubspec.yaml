@@ -35,6 +35,7 @@ dependencies:
   connectivity_plus: ^6.0.3
   web_socket_channel: ^2.4.5
   icon_decoration: ^2.0.2
+  file_picker: ^8.0.5
 dependency_overrides:
   audioplayers_linux:
     path: ./audioplayers_linux_stub

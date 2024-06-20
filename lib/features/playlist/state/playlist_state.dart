@@ -1,5 +1,7 @@
 part of 'playlist_cubit.dart';
 
+enum CoverStatus { none, uploading, fileTooBig, uploadFailed }
+
 class PlaylistState extends Equatable {
   const PlaylistState({
     required this.status,
@@ -10,6 +12,7 @@ class PlaylistState extends Equatable {
     required this.duration,
     required this.coverID,
     required this.songs,
+    required this.coverStatus,
   });
 
   final FetchStatus status;
@@ -21,6 +24,8 @@ class PlaylistState extends Equatable {
   final String? coverID;
   final List<Media> songs;
 
+  final CoverStatus coverStatus;
+
   PlaylistState copyWith({
     FetchStatus? status,
     bool? reorderEnabled,
@@ -30,6 +35,7 @@ class PlaylistState extends Equatable {
     Duration? duration,
     required String? coverID,
     List<Media>? songs,
+    CoverStatus? coverStatus,
   }) {
     return PlaylistState(
       status: status ?? this.status,
@@ -40,6 +46,7 @@ class PlaylistState extends Equatable {
       duration: duration ?? this.duration,
       coverID: coverID,
       songs: songs ?? this.songs,
+      coverStatus: coverStatus ?? CoverStatus.none,
     );
   }
 
@@ -53,5 +60,6 @@ class PlaylistState extends Equatable {
         duration,
         coverID,
         songs,
+        coverStatus,
       ];
 }

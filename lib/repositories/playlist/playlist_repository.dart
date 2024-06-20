@@ -1,6 +1,10 @@
+import 'dart:typed_data';
+
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:crossonic/repositories/api/api_repository.dart';
 import 'package:crossonic/repositories/api/models/media_model.dart';
 import 'package:crossonic/repositories/api/models/playlist_model.dart';
+import 'package:crossonic/widgets/cover_art.dart';
 import 'package:rxdart/rxdart.dart';
 
 class PlaylistRepository {
@@ -49,6 +53,53 @@ class PlaylistRepository {
     } catch (e) {
       print(e);
     }
+  }
+
+  Future<void> setPlaylistCover(String id, String ext, Uint8List cover) async {
+    await _apiRepository.setPlaylistCover(id, ext, cover);
+    await Future.wait([
+      CachedNetworkImage.evictFromCache(
+          _apiRepository.getCoverArtURL(coverArtID: id).toString()),
+      CachedNetworkImage.evictFromCache(_apiRepository
+          .getCoverArtURL(
+              coverArtID: id, size: const CoverResolution.extraLarge().size)
+          .toString()),
+      CachedNetworkImage.evictFromCache(_apiRepository
+          .getCoverArtURL(
+              coverArtID: id, size: const CoverResolution.large().size)
+          .toString()),
+      CachedNetworkImage.evictFromCache(_apiRepository
+          .getCoverArtURL(
+              coverArtID: id, size: const CoverResolution.medium().size)
+          .toString()),
+      CachedNetworkImage.evictFromCache(_apiRepository
+          .getCoverArtURL(
+              coverArtID: id, size: const CoverResolution.small().size)
+          .toString()),
+      CachedNetworkImage.evictFromCache(_apiRepository
+          .getCoverArtURL(
+              coverArtID: id, size: const CoverResolution.tiny().size)
+          .toString()),
+    ]);
+    playlists.add(playlists.value.map(
+      (p) {
+        if (p.id != id) return p;
+        return Playlist(
+          id: p.id,
+          allowedUser: p.allowedUser,
+          changed: p.changed,
+          comment: p.comment,
+          coverArt: cover.isNotEmpty ? id : null,
+          created: p.created,
+          duration: p.duration,
+          entry: p.entry,
+          name: p.name,
+          owner: p.owner,
+          public: p.public,
+          songCount: p.songCount,
+        );
+      },
+    ).toList());
   }
 
   Future<void> delete(String id) async {
