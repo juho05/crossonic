@@ -9,7 +9,9 @@ import 'package:crossonic/features/home/view/home_page.dart';
 import 'package:crossonic/features/home/view/random_songs_page.dart';
 import 'package:crossonic/features/login/login.dart';
 import 'package:crossonic/features/lyrics/lyrics_page.dart';
-import 'package:crossonic/features/playlists/playlists.dart';
+import 'package:crossonic/features/playlist/playlist_page.dart';
+import 'package:crossonic/features/playlists/create_playlist_page.dart';
+import 'package:crossonic/features/playlists/playlists_page.dart';
 import 'package:crossonic/features/queue/queue_page.dart';
 import 'package:crossonic/features/search/search_page.dart';
 import 'package:crossonic/features/settings/settings.dart';
@@ -44,9 +46,11 @@ String _tabRoutePath(String prefix, String path) =>
 
 List<RouteBase> _tabRoutes(String prefix) => [
       _newRoute(_tabRoutePath(prefix, "/home"), const HomePage()),
+      _newRoute(_tabRoutePath(prefix, "/randomSongs"), const RandomSongsPage()),
       _newRoute(_tabRoutePath(prefix, "/search"), const SearchPage()),
       _newRoute(_tabRoutePath(prefix, "/playlists"), const PlaylistsPage()),
-      _newRoute(_tabRoutePath(prefix, "/randomSongs"), const RandomSongsPage()),
+      _newRoute(
+          _tabRoutePath(prefix, "/createPlaylist"), const CreatePlaylistPage()),
       GoRoute(
         path: _tabRoutePath(prefix, "/album/:albumID"),
         pageBuilder: (context, state) => NoTransitionPage(
@@ -73,7 +77,16 @@ List<RouteBase> _tabRoutes(String prefix) => [
           restorationId: _tabRoutePath(
               prefix, "/albums/${state.pathParameters["mode"] ?? "random"}"),
         ),
-      )
+      ),
+      GoRoute(
+        path: _tabRoutePath(prefix, "/playlist/:playlistID"),
+        pageBuilder: (context, state) => NoTransitionPage(
+          child: PlaylistPage(
+              playlistID: state.pathParameters["playlistID"] ?? ""),
+          restorationId: _tabRoutePath(
+              prefix, "/playlist/${state.pathParameters["playlistID"] ?? ""}"),
+        ),
+      ),
     ];
 
 final goRouter = GoRouter(

@@ -18,8 +18,8 @@ class NowPlayingCubit extends Cubit<NowPlayingState> {
   NowPlayingCubit(CrossonicAudioHandler audioHandler)
       : _audioHandler = audioHandler,
         super(const NowPlayingState(
-            playbackState:
-                CrossonicPlaybackState(status: CrossonicPlaybackStatus.stopped))) {
+            playbackState: CrossonicPlaybackState(
+                status: CrossonicPlaybackStatus.stopped))) {
     _currentMediaSubscription =
         _audioHandler.mediaQueue.current.listen((value) {
       emit(
@@ -41,9 +41,11 @@ class NowPlayingCubit extends Cubit<NowPlayingState> {
     });
     _playbackStateSubscription =
         _audioHandler.crossonicPlaybackStatus.listen((value) {
+      final media = _audioHandler.mediaQueue.current.value?.item;
       emit(state.copyWith(
         playbackState: value,
-        media: _audioHandler.mediaQueue.current.value?.item,
+        coverArtID: media?.coverArt,
+        media: media,
       ));
     });
   }

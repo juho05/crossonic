@@ -15,8 +15,11 @@ enum LargeCoverPopupMenuValue {
   addToPriorityQueue,
   addToQueue,
   toggleFavorite,
+  addToPlaylist,
   gotoAlbum,
-  gotoArtist
+  gotoArtist,
+  edit,
+  delete,
 }
 
 class CoverArtWithMenu extends StatelessWidget {
@@ -32,10 +35,15 @@ class CoverArtWithMenu extends StatelessWidget {
   final Future<List<Media>> Function()? getSongs;
   final Future<List<Media>?> Function()? getSongsShuffled;
   final void Function()? onGoTo;
+  final void Function()? onEdit;
+  final bool editing;
+  final void Function()? onDelete;
 
   final bool enablePlay;
   final bool enableShuffle;
   final bool enableQueue;
+  final bool enableToggleFavorite;
+  final bool enablePlaylist;
 
   const CoverArtWithMenu({
     super.key,
@@ -51,9 +59,14 @@ class CoverArtWithMenu extends StatelessWidget {
     this.getSongs,
     this.getSongsShuffled,
     this.onGoTo,
+    this.onEdit,
+    this.editing = false,
+    this.onDelete,
     this.enablePlay = false,
     this.enableShuffle = false,
     this.enableQueue = true,
+    this.enableToggleFavorite = true,
+    this.enablePlaylist = true,
   });
 
   @override
@@ -62,7 +75,7 @@ class CoverArtWithMenu extends StatelessWidget {
     return Stack(
       children: [
         CoverArt(
-          coverID: coverID ?? id,
+          coverID: coverID,
           resolution: resolution,
           borderRadius: BorderRadius.circular(borderRadius),
           size: size,
@@ -157,6 +170,12 @@ class CoverArtWithMenu extends StatelessWidget {
                                   context
                                       .read<FavoritesCubit>()
                                       .toggleFavorite(id);
+                                case LargeCoverPopupMenuValue.addToPlaylist:
+                                  await ChooserDialog.addToPlaylist(
+                                      // ignore: use_build_context_synchronously
+                                      context,
+                                      name,
+                                      await getSongs!());
                                 case LargeCoverPopupMenuValue.gotoAlbum:
                                   if (albumID == null) {
                                     return;
@@ -174,6 +193,10 @@ class CoverArtWithMenu extends StatelessWidget {
                                     context.push("/home/artist/$artistID");
                                     if (onGoTo != null) onGoTo!();
                                   }
+                                case LargeCoverPopupMenuValue.edit:
+                                  onEdit!();
+                                case LargeCoverPopupMenuValue.delete:
+                                  onDelete!();
                               }
                             },
                             itemBuilder: (BuildContext context) => [
@@ -210,17 +233,27 @@ class CoverArtWithMenu extends StatelessWidget {
                                     title: Text('Add to queue'),
                                   ),
                                 ),
-                              PopupMenuItem(
-                                value: LargeCoverPopupMenuValue.toggleFavorite,
-                                child: ListTile(
-                                  leading: Icon(isFavorite
-                                      ? Icons.heart_broken
-                                      : Icons.favorite),
-                                  title: Text(isFavorite
-                                      ? 'Remove from favorites'
-                                      : 'Add to favorites'),
+                              if (enableToggleFavorite)
+                                PopupMenuItem(
+                                  value:
+                                      LargeCoverPopupMenuValue.toggleFavorite,
+                                  child: ListTile(
+                                    leading: Icon(isFavorite
+                                        ? Icons.heart_broken
+                                        : Icons.favorite),
+                                    title: Text(isFavorite
+                                        ? 'Remove from favorites'
+                                        : 'Add to favorites'),
+                                  ),
                                 ),
-                              ),
+                              if (enablePlaylist && getSongs != null)
+                                const PopupMenuItem(
+                                  value: LargeCoverPopupMenuValue.addToPlaylist,
+                                  child: ListTile(
+                                    leading: Icon(Icons.playlist_add),
+                                    title: Text('Add to playlist'),
+                                  ),
+                                ),
                               if (albumID != null)
                                 const PopupMenuItem(
                                   value: LargeCoverPopupMenuValue.gotoAlbum,
@@ -235,6 +268,26 @@ class CoverArtWithMenu extends StatelessWidget {
                                   child: ListTile(
                                     leading: Icon(Icons.person),
                                     title: Text('Go to artist'),
+                                  ),
+                                ),
+                              if (onEdit != null)
+                                PopupMenuItem(
+                                  value: LargeCoverPopupMenuValue.edit,
+                                  child: ListTile(
+                                    leading: editing
+                                        ? const Icon(Icons.edit_off)
+                                        : const Icon(Icons.edit),
+                                    title: editing
+                                        ? const Text('Stop editing')
+                                        : const Text("Edit"),
+                                  ),
+                                ),
+                              if (onDelete != null)
+                                const PopupMenuItem(
+                                  value: LargeCoverPopupMenuValue.delete,
+                                  child: ListTile(
+                                    leading: Icon(Icons.delete_outline),
+                                    title: Text('Delete'),
                                   ),
                                 ),
                             ],

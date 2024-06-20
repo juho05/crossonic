@@ -6,14 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
-enum AlbumPopupMenuValue {
-  play,
-  addToPriorityQueue,
-  addToQueue,
-  toggleFavorite,
-  gotoArtist
-}
-
 class Album extends StatelessWidget {
   final String id;
   final String name;
@@ -64,7 +56,7 @@ class Album extends StatelessWidget {
                         enableShuffle: true,
                         enableQueue: true,
                         artists: artists,
-                        coverID: id,
+                        coverID: coverID,
                         isFavorite: isFavorite,
                         getSongs: () async => await getSongs(repository),
                       ),

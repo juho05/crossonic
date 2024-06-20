@@ -31,7 +31,7 @@ class RecentlyAddedAlbumsCubit extends Cubit<RecentlyAddedAlbumsState> {
               id: album.id,
               name: album.name,
               artists: APIRepository.getArtistsOfAlbum(album),
-              coverID: album.coverArt ?? "",
+              coverID: album.coverArt,
               year: album.year,
             ))
         .toList();

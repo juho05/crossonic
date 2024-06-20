@@ -70,7 +70,7 @@ class AlbumsBloc extends Bloc<AlbumsEvent, AlbumsState> {
                 id: album.id,
                 name: album.name,
                 artists: APIRepository.getArtistsOfAlbum(album),
-                coverID: album.coverArt ?? "",
+                coverID: album.coverArt,
                 year: album.year,
               ));
       emit(state.copyWith(

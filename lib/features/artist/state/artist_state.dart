@@ -18,7 +18,7 @@ class Track extends Equatable {
 class ArtistAlbum extends Equatable {
   final String id;
   final String name;
-  final String coverID;
+  final String? coverID;
   final int? year;
   final List<ArtistIDName> artists;
 

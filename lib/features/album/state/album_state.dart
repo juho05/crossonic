@@ -33,7 +33,7 @@ class AlbumState extends Equatable {
   final String id;
   final String name;
   final int year;
-  final String coverID;
+  final String? coverID;
   final Artists artists;
   final List<Track> songs;
   final List<Media> subsonicSongs;
@@ -43,9 +43,8 @@ class AlbumState extends Equatable {
     String? id,
     String? name,
     int? year,
-    String? coverID,
+    required String? coverID,
     Artists? artists,
-    String? artistDisplayName,
     List<Track>? songs,
     List<Media>? subsonicSongs,
   }) {
@@ -54,7 +53,7 @@ class AlbumState extends Equatable {
       id: id ?? this.id,
       name: name ?? this.name,
       year: year ?? this.year,
-      coverID: coverID ?? this.coverID,
+      coverID: coverID,
       artists: artists ?? this.artists,
       songs: songs ?? this.songs,
       subsonicSongs: subsonicSongs ?? this.subsonicSongs,
@@ -62,7 +61,7 @@ class AlbumState extends Equatable {
   }
 
   @override
-  List<Object> get props => [
+  List<Object?> get props => [
         status,
         id,
         name,

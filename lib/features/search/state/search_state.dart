@@ -2,7 +2,7 @@ part of 'search_bloc.dart';
 
 class SearchResult {
   final String id;
-  final String coverID;
+  final String? coverID;
   final String name;
   final String? albumID;
   final String? album;
@@ -13,8 +13,8 @@ class SearchResult {
 
   SearchResult({
     required this.id,
-    required this.coverID,
     required this.name,
+    this.coverID,
     this.albumID,
     this.album,
     this.artists,

@@ -7,7 +7,7 @@ class NowPlayingState extends Equatable {
   final String album;
   final String albumID;
   final Duration duration;
-  final String coverArtID;
+  final String? coverArtID;
   final Media? media;
   bool get hasMedia => songID != "";
 
@@ -32,8 +32,7 @@ class NowPlayingState extends Equatable {
     String? album,
     String? albumID,
     Duration? duration,
-    String? coverArtID,
-    String? coverArtURLSmall,
+    required String? coverArtID,
     CrossonicPlaybackState? playbackState,
     required Media? media,
   }) {
@@ -44,7 +43,7 @@ class NowPlayingState extends Equatable {
       album: album ?? this.album,
       albumID: albumID ?? this.albumID,
       duration: duration ?? this.duration,
-      coverArtID: coverArtID ?? this.coverArtID,
+      coverArtID: coverArtID,
       playbackState: playbackState ?? this.playbackState,
       media: media,
     );

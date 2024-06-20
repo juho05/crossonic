@@ -7,8 +7,10 @@ import 'package:crossonic/repositories/api/models/albumid3_model.dart';
 import 'package:crossonic/repositories/api/models/artist_model.dart';
 import 'package:crossonic/repositories/api/models/listenbrainz_model.dart';
 import 'package:crossonic/repositories/api/models/models.dart';
+import 'package:crossonic/repositories/api/models/playlist_model.dart';
 import 'package:crossonic/repositories/api/models/responses/getalbumlist2_response.dart';
 import 'package:crossonic/repositories/api/models/responses/getlyricsbysongid_response.dart';
+import 'package:crossonic/repositories/api/models/responses/getplaylists_response.dart';
 import 'package:crossonic/repositories/api/models/responses/gettopsongs_response.dart';
 import 'package:crossonic/repositories/api/models/responses/search3_response.dart';
 import 'package:crossonic/repositories/api/models/scan_status_model.dart';
@@ -48,6 +50,16 @@ class ArtistIDName extends Equatable {
   final String name;
 
   const ArtistIDName({required this.id, required this.name});
+
+  @override
+  List<Object> get props => [id, name];
+}
+
+class PlaylistIDName extends Equatable {
+  final String id;
+  final String name;
+
+  const PlaylistIDName({required this.id, required this.name});
 
   @override
   List<Object> get props => [id, name];
@@ -114,6 +126,73 @@ class APIRepository {
   String _username = "";
   String get username => _username;
   String _password = "";
+
+  Future<List<Playlist>> getPlaylists() async {
+    final response = await _jsonRequest(
+        "getPlaylists", {}, GetPlaylistsResponse.fromJson, "playlists");
+    return response!.playlist;
+  }
+
+  Future<Playlist> getPlaylist(String id) async {
+    final response = await _jsonRequest(
+        "getPlaylist",
+        {
+          "id": [id],
+        },
+        Playlist.fromJson,
+        "playlist");
+    return response!;
+  }
+
+  Future<Playlist> createPlaylist({
+    String? playlistID,
+    String? name,
+    Iterable<String> songIDs = const [],
+  }) async {
+    final response = await _jsonRequest(
+      "createPlaylist",
+      {
+        if (playlistID != null) "playlistId": [playlistID],
+        if (name != null) "name": [name],
+        if (songIDs.isNotEmpty) "songId": songIDs,
+      },
+      Playlist.fromJson,
+      "playlist",
+    );
+    return response!;
+  }
+
+  Future<void> updatePlaylist({
+    required String playlistID,
+    String? name,
+    String? comment,
+    Iterable<String> songIDsToAdd = const [],
+    Iterable<int> trackNumbersToRemove = const [],
+  }) async {
+    await _jsonRequest(
+      "updatePlaylist",
+      {
+        "playlistId": [playlistID],
+        if (name != null) "name": [name],
+        if (comment != null) "comment": [comment],
+        if (songIDsToAdd.isNotEmpty) "songIdToAdd": songIDsToAdd,
+        if (trackNumbersToRemove.isNotEmpty)
+          "songIndexToRemove": trackNumbersToRemove.map((n) => n.toString()),
+      },
+      null,
+      null,
+    );
+  }
+
+  Future<void> deletePlaylist(String id) async {
+    await _jsonRequest(
+        "deletePlaylist",
+        {
+          "id": [id],
+        },
+        null,
+        null);
+  }
 
   Future<ListenBrainzConfig> connectListenBrainz(String token) async {
     final response = await _jsonRequest(
@@ -462,8 +541,10 @@ class APIRepository {
     queryParams = generateQuery(queryParams);
     final queryStr = Uri(queryParameters: queryParams).query;
     try {
-      final response = await http
-          .post(Uri.parse('$_serverURL/rest/$endpointName'), body: queryStr);
+      final response = await http.post(
+          Uri.parse('$_serverURL/rest/$endpointName'),
+          body: queryStr,
+          headers: {"Content-Type": "application/x-www-form-urlencoded"});
       if (response.statusCode != 200 && response.statusCode != 201) {
         if (response.statusCode == 401) {
           logout();

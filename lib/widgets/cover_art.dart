@@ -16,17 +16,18 @@ class CoverResolution {
 }
 
 class CoverArt extends StatefulWidget {
-  final String coverID;
+  final String? coverID;
   final CoverResolution resolution;
   final BorderRadiusGeometry borderRadius;
   final double? size;
 
-  const CoverArt(
-      {required this.coverID,
-      required this.resolution,
-      this.borderRadius = BorderRadius.zero,
-      this.size,
-      super.key});
+  const CoverArt({
+    required this.coverID,
+    required this.resolution,
+    this.borderRadius = BorderRadius.zero,
+    this.size,
+    super.key,
+  });
 
   @override
   State<CoverArt> createState() => _CoverArtState();
@@ -35,21 +36,25 @@ class CoverArt extends StatefulWidget {
 class _CoverArtState extends State<CoverArt> {
   String? _url;
 
-  String _loadedID = "";
+  String? _loadedID;
 
   @override
   Widget build(BuildContext context) {
     if (_loadedID != widget.coverID) {
       _loadedID = widget.coverID;
-      context
-          .read<APIRepository>()
-          .getCoverArtURL(
-              coverArtID: widget.coverID, size: widget.resolution.size)
-          .then(
-            (value) => setState(() {
-              _url = value.toString();
-            }),
-          );
+      if (widget.coverID == null) {
+        _url = null;
+      } else {
+        context
+            .read<APIRepository>()
+            .getCoverArtURL(
+                coverArtID: widget.coverID!, size: widget.resolution.size)
+            .then(
+              (value) => setState(() {
+                _url = value.toString();
+              }),
+            );
+      }
     }
 
     final Widget placeholder = Icon(
@@ -62,19 +67,21 @@ class _CoverArtState extends State<CoverArt> {
       height: widget.size,
       width: widget.size,
       child: _loadedID == widget.coverID
-          ? ClipRRect(
-              borderRadius: widget.borderRadius,
-              clipBehavior: Clip.antiAlias,
-              child: CachedNetworkImage(
-                imageUrl: _url ?? "",
-                fit: BoxFit.cover,
-                fadeInDuration: const Duration(milliseconds: 300),
-                fadeOutDuration: const Duration(milliseconds: 100),
-                placeholder: (context, url) =>
-                    const CircularProgressIndicator.adaptive(),
-                errorWidget: (context, url, error) => placeholder,
-              ),
-            )
+          ? (widget.coverID != null
+              ? ClipRRect(
+                  borderRadius: widget.borderRadius,
+                  clipBehavior: Clip.antiAlias,
+                  child: CachedNetworkImage(
+                    imageUrl: _url ?? "",
+                    fit: BoxFit.cover,
+                    fadeInDuration: const Duration(milliseconds: 300),
+                    fadeOutDuration: const Duration(milliseconds: 100),
+                    placeholder: (context, url) =>
+                        const CircularProgressIndicator.adaptive(),
+                    errorWidget: (context, url, error) => placeholder,
+                  ),
+                )
+              : placeholder)
           : null,
     );
   }

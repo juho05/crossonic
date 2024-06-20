@@ -106,6 +106,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
             status: FormzSubmissionStatus.failure,
             error: LoginError.notCrossonic));
       } catch (e) {
+        print(e);
         emit(state.copyWith(
             status: FormzSubmissionStatus.failure,
             error: LoginError.unexpected));

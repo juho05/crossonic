@@ -27,6 +27,7 @@ class AlbumCubit extends Cubit<AlbumState> {
     emit(state.copyWith(
       status: FetchStatus.loading,
       id: albumID,
+      coverID: null,
     ));
 
     try {
@@ -54,12 +55,12 @@ class AlbumCubit extends Cubit<AlbumState> {
           artists: APIRepository.getArtistsOfAlbum(album),
           songs: songs,
           subsonicSongs: album.song ?? [],
-          coverID: album.coverArt ?? "",
+          coverID: album.coverArt,
         ),
       );
     } catch (e) {
       print(e);
-      emit(state.copyWith(status: FetchStatus.failure));
+      emit(state.copyWith(status: FetchStatus.failure, coverID: state.coverID));
     }
   }
 }

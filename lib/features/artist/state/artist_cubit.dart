@@ -38,7 +38,7 @@ class ArtistCubit extends Cubit<ArtistState> {
           return ArtistAlbum(
             id: a.id,
             name: a.name,
-            coverID: a.coverArt ?? "",
+            coverID: a.coverArt,
             year: a.year,
             artists: APIRepository.getArtistsOfAlbum(a).artists.toList(),
           );
@@ -63,7 +63,7 @@ class ArtistCubit extends Cubit<ArtistState> {
           name: artist.name,
           albumCount: artist.albumCount ?? 0,
           albums: albums,
-          coverID: artist.coverArt ?? "",
+          coverID: artist.coverArt,
           genres: distinctGenres,
         ),
       );

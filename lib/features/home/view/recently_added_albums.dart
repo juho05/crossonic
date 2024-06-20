@@ -33,7 +33,7 @@ class RecentlyAddedAlbums extends StatelessWidget {
                                     "${state.albums[i].artists.displayName}${state.albums[i].year != null ? " • ${state.albums[i].year}" : ""}",
                                 artists:
                                     state.albums[i].artists.artists.toList(),
-                                coverID: state.albums[i].coverID ?? "",
+                                coverID: state.albums[i].coverID,
                               ),
                             )),
                   ),

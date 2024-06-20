@@ -13,6 +13,7 @@ enum SongPopupMenuValue {
   addToPriorityQueue,
   addToQueue,
   toggleFavorite,
+  addToPlaylist,
   remove,
   gotoAlbum,
   gotoArtist
@@ -32,6 +33,7 @@ class Song extends StatefulWidget {
   final int? reorderIndex;
   final void Function()? onRemove;
   final void Function()? onTap;
+  final int? track;
   const Song({
     super.key,
     required this.song,
@@ -45,6 +47,7 @@ class Song extends StatefulWidget {
     this.reorderIndex,
     this.onRemove,
     this.onTap,
+    this.track,
   });
 
   @override
@@ -80,21 +83,20 @@ class _SongState extends State<Song> {
               padding: EdgeInsets.only(right: 8.0),
               child: Icon(Icons.drag_handle),
             ),
-          if (widget.song.track != null &&
+          if ((widget.track != null || widget.song.track != null) &&
               widget.leadingItem == SongLeadingItem.track &&
               !_isCurrent)
             Text(
-              widget.song.track.toString().padLeft(2, '0'),
+              (widget.track ?? widget.song.track).toString().padLeft(2, '0'),
               overflow: TextOverflow.ellipsis,
               style: textTheme.bodyMedium?.copyWith(
                 fontWeight: FontWeight.w500,
               ),
             ),
-          if (widget.song.coverArt != null &&
-              widget.leadingItem == SongLeadingItem.cover)
+          if (widget.leadingItem == SongLeadingItem.cover)
             CoverArt(
               size: 40,
-              coverID: widget.song.coverArt!,
+              coverID: widget.song.coverArt,
               resolution: const CoverResolution.tiny(),
               borderRadius: BorderRadius.circular(5),
             ),
@@ -216,8 +218,9 @@ class _SongState extends State<Song> {
                             context
                                 .read<FavoritesCubit>()
                                 .toggleFavorite(widget.song.id);
-                          case SongPopupMenuValue.remove:
-                            widget.onRemove!();
+                          case SongPopupMenuValue.addToPlaylist:
+                            await ChooserDialog.addToPlaylist(
+                                context, widget.song.title, [widget.song]);
                           case SongPopupMenuValue.gotoAlbum:
                             context.push("/home/album/${widget.song.albumId}");
                           case SongPopupMenuValue.gotoArtist:
@@ -229,6 +232,8 @@ class _SongState extends State<Song> {
                             if (artistID == null) return;
                             // ignore: use_build_context_synchronously
                             context.push("/home/artist/$artistID");
+                          case SongPopupMenuValue.remove:
+                            widget.onRemove!();
                         }
                       },
                       itemBuilder: (BuildContext context) => [
@@ -259,14 +264,13 @@ class _SongState extends State<Song> {
                                 : 'Add to favorites'),
                           ),
                         ),
-                        if (widget.onRemove != null)
-                          const PopupMenuItem(
-                            value: SongPopupMenuValue.remove,
-                            child: ListTile(
-                              leading: Icon(Icons.playlist_remove),
-                              title: Text('Remove'),
-                            ),
+                        const PopupMenuItem(
+                          value: SongPopupMenuValue.addToPlaylist,
+                          child: ListTile(
+                            leading: Icon(Icons.playlist_add),
+                            title: Text("Add to playlist"),
                           ),
+                        ),
                         if (widget.showGotoAlbum && widget.song.albumId != null)
                           const PopupMenuItem(
                             value: SongPopupMenuValue.gotoAlbum,
@@ -282,6 +286,14 @@ class _SongState extends State<Song> {
                             child: ListTile(
                               leading: Icon(Icons.person),
                               title: Text('Go to artist'),
+                            ),
+                          ),
+                        if (widget.onRemove != null)
+                          const PopupMenuItem(
+                            value: SongPopupMenuValue.remove,
+                            child: ListTile(
+                              leading: Icon(Icons.playlist_remove),
+                              title: Text('Remove'),
                             ),
                           ),
                       ],

@@ -14,6 +14,7 @@ enum SongCollectionPopupMenuValue {
   addToPriorityQueue,
   addToQueue,
   toggleFavorite,
+  addToPlaylist,
   gotoArtist
 }
 
@@ -34,6 +35,7 @@ class SongCollection extends StatelessWidget {
   final bool enablePlay;
   final bool enableShuffle;
   final bool enableQueue;
+  final bool enablePlaylist;
 
   const SongCollection({
     super.key,
@@ -51,6 +53,7 @@ class SongCollection extends StatelessWidget {
     this.enablePlay = false,
     this.enableShuffle = false,
     this.enableQueue = true,
+    this.enablePlaylist = true,
   });
 
   @override
@@ -61,14 +64,12 @@ class SongCollection extends StatelessWidget {
       builder: (context, state) {
         final isFavorite = state.favorites.contains(id);
         return ListTile(
-          leading: coverID != null
-              ? CoverArt(
-                  size: 40,
-                  coverID: coverID!,
-                  resolution: const CoverResolution.tiny(),
-                  borderRadius: BorderRadius.circular(5),
-                )
-              : null,
+          leading: CoverArt(
+            size: 40,
+            coverID: coverID,
+            resolution: const CoverResolution.tiny(),
+            borderRadius: BorderRadius.circular(5),
+          ),
           title: Row(
             children: [
               Expanded(
@@ -139,6 +140,12 @@ class SongCollection extends StatelessWidget {
                   }
                 case SongCollectionPopupMenuValue.toggleFavorite:
                   context.read<FavoritesCubit>().toggleFavorite(id);
+                case SongCollectionPopupMenuValue.addToPlaylist:
+                  await ChooserDialog.addToPlaylist(
+                      // ignore: use_build_context_synchronously
+                      context,
+                      name,
+                      await getSongs!());
                 case SongCollectionPopupMenuValue.gotoArtist:
                   final artistID = await ChooserDialog.chooseArtist(
                       context, artists!.artists.toList());
@@ -181,6 +188,14 @@ class SongCollection extends StatelessWidget {
                   child: ListTile(
                     leading: Icon(Icons.playlist_add),
                     title: Text('Add to queue'),
+                  ),
+                ),
+              if (enablePlaylist && getSongs != null)
+                const PopupMenuItem(
+                  value: SongCollectionPopupMenuValue.addToPlaylist,
+                  child: ListTile(
+                    leading: Icon(Icons.playlist_add),
+                    title: Text('Add to playlist'),
                   ),
                 ),
               PopupMenuItem(
