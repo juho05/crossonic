@@ -142,7 +142,11 @@ class APIRepository {
         },
         Playlist.fromJson,
         "playlist");
-    return response!;
+    final songs = response!.entry ?? [];
+    for (var s in songs) {
+      favoriteUpdates.add((s.id, s.starred != null));
+    }
+    return response;
   }
 
   Future<Playlist> createPlaylist({
@@ -160,7 +164,11 @@ class APIRepository {
       Playlist.fromJson,
       "playlist",
     );
-    return response!;
+    final songs = response!.entry ?? [];
+    for (var s in songs) {
+      favoriteUpdates.add((s.id, s.starred != null));
+    }
+    return response;
   }
 
   Future<void> updatePlaylist({
