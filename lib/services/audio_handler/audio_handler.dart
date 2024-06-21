@@ -5,7 +5,7 @@ import 'package:crossonic/repositories/api/api_repository.dart';
 import 'package:crossonic/repositories/settings/settings_repository.dart';
 import 'package:crossonic/services/audio_handler/players/player.dart';
 import 'package:crossonic/services/audio_handler/media_queue.dart';
-import 'package:crossonic/services/audio_handler/notifiers/notifier.dart';
+import 'package:crossonic/services/audio_handler/integrations/integration.dart';
 import 'package:crossonic/services/audio_handler/players/remoteplayer.dart';
 import 'package:crossonic/services/connect/connect_manager.dart';
 import 'package:crossonic/services/connect/models/device.dart';
@@ -59,7 +59,7 @@ class CrossonicAudioHandler {
   final CrossonicAudioPlayer _localPlayer;
   CrossonicAudioPlayer _player;
   final APIRepository _apiRepository;
-  final NativeNotifier _notifier;
+  final NativeIntegration _integration;
   final Settings _settings;
   final ConnectManager _connectManager;
 
@@ -77,13 +77,13 @@ class CrossonicAudioHandler {
   CrossonicAudioHandler({
     required APIRepository apiRepository,
     required CrossonicAudioPlayer player,
-    required NativeNotifier notifier,
+    required NativeIntegration integration,
     required Settings settings,
     required ConnectManager connectManager,
   })  : _apiRepository = apiRepository,
         _localPlayer = player,
         _player = player,
-        _notifier = notifier,
+        _integration = integration,
         _settings = settings,
         _connectManager = connectManager {
     _apiRepository.authStatus.listen((status) async {
@@ -92,7 +92,8 @@ class CrossonicAudioHandler {
       }
     });
     _connectManager.controllingDevice.listen(_controlDevice);
-    _notifier.ensureInitialized(
+    _integration.ensureInitialized(
+      audioHandler: this,
       onPause: pause,
       onPlay: play,
       onPlayNext: skipToNext,
@@ -100,7 +101,7 @@ class CrossonicAudioHandler {
       onSeek: seek,
       onStop: stop,
     );
-    _notifier.updateMedia(null, null);
+    _integration.updateMedia(null, null);
 
     _settings.transcodeSetting.listen((transcode) async {
       final next = _queue.current.value?.next;
@@ -204,7 +205,7 @@ class CrossonicAudioHandler {
       if (status == CrossonicPlaybackStatus.stopped) {
         stop();
       } else {
-        _notifier.updatePlaybackState(status);
+        _integration.updatePlaybackState(status);
         _playbackState.add(_playbackState.value.copyWith(
           status: status,
         ));
@@ -222,9 +223,9 @@ class CrossonicAudioHandler {
     CrossonicPlaybackStatus status = _playbackState.value.status;
     var playAfterChange = _playOnNextMediaChange;
     if (media == null) {
-      _notifier.updateMedia(null, null);
+      _integration.updateMedia(null, null);
     } else if (media.currentChanged) {
-      _notifier.updateMedia(
+      _integration.updateMedia(
         media.item,
         media.item.coverArt != null
             ? await _apiRepository.getCoverArtURL(
@@ -296,7 +297,7 @@ class CrossonicAudioHandler {
         position: Duration.zero,
       ));
       if (updateNative) {
-        _notifier.updatePosition(Duration.zero);
+        _integration.updatePosition(Duration.zero);
       }
       return;
     }
@@ -309,7 +310,7 @@ class CrossonicAudioHandler {
       bufferedPosition: bufferedPos + _positionOffset,
     ));
     if (updateNative) {
-      _notifier.updatePosition(
+      _integration.updatePosition(
           pos + _positionOffset, bufferedPos + _positionOffset);
     }
   }
@@ -341,9 +342,9 @@ class CrossonicAudioHandler {
   Future<void> stop() async {
     _playbackState.add(
         const CrossonicPlaybackState(status: CrossonicPlaybackStatus.stopped));
-    _notifier.updateMedia(null, null);
-    _notifier.updatePosition(Duration.zero);
-    _notifier.updatePlaybackState(CrossonicPlaybackStatus.stopped);
+    _integration.updateMedia(null, null);
+    _integration.updatePosition(Duration.zero);
+    _integration.updatePlaybackState(CrossonicPlaybackStatus.stopped);
     await _player.stop();
     _queue.clear();
   }

@@ -99,7 +99,7 @@ class PlaylistCubit extends Cubit<PlaylistState> {
 
   void _load() {
     try {
-      final playlist = _playlistRepository.getPlaylist(_playlistID);
+      final playlist = _playlistRepository.getPlaylistThenUpdate(_playlistID);
       final newState = state.copyWith(
         status:
             playlist.entry == null ? FetchStatus.loading : FetchStatus.success,

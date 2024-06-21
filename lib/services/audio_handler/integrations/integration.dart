@@ -4,8 +4,9 @@ import 'package:crossonic/services/audio_handler/audio_handler.dart';
 export 'audioservice.dart';
 export 'smtc_stub.dart' if (dart.library.ffi) 'smtc.dart';
 
-abstract interface class NativeNotifier {
+abstract interface class NativeIntegration {
   void ensureInitialized({
+    required CrossonicAudioHandler audioHandler,
     required Future<void> Function() onPlay,
     required Future<void> Function() onPause,
     required Future<void> Function(Duration position) onSeek,

@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:crossonic/exceptions.dart';
 import 'package:crossonic/repositories/api/api_repository.dart';
 import 'package:crossonic/repositories/api/models/media_model.dart';
 import 'package:crossonic/repositories/api/models/playlist_model.dart';
@@ -12,7 +13,13 @@ class PlaylistRepository {
 
   PlaylistRepository({required APIRepository apiRepository})
       : _apiRepository = apiRepository {
-    fetch();
+    _apiRepository.authStatus.listen((status) {
+      if (status == AuthStatus.unauthenticated) {
+        playlists.add([]);
+      } else {
+        fetch();
+      }
+    });
   }
 
   final BehaviorSubject<List<Playlist>> playlists = BehaviorSubject.seeded([]);
@@ -184,20 +191,34 @@ class PlaylistRepository {
     await fetch();
   }
 
-  Playlist getPlaylist(String id) {
+  Playlist getPlaylistThenUpdate(String id) {
     final playlist = playlists.value.firstWhere((p) => p.id == id);
     _updatePlaylist(playlist);
     return playlist;
   }
 
-  Future<void> _updatePlaylist(Playlist playlist) async {
+  Future<Playlist> getUpdatedPlaylist(String id) async {
+    final playlist = playlists.value.firstWhere((p) => p.id == id);
+    try {
+      final p = await _updatePlaylist(playlist);
+      return p!;
+    } on ServerUnreachableException {
+      return playlist;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<Playlist?> _updatePlaylist(Playlist playlist) async {
     try {
       final remotePlaylist = await _apiRepository.getPlaylist(playlist.id);
+      Playlist? newPlaylist;
       playlists.add(playlists.value.map(
         (p) {
+          if (p.id == playlist.id) newPlaylist = p;
           if (p.id != playlist.id ||
               (p.changed == playlist.changed && p.entry != null)) return p;
-          return Playlist(
+          final pl = Playlist(
             id: p.id,
             allowedUser: remotePlaylist.allowedUser,
             changed: remotePlaylist.changed,
@@ -211,11 +232,15 @@ class PlaylistRepository {
             public: remotePlaylist.public,
             songCount: remotePlaylist.songCount,
           );
+          newPlaylist = pl;
+          return pl;
         },
       ).toList());
+      return newPlaylist;
     } catch (e) {
       print(e);
     }
+    return null;
   }
 
   Future<void> _uploadPlaylistTracks(

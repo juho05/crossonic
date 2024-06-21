@@ -48,7 +48,7 @@ class _PlaylistGridCellState extends State<PlaylistGridCell> {
                     coverID: widget.playlist.coverArt,
                     getSongs: () async => (await context
                             .read<PlaylistRepository>()
-                            .getPlaylist(widget.playlist.id))
+                            .getPlaylistThenUpdate(widget.playlist.id))
                         .entry!,
                     onDelete: () async {
                       if (!(await ConfirmationDialog.show(context))) return;

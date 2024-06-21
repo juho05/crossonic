@@ -8,13 +8,14 @@ import 'package:crossonic/features/home/view/state/now_playing_cubit.dart';
 import 'package:crossonic/features/search/state/search_bloc.dart';
 import 'package:crossonic/repositories/api/api.dart';
 import 'package:crossonic/repositories/api/api_repository.dart';
+import 'package:crossonic/repositories/playlist/playlist_repository.dart';
 import 'package:crossonic/repositories/settings/settings_repository.dart';
 import 'package:crossonic/services/audio_handler/audio_handler.dart';
 import 'package:crossonic/services/audio_handler/players/audioplayers.dart';
 import 'package:crossonic/services/audio_handler/players/gstreamer.dart';
 import 'package:crossonic/services/audio_handler/players/justaudio.dart';
 import 'package:crossonic/services/audio_handler/players/player.dart';
-import 'package:crossonic/services/audio_handler/notifiers/notifier.dart';
+import 'package:crossonic/services/audio_handler/integrations/integration.dart';
 import 'package:crossonic/services/connect/connect_manager.dart';
 import 'package:crossonic/services/scrobble/scrobbler.dart';
 import 'package:crossonic/widgets/state/favorites_cubit.dart';
@@ -48,20 +49,24 @@ Future<void> main() async {
 
   final connectManager = ConnectManager(apiRepository: apiRepository);
 
+  final playlistRepository = PlaylistRepository(apiRepository: apiRepository);
+
   final CrossonicAudioPlayer audioPlayer;
-  final NativeNotifier nativeNotifier;
+  final NativeIntegration nativeIntegration;
   if (!kIsWeb && Platform.isWindows) {
-    nativeNotifier = NativeNotifierSMTC();
+    nativeIntegration = SMTCIntegration();
   } else {
     final audioService = await AudioService.init(
-        builder: () => NativeNotifierAudioService(),
+        builder: () => AudioServiceIntegration(
+            apiRepository: apiRepository,
+            playlistRepository: playlistRepository),
         config: const AudioServiceConfig(
           androidNotificationChannelId: "de.julianh.crossonic",
           androidNotificationChannelName: "Music playback",
           androidStopForegroundOnPause: false,
           androidNotificationChannelDescription: "Playback notification",
         ));
-    nativeNotifier = audioService;
+    nativeIntegration = audioService;
   }
 
   if (kIsWeb || Platform.isAndroid) {
@@ -77,7 +82,7 @@ Future<void> main() async {
   final audioHandler = CrossonicAudioHandler(
     apiRepository: apiRepository,
     player: audioPlayer,
-    notifier: nativeNotifier,
+    integration: nativeIntegration,
     settings: settings,
     connectManager: connectManager,
   );
@@ -94,6 +99,7 @@ Future<void> main() async {
       RepositoryProvider.value(value: audioHandler),
       RepositoryProvider.value(value: settings),
       RepositoryProvider.value(value: connectManager),
+      RepositoryProvider.value(value: playlistRepository),
     ],
     child: MultiBlocProvider(
       providers: [

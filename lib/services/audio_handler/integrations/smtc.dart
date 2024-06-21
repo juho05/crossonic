@@ -1,14 +1,14 @@
 import 'package:crossonic/repositories/api/models/media_model.dart';
 import 'package:crossonic/services/audio_handler/audio_handler.dart';
-import 'package:crossonic/services/audio_handler/notifiers/notifier.dart';
+import 'package:crossonic/services/audio_handler/integrations/integration.dart';
 import 'package:flutter/material.dart';
 import 'package:smtc_windows/smtc_windows.dart';
 
-class NativeNotifierSMTC implements NativeNotifier {
+class SMTCIntegration implements NativeIntegration {
   bool _initialized = false;
   late final SMTCWindows _smtc;
 
-  NativeNotifierSMTC() {
+  SMTCIntegration() {
     _smtc = SMTCWindows(
         enabled: true,
         config: const SMTCConfig(
@@ -24,6 +24,7 @@ class NativeNotifierSMTC implements NativeNotifier {
 
   @override
   void ensureInitialized({
+    required CrossonicAudioHandler audioHandler,
     required Future<void> Function() onPlay,
     required Future<void> Function() onPause,
     required Future<void> Function(Duration position) onSeek,
