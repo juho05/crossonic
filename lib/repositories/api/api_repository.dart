@@ -144,7 +144,7 @@ class APIRepository {
         "playlist");
     final songs = response!.entry ?? [];
     for (var s in songs) {
-      //favoriteUpdates.add((s.id, s.starred != null));
+      favoriteUpdates.add((s.id, s.starred != null));
     }
     return response;
   }
