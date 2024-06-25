@@ -24,6 +24,7 @@ class _MainPageState extends State<MainPage> {
   final _slidingUpPanelController = PanelController();
 
   var _collapsedVisible = true;
+  var _expandedVisible = false;
 
   @override
   Widget build(BuildContext context) {
@@ -41,8 +42,11 @@ class _MainPageState extends State<MainPage> {
             child:
                 NowPlayingCollapsed(panelController: _slidingUpPanelController),
           ),
-          panelBuilder: (_) => NowPlaying(
-            panelController: _slidingUpPanelController,
+          panelBuilder: (_) => Visibility(
+            visible: _expandedVisible,
+            child: NowPlaying(
+              panelController: _slidingUpPanelController,
+            ),
           ),
           body: SafeArea(
             child: Padding(
@@ -63,23 +67,26 @@ class _MainPageState extends State<MainPage> {
             ),
           ),
           onPanelSlide: (position) {
-            if (!_collapsedVisible) {
+            if (!_collapsedVisible || !_expandedVisible) {
               setState(() {
                 _collapsedVisible = true;
+                _expandedVisible = true;
               });
             }
           },
           onPanelClosed: () {
-            if (!_collapsedVisible) {
+            if (!_collapsedVisible || _expandedVisible) {
               setState(() {
                 _collapsedVisible = true;
+                _expandedVisible = false;
               });
             }
           },
           onPanelOpened: () {
-            if (_collapsedVisible) {
+            if (_collapsedVisible || !_expandedVisible) {
               setState(() {
                 _collapsedVisible = false;
+                _expandedVisible = true;
               });
             }
           },
