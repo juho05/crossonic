@@ -40,7 +40,7 @@ class ArtistPage extends StatelessWidget {
                     final theme = Theme.of(context);
                     return SingleChildScrollView(
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 13),
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
                         child: Center(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.center,
@@ -58,7 +58,7 @@ class ArtistPage extends StatelessWidget {
                                     enableShuffle: true,
                                     enableQueue: true,
                                     size: min(constraints.maxHeight * 0.60,
-                                        constraints.maxWidth - 25),
+                                        constraints.maxWidth - 24),
                                     resolution:
                                         const CoverResolution.extraLarge(),
                                     coverID: artist.coverID,

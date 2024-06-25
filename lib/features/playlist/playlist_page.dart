@@ -75,8 +75,9 @@ class PlaylistPage extends StatelessWidget {
                               },
                               onChangePicture:
                                   context.read<PlaylistCubit>().setCover,
-                              onRemovePicture: state.coverID != null ?
-                                  context.read<PlaylistCubit>().removeCover : null,
+                              onRemovePicture: state.coverID != null
+                                  ? context.read<PlaylistCubit>().removeCover
+                                  : null,
                               onDelete: () async {
                                 if (!(await ConfirmationDialog.show(context))) {
                                   return;
@@ -95,35 +96,47 @@ class PlaylistPage extends StatelessWidget {
                               },
                             ),
                             const SizedBox(height: 10),
-                            Text(
-                              state.name,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyLarge!
-                                  .copyWith(
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 22,
-                                  ),
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 12),
+                              child: Text(
+                                state.name,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyLarge!
+                                    .copyWith(
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 22,
+                                    ),
+                              ),
                             ),
-                            Text(
-                              "Songs: ${state.songCount}",
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyLarge!
-                                  .copyWith(
-                                    fontWeight: FontWeight.w400,
-                                    fontSize: 15,
-                                  ),
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 12),
+                              child: Text(
+                                "Songs: ${state.songCount}",
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyLarge!
+                                    .copyWith(
+                                      fontWeight: FontWeight.w400,
+                                      fontSize: 15,
+                                    ),
+                              ),
                             ),
-                            Text(
-                              "Duration: ${state.duration.toString().split(".")[0]}",
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyLarge!
-                                  .copyWith(
-                                    fontWeight: FontWeight.w400,
-                                    fontSize: 15,
-                                  ),
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 12),
+                              child: Text(
+                                "Duration: ${state.duration.toString().split(".")[0]}",
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyLarge!
+                                    .copyWith(
+                                      fontWeight: FontWeight.w400,
+                                      fontSize: 15,
+                                    ),
+                              ),
                             ),
                             Padding(
                               padding: const EdgeInsets.symmetric(

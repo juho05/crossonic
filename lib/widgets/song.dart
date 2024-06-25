@@ -93,15 +93,42 @@ class _SongState extends State<Song> {
                 fontWeight: FontWeight.w500,
               ),
             ),
-          if (widget.leadingItem == SongLeadingItem.cover)
-            CoverArt(
-              size: 40,
-              coverID: widget.song.coverArt,
-              resolution: const CoverResolution.tiny(),
-              borderRadius: BorderRadius.circular(5),
-            ),
+          Stack(
+            children: [
+              if (widget.leadingItem == SongLeadingItem.cover)
+                CoverArt(
+                  size: 40,
+                  coverID: widget.song.coverArt,
+                  resolution: const CoverResolution.tiny(),
+                  borderRadius: BorderRadius.circular(5),
+                ),
+              if (_isCurrent && widget.leadingItem == SongLeadingItem.cover)
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(5),
+                  child: const SizedBox(
+                    width: 40,
+                    height: 40,
+                    child: ColoredBox(
+                      color: Color.fromARGB(120, 0, 0, 0),
+                    ),
+                  ),
+                ),
+              if (_isCurrent)
+                IconButton(
+                  onPressed: () {
+                    context.read<CrossonicAudioHandler>().playPause();
+                  },
+                  icon: Icon(
+                      _playbackStatus == CrossonicPlaybackStatus.playing
+                          ? Icons.pause
+                          : (_playbackStatus == CrossonicPlaybackStatus.loading
+                              ? Icons.hourglass_empty
+                              : Icons.play_arrow),
+                      color: Colors.white),
+                ),
+            ],
+          )
         ];
-        final theme = Theme.of(context);
         return BlocBuilder<FavoritesCubit, FavoritesState>(
           buildWhen: (previous, current) => current.changedId == widget.song.id,
           builder: (context, state) {
@@ -111,24 +138,7 @@ class _SongState extends State<Song> {
                   ? Row(
                       mainAxisAlignment: MainAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (_isCurrent)
-                          IconButton(
-                            onPressed: () {
-                              context.read<CrossonicAudioHandler>().playPause();
-                            },
-                            icon: Icon(
-                                _playbackStatus ==
-                                        CrossonicPlaybackStatus.playing
-                                    ? Icons.pause
-                                    : (_playbackStatus ==
-                                            CrossonicPlaybackStatus.loading
-                                        ? Icons.hourglass_empty
-                                        : Icons.play_arrow),
-                                color: theme.colorScheme.primary),
-                          ),
-                        ...leadingChildren,
-                      ],
+                      children: leadingChildren,
                     )
                   : ReorderableDragStartListener(
                       index: widget.reorderIndex!,
@@ -142,7 +152,11 @@ class _SongState extends State<Song> {
                 children: [
                   Expanded(
                       child: Padding(
-                    padding: const EdgeInsets.only(left: 12),
+                    padding: EdgeInsets.only(
+                        left: _isCurrent &&
+                                widget.leadingItem != SongLeadingItem.cover
+                            ? 8
+                            : 12),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -185,7 +199,12 @@ class _SongState extends State<Song> {
               ),
               horizontalTitleGap: 0,
               contentPadding: EdgeInsets.only(
-                  left: widget.reorderIndex != null ? 8 : (_isCurrent ? 0 : 16),
+                  left: widget.reorderIndex != null
+                      ? 8
+                      : ((_isCurrent &&
+                              widget.leadingItem != SongLeadingItem.cover)
+                          ? 4
+                          : 16),
                   right: 5),
               trailing: widget.showAddToQueue ||
                       widget.onRemove != null ||

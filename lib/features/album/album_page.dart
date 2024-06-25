@@ -45,7 +45,8 @@ class AlbumPage extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             BlocBuilder<FavoritesCubit, FavoritesState>(
-                              buildWhen: (previous, current) => current.changedId == album.id,
+                              buildWhen: (previous, current) =>
+                                  current.changedId == album.id,
                               builder: (context, state) {
                                 final isFavorite =
                                     state.favorites.contains(album.id);
@@ -58,7 +59,7 @@ class AlbumPage extends StatelessWidget {
                                   enableQueue: true,
                                   isFavorite: isFavorite,
                                   size: min(constraints.maxHeight * 0.60,
-                                      constraints.maxWidth - 25),
+                                      constraints.maxWidth - 24),
                                   resolution:
                                       const CoverResolution.extraLarge(),
                                   coverID: album.coverID,
@@ -68,40 +69,50 @@ class AlbumPage extends StatelessWidget {
                               },
                             ),
                             const SizedBox(height: 10),
-                            Text(
-                              album.name,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyLarge!
-                                  .copyWith(
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 22,
-                                  ),
-                            ),
-                            TextButton(
-                              onPressed: () async {
-                                final artistID =
-                                    await ChooserDialog.chooseArtist(context,
-                                        album.artists.artists.toList());
-                                if (artistID == null) return;
-                                // ignore: use_build_context_synchronously
-                                context.push("/home/artist/$artistID");
-                              },
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 12),
                               child: Text(
-                                album.artists.displayName +
-                                    (album.year > 0 ? ' • ${album.year}' : ''),
+                                album.name,
                                 style: Theme.of(context)
                                     .textTheme
                                     .bodyLarge!
                                     .copyWith(
-                                      fontWeight: FontWeight.w400,
-                                      fontSize: 15,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 22,
                                     ),
                               ),
                             ),
                             Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 12),
+                              child: TextButton(
+                                onPressed: () async {
+                                  final artistID =
+                                      await ChooserDialog.chooseArtist(context,
+                                          album.artists.artists.toList());
+                                  if (artistID == null) return;
+                                  // ignore: use_build_context_synchronously
+                                  context.push("/home/artist/$artistID");
+                                },
+                                child: Text(
+                                  album.artists.displayName +
+                                      (album.year > 0
+                                          ? ' • ${album.year}'
+                                          : ''),
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyLarge!
+                                      .copyWith(
+                                        fontWeight: FontWeight.w400,
+                                        fontSize: 15,
+                                      ),
+                                ),
+                              ),
+                            ),
+                            Padding(
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 13, vertical: 10),
+                                  horizontal: 12, vertical: 10),
                               child: SizedBox(
                                 width: 100000,
                                 child: SingleChildScrollView(
