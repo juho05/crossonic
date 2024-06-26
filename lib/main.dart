@@ -63,6 +63,7 @@ Future<void> main() async {
         config: const AudioServiceConfig(
           androidNotificationChannelId: "de.julianh.crossonic",
           androidNotificationChannelName: "Music playback",
+          androidNotificationIcon: "drawable/ic_stat_crossonic",
           androidStopForegroundOnPause: false,
           androidNotificationChannelDescription: "Playback notification",
         ));
