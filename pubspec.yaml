@@ -46,6 +46,23 @@ dev_dependencies:
   flutter_lints: ^4.0.0
   build_runner: ^2.4.9
   json_serializable: ^6.7.1
+  flutter_launcher_icons:
+    git: https://github.com/fluttercommunity/flutter_launcher_icons
+
+flutter_launcher_icons:
+  image_path: "assets/icon/crossonic.png"
+  adaptive_icon_background: "assets/icon/crossonic-background.png"
+  adaptive_icon_foreground: "assets/icon/crossonic-foreground.png"
+  adaptive_icon_monochrome: "assets/icon/crossonic-monochrome.png"
+  android: true
+  ios: false
+  web:
+    generate: true
+  windows:
+    generate: true
+    icon_size: 64
+  macos:
+    generate: false
 
 flutter:
   uses-material-design: true
