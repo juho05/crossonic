@@ -79,7 +79,8 @@ class PlaylistPage extends StatelessWidget {
                                   ? context.read<PlaylistCubit>().removeCover
                                   : null,
                               onDelete: () async {
-                                if (!(await ConfirmationDialog.show(context))) {
+                                if (!(await ConfirmationDialog.showCancel(
+                                    context))) {
                                   return;
                                 }
                                 if (!context.mounted) return;
@@ -226,7 +227,6 @@ class PlaylistPage extends StatelessWidget {
                         reorderIndex: state.reorderEnabled ? i : null,
                         song: state.songs[i],
                         leadingItem: SongLeadingItem.cover,
-                        showGotoAlbum: false,
                         onRemove: () {
                           context
                               .read<PlaylistRepository>()

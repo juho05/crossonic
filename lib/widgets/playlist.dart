@@ -51,7 +51,8 @@ class _PlaylistGridCellState extends State<PlaylistGridCell> {
                             .getPlaylistThenUpdate(widget.playlist.id))
                         .entry!,
                     onDelete: () async {
-                      if (!(await ConfirmationDialog.show(context))) return;
+                      if (!(await ConfirmationDialog.showCancel(context)))
+                        return;
                       try {
                         if (context.mounted) {
                           await context

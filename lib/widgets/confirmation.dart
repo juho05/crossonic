@@ -3,21 +3,42 @@ import 'package:flutter/material.dart';
 
 class ConfirmationDialog extends StatelessWidget {
   final String title;
+  final String? message;
+  final String noBtnTitle;
   const ConfirmationDialog._({
     required this.title,
+    required this.message,
+    required this.noBtnTitle,
   });
 
-  static Future<bool> show(BuildContext context,
-      [String title = "Are you sure?"]) async {
+  static Future<bool> showCancel(BuildContext context,
+      [String title = "Are you sure?", String? message]) async {
     final result = await showAdaptiveDialog<bool>(
       context: context,
       builder: (context) {
         return ConfirmationDialog._(
           title: title,
+          message: message,
+          noBtnTitle: "Cancel",
         );
       },
     );
     return result ?? false;
+  }
+
+  static Future<bool?> showYesNo(BuildContext context,
+      [String title = "Are you sure?", String? message]) async {
+    final result = await showAdaptiveDialog<bool>(
+      context: context,
+      builder: (context) {
+        return ConfirmationDialog._(
+          title: title,
+          message: message,
+          noBtnTitle: "No",
+        );
+      },
+    );
+    return result;
   }
 
   Widget _adaptiveAction(
@@ -38,11 +59,12 @@ class ConfirmationDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     return AlertDialog.adaptive(
       title: Text(title),
+      content: message != null ? Text(message!) : null,
       actions: [
         _adaptiveAction(
           context: context,
           onPressed: () => Navigator.pop(context, false),
-          child: const Text("Cancel"),
+          child: Text(noBtnTitle),
         ),
         _adaptiveAction(
           context: context,

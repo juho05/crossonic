@@ -66,7 +66,7 @@ class _QueuePageState extends State<QueuePage> {
                         if (state.priorityQueue.isNotEmpty)
                           IconButton(
                             onPressed: () async {
-                              if (!(await ConfirmationDialog.show(
+                              if (!(await ConfirmationDialog.showCancel(
                                   context, "Shuffle priority queue?"))) {
                                 return;
                               }
@@ -77,7 +77,7 @@ class _QueuePageState extends State<QueuePage> {
                         if (state.priorityQueue.isNotEmpty)
                           IconButton(
                             onPressed: () async {
-                              if (!(await ConfirmationDialog.show(
+                              if (!(await ConfirmationDialog.showCancel(
                                   context, "Clear priority queue?"))) {
                                 return;
                               }
@@ -127,7 +127,7 @@ class _QueuePageState extends State<QueuePage> {
                       if (state.queue.isNotEmpty)
                         IconButton(
                           onPressed: () async {
-                            if (!(await ConfirmationDialog.show(
+                            if (!(await ConfirmationDialog.showCancel(
                                 context, "Shuffle queue?"))) {
                               return;
                             }
@@ -138,7 +138,7 @@ class _QueuePageState extends State<QueuePage> {
                       if (state.queue.isNotEmpty)
                         IconButton(
                           onPressed: () async {
-                            if (!(await ConfirmationDialog.show(
+                            if (!(await ConfirmationDialog.showCancel(
                                 context, "Clear queue?"))) {
                               return;
                             }

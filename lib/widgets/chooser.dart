@@ -4,6 +4,7 @@ import 'package:crossonic/exceptions.dart';
 import 'package:crossonic/repositories/api/api_repository.dart';
 import 'package:crossonic/repositories/api/models/media_model.dart';
 import 'package:crossonic/repositories/playlist/playlist_repository.dart';
+import 'package:crossonic/widgets/confirmation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -40,8 +41,8 @@ class ChooserDialog extends StatelessWidget {
     return artists[index].id;
   }
 
-  static Future<void> addToPlaylist(BuildContext context, String collectionName,
-      Iterable<Media> songs) async {
+  static Future<void> addToPlaylist(
+      BuildContext context, String collectionName, List<Media> songs) async {
     final repository = context.read<PlaylistRepository>();
     final playlists = repository.playlists.value;
     if (playlists.isEmpty) {
@@ -53,9 +54,29 @@ class ChooserDialog extends StatelessWidget {
     final index = await choose(context, "Add to playlist",
         playlists.map((a) => a.name).toList(), false);
     if (index == null) return;
-    final id = playlists[index].id;
+    final playlist = playlists[index];
+    final playlistSongs =
+        (await repository.getUpdatedPlaylist(playlist.id)).entry ?? [];
+    final List<Media> songsToAdd = [];
+    for (int i = 0; i < songs.length; i++) {
+      Media s = songs[i];
+      try {
+        playlistSongs.firstWhere((element) => element.id == s.id);
+        final add = await ConfirmationDialog.showYesNo(context, "Add anyway?",
+            "'${playlist.name}' already contains '${s.title}'.");
+        if (add == null) return;
+        if (add) {
+          songsToAdd.add(s);
+        }
+      } on StateError {
+        songsToAdd.add(s);
+      } catch (e) {
+        print(e);
+      }
+    }
+    if (songsToAdd.isEmpty) return;
     try {
-      await repository.addSongsToPlaylist(id, songs);
+      await repository.addSongsToPlaylist(playlist.id, songsToAdd);
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(SnackBar(
