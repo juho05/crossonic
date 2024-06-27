@@ -208,22 +208,27 @@ class _SongState extends State<Song> {
                     width: 40,
                     height: 40,
                     child: ColoredBox(
-                      color: Color.fromARGB(120, 0, 0, 0),
+                      color: Color.fromARGB(90, 0, 0, 0),
                     ),
                   ),
                 ),
               if (_isCurrent)
-                IconButton(
-                  onPressed: () {
-                    context.read<CrossonicAudioHandler>().playPause();
-                  },
-                  icon: Icon(
+                SizedBox(
+                  width: 40,
+                  height: 40,
+                  child: IconButton(
+                    onPressed: () {
+                      context.read<CrossonicAudioHandler>().playPause();
+                    },
+                    icon: Icon(
                       _playbackStatus == CrossonicPlaybackStatus.playing
                           ? Icons.pause
                           : (_playbackStatus == CrossonicPlaybackStatus.loading
                               ? Icons.hourglass_empty
                               : Icons.play_arrow),
-                      color: Colors.white),
+                      color: Colors.white,
+                    ),
+                  ),
                 ),
             ],
           )
