@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:crossonic/repositories/api/api_repository.dart';
@@ -6,6 +7,7 @@ import 'package:crossonic/repositories/api/models/media_model.dart';
 import 'package:crossonic/repositories/playlist/playlist_repository.dart';
 import 'package:crossonic/services/audio_handler/audio_handler.dart';
 import 'package:crossonic/services/audio_handler/integrations/integration.dart';
+import 'package:flutter/foundation.dart';
 
 class AudioServiceIntegration extends BaseAudioHandler
     with SeekHandler
@@ -45,27 +47,6 @@ class AudioServiceIntegration extends BaseAudioHandler
     _onPlayNext = onPlayNext;
     _onPlayPrev = onPlayPrev;
     _onStop = onStop;
-    playbackState.add(PlaybackState(
-      controls: [
-        MediaControl.pause,
-        MediaControl.play,
-        MediaControl.skipToNext,
-        MediaControl.skipToPrevious,
-        MediaControl.stop,
-      ],
-      systemActions: {
-        MediaAction.pause,
-        MediaAction.play,
-        MediaAction.playPause,
-        MediaAction.seek,
-        MediaAction.seekForward,
-        MediaAction.seekBackward,
-        MediaAction.skipToNext,
-        MediaAction.skipToPrevious,
-        MediaAction.stop,
-      },
-      androidCompactActionIndices: [0, 1],
-    ));
   }
 
   @override
@@ -133,6 +114,17 @@ class AudioServiceIntegration extends BaseAudioHandler
 
   @override
   Future<void> play() async {
+    if (_audioHandler!.crossonicPlaybackStatus.value.status ==
+        CrossonicPlaybackStatus.stopped) {
+      playbackState.add(playbackState.value.copyWith(
+        controls: [],
+        systemActions: {},
+        androidCompactActionIndices: [],
+        processingState: AudioProcessingState.idle,
+        playing: false,
+      ));
+      return;
+    }
     return _onPlay!();
   }
 
@@ -164,8 +156,42 @@ class AudioServiceIntegration extends BaseAudioHandler
   @override
   void updateMedia(Media? media, Uri? coverArt) {
     if (media == null) {
-      mediaItem.add(null);
+      if (!kIsWeb && Platform.isAndroid) {
+        mediaItem.add(const MediaItem(id: "", title: "No media"));
+      } else {
+        mediaItem.add(null);
+      }
+      playbackState.add(playbackState.value.copyWith(
+        controls: [],
+        systemActions: {},
+        androidCompactActionIndices: [],
+        processingState: AudioProcessingState.idle,
+        playing: false,
+      ));
     } else {
+      if (playbackState.value.controls.isEmpty) {
+        playbackState.add(playbackState.value.copyWith(
+          controls: [
+            MediaControl.pause,
+            MediaControl.play,
+            MediaControl.skipToNext,
+            MediaControl.skipToPrevious,
+            MediaControl.stop,
+          ],
+          systemActions: {
+            MediaAction.pause,
+            MediaAction.play,
+            MediaAction.playPause,
+            MediaAction.seek,
+            MediaAction.seekForward,
+            MediaAction.seekBackward,
+            MediaAction.skipToNext,
+            MediaAction.skipToPrevious,
+            MediaAction.stop,
+          },
+          androidCompactActionIndices: [0, 1],
+        ));
+      }
       mediaItem.add(MediaItem(
         id: media.id,
         title: media.title,
