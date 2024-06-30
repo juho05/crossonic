@@ -298,7 +298,10 @@ class _SongState extends State<Song> {
                           Text(
                             widget.song.title,
                             style: textTheme.bodyMedium!.copyWith(
-                                fontWeight: FontWeight.w400, fontSize: 15),
+                                fontWeight: _isCurrent
+                                    ? FontWeight.w600
+                                    : FontWeight.w400,
+                                fontSize: 15),
                             overflow: TextOverflow.ellipsis,
                           ),
                           if (widget.showArtist ||
