@@ -37,6 +37,8 @@ class Playlist extends Equatable {
   factory Playlist.fromJson(Map<String, dynamic> json) =>
       _$PlaylistFromJson(json);
 
+  Map<String, dynamic> toJson() => _$PlaylistToJson(this);
+
   @override
   List<Object?> get props => [
         id,

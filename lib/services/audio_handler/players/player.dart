@@ -13,6 +13,8 @@ abstract interface class CrossonicAudioPlayer {
   BehaviorSubject<AudioPlayerEvent> get eventStream;
   Future<Duration> get position;
   Future<Duration> get bufferedPosition;
+  bool get supportsFileURLs;
+  bool get canSeek;
 
   Future<void> setCurrent(Media media, Uri url);
   Future<void> setNext(Media? media, Uri? url);

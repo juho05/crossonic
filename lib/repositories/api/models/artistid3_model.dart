@@ -28,4 +28,6 @@ class ArtistID3 {
 
   factory ArtistID3.fromJson(Map<String, dynamic> json) =>
       _$ArtistID3FromJson(json);
+
+  Map<String, dynamic> toJson() => _$ArtistID3ToJson(this);
 }

@@ -17,6 +17,7 @@ enum LargeCoverPopupMenuValue {
   addToPriorityQueue,
   addToQueue,
   toggleFavorite,
+  toggleDownload,
   addToPlaylist,
   gotoAlbum,
   gotoArtist,
@@ -36,6 +37,7 @@ class CoverArtWithMenu extends StatefulWidget {
   final CoverResolution resolution;
   final double borderRadius;
   final bool isFavorite;
+  final bool? downloadStatus;
   final String name;
   final String? albumID;
   final List<ArtistIDName>? artists;
@@ -45,6 +47,7 @@ class CoverArtWithMenu extends StatefulWidget {
   final void Function()? onEdit;
   final void Function()? onChangePicture;
   final void Function()? onRemovePicture;
+  final void Function()? onToggleDownload;
   final bool editing;
   final void Function()? onDelete;
 
@@ -65,6 +68,7 @@ class CoverArtWithMenu extends StatefulWidget {
     this.resolution = const CoverResolution.large(),
     this.borderRadius = 7,
     this.isFavorite = false,
+    this.downloadStatus,
     this.albumID,
     this.artists,
     this.getSongs,
@@ -73,6 +77,7 @@ class CoverArtWithMenu extends StatefulWidget {
     this.onEdit,
     this.onChangePicture,
     this.onRemovePicture,
+    this.onToggleDownload,
     this.editing = false,
     this.onDelete,
     this.enablePlay = false,
@@ -134,6 +139,18 @@ class _CoverArtWithMenuState extends State<CoverArtWithMenu> {
               title: Text(widget.isFavorite
                   ? 'Remove from favorites'
                   : 'Add to favorites'),
+            ),
+          ),
+        if (widget.onToggleDownload != null)
+          PopupMenuItem(
+            value: LargeCoverPopupMenuValue.toggleDownload,
+            child: ListTile(
+              leading: Icon(widget.downloadStatus == null
+                  ? Icons.download
+                  : Icons.delete_outline),
+              title: Text(widget.downloadStatus == null
+                  ? 'Download'
+                  : 'Remove Download'),
             ),
           ),
         if (widget.enablePlaylist && widget.getSongs != null)
@@ -218,6 +235,8 @@ class _CoverArtWithMenuState extends State<CoverArtWithMenu> {
         }
       case LargeCoverPopupMenuValue.toggleFavorite:
         context.read<FavoritesCubit>().toggleFavorite(widget.id);
+      case LargeCoverPopupMenuValue.toggleDownload:
+        widget.onToggleDownload!();
       case LargeCoverPopupMenuValue.addToPlaylist:
         await ChooserDialog.addToPlaylist(
             // ignore: use_build_context_synchronously
@@ -305,24 +324,42 @@ class _CoverArtWithMenuState extends State<CoverArtWithMenu> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: widget.isFavorite
-                        ? DecoratedIcon(
-                            decoration: const IconDecoration(
-                                border: IconBorder(
-                                    color: Color.fromARGB(255, 199, 101, 81),
-                                    width: 3)),
-                            icon: Icon(
-                              Icons.favorite,
-                              shadows: const [
-                                Shadow(blurRadius: 2, color: Colors.black45),
-                              ],
-                              size: largeLayout ? 26 : 20,
-                              color: const Color.fromARGB(255, 248, 248, 248),
-                            ),
-                          )
-                        : null,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Visibility(
+                        visible: widget.isFavorite,
+                        child: DecoratedIcon(
+                          decoration: const IconDecoration(
+                              border: IconBorder(
+                                  color: Color.fromARGB(255, 199, 101, 81),
+                                  width: 3)),
+                          icon: Icon(
+                            Icons.favorite,
+                            shadows: const [
+                              Shadow(blurRadius: 2, color: Colors.black45),
+                            ],
+                            size: largeLayout ? 26 : 20,
+                            color: const Color.fromARGB(255, 248, 248, 248),
+                          ),
+                        ),
+                      ),
+                      Visibility(
+                        visible: widget.downloadStatus != null,
+                        child: DecoratedIcon(
+                          icon: Icon(
+                            widget.downloadStatus ?? false
+                                ? Icons.download_for_offline_outlined
+                                : Icons.downloading_outlined,
+                            shadows: const [
+                              Shadow(blurRadius: 3, color: Colors.black54),
+                            ],
+                            size: largeLayout ? 26 : 20,
+                            color: const Color.fromARGB(255, 248, 248, 248),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,

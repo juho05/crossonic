@@ -11,10 +11,20 @@ class AudioPlayerGstreamer implements CrossonicAudioPlayer {
   static const _eventChan =
       EventChannel("crossonic.julianh.de/gstreamer/event");
 
+  @override
+  bool canSeek = false;
+  bool _nextCanSeek = false;
+
   AudioPlayerGstreamer() {
     _eventChan.receiveBroadcastStream().listen((event) {
       final statusStr = event as String;
       final status = AudioPlayerEvent.values.byName(statusStr);
+      if (status == AudioPlayerEvent.advance) {
+        canSeek = _nextCanSeek;
+        _nextCanSeek = false;
+        eventStream.add(status);
+        return;
+      }
       if (status != eventStream.value) {
         eventStream.add(status);
       }
@@ -64,10 +74,23 @@ class AudioPlayerGstreamer implements CrossonicAudioPlayer {
   @override
   Future<void> setCurrent(Media media, Uri url) async {
     _methodChan.invokeMethod("setCurrent", {"url": url.toString()});
+    canSeek = url.scheme == "file" ||
+        (url.queryParameters.containsKey("format") &&
+            url.queryParameters["format"] == "raw");
   }
 
   @override
   Future<void> setNext(Media? media, Uri? url) async {
     _methodChan.invokeMethod("setNext", {"url": url?.toString()});
+    if (url != null) {
+      _nextCanSeek = url.scheme == "file" ||
+          (url.queryParameters.containsKey("format") &&
+              url.queryParameters["format"] == "raw");
+    } else {
+      _nextCanSeek = false;
+    }
   }
+
+  @override
+  bool get supportsFileURLs => true;
 }

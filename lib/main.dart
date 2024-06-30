@@ -11,6 +11,7 @@ import 'package:crossonic/repositories/api/api_repository.dart';
 import 'package:crossonic/repositories/playlist/playlist_repository.dart';
 import 'package:crossonic/repositories/settings/settings_repository.dart';
 import 'package:crossonic/services/audio_handler/audio_handler.dart';
+import 'package:crossonic/services/audio_handler/offline_cache/offline_cache.dart';
 import 'package:crossonic/services/audio_handler/players/audioplayers.dart';
 import 'package:crossonic/services/audio_handler/players/gstreamer.dart';
 import 'package:crossonic/services/audio_handler/players/justaudio.dart';
@@ -49,7 +50,14 @@ Future<void> main() async {
 
   final connectManager = ConnectManager(apiRepository: apiRepository);
 
-  final playlistRepository = PlaylistRepository(apiRepository: apiRepository);
+  final offlineCache = OfflineCache(
+    apiRepository: apiRepository,
+  );
+
+  final playlistRepository = PlaylistRepository(
+      apiRepository: apiRepository,
+      sharedPreferences: sharedPreferences,
+      offlineCache: offlineCache);
 
   final CrossonicAudioPlayer audioPlayer;
   final NativeIntegration nativeIntegration;
@@ -86,6 +94,7 @@ Future<void> main() async {
     integration: nativeIntegration,
     settings: settings,
     connectManager: connectManager,
+    offlineCache: offlineCache,
   );
 
   Scrobbler.enable(

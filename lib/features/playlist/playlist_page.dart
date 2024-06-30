@@ -70,6 +70,20 @@ class PlaylistPage extends StatelessWidget {
                               borderRadius: 10,
                               getSongs: () async => state.songs,
                               editing: state.reorderEnabled,
+                              downloadStatus: switch (state.downloadStatus) {
+                                DownloadStatus.none => null,
+                                DownloadStatus.downloading => false,
+                                DownloadStatus.downloaded => true,
+                              },
+                              onToggleDownload: () {
+                                final repo = context.read<PlaylistRepository>();
+                                if (state.downloadStatus ==
+                                    DownloadStatus.none) {
+                                  repo.downloadPlaylist(state.id);
+                                } else {
+                                  repo.removePlaylistDownload(state.id);
+                                }
+                              },
                               onEdit: () {
                                 context.read<PlaylistCubit>().toggleReorder();
                               },

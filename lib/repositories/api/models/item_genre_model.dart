@@ -11,4 +11,5 @@ class ItemGenre {
 
   factory ItemGenre.fromJson(Map<String, dynamic> json) =>
       _$ItemGenreFromJson(json);
+  Map<String, dynamic> toJson() => _$ItemGenreToJson(this);
 }

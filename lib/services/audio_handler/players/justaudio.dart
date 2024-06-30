@@ -12,6 +12,10 @@ class AudioPlayerJustAudio implements CrossonicAudioPlayer {
 
   Uri? _nextURL;
 
+  @override
+  bool canSeek = false;
+  bool _nextCanSeek = false;
+
   AudioPlayerJustAudio() {
     _player.playerStateStream.listen((event) async {
       if (event.processingState == ProcessingState.completed) {
@@ -33,6 +37,8 @@ class AudioPlayerJustAudio implements CrossonicAudioPlayer {
       if (index == null || index <= _currentPlayerPlaylistIndex) return;
       _currentPlayerPlaylistIndex = index;
       _nextURL = null;
+      canSeek = _nextCanSeek;
+      _nextCanSeek = false;
       _eventStream.add(AudioPlayerEvent.advance);
     });
   }
@@ -91,6 +97,9 @@ class AudioPlayerJustAudio implements CrossonicAudioPlayer {
       if (_nextURL != null) AudioSource.uri(_nextURL!),
     ]);
     await _player.setAudioSource(_playlist!);
+    canSeek = url.scheme == "file" ||
+        (url.queryParameters.containsKey("format") &&
+            url.queryParameters["format"] == "raw");
   }
 
   @override
@@ -102,5 +111,15 @@ class AudioPlayerJustAudio implements CrossonicAudioPlayer {
       _playlist!.add(AudioSource.uri(url));
     }
     _nextURL = url;
+    if (url != null) {
+      _nextCanSeek = url.scheme == "file" ||
+          (url.queryParameters.containsKey("format") &&
+              url.queryParameters["format"] == "raw");
+    } else {
+      _nextCanSeek = false;
+    }
   }
+
+  @override
+  bool get supportsFileURLs => false;
 }

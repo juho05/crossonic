@@ -16,6 +16,10 @@ class AudioPlayerAudioPlayers implements CrossonicAudioPlayer {
 
   Timer? _positionTimer;
 
+  @override
+  bool canSeek = false;
+  bool _nextCanSeek = false;
+
   AudioPlayerAudioPlayers() {
     for (var i = 0; i < _players.length; i++) {
       _players[i].onPlayerComplete.listen((_) async {
@@ -34,6 +38,8 @@ class AudioPlayerAudioPlayers implements CrossonicAudioPlayer {
           }
           _nextPlayerURL = null;
           _nextURL = null;
+          canSeek = _nextCanSeek;
+          _nextCanSeek = false;
           _eventStream.add(AudioPlayerEvent.advance);
         } else {
           _eventStream.add(AudioPlayerEvent.stopped);
@@ -106,6 +112,7 @@ class AudioPlayerAudioPlayers implements CrossonicAudioPlayer {
 
   @override
   Future<void> seek(Duration position) async {
+    if (!canSeek) return;
     await _players[_currentPlayer].seek(position);
     _updatePosition(position);
   }
@@ -146,6 +153,8 @@ class AudioPlayerAudioPlayers implements CrossonicAudioPlayer {
   Future<void> setCurrent(Media media, Uri url) async {
     _eventStream.add(AudioPlayerEvent.loading);
     await _players[_currentPlayer].setSourceUrl(url.toString());
+    canSeek = url.queryParameters.containsKey("format") &&
+        url.queryParameters["format"] == "raw";
     _nextURL = null;
     _nextPlayerURL = null;
     _currentMedia = media;
@@ -154,5 +163,14 @@ class AudioPlayerAudioPlayers implements CrossonicAudioPlayer {
   @override
   Future<void> setNext(Media? media, Uri? url) async {
     _nextURL = url.toString();
+    if (url != null) {
+      _nextCanSeek = url.queryParameters.containsKey("format") &&
+          url.queryParameters["format"] == "raw";
+    } else {
+      _nextCanSeek = false;
+    }
   }
+
+  @override
+  bool get supportsFileURLs => false;
 }

@@ -23,6 +23,7 @@ class PlaylistCubit extends Cubit<PlaylistState> {
           coverID: null,
           songs: [],
           coverStatus: CoverStatus.none,
+          downloadStatus: DownloadStatus.none,
         )) {
     _playlistsSubscription = _playlistRepository.playlists.listen((playlists) {
       if (state.id.isEmpty) return;
@@ -36,14 +37,33 @@ class PlaylistCubit extends Cubit<PlaylistState> {
         songs: playlist.entry ?? [],
         duration: Duration(seconds: playlist.duration),
         coverID: playlist.coverArt,
+        downloadStatus: !_playlistRepository.playlistDownloads.value
+                .containsKey(playlist.id)
+            ? DownloadStatus.none
+            : (_playlistRepository.playlistDownloads.value[playlist.id]!
+                ? DownloadStatus.downloaded
+                : DownloadStatus.downloading),
       );
       emit(newState);
+    });
+    _downloadStatusSubscription =
+        _playlistRepository.playlistDownloads.listen((downloads) {
+      final status =
+          !_playlistRepository.playlistDownloads.value.containsKey(state.id)
+              ? DownloadStatus.none
+              : (_playlistRepository.playlistDownloads.value[state.id]!
+                  ? DownloadStatus.downloaded
+                  : DownloadStatus.downloading);
+      if (status != state.downloadStatus) {
+        emit(state.copyWith(coverID: state.coverID, downloadStatus: status));
+      }
     });
     _load();
   }
 
   final PlaylistRepository _playlistRepository;
   late final StreamSubscription _playlistsSubscription;
+  late final StreamSubscription _downloadStatusSubscription;
   final String _playlistID;
 
   void toggleReorder() {
@@ -109,6 +129,12 @@ class PlaylistCubit extends Cubit<PlaylistState> {
         songs: playlist.entry ?? [],
         duration: Duration(seconds: playlist.duration),
         coverID: playlist.coverArt,
+        downloadStatus: !_playlistRepository.playlistDownloads.value
+                .containsKey(playlist.id)
+            ? DownloadStatus.none
+            : (_playlistRepository.playlistDownloads.value[playlist.id]!
+                ? DownloadStatus.downloaded
+                : DownloadStatus.downloading),
       );
       emit(newState);
     } catch (e) {
@@ -120,6 +146,7 @@ class PlaylistCubit extends Cubit<PlaylistState> {
   @override
   Future<void> close() async {
     await _playlistsSubscription.cancel();
+    await _downloadStatusSubscription.cancel();
     return super.close();
   }
 }

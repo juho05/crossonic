@@ -111,4 +111,9 @@ class AudioPlayerRemote implements CrossonicAudioPlayer {
   Future<void> dispose() async {
     await stop();
   }
+
+  @override
+  bool get supportsFileURLs => false;
+  @override
+  bool get canSeek => false;
 }

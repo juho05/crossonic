@@ -53,6 +53,11 @@ class PlaylistsPage extends StatelessWidget {
                                 height: 200,
                                 child: PlaylistGridCell(
                                   playlist: state.playlists[i],
+                                  downloadStatus: state.playlistDownloads
+                                          .containsKey(state.playlists[i].id)
+                                      ? state.playlistDownloads[
+                                          state.playlists[i].id]
+                                      : null,
                                 ),
                               ),
                             ),

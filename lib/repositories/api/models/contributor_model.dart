@@ -17,4 +17,5 @@ class Contributor {
 
   factory Contributor.fromJson(Map<String, dynamic> json) =>
       _$ContributorFromJson(json);
+  Map<String, dynamic> toJson() => _$ContributorToJson(this);
 }

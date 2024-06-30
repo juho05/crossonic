@@ -301,11 +301,12 @@ class APIRepository {
     return response!;
   }
 
-  Future<Uri> getStreamURL(
-      {required String songID,
-      String? format,
-      int? maxBitRate,
-      int? timeOffset}) async {
+  Uri getStreamURL({
+    required String songID,
+    String? format,
+    int? maxBitRate,
+    int? timeOffset,
+  }) {
     final queryParams = generateQuery({
       'id': [songID],
       if (format != null) 'format': [format],

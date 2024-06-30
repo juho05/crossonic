@@ -10,9 +10,11 @@ import 'package:go_router/go_router.dart';
 
 class PlaylistGridCell extends StatefulWidget {
   final Playlist playlist;
+  final bool? downloadStatus;
   const PlaylistGridCell({
     super.key,
     required this.playlist,
+    this.downloadStatus,
   });
 
   @override
@@ -44,15 +46,25 @@ class _PlaylistGridCellState extends State<PlaylistGridCell> {
                     enablePlay: true,
                     enableShuffle: true,
                     enableQueue: true,
+                    downloadStatus: widget.downloadStatus,
                     enableToggleFavorite: false,
                     coverID: widget.playlist.coverArt,
-                    getSongs: () async => (await context
-                            .read<PlaylistRepository>()
-                            .getPlaylistThenUpdate(widget.playlist.id))
+                    getSongs: () async => context
+                        .read<PlaylistRepository>()
+                        .getPlaylistThenUpdate(widget.playlist.id)
                         .entry!,
+                    onToggleDownload: () {
+                      final repo = context.read<PlaylistRepository>();
+                      if (widget.downloadStatus == null) {
+                        repo.downloadPlaylist(widget.playlist.id);
+                      } else {
+                        repo.removePlaylistDownload(widget.playlist.id);
+                      }
+                    },
                     onDelete: () async {
-                      if (!(await ConfirmationDialog.showCancel(context)))
+                      if (!(await ConfirmationDialog.showCancel(context))) {
                         return;
+                      }
                       try {
                         if (context.mounted) {
                           await context

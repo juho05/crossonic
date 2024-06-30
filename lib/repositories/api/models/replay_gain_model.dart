@@ -22,4 +22,5 @@ class ReplayGain {
 
   factory ReplayGain.fromJson(Map<String, dynamic> json) =>
       _$ReplayGainFromJson(json);
+  Map<String, dynamic> toJson() => _$ReplayGainToJson(this);
 }
