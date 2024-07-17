@@ -1,56 +1,107 @@
+import 'dart:collection';
 import 'dart:io';
 
-import 'package:background_downloader/background_downloader.dart';
+import 'package:crossonic/exceptions.dart';
 import 'package:crossonic/repositories/api/api.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
+import 'package:http/http.dart' as http;
 
 class DownloadFailedException implements Exception {}
 
+const String _dirName = "offline_song_cache";
+
+class OfflineCacheTask {
+  final String name;
+  final Iterable<String> songIDs;
+  final void Function(String songID) songDownloaded;
+  final void Function() done;
+  final void Function(Object e) error;
+
+  OfflineCacheTask({
+    required this.name,
+    required this.songIDs,
+    required this.songDownloaded,
+    required this.done,
+    required this.error,
+  });
+}
+
 class OfflineCache {
   final APIRepository _apiRepository;
-  final Set<String> _activeTaskIDs = {};
-
-  static const String _dirName = "offline_song_cache";
+  final Queue<OfflineCacheTask> _tasks = Queue();
 
   OfflineCache({
     required APIRepository apiRepository,
   }) : _apiRepository = apiRepository;
 
-  Future<void> download(List<Media> songs,
-      {bool overwriteExisting = false}) async {
+  void enqueue(OfflineCacheTask task) {
+    _tasks.add(task);
+    _download();
+  }
+
+  Future<void> _executeTask(OfflineCacheTask task) async {
     final dir =
         path.join((await getApplicationSupportDirectory()).path, _dirName);
-    await Directory(dir).create();
-    final tasks = songs
-        .map((s) {
-          final file = File(path.join(dir, "${s.id}.ogg"));
-          if (!overwriteExisting && file.existsSync()) DownloadTask(url: "");
-          if (_activeTaskIDs.contains(s.id)) DownloadTask(url: "");
-          return DownloadTask(
-            url: _apiRepository
-                .getStreamURL(songID: s.id, format: "opus", maxBitRate: 320)
-                .toString(),
-            allowPause: false,
-            filename: "${s.id}.ogg",
-            directory: _dirName,
-            baseDirectory: BaseDirectory.applicationSupport,
-            displayName: s.title,
-            requiresWiFi: true, // TODO: make configurable
-            taskId: s.id,
-          );
-        })
-        .where((t) => t.url.isNotEmpty)
-        .toList();
-    if (tasks.isEmpty) return;
-    final result = await FileDownloader().downloadBatch(tasks);
-    print("${result.numSucceeded} - ${songs.length}");
-    if (result.numSucceeded != songs.length) {
-      for (var task in result.tasks) {
-        final file = File(path.join(dir, "${task.taskId}.ogg"));
-        file.deleteSync();
+    final client = http.Client();
+    try {
+      for (final id in task.songIDs) {
+        final file = File(path.join(dir, "$id.ogg.tmp"));
+        if (await file.exists()) {
+          task.songDownloaded(id);
+          continue;
+        }
+        await file.create(recursive: true);
+        final sink = file.openWrite();
+        try {
+          final response = await client.send(http.Request(
+              "GET",
+              _apiRepository.getStreamURL(
+                  songID: id, format: "opus", maxBitRate: 320)));
+          if (response.statusCode != 200) {
+            if (response.statusCode == 401) {
+              await _apiRepository.logout();
+              throw UnauthenticatedException();
+            }
+            throw ServerException(response.statusCode);
+          }
+          await response.stream.pipe(sink);
+          await sink.close();
+          await file.rename(path.join(dir, "$id.ogg"));
+          task.songDownloaded(id);
+        } catch (e) {
+          await sink.close();
+          rethrow;
+        }
       }
-      throw DownloadFailedException();
+      task.done();
+    } catch (e) {
+      task.error(e);
+    } finally {
+      client.close();
+    }
+  }
+
+  bool _running = false;
+  Future<void> _download() async {
+    if (_running) return;
+    _running = true;
+    await _cleanTmpFiles();
+    try {
+      while (true) {
+        if (_tasks.isEmpty) break;
+        final task = _tasks.removeFirst();
+        try {
+          await _executeTask(task);
+        } catch (e) {
+          print("Failed to execute download task ${task.name}: $e");
+        }
+      }
+    } catch (e) {
+      await _cleanTmpFiles();
+      rethrow;
+    } finally {
+      _running = false;
     }
   }
 
@@ -65,6 +116,17 @@ class OfflineCache {
     }
   }
 
+  Future<void> _cleanTmpFiles() async {
+    final dir = Directory(
+        path.join((await getApplicationSupportDirectory()).path, _dirName));
+    await dir.create();
+    await dir.list().forEach((file) async {
+      if (path.extension(file.path) == ".tmp") {
+        await file.delete();
+      }
+    });
+  }
+
   Future<Set<String>> getDownloadedSongIDs() async {
     final dir = Directory(
         path.join((await getApplicationSupportDirectory()).path, _dirName));
@@ -76,7 +138,6 @@ class OfflineCache {
   }
 
   Future<Uri?> getURL(String id) async {
-    if (_activeTaskIDs.contains(id)) return null;
     final dir =
         path.join((await getApplicationSupportDirectory()).path, _dirName);
     await Directory(dir).create();

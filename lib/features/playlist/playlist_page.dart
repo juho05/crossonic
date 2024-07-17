@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:crossonic/features/playlist/state/playlist_cubit.dart';
+import 'package:crossonic/features/playlist/state/playlist_download_status_cubit.dart';
 import 'package:crossonic/fetch_status.dart';
 import 'package:crossonic/repositories/playlist/playlist_repository.dart';
 import 'package:crossonic/services/audio_handler/audio_handler.dart';
@@ -20,9 +21,17 @@ class PlaylistPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) =>
-          PlaylistCubit(context.read<PlaylistRepository>(), playlistID),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (context) =>
+              PlaylistCubit(context.read<PlaylistRepository>(), playlistID),
+        ),
+        BlocProvider(
+          create: (context) => PlaylistDownloadStatusCubit(
+              playlistID, context.read<PlaylistRepository>()),
+        ),
+      ],
       child: Scaffold(
         appBar: createAppBar(context, "Playlist"),
         body: BlocConsumer<PlaylistCubit, PlaylistState>(
@@ -107,7 +116,7 @@ class PlaylistPage extends StatelessWidget {
                                   ..hideCurrentSnackBar()
                                   ..showSnackBar(SnackBar(
                                       content: Text(
-                                          "Deleted playlist '${state.name}'")));
+                                          "Deleted playlist '//${state.name}'")));
                               },
                             ),
                             const SizedBox(height: 10),
@@ -153,6 +162,27 @@ class PlaylistPage extends StatelessWidget {
                                     ),
                               ),
                             ),
+                            if (state.downloadStatus ==
+                                DownloadStatus.downloading)
+                              BlocBuilder<PlaylistDownloadStatusCubit,
+                                  PlaylistDownloadStatusState>(
+                                builder: (context, dState) {
+                                  return Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 12),
+                                    child: Text(
+                                      "Downloading: ${dState.waiting ? "waiting" : '${dState.downloadedSongsCount}/${state.songCount}'}",
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyLarge!
+                                          .copyWith(
+                                            fontWeight: FontWeight.w400,
+                                            fontSize: 15,
+                                          ),
+                                    ),
+                                  );
+                                },
+                              ),
                             Padding(
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 13, vertical: 10),

@@ -12,8 +12,8 @@ import 'package:rxdart/rxdart.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class PlaylistRepository {
-  static const playlistIndexKey = "playlist-index";
-  static const playlistDownloadsKey = "playlist-downloads";
+  static const playlistIndexKey = "playlist.index";
+  static const playlistDownloadsKey = "playlist.download-status";
 
   final APIRepository _apiRepository;
   final SharedPreferences _sharedPreferences;
@@ -21,6 +21,8 @@ class PlaylistRepository {
 
   final BehaviorSubject<Map<String, bool>> playlistDownloads =
       BehaviorSubject.seeded({});
+  final BehaviorSubject<(String, int)?> currentPlaylistDownloadedSongsCount =
+      BehaviorSubject.seeded(null);
 
   PlaylistRepository({
     required APIRepository apiRepository,
@@ -33,6 +35,9 @@ class PlaylistRepository {
     _loadDownloads();
     playlists.listen((_) async {
       await _storeIndex();
+    });
+    playlistDownloads.listen((value) async {
+      await _storeDownloads();
     });
     _apiRepository.authStatus.listen((status) {
       if (status == AuthStatus.unauthenticated) {
@@ -61,6 +66,7 @@ class PlaylistRepository {
     if (json == null) return;
     playlistDownloads.add((jsonDecode(json) as Map<String, dynamic>)
         .map((key, value) => MapEntry(key, value)));
+    _downloadOfflinePlaylists();
   }
 
   Future<void> _storeIndex() async {
@@ -86,7 +92,6 @@ class PlaylistRepository {
     final newMap = Map<String, bool>.from(playlistDownloads.value);
     newMap[id] = false;
     playlistDownloads.add(newMap);
-    await _storeDownloads();
     _downloadOfflinePlaylists();
   }
 
@@ -95,7 +100,6 @@ class PlaylistRepository {
     final newMap = Map<String, bool>.from(playlistDownloads.value);
     newMap.remove(id);
     playlistDownloads.add(newMap);
-    await _storeDownloads();
     _downloadOfflinePlaylists();
   }
 
@@ -111,40 +115,51 @@ class PlaylistRepository {
     final Map<String, bool> downloaded = {};
     try {
       final downloadedSongIDs = await _offlineCache.getDownloadedSongIDs();
-      print("downloading");
       final playlists = await Future.wait(playlistDownloads.value.keys
           .map((id) async => await getUpdatedPlaylist(id)));
       for (var playlist in playlists) {
-        try {
-          if (playlist.entry != null) {
-            bool everythingDownloaded = true;
-            for (var s in playlist.entry!) {
-              if (!downloadedSongIDs.remove(s.id)) {
-                everythingDownloaded = false;
-              }
+        if (playlist.entry != null) {
+          bool everythingDownloaded = true;
+          for (var s in playlist.entry!) {
+            if (!downloadedSongIDs.remove(s.id)) {
+              everythingDownloaded = false;
             }
-            if (!everythingDownloaded) {
-              await _offlineCache.download(playlist.entry!);
-            }
-            downloaded[playlist.id] = true;
-          } else {
-            downloaded[playlist.id] = false;
           }
-        } catch (_) {
-          downloaded[playlist.id] = false;
+          downloaded[playlist.id] = everythingDownloaded;
+          if (!everythingDownloaded) {
+            int count = 0;
+            _offlineCache.enqueue(OfflineCacheTask(
+              name: playlist.name,
+              songIDs: playlist.entry!.map((s) => s.id),
+              songDownloaded: (songID) {
+                count++;
+                currentPlaylistDownloadedSongsCount.add((playlist.id, count));
+              },
+              done: () {
+                final newMap = Map<String, bool>.from(playlistDownloads.value);
+                newMap[playlist.id] = true;
+                playlistDownloads.add(newMap);
+                currentPlaylistDownloadedSongsCount.add(null);
+              },
+              error: (e) {
+                final newMap = Map<String, bool>.from(playlistDownloads.value);
+                newMap[playlist.id] = false;
+                playlistDownloads.add(newMap);
+                print("Failed to download ${playlist.name}: $e");
+                currentPlaylistDownloadedSongsCount.add(null);
+              },
+            ));
+          }
         }
       }
-      print("removing ${downloadedSongIDs.length} songs");
       await _offlineCache.remove(downloadedSongIDs);
     } finally {
       _downloadingSongs = false;
     }
     playlistDownloads.add(downloaded);
     if (_rerunSongDownload) {
-      print("rerun");
       _downloadOfflinePlaylists();
     }
-    print("done");
   }
 
   final BehaviorSubject<List<Playlist>> playlists = BehaviorSubject();

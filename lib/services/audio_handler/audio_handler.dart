@@ -258,14 +258,19 @@ class CrossonicAudioHandler {
         _currentTranscode = _nextTranscode;
       }
       _positionOffset = Duration.zero;
+      _playbackState.add(_playbackState.value.copyWith(
+        position: Duration.zero,
+        bufferedPosition: Duration.zero,
+      ));
+      _integration.updatePosition(Duration.zero, Duration.zero);
       if (status == CrossonicPlaybackStatus.playing || playAfterChange) {
         await play();
       } else {
         await pause();
       }
+    } else {
+      _updatePosition(true);
     }
-
-    _updatePosition(true);
 
     _nextTranscode = await _settings.getTranscodeSettings();
     if (media.next != null) {
