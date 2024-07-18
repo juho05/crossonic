@@ -64,13 +64,13 @@ class _AlbumsPageBodyState extends State<AlbumsPageBody> {
                         value: AlbumSortMode.random, child: Text("Random")),
                     DropdownMenuItem(
                         value: AlbumSortMode.added, child: Text("Added")),
-                    DropdownMenuItem(
-                        value: AlbumSortMode.lastPlayed,
-                        child: Text("Last played")),
+                    //DropdownMenuItem(
+                    //    value: AlbumSortMode.lastPlayed,
+                    //    child: Text("Last played")),
                     DropdownMenuItem(
                         value: AlbumSortMode.rating, child: Text("Rating")),
-                    DropdownMenuItem(
-                        value: AlbumSortMode.frequent, child: Text("Frequent")),
+                    //DropdownMenuItem(
+                    //    value: AlbumSortMode.frequent, child: Text("Frequent")),
                     DropdownMenuItem(
                         value: AlbumSortMode.alphabetical,
                         child: Text("Alphabetical")),
@@ -90,51 +90,62 @@ class _AlbumsPageBodyState extends State<AlbumsPageBody> {
               ],
             ),
             const SizedBox(height: 8),
-            BlocBuilder<AlbumsBloc, AlbumsState>(
-              builder: (context, state) {
-                if (_sortMode != state.sortMode) {
-                  context
-                      .read<AlbumsBloc>()
-                      .add(AlbumSortModeSelected(_sortMode!));
-                  return const CircularProgressIndicator.adaptive();
-                }
-                return Column(
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
+            LayoutBuilder(
+              builder: (BuildContext context, BoxConstraints constraints) {
+                return BlocBuilder<AlbumsBloc, AlbumsState>(
+                  builder: (context, state) {
+                    if (_sortMode != state.sortMode) {
+                      context
+                          .read<AlbumsBloc>()
+                          .add(AlbumSortModeSelected(_sortMode!));
+                      return const CircularProgressIndicator.adaptive();
+                    }
+                    if (state.albums.isNotEmpty &&
+                        state.status == FetchStatus.success &&
+                        _isBottom) {
+                      Future.delayed(const Duration(milliseconds: 200))
+                          .then((value) => _onScroll());
+                    }
+                    return Column(
                       children: [
-                        Wrap(
-                          spacing: 15,
-                          runSpacing: 12,
-                          alignment: WrapAlignment.spaceEvenly,
-                          children: List<Widget>.generate(
-                              state.albums.length,
-                              (i) => SizedBox(
-                                    height: 200,
-                                    child: Album(
-                                      id: state.albums[i].id,
-                                      name: state.albums[i].name,
-                                      coverID: state.albums[i].coverID,
-                                      artists: state.albums[i].artists.artists
-                                          .toList(),
-                                      extraInfo:
-                                          "${state.albums[i].artists.displayName}${state.albums[i].year != null ? " • ${state.albums[i].year}" : ""}",
-                                    ),
-                                  )),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Wrap(
+                              spacing: 15,
+                              runSpacing: 12,
+                              alignment: WrapAlignment.spaceEvenly,
+                              children: List<Widget>.generate(
+                                  state.albums.length,
+                                  (i) => SizedBox(
+                                        height: 200,
+                                        child: Album(
+                                          id: state.albums[i].id,
+                                          name: state.albums[i].name,
+                                          coverID: state.albums[i].coverID,
+                                          artists: state
+                                              .albums[i].artists.artists
+                                              .toList(),
+                                          extraInfo:
+                                              "${state.albums[i].artists.displayName}${state.albums[i].year != null ? " • ${state.albums[i].year}" : ""}",
+                                        ),
+                                      )),
+                            ),
+                          ],
                         ),
+                        if (state.status == FetchStatus.loading)
+                          const Padding(
+                            padding: EdgeInsets.only(top: 15, bottom: 8),
+                            child: CircularProgressIndicator.adaptive(),
+                          ),
+                        if (state.status == FetchStatus.failure)
+                          const Padding(
+                            padding: EdgeInsets.only(top: 15, bottom: 8),
+                            child: Icon(Icons.wifi_off),
+                          ),
                       ],
-                    ),
-                    if (state.status == FetchStatus.loading)
-                      const Padding(
-                        padding: EdgeInsets.only(top: 15, bottom: 8),
-                        child: CircularProgressIndicator.adaptive(),
-                      ),
-                    if (state.status == FetchStatus.failure)
-                      const Padding(
-                        padding: EdgeInsets.only(top: 15, bottom: 8),
-                        child: Icon(Icons.wifi_off),
-                      ),
-                  ],
+                    );
+                  },
                 );
               },
             )

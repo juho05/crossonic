@@ -49,7 +49,10 @@ class AlbumsBloc extends Bloc<AlbumsEvent, AlbumsState> {
   AlbumSortMode _sortMode = AlbumSortMode.random;
 
   Future<void> _fetch(int count, int offset, Emitter<AlbumsState> emit) async {
-    emit(state.copyWith(status: FetchStatus.loading, sortMode: _sortMode));
+    emit(state.copyWith(
+        status: FetchStatus.loading,
+        sortMode: _sortMode,
+        albums: offset == 0 ? [] : state.albums));
     try {
       final albums = (await _apiRepository.getAlbumList2(
         switch (_sortMode) {
