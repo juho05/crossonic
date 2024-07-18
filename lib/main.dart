@@ -78,9 +78,9 @@ Future<void> main() async {
     nativeIntegration = audioService;
   }
 
-  if (kIsWeb || Platform.isAndroid) {
+  if (!kIsWeb && Platform.isAndroid) {
     audioPlayer = AudioPlayerJustAudio();
-  } else if (Platform.isLinux) {
+  } else if (!kIsWeb && Platform.isLinux) {
     audioPlayer = AudioPlayerGstreamer();
   } else {
     audioPlayer = AudioPlayerAudioPlayers();
