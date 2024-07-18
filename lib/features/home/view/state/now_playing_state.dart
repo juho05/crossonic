@@ -10,6 +10,7 @@ class NowPlayingState extends Equatable {
   final String? coverArtID;
   final Media? media;
   bool get hasMedia => songID != "";
+  final bool loop;
 
   final CrossonicPlaybackState playbackState;
 
@@ -23,6 +24,7 @@ class NowPlayingState extends Equatable {
     this.coverArtID = "",
     this.media,
     required this.playbackState,
+    required this.loop,
   });
 
   NowPlayingState copyWith({
@@ -35,6 +37,7 @@ class NowPlayingState extends Equatable {
     required String? coverArtID,
     CrossonicPlaybackState? playbackState,
     required Media? media,
+    bool? loop,
   }) {
     return NowPlayingState(
       songID: songID ?? this.songID,
@@ -46,6 +49,7 @@ class NowPlayingState extends Equatable {
       coverArtID: coverArtID,
       playbackState: playbackState ?? this.playbackState,
       media: media,
+      loop: loop ?? this.loop,
     );
   }
 
@@ -59,5 +63,6 @@ class NowPlayingState extends Equatable {
         coverArtID,
         playbackState,
         media,
+        loop,
       ];
 }

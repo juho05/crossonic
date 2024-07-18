@@ -41,6 +41,13 @@ class AudioServiceIntegration extends BaseAudioHandler
   }) {
     if (_audioHandler != null) return;
     _audioHandler = audioHandler;
+    _audioHandler!.mediaQueue.loop.listen((value) {
+      playbackState.add(playbackState.value.copyWith(
+        repeatMode: _audioHandler!.mediaQueue.loop.value
+            ? AudioServiceRepeatMode.all
+            : AudioServiceRepeatMode.none,
+      ));
+    });
     _onPlay = onPlay;
     _onPause = onPause;
     _onSeek = onSeek;
@@ -188,8 +195,12 @@ class AudioServiceIntegration extends BaseAudioHandler
             MediaAction.skipToNext,
             MediaAction.skipToPrevious,
             MediaAction.stop,
+            MediaAction.setRepeatMode,
           },
           androidCompactActionIndices: [0, 1],
+          repeatMode: _audioHandler!.mediaQueue.loop.value
+              ? AudioServiceRepeatMode.all
+              : AudioServiceRepeatMode.none,
         ));
       }
       mediaItem.add(MediaItem(
@@ -244,5 +255,11 @@ class AudioServiceIntegration extends BaseAudioHandler
   Future<void> onNotificationDeleted() async {
     if (_onStop == null) return;
     await _onStop!();
+  }
+
+  @override
+  Future<void> setRepeatMode(AudioServiceRepeatMode repeatMode) async {
+    _audioHandler!.mediaQueue
+        .setLoop(repeatMode != AudioServiceRepeatMode.none);
   }
 }

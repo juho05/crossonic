@@ -364,6 +364,20 @@ class NowPlaying extends StatelessWidget {
                             },
                             icon: const Icon(Icons.queue_music),
                           ),
+                          BlocBuilder<NowPlayingCubit, NowPlayingState>(
+                            buildWhen: (previous, current) =>
+                                previous.loop != current.loop,
+                            builder: (context, state) {
+                              return IconButton(
+                                onPressed: () {
+                                  context.read<NowPlayingCubit>().toggleLoop();
+                                },
+                                icon: state.loop
+                                    ? const Icon(Icons.repeat_on)
+                                    : const Icon(Icons.repeat),
+                              );
+                            },
+                          ),
                         ],
                       )
                     ],

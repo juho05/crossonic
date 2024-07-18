@@ -13,13 +13,15 @@ part 'now_playing_state.dart';
 class NowPlayingCubit extends Cubit<NowPlayingState> {
   final CrossonicAudioHandler _audioHandler;
   late final StreamSubscription<CurrentMedia?> _currentMediaSubscription;
+  late final StreamSubscription<bool> _loopSubscription;
   late final StreamSubscription<CrossonicPlaybackState>
       _playbackStateSubscription;
   NowPlayingCubit(CrossonicAudioHandler audioHandler)
       : _audioHandler = audioHandler,
-        super(const NowPlayingState(
-            playbackState: CrossonicPlaybackState(
-                status: CrossonicPlaybackStatus.stopped))) {
+        super(NowPlayingState(
+            playbackState: const CrossonicPlaybackState(
+                status: CrossonicPlaybackStatus.stopped),
+            loop: audioHandler.mediaQueue.loop.value)) {
     _currentMediaSubscription =
         _audioHandler.mediaQueue.current.listen((value) {
       emit(
@@ -36,6 +38,7 @@ class NowPlayingCubit extends Cubit<NowPlayingState> {
               : Duration.zero,
           coverArtID: value?.item.coverArt ?? "",
           media: value?.item,
+          loop: _audioHandler.mediaQueue.loop.value,
         ),
       );
     });
@@ -46,14 +49,24 @@ class NowPlayingCubit extends Cubit<NowPlayingState> {
         playbackState: value,
         coverArtID: media?.coverArt,
         media: media,
+        loop: _audioHandler.mediaQueue.loop.value,
       ));
+    });
+    _loopSubscription = _audioHandler.mediaQueue.loop.listen((loop) {
+      emit(state.copyWith(
+          coverArtID: state.coverArtID, media: state.media, loop: loop));
     });
   }
 
+  void toggleLoop() {
+    _audioHandler.mediaQueue.setLoop(!_audioHandler.mediaQueue.loop.value);
+  }
+
   @override
-  Future<void> close() {
-    _currentMediaSubscription.cancel();
-    _playbackStateSubscription.cancel();
+  Future<void> close() async {
+    await _currentMediaSubscription.cancel();
+    await _playbackStateSubscription.cancel();
+    await _loopSubscription.cancel();
     return super.close();
   }
 }

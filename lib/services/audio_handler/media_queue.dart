@@ -23,17 +23,51 @@ class CurrentMedia {
 class MediaQueue {
   final _priorityQueue = Queue<Media>();
   final _queue = <Media>[];
-  final BehaviorSubject<CurrentMedia?> current = BehaviorSubject()..add(null);
+  final BehaviorSubject<CurrentMedia?> current = BehaviorSubject.seeded(null);
+  final BehaviorSubject<bool> loop = BehaviorSubject.seeded(false);
 
   List<Media> get queue => _queue;
   Queue<Media> get priorityQueue => _priorityQueue;
 
   var _nextIndex = 0;
 
+  void setLoop(bool value) {
+    loop.add(value);
+    if (current.value == null) return;
+    if (value) {
+      if (_nextIndex >= length) {
+        _nextIndex %= length;
+      }
+      if (current.value!.next == null) {
+        current.add(CurrentMedia(
+          current.value!.item,
+          _queue.elementAtOrNull(_nextIndex),
+          index: current.value!.index,
+          inPriorityQueue: current.value!.inPriorityQueue,
+          currentChanged: false,
+        ));
+      }
+    } else if (_nextIndex <= current.value!.index) {
+      _nextIndex = current.value!.index + 1;
+      if (_priorityQueue.isEmpty) {
+        current.add(CurrentMedia(
+          current.value!.item,
+          _queue.elementAtOrNull(_nextIndex),
+          index: current.value!.index,
+          inPriorityQueue: current.value!.inPriorityQueue,
+          currentChanged: false,
+        ));
+      }
+    }
+  }
+
   void replaceQueue(List<Media> songs, [int startIndex = 0]) {
     _queue.clear();
     _queue.addAll(songs);
     _nextIndex = startIndex + 1;
+    if (loop.value) {
+      _nextIndex %= length;
+    }
     current.add(CurrentMedia(
       _queue[startIndex],
       _priorityQueue.isNotEmpty
@@ -52,6 +86,9 @@ class MediaQueue {
     _queue.addAll(songs);
     if (current.value == null) {
       _nextIndex = 1;
+      if (loop.value) {
+        _nextIndex %= length;
+      }
       current.add(CurrentMedia(
         _queue[0],
         _priorityQueue.isNotEmpty
@@ -102,7 +139,12 @@ class MediaQueue {
         inPriorityQueue: current.value!.inPriorityQueue,
       ));
     }
-    if (index < _nextIndex) _nextIndex--;
+    if (index < _nextIndex) {
+      _nextIndex--;
+      if (loop.value) {
+        _nextIndex %= length;
+      }
+    }
   }
 
   void removeAllFollowing() {
@@ -269,6 +311,9 @@ class MediaQueue {
           "Queue index out of bounds: no index $index in queue of length ${_queue.length}");
     }
     _nextIndex = index + 1;
+    if (loop.value) {
+      _nextIndex %= length;
+    }
     current.add(CurrentMedia(
       _queue[index],
       _priorityQueue.isNotEmpty
@@ -280,25 +325,34 @@ class MediaQueue {
     ));
   }
 
-  bool get canGoBack => current.value?.inPriorityQueue ?? false
-      ? _nextIndex > 0
-      : _nextIndex - 1 > 0;
+  bool get canGoBack =>
+      (loop.value && length > 0) ||
+      (current.value?.inPriorityQueue ?? false
+          ? _nextIndex > 0
+          : _nextIndex - 1 > 0);
   bool get canAdvance =>
-      _priorityQueue.isNotEmpty || _nextIndex < _queue.length;
+      (loop.value && length > 0) ||
+      (_priorityQueue.isNotEmpty || _nextIndex < _queue.length);
   int get length => _queue.length;
 
   void back() {
     if (!canGoBack) {
       throw const InvalidStateException("Cannot go back in empty queue");
     }
-    if (!(current.value?.inPriorityQueue ?? false)) _nextIndex--;
+    if (!(current.value?.inPriorityQueue ?? false)) {
+      _nextIndex--;
+      if (loop.value) {
+        _nextIndex %= length;
+      }
+    }
+    final newCurrent = (_nextIndex - 1) % length;
     current.add(CurrentMedia(
-      _queue[_nextIndex - 1],
+      _queue[newCurrent],
       _priorityQueue.isNotEmpty
           ? _priorityQueue.first
           : _queue.elementAtOrNull(_nextIndex),
       inPriorityQueue: false,
-      index: _nextIndex - 1,
+      index: newCurrent,
     ));
   }
 
@@ -311,6 +365,9 @@ class MediaQueue {
     } else if (_nextIndex < _queue.length) {
       next = _queue[_nextIndex];
       _nextIndex++;
+      if (loop.value) {
+        _nextIndex %= length;
+      }
     } else {
       if (current.value != null) {
         current.add(null);
@@ -324,7 +381,7 @@ class MediaQueue {
           : _queue.elementAtOrNull(_nextIndex),
       fromNext: setFromNext,
       inPriorityQueue: inPriorityQueue,
-      index: _nextIndex - 1,
+      index: (_nextIndex - 1) % length,
     ));
     return true;
   }
