@@ -43,9 +43,11 @@ class PlaylistRepository {
     playlistDownloads.listen((value) async {
       await _storeDownloads();
     });
-    _apiRepository.authStatus.listen((status) {
+    _apiRepository.authStatus.listen((status) async {
       if (status == AuthStatus.unauthenticated) {
         playlists.add([]);
+        playlistDownloads.add({});
+        await _offlineCache.clear();
       } else {
         fetch();
       }

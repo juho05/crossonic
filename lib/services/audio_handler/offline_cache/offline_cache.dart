@@ -118,6 +118,16 @@ class OfflineCache {
     }
   }
 
+  Future<void> clear() async {
+    if (kIsWeb) return;
+    final dir = Directory(
+        path.join((await getApplicationSupportDirectory()).path, _dirName));
+    await dir.create();
+    await dir.list().forEach((file) async {
+      await file.delete();
+    });
+  }
+
   Future<void> _cleanTmpFiles() async {
     if (kIsWeb) return;
     final dir = Directory(
