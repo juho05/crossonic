@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'dart:typed_data';
+import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:crossonic/exceptions.dart';
@@ -8,8 +8,11 @@ import 'package:crossonic/repositories/api/models/media_model.dart';
 import 'package:crossonic/repositories/api/models/playlist_model.dart';
 import 'package:crossonic/services/audio_handler/offline_cache/offline_cache.dart';
 import 'package:crossonic/widgets/cover_art.dart';
+import 'package:flutter/foundation.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:path/path.dart' as path;
 
 class PlaylistRepository {
   static const playlistIndexKey = "playlist.index";
@@ -31,11 +34,12 @@ class PlaylistRepository {
   })  : _apiRepository = apiRepository,
         _sharedPreferences = sharedPreferences,
         _offlineCache = offlineCache {
-    _loadIndex();
-    _loadDownloads();
-    playlists.listen((_) async {
-      await _storeIndex();
+    _loadIndex().then((_) {
+      playlists.listen((_) async {
+        await _storeIndex();
+      });
     });
+    _loadDownloads();
     playlistDownloads.listen((value) async {
       await _storeDownloads();
     });
@@ -48,9 +52,22 @@ class PlaylistRepository {
     });
   }
 
-  void _loadIndex() {
+  Future<void> _loadIndex() async {
     if (playlists.valueOrNull?.isNotEmpty ?? false) return;
-    final json = _sharedPreferences.getString(playlistIndexKey);
+    String? json;
+    if (kIsWeb) {
+      json = _sharedPreferences.getString(playlistIndexKey);
+    } else {
+      final file = File(path.join((await getApplicationSupportDirectory()).path,
+          "offline_song_cache", "playlist-index.json"));
+      await file.create(recursive: true);
+      final data = await file.readAsString();
+      if (data.isNotEmpty) {
+        json = data;
+      } else {
+        json = null;
+      }
+    }
     if (json == null) {
       playlists.add([]);
       return;
@@ -70,12 +87,25 @@ class PlaylistRepository {
   }
 
   Future<void> _storeIndex() async {
-    if (playlists.valueOrNull?.isEmpty ?? true) {
-      await _sharedPreferences.remove(playlistIndexKey);
-      return;
+    if (kIsWeb) {
+      if (playlists.valueOrNull?.isEmpty ?? true) {
+        await _sharedPreferences.remove(playlistIndexKey);
+        return;
+      }
+      await _sharedPreferences.setString(
+          playlistIndexKey, jsonEncode(playlists.value));
+    } else {
+      final file = File(path.join((await getApplicationSupportDirectory()).path,
+          "offline_song_cache", "playlist-index.json"));
+      if (playlists.valueOrNull?.isEmpty ?? true) {
+        if (await file.exists()) {
+          await file.delete();
+        }
+        return;
+      }
+      await file.create(recursive: true);
+      await file.writeAsString(jsonEncode(playlists.value), flush: true);
     }
-    await _sharedPreferences.setString(
-        playlistIndexKey, jsonEncode(playlists.value));
   }
 
   Future<void> _storeDownloads() async {
