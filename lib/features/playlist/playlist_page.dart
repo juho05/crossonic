@@ -10,6 +10,7 @@ import 'package:crossonic/widgets/confirmation.dart';
 import 'package:crossonic/widgets/cover_art.dart';
 import 'package:crossonic/widgets/large_cover.dart';
 import 'package:crossonic/widgets/song.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -84,15 +85,18 @@ class PlaylistPage extends StatelessWidget {
                                 DownloadStatus.downloading => false,
                                 DownloadStatus.downloaded => true,
                               },
-                              onToggleDownload: () {
-                                final repo = context.read<PlaylistRepository>();
-                                if (state.downloadStatus ==
-                                    DownloadStatus.none) {
-                                  repo.downloadPlaylist(state.id);
-                                } else {
-                                  repo.removePlaylistDownload(state.id);
-                                }
-                              },
+                              onToggleDownload: kIsWeb
+                                  ? null
+                                  : () {
+                                      final repo =
+                                          context.read<PlaylistRepository>();
+                                      if (state.downloadStatus ==
+                                          DownloadStatus.none) {
+                                        repo.downloadPlaylist(state.id);
+                                      } else {
+                                        repo.removePlaylistDownload(state.id);
+                                      }
+                                    },
                               onEdit: () {
                                 context.read<PlaylistCubit>().toggleReorder();
                               },

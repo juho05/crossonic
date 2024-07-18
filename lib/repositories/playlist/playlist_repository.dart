@@ -118,6 +118,7 @@ class PlaylistRepository {
   }
 
   Future<void> downloadPlaylist(String id) async {
+    if (kIsWeb) return;
     if (playlistDownloads.value.containsKey(id)) return;
     final newMap = Map<String, bool>.from(playlistDownloads.value);
     newMap[id] = false;

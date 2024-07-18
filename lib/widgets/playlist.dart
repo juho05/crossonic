@@ -4,6 +4,7 @@ import 'package:crossonic/repositories/playlist/playlist_repository.dart';
 import 'package:crossonic/widgets/confirmation.dart';
 import 'package:crossonic/widgets/cover_art.dart';
 import 'package:crossonic/widgets/large_cover.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -53,14 +54,16 @@ class _PlaylistGridCellState extends State<PlaylistGridCell> {
                         .read<PlaylistRepository>()
                         .getPlaylistThenUpdate(widget.playlist.id)
                         .entry!,
-                    onToggleDownload: () {
-                      final repo = context.read<PlaylistRepository>();
-                      if (widget.downloadStatus == null) {
-                        repo.downloadPlaylist(widget.playlist.id);
-                      } else {
-                        repo.removePlaylistDownload(widget.playlist.id);
-                      }
-                    },
+                    onToggleDownload: kIsWeb
+                        ? null
+                        : () {
+                            final repo = context.read<PlaylistRepository>();
+                            if (widget.downloadStatus == null) {
+                              repo.downloadPlaylist(widget.playlist.id);
+                            } else {
+                              repo.removePlaylistDownload(widget.playlist.id);
+                            }
+                          },
                     onDelete: () async {
                       if (!(await ConfirmationDialog.showCancel(context))) {
                         return;

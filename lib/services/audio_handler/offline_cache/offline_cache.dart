@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:crossonic/exceptions.dart';
 import 'package:crossonic/repositories/api/api.dart';
+import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
@@ -106,6 +107,7 @@ class OfflineCache {
   }
 
   Future<void> remove(Iterable<String> songIDs) async {
+    if (songIDs.isEmpty) return;
     final dir =
         path.join((await getApplicationSupportDirectory()).path, _dirName);
     await Directory(dir).create();
@@ -117,6 +119,7 @@ class OfflineCache {
   }
 
   Future<void> _cleanTmpFiles() async {
+    if (kIsWeb) return;
     final dir = Directory(
         path.join((await getApplicationSupportDirectory()).path, _dirName));
     await dir.create();
@@ -128,6 +131,7 @@ class OfflineCache {
   }
 
   Future<Set<String>> getDownloadedSongIDs() async {
+    if (kIsWeb) return {};
     final dir = Directory(
         path.join((await getApplicationSupportDirectory()).path, _dirName));
     await dir.create();
@@ -138,6 +142,7 @@ class OfflineCache {
   }
 
   Future<Uri?> getURL(String id) async {
+    if (kIsWeb) return null;
     final dir =
         path.join((await getApplicationSupportDirectory()).path, _dirName);
     await Directory(dir).create();
