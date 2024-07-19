@@ -97,7 +97,13 @@ class MediaQueue {
         index: 0,
         inPriorityQueue: false,
       ));
-    } else if (current.value!.next == null && _nextIndex < songs.length) {
+    } else {
+      if (_nextIndex != current.value!.index + 1) {
+        _nextIndex = current.value!.index + 1;
+        if (loop.value) {
+          _nextIndex %= length;
+        }
+      }
       current.add(CurrentMedia(
         current.value!.item,
         _priorityQueue.isNotEmpty
