@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
 import 'package:crossonic/features/home/view/state/now_playing_cubit.dart';
+import 'package:crossonic/repositories/api/api_repository.dart';
 import 'package:crossonic/services/audio_handler/audio_handler.dart';
 import 'package:crossonic/widgets/chooser.dart';
 import 'package:crossonic/widgets/cover_art.dart';
@@ -158,10 +159,11 @@ class NowPlayingCollapsed extends StatelessWidget {
   }
 }
 
-class NowPlaying extends StatelessWidget {
+class NowPlayingExpanded extends StatelessWidget {
   final PanelController _panelController;
 
-  const NowPlaying({required PanelController panelController, super.key})
+  const NowPlayingExpanded(
+      {required PanelController panelController, super.key})
       : _panelController = panelController;
 
   @override
@@ -387,6 +389,368 @@ class NowPlaying extends StatelessWidget {
             },
           );
         },
+      ),
+    );
+  }
+}
+
+enum SongPopupMenuValue {
+  addToPriorityQueue,
+  addToQueue,
+  toggleFavorite,
+  addToPlaylist,
+  gotoAlbum,
+  gotoArtist
+}
+
+class NowPlayingDesktop extends StatelessWidget {
+  const NowPlayingDesktop({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 80,
+      child: ColoredBox(
+        color: Theme.of(context).colorScheme.primaryContainer,
+        child: BlocBuilder<NowPlayingCubit, NowPlayingState>(
+          builder: (context, state) {
+            final textStyle = Theme.of(context).textTheme;
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Expanded(
+                    flex: 3,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.max,
+                      children: [
+                        MouseRegion(
+                          cursor: SystemMouseCursors.click,
+                          child: GestureDetector(
+                            onTap: () {
+                              if (state.albumID.isNotEmpty) {
+                                context.push("/home/album/${state.albumID}");
+                              }
+                            },
+                            child: CoverArt(
+                              size: 60,
+                              coverID: state.coverArtID,
+                              borderRadius: BorderRadius.circular(5),
+                              resolution: const CoverResolution.medium(),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                state.songName,
+                                style: textStyle.bodyMedium!.copyWith(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onPrimaryContainer,
+                                  fontSize: 16,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              MouseRegion(
+                                cursor: SystemMouseCursors.click,
+                                child: GestureDetector(
+                                  onTap: () async {
+                                    final artistID =
+                                        await ChooserDialog.chooseArtist(
+                                            context,
+                                            state.artists.artists.toList());
+                                    if (artistID == null) return;
+                                    // ignore: use_build_context_synchronously
+                                    context.push("/home/artist/$artistID");
+                                  },
+                                  child: Text(
+                                    state.artists.displayName,
+                                    style: textStyle.bodySmall!.copyWith(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onPrimaryContainer),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 15),
+                  Expanded(
+                    flex: 5,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            BlocBuilder<FavoritesCubit, FavoritesState>(
+                              buildWhen: (previous, current) =>
+                                  current.changedId == state.songID,
+                              builder: (context, favState) {
+                                final isFavorite =
+                                    favState.favorites.contains(state.songID);
+                                return IconButton(
+                                  icon: isFavorite
+                                      ? const Icon(Icons.favorite)
+                                      : const Icon(Icons.favorite_border),
+                                  padding: const EdgeInsets.all(0),
+                                  onPressed: () {
+                                    context
+                                        .read<FavoritesCubit>()
+                                        .toggleFavorite(state.songID);
+                                  },
+                                );
+                              },
+                            ),
+                            const SizedBox(width: 7),
+                            IconButton(
+                              icon: const Icon(Icons.skip_previous, size: 32),
+                              padding: const EdgeInsets.all(0),
+                              onPressed: () {
+                                context
+                                    .read<CrossonicAudioHandler>()
+                                    .skipToPrevious();
+                              },
+                            ),
+                            const SizedBox(width: 5),
+                            if (state.playbackState.status ==
+                                CrossonicPlaybackStatus.loading)
+                              const SizedBox(
+                                  width: 40,
+                                  height: 40,
+                                  child: Padding(
+                                    padding: EdgeInsets.all(5.0),
+                                    child: CircularProgressIndicator.adaptive(),
+                                  )),
+                            if (state.playbackState.status !=
+                                CrossonicPlaybackStatus.loading)
+                              IconButton(
+                                icon: Icon(
+                                  state.playbackState.status ==
+                                          CrossonicPlaybackStatus.playing
+                                      ? Icons.pause_circle
+                                      : Icons.play_circle,
+                                  size: 40,
+                                ),
+                                padding: const EdgeInsets.all(0),
+                                onPressed: () {
+                                  context
+                                      .read<CrossonicAudioHandler>()
+                                      .playPause();
+                                },
+                              ),
+                            const SizedBox(width: 5),
+                            IconButton(
+                              icon: const Icon(Icons.skip_next, size: 32),
+                              padding: const EdgeInsets.all(0),
+                              onPressed: () {
+                                context
+                                    .read<CrossonicAudioHandler>()
+                                    .skipToNext();
+                              },
+                            ),
+                            const SizedBox(width: 7),
+                            BlocBuilder<NowPlayingCubit, NowPlayingState>(
+                              buildWhen: (previous, current) =>
+                                  previous.loop != current.loop,
+                              builder: (context, state) {
+                                return IconButton(
+                                  onPressed: () {
+                                    context
+                                        .read<NowPlayingCubit>()
+                                        .toggleLoop();
+                                  },
+                                  icon: state.loop
+                                      ? const Icon(Icons.repeat_on)
+                                      : const Icon(Icons.repeat),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                        BlocBuilder<NowPlayingCubit, NowPlayingState>(
+                          buildWhen: (previous, current) =>
+                              previous.duration != current.duration ||
+                              previous.playbackState.position !=
+                                  current.playbackState.position,
+                          builder: (context, state) {
+                            return ProgressBar(
+                              timeLabelLocation: TimeLabelLocation.sides,
+                              progress: state.playbackState.position,
+                              buffered: state.playbackState.bufferedPosition !=
+                                      Duration.zero
+                                  ? state.playbackState.bufferedPosition
+                                  : null,
+                              total: state.duration,
+                              onSeek: (value) {
+                                context
+                                    .read<CrossonicAudioHandler>()
+                                    .seek(value);
+                              },
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 15),
+                  Expanded(
+                    flex: 3,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.max,
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        IconButton(
+                          onPressed: () {
+                            context.push("/lyrics");
+                          },
+                          icon: const Icon(Icons.lyrics_outlined),
+                        ),
+                        IconButton(
+                          onPressed: () {
+                            context.push("/queue");
+                          },
+                          icon: const Icon(Icons.queue_music),
+                        ),
+                        IconButton(
+                          onPressed: () async {
+                            await ChooserDialog.addToPlaylist(
+                                context, state.songName, [state.media!]);
+                          },
+                          icon: const Icon(Icons.playlist_add),
+                        ),
+                        BlocBuilder<FavoritesCubit, FavoritesState>(
+                          buildWhen: (previous, current) =>
+                              current.changedId == state.songID,
+                          builder: (context, fState) {
+                            final isFavorite =
+                                fState.favorites.contains(state.songID);
+                            return PopupMenuButton(
+                              onSelected: (value) async {
+                                final audioHandler =
+                                    context.read<CrossonicAudioHandler>();
+                                switch (value) {
+                                  case SongPopupMenuValue.addToPriorityQueue:
+                                    audioHandler.mediaQueue
+                                        .addToPriorityQueue(state.media!);
+                                    ScaffoldMessenger.of(context)
+                                        .showSnackBar(SnackBar(
+                                      content: Text(
+                                          'Added "${state.songName}" to priority queue'),
+                                      behavior: SnackBarBehavior.floating,
+                                      duration:
+                                          const Duration(milliseconds: 1250),
+                                    ));
+                                  case SongPopupMenuValue.addToQueue:
+                                    audioHandler.mediaQueue.add(state.media!);
+                                    ScaffoldMessenger.of(context)
+                                        .showSnackBar(SnackBar(
+                                      content: Text(
+                                          'Added "${state.songName}" to queue'),
+                                      behavior: SnackBarBehavior.floating,
+                                      duration:
+                                          const Duration(milliseconds: 1250),
+                                    ));
+                                  case SongPopupMenuValue.toggleFavorite:
+                                    context
+                                        .read<FavoritesCubit>()
+                                        .toggleFavorite(state.songID);
+                                  case SongPopupMenuValue.addToPlaylist:
+                                    await ChooserDialog.addToPlaylist(context,
+                                        state.songName, [state.media!]);
+                                  case SongPopupMenuValue.gotoAlbum:
+                                    context
+                                        .push("/home/album/${state.albumID}");
+                                  case SongPopupMenuValue.gotoArtist:
+                                    final artistID =
+                                        await ChooserDialog.chooseArtist(
+                                            context,
+                                            APIRepository.getArtistsOfSong(
+                                                    state.media!)
+                                                .artists
+                                                .toList());
+                                    if (artistID == null) return;
+                                    // ignore: use_build_context_synchronously
+                                    context.push("/home/artist/$artistID");
+                                }
+                              },
+                              itemBuilder: (context) => [
+                                const PopupMenuItem(
+                                  value: SongPopupMenuValue.addToPriorityQueue,
+                                  child: ListTile(
+                                    leading: Icon(Icons.playlist_play),
+                                    title: Text('Add to priority queue'),
+                                  ),
+                                ),
+                                const PopupMenuItem(
+                                  value: SongPopupMenuValue.addToQueue,
+                                  child: ListTile(
+                                    leading: Icon(Icons.playlist_add),
+                                    title: Text('Add to queue'),
+                                  ),
+                                ),
+                                PopupMenuItem(
+                                  value: SongPopupMenuValue.toggleFavorite,
+                                  child: ListTile(
+                                    leading: Icon(isFavorite
+                                        ? Icons.heart_broken
+                                        : Icons.favorite),
+                                    title: Text(isFavorite
+                                        ? 'Remove from favorites'
+                                        : 'Add to favorites'),
+                                  ),
+                                ),
+                                const PopupMenuItem(
+                                  value: SongPopupMenuValue.addToPlaylist,
+                                  child: ListTile(
+                                    leading: Icon(Icons.playlist_add),
+                                    title: Text("Add to playlist"),
+                                  ),
+                                ),
+                                if (state.albumID.isNotEmpty)
+                                  const PopupMenuItem(
+                                    value: SongPopupMenuValue.gotoAlbum,
+                                    child: ListTile(
+                                      leading: Icon(Icons.album),
+                                      title: Text('Go to album'),
+                                    ),
+                                  ),
+                                if (state.artists.artists.isNotEmpty)
+                                  const PopupMenuItem(
+                                    value: SongPopupMenuValue.gotoArtist,
+                                    child: ListTile(
+                                      leading: Icon(Icons.person),
+                                      title: Text('Go to artist'),
+                                    ),
+                                  ),
+                              ],
+                            );
+                          },
+                        ),
+                        const SizedBox(width: 5),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
       ),
     );
   }
