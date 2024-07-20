@@ -21,13 +21,19 @@ class MainPageDesktop extends StatefulWidget {
 class _MainPageDesktopState extends State<MainPageDesktop> {
   @override
   void initState() {
-    sideMenu.addListener(widget._navigationShell.goBranch);
+    sideMenu.changePage(widget._navigationShell.currentIndex);
+    sideMenu.addListener(onNavigate);
     super.initState();
+  }
+
+  void onNavigate(int index) {
+    widget._navigationShell.goBranch(index,
+        initialLocation: index == widget._navigationShell.currentIndex);
   }
 
   @override
   void dispose() {
-    sideMenu.removeListener(widget._navigationShell.goBranch);
+    sideMenu.removeListener(onNavigate);
     super.dispose();
   }
 
