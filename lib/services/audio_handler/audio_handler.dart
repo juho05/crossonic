@@ -10,7 +10,7 @@ import 'package:crossonic/services/audio_handler/integrations/integration.dart';
 import 'package:crossonic/services/audio_handler/players/remoteplayer.dart';
 import 'package:crossonic/services/connect/connect_manager.dart';
 import 'package:crossonic/services/connect/models/device.dart';
-import 'package:crossonic/widgets/cover_art.dart';
+import 'package:crossonic/components/cover_art.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
 import 'package:rxdart/rxdart.dart';

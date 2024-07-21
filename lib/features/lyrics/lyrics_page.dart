@@ -2,7 +2,7 @@ import 'package:crossonic/features/lyrics/state/lyrics_cubit.dart';
 import 'package:crossonic/fetch_status.dart';
 import 'package:crossonic/repositories/api/api_repository.dart';
 import 'package:crossonic/services/audio_handler/audio_handler.dart';
-import 'package:crossonic/widgets/app_bar.dart';
+import 'package:crossonic/components/app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 

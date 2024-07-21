@@ -1,9 +1,9 @@
 import 'package:crossonic/exceptions.dart';
 import 'package:crossonic/repositories/api/models/playlist_model.dart';
 import 'package:crossonic/repositories/playlist/playlist_repository.dart';
-import 'package:crossonic/widgets/confirmation.dart';
-import 'package:crossonic/widgets/cover_art.dart';
-import 'package:crossonic/widgets/large_cover.dart';
+import 'package:crossonic/components/confirmation.dart';
+import 'package:crossonic/components/cover_art.dart';
+import 'package:crossonic/components/large_cover.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';

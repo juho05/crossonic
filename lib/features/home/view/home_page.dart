@@ -4,7 +4,7 @@ import 'package:crossonic/features/home/view/recently_added_albums.dart';
 import 'package:crossonic/features/home/view/state/random_songs_cubit.dart';
 import 'package:crossonic/features/home/view/state/recently_added_albums_cubit.dart';
 import 'package:crossonic/repositories/api/api_repository.dart';
-import 'package:crossonic/widgets/app_bar.dart';
+import 'package:crossonic/components/app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';

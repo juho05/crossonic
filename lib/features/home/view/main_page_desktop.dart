@@ -74,6 +74,12 @@ class _MainPageDesktopState extends State<MainPageDesktop> {
                           onTap: (index, sideMenuController) =>
                               sideMenuController.changePage(index),
                         ),
+                        SideMenuItem(
+                          title: "Settings",
+                          icon: const Icon(Icons.settings),
+                          onTap: (index, sideMenuController) =>
+                              context.push("/settings"),
+                        ),
                       ],
                       controller: sideMenu,
                       style: SideMenuStyle(

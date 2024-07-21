@@ -1,8 +1,8 @@
 import 'package:crossonic/features/albums/state/albums_bloc.dart';
 import 'package:crossonic/fetch_status.dart';
 import 'package:crossonic/repositories/api/api.dart';
-import 'package:crossonic/widgets/album.dart';
-import 'package:crossonic/widgets/app_bar.dart';
+import 'package:crossonic/components/album.dart';
+import 'package:crossonic/components/app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 

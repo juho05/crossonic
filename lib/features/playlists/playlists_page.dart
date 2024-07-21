@@ -1,7 +1,7 @@
 import 'package:crossonic/features/playlists/state/playlists_cubit.dart';
 import 'package:crossonic/repositories/playlist/playlist_repository.dart';
-import 'package:crossonic/widgets/app_bar.dart';
-import 'package:crossonic/widgets/playlist.dart';
+import 'package:crossonic/components/app_bar.dart';
+import 'package:crossonic/components/playlist.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';

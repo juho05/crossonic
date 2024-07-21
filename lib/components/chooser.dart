@@ -4,7 +4,7 @@ import 'package:crossonic/exceptions.dart';
 import 'package:crossonic/repositories/api/api_repository.dart';
 import 'package:crossonic/repositories/api/models/media_model.dart';
 import 'package:crossonic/repositories/playlist/playlist_repository.dart';
-import 'package:crossonic/widgets/confirmation.dart';
+import 'package:crossonic/components/confirmation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 

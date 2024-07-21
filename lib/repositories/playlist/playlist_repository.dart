@@ -7,7 +7,7 @@ import 'package:crossonic/repositories/api/api_repository.dart';
 import 'package:crossonic/repositories/api/models/media_model.dart';
 import 'package:crossonic/repositories/api/models/playlist_model.dart';
 import 'package:crossonic/services/audio_handler/offline_cache/offline_cache.dart';
-import 'package:crossonic/widgets/cover_art.dart';
+import 'package:crossonic/components/cover_art.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:rxdart/rxdart.dart';

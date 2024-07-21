@@ -19,7 +19,7 @@ import 'package:crossonic/services/audio_handler/players/player.dart';
 import 'package:crossonic/services/audio_handler/integrations/integration.dart';
 import 'package:crossonic/services/connect/connect_manager.dart';
 import 'package:crossonic/services/scrobble/scrobbler.dart';
-import 'package:crossonic/widgets/state/favorites_cubit.dart';
+import 'package:crossonic/components/state/favorites_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -31,7 +31,7 @@ Future<void> main() async {
   if (!kIsWeb && (Platform.isWindows || Platform.isMacOS || Platform.isLinux)) {
     await windowManager.ensureInitialized();
     const windowOptions = WindowOptions(
-      size: Size(1200, 800),
+      size: Size(1300, 850),
       center: true,
       title: "Crossonic",
       titleBarStyle: TitleBarStyle.normal,

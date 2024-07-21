@@ -1,6 +1,6 @@
 import 'package:crossonic/features/connect/state/connect_cubit.dart';
 import 'package:crossonic/services/connect/connect_manager.dart';
-import 'package:crossonic/widgets/app_bar.dart';
+import 'package:crossonic/components/app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 

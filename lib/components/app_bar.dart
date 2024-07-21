@@ -1,3 +1,4 @@
+import 'package:crossonic/components/state/layout.dart';
 import 'package:crossonic/services/connect/connect_manager.dart';
 import 'package:crossonic/services/connect/models/device.dart';
 import 'package:flutter/material.dart';
@@ -32,10 +33,14 @@ AppBar createAppBar(BuildContext context, String pageTitle,
                 },
               );
             }),
-      IconButton(
-        icon: const Icon(Icons.settings),
-        onPressed: () => context.push("/settings"),
-      )
+      Builder(builder: (context) {
+        final layout = context.watch<Layout>();
+        if (layout.size == LayoutSize.desktop) return const SizedBox();
+        return IconButton(
+          icon: const Icon(Icons.settings),
+          onPressed: () => context.push("/settings"),
+        );
+      }),
     ],
   );
 }

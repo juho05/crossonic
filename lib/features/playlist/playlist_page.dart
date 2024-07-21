@@ -1,15 +1,17 @@
 import 'dart:math';
 
+import 'package:crossonic/components/collection_page.dart';
+import 'package:crossonic/components/state/layout.dart';
 import 'package:crossonic/features/playlist/state/playlist_cubit.dart';
 import 'package:crossonic/features/playlist/state/playlist_download_status_cubit.dart';
 import 'package:crossonic/fetch_status.dart';
 import 'package:crossonic/repositories/playlist/playlist_repository.dart';
 import 'package:crossonic/services/audio_handler/audio_handler.dart';
-import 'package:crossonic/widgets/app_bar.dart';
-import 'package:crossonic/widgets/confirmation.dart';
-import 'package:crossonic/widgets/cover_art.dart';
-import 'package:crossonic/widgets/large_cover.dart';
-import 'package:crossonic/widgets/song.dart';
+import 'package:crossonic/components/app_bar.dart';
+import 'package:crossonic/components/confirmation.dart';
+import 'package:crossonic/components/cover_art.dart';
+import 'package:crossonic/components/large_cover.dart';
+import 'package:crossonic/components/song.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -58,12 +60,16 @@ class PlaylistPage extends StatelessWidget {
               FetchStatus.failure => const Center(child: Icon(Icons.wifi_off)),
               FetchStatus.success => LayoutBuilder(
                   builder: (context, constraints) {
-                    return ReorderableListView.builder(
-                      header: Center(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            CoverArtWithMenu(
+                    return BlocBuilder<PlaylistDownloadStatusCubit,
+                            PlaylistDownloadStatusState>(
+                        builder: (context, dState) {
+                      return CollectionPage(
+                        name: state.name,
+                        contentTitle: "Tracks",
+                        cover: LayoutBuilder(
+                          builder: (context, constraints2) {
+                            final layout = context.watch<Layout>();
+                            return CoverArtWithMenu(
                               id: state.id,
                               name: state.name,
                               enablePlay: true,
@@ -73,8 +79,11 @@ class PlaylistPage extends StatelessWidget {
                               enableToggleFavorite: false,
                               uploading:
                                   state.coverStatus == CoverStatus.uploading,
-                              size: min(constraints.maxHeight * 0.60,
-                                  constraints.maxWidth - 25),
+                              size: layout.size == LayoutSize.mobile
+                                  ? min(constraints.maxHeight * 0.60,
+                                      constraints.maxWidth - 24)
+                                  : min(constraints2.maxWidth,
+                                      MediaQuery.sizeOf(context).height * 0.5),
                               resolution: const CoverResolution.extraLarge(),
                               coverID: state.coverID,
                               borderRadius: 10,
@@ -122,176 +131,102 @@ class PlaylistPage extends StatelessWidget {
                                       content: Text(
                                           "Deleted playlist '//${state.name}'")));
                               },
-                            ),
-                            const SizedBox(height: 10),
-                            Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 12),
-                              child: Text(
-                                state.name,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyLarge!
-                                    .copyWith(
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 22,
-                                    ),
-                              ),
-                            ),
-                            Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 12),
-                              child: Text(
-                                "Songs: ${state.songCount}",
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyLarge!
-                                    .copyWith(
-                                      fontWeight: FontWeight.w400,
-                                      fontSize: 15,
-                                    ),
-                              ),
-                            ),
-                            Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 12),
-                              child: Text(
-                                "Duration: ${state.duration.toString().split(".")[0]}",
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyLarge!
-                                    .copyWith(
-                                      fontWeight: FontWeight.w400,
-                                      fontSize: 15,
-                                    ),
-                              ),
-                            ),
-                            if (state.downloadStatus ==
-                                DownloadStatus.downloading)
-                              BlocBuilder<PlaylistDownloadStatusCubit,
-                                  PlaylistDownloadStatusState>(
-                                builder: (context, dState) {
-                                  return Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 12),
-                                    child: Text(
-                                      "Downloading: ${dState.waiting ? "waiting" : '${dState.downloadedSongsCount}/${state.songCount}'}",
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodyLarge!
-                                          .copyWith(
-                                            fontWeight: FontWeight.w400,
-                                            fontSize: 15,
-                                          ),
-                                    ),
-                                  );
-                                },
-                              ),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 13, vertical: 10),
-                              child: SizedBox(
-                                width: 100000,
-                                child: Wrap(
-                                  spacing: 8,
-                                  runSpacing: 8,
-                                  children: [
-                                    ElevatedButton.icon(
-                                      icon: const Icon(Icons.play_arrow),
-                                      label: const Text('Play'),
-                                      onPressed: () async {
-                                        audioHandler.playOnNextMediaChange();
-                                        audioHandler.mediaQueue
-                                            .replaceQueue(state.songs);
-                                      },
-                                    ),
-                                    ElevatedButton.icon(
-                                      icon: const Icon(Icons.shuffle),
-                                      label: const Text('Shuffle'),
-                                      onPressed: () async {
-                                        audioHandler.playOnNextMediaChange();
-                                        audioHandler.mediaQueue.replaceQueue(
-                                            List.from(state.songs)..shuffle());
-                                      },
-                                    ),
-                                    ElevatedButton.icon(
-                                      icon: const Icon(Icons.playlist_play),
-                                      label: const Text('Prio. Queue'),
-                                      onPressed: () async {
-                                        audioHandler.mediaQueue
-                                            .addAllToPriorityQueue(state.songs);
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(SnackBar(
-                                          content: Text(
-                                              'Added "${state.name}" to priority queue'),
-                                          behavior: SnackBarBehavior.floating,
-                                          duration: const Duration(
-                                              milliseconds: 1250),
-                                        ));
-                                      },
-                                    ),
-                                    ElevatedButton.icon(
-                                      icon: const Icon(
-                                          Icons.playlist_add_outlined),
-                                      label: const Text('Queue'),
-                                      onPressed: () async {
-                                        audioHandler.mediaQueue
-                                            .addAll(state.songs);
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(SnackBar(
-                                          content: Text(
-                                              'Added "${state.name}" to queue'),
-                                          behavior: SnackBarBehavior.floating,
-                                          duration: const Duration(
-                                              milliseconds: 1250),
-                                        ));
-                                      },
-                                    ),
-                                    ElevatedButton.icon(
-                                      icon: state.reorderEnabled
-                                          ? const Icon(Icons.edit_off)
-                                          : const Icon(Icons.edit),
-                                      label: state.reorderEnabled
-                                          ? const Text('Stop Edit')
-                                          : const Text('Edit'),
-                                      onPressed: () async {
-                                        context
-                                            .read<PlaylistCubit>()
-                                            .toggleReorder();
-                                      },
-                                    )
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
+                            );
+                          },
                         ),
-                      ),
-                      buildDefaultDragHandles: false,
-                      restorationId: "playlist_song_list",
-                      itemCount: state.songs.length,
-                      itemBuilder: (context, i) => Song(
-                        key: ValueKey(i),
-                        reorderIndex: state.reorderEnabled ? i : null,
-                        song: state.songs[i],
-                        leadingItem: SongLeadingItem.cover,
-                        onRemove: () {
+                        actions: [
+                          CollectionAction(
+                            title: "Play",
+                            icon: Icons.play_arrow,
+                            onClick: () {
+                              audioHandler.playOnNextMediaChange();
+                              audioHandler.mediaQueue.replaceQueue(state.songs);
+                            },
+                          ),
+                          CollectionAction(
+                            title: "Shuffle",
+                            icon: Icons.shuffle,
+                            onClick: () {
+                              audioHandler.playOnNextMediaChange();
+                              audioHandler.mediaQueue.replaceQueue(
+                                  List.from(state.songs)..shuffle());
+                            },
+                          ),
+                          CollectionAction(
+                            title: 'Prio. Queue',
+                            icon: Icons.playlist_play,
+                            onClick: () async {
+                              audioHandler.mediaQueue
+                                  .addAllToPriorityQueue(state.songs);
+                              ScaffoldMessenger.of(context)
+                                  .showSnackBar(SnackBar(
+                                content: Text(
+                                    'Added "${state.name}" to priority queue'),
+                                behavior: SnackBarBehavior.floating,
+                                duration: const Duration(milliseconds: 1250),
+                              ));
+                            },
+                          ),
+                          CollectionAction(
+                            title: 'Queue',
+                            icon: Icons.playlist_add_outlined,
+                            onClick: () async {
+                              audioHandler.mediaQueue.addAll(state.songs);
+                              ScaffoldMessenger.of(context)
+                                  .showSnackBar(SnackBar(
+                                content: Text('Added "${state.name}" to queue'),
+                                behavior: SnackBarBehavior.floating,
+                                duration: const Duration(milliseconds: 1250),
+                              ));
+                            },
+                          ),
+                          CollectionAction(
+                            title: state.reorderEnabled ? 'Stop Edit' : 'Edit',
+                            icon: state.reorderEnabled
+                                ? Icons.edit_off
+                                : Icons.edit,
+                            onClick: () async {
+                              context.read<PlaylistCubit>().toggleReorder();
+                            },
+                          )
+                        ],
+                        extraInfo: [
+                          CollectionExtraInfo(
+                              text: "Songs: ${state.songCount}"),
+                          CollectionExtraInfo(
+                              text:
+                                  "Duration: ${state.duration.toString().split(".")[0]}"),
+                          if (state.downloadStatus ==
+                              DownloadStatus.downloading)
+                            CollectionExtraInfo(
+                                text:
+                                    "Downloading: ${dState.waiting ? "waiting" : '${dState.downloadedSongsCount}/${state.songCount}'}")
+                        ],
+                        reorderableItemCount: state.songs.length,
+                        reorderableItemBuilder: (context, i) => Song(
+                          key: ValueKey(i),
+                          reorderIndex: state.reorderEnabled ? i : null,
+                          song: state.songs[i],
+                          leadingItem: SongLeadingItem.cover,
+                          onRemove: () {
+                            context
+                                .read<PlaylistRepository>()
+                                .removeSongsFromPlaylist(
+                                    state.id, [(i, state.songs[i])]);
+                          },
+                          onTap: () {
+                            audioHandler.playOnNextMediaChange();
+                            audioHandler.mediaQueue
+                                .replaceQueue(state.songs, i);
+                          },
+                        ),
+                        onReorder: (int oldIndex, int newIndex) {
                           context
-                              .read<PlaylistRepository>()
-                              .removeSongsFromPlaylist(
-                                  state.id, [(i, state.songs[i])]);
+                              .read<PlaylistCubit>()
+                              .reorder(oldIndex, newIndex);
                         },
-                        onTap: () {
-                          audioHandler.playOnNextMediaChange();
-                          audioHandler.mediaQueue.replaceQueue(state.songs, i);
-                        },
-                      ),
-                      onReorder: (int oldIndex, int newIndex) {
-                        context
-                            .read<PlaylistCubit>()
-                            .reorder(oldIndex, newIndex);
-                      },
-                    );
+                      );
+                    });
                   },
                 ),
             };

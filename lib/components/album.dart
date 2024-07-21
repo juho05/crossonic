@@ -1,7 +1,7 @@
 import 'package:crossonic/repositories/api/api.dart';
-import 'package:crossonic/widgets/cover_art.dart';
-import 'package:crossonic/widgets/large_cover.dart';
-import 'package:crossonic/widgets/state/favorites_cubit.dart';
+import 'package:crossonic/components/cover_art.dart';
+import 'package:crossonic/components/large_cover.dart';
+import 'package:crossonic/components/state/favorites_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';

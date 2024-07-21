@@ -1,8 +1,8 @@
 import 'package:crossonic/features/queue/state/queue_cubit.dart';
 import 'package:crossonic/services/audio_handler/audio_handler.dart';
-import 'package:crossonic/widgets/app_bar.dart';
-import 'package:crossonic/widgets/confirmation.dart';
-import 'package:crossonic/widgets/song.dart';
+import 'package:crossonic/components/app_bar.dart';
+import 'package:crossonic/components/confirmation.dart';
+import 'package:crossonic/components/song.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
