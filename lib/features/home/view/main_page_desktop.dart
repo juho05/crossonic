@@ -45,71 +45,69 @@ class _MainPageDesktopState extends State<MainPageDesktop> {
         context.select<NowPlayingCubit, bool>((value) => value.state.hasMedia);
     final theme = Theme.of(context);
     return Scaffold(
-      body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: Row(
-                mainAxisSize: MainAxisSize.max,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: SideMenu(
-                      items: [
-                        SideMenuItem(
-                          title: "Home",
-                          icon: const Icon(Icons.home),
-                          onTap: (index, sideMenuController) =>
-                              sideMenuController.changePage(index),
-                        ),
-                        SideMenuItem(
-                          title: "Search",
-                          icon: const Icon(Icons.search),
-                          onTap: (index, sideMenuController) =>
-                              sideMenuController.changePage(index),
-                        ),
-                        SideMenuItem(
-                          title: "Playlists",
-                          icon: const Icon(Icons.queue_music),
-                          onTap: (index, sideMenuController) =>
-                              sideMenuController.changePage(index),
-                        ),
-                        SideMenuItem(
-                          title: "Settings",
-                          icon: const Icon(Icons.settings),
-                          onTap: (index, sideMenuController) =>
-                              context.push("/settings"),
-                        ),
-                      ],
-                      controller: sideMenu,
-                      style: SideMenuStyle(
-                        selectedColor: theme.colorScheme.primaryContainer,
-                        backgroundColor: theme.colorScheme.surface,
-                        selectedTitleTextStyle: theme.textTheme.bodyLarge!
-                            .copyWith(
-                                color: theme.colorScheme.onPrimaryContainer),
-                        unselectedTitleTextStyle: theme.textTheme.bodyLarge,
-                        selectedIconColor: theme.colorScheme.onPrimaryContainer,
-                        unselectedIconColor: theme.colorScheme.onSurface,
-                        openSideMenuWidth: 180,
-                        compactSideMenuWidth: 66,
+      body: Column(
+        children: [
+          Expanded(
+            child: Row(
+              mainAxisSize: MainAxisSize.max,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: SideMenu(
+                    items: [
+                      SideMenuItem(
+                        title: "Home",
+                        icon: const Icon(Icons.home),
+                        onTap: (index, sideMenuController) =>
+                            sideMenuController.changePage(index),
                       ),
-                      collapseWidth: 1300,
+                      SideMenuItem(
+                        title: "Search",
+                        icon: const Icon(Icons.search),
+                        onTap: (index, sideMenuController) =>
+                            sideMenuController.changePage(index),
+                      ),
+                      SideMenuItem(
+                        title: "Playlists",
+                        icon: const Icon(Icons.queue_music),
+                        onTap: (index, sideMenuController) =>
+                            sideMenuController.changePage(index),
+                      ),
+                      SideMenuItem(
+                        title: "Settings",
+                        icon: const Icon(Icons.settings),
+                        onTap: (index, sideMenuController) =>
+                            context.push("/settings"),
+                      ),
+                    ],
+                    controller: sideMenu,
+                    style: SideMenuStyle(
+                      selectedColor: theme.colorScheme.primaryContainer,
+                      backgroundColor: theme.colorScheme.surface,
+                      selectedTitleTextStyle: theme.textTheme.bodyLarge!
+                          .copyWith(
+                              color: theme.colorScheme.onPrimaryContainer),
+                      unselectedTitleTextStyle: theme.textTheme.bodyLarge,
+                      selectedIconColor: theme.colorScheme.onPrimaryContainer,
+                      unselectedIconColor: theme.colorScheme.onSurface,
+                      openSideMenuWidth: 180,
+                      compactSideMenuWidth: 66,
                     ),
+                    collapseWidth: 1300,
                   ),
-                  const VerticalDivider(
-                    width: 1,
-                    thickness: 1,
-                  ),
-                  Expanded(
-                    child: widget._navigationShell,
-                  ),
-                ],
-              ),
+                ),
+                const VerticalDivider(
+                  width: 1,
+                  thickness: 1,
+                ),
+                Expanded(
+                  child: widget._navigationShell,
+                ),
+              ],
             ),
-            if (hasMedia) const NowPlayingDesktop(),
-          ],
-        ),
+          ),
+          if (hasMedia) const NowPlayingDesktop(),
+        ],
       ),
     );
   }

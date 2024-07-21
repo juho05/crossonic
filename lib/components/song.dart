@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:crossonic/components/state/layout.dart';
 import 'package:crossonic/features/home/view/state/now_playing_cubit.dart';
 import 'package:crossonic/repositories/api/models/media_model.dart';
 import 'package:crossonic/repositories/api/api_repository.dart';
@@ -250,12 +251,26 @@ class _SongState extends State<Song> {
                 final popupButtonObject =
                     _popupMenuButtonKey.currentContext?.findRenderObject();
                 if (popupButtonObject == null) return;
+                var mousePos = mouseClickPosition;
+                final layout = context.read<Layout>();
+                if (layout.size == LayoutSize.desktop) {
+                  final double offset;
+                  if (MediaQuery.of(context).size.width > 1300) {
+                    offset = 180;
+                  } else {
+                    offset = 66;
+                  }
+                  if (mouseClickPosition!.dx <
+                      overlay.paintBounds.width * 0.5) {
+                    mousePos = mouseClickPosition!.translate(-offset, 0);
+                  }
+                }
                 final result = showMenu(
                     context: context,
                     position: RelativeRect.fromRect(
                         Rect.fromLTWH(
-                          mouseClickPosition!.dx,
-                          mouseClickPosition!.dy,
+                          mousePos!.dx,
+                          mousePos.dy,
                           popupButtonObject.paintBounds.width,
                           popupButtonObject.paintBounds.height,
                         ),

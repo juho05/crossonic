@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:crossonic/components/state/layout.dart';
 import 'package:crossonic/repositories/api/api_repository.dart';
 import 'package:crossonic/repositories/api/models/media_model.dart';
 import 'package:crossonic/services/audio_handler/audio_handler.dart';
@@ -283,12 +284,25 @@ class _CoverArtWithMenuState extends State<CoverArtWithMenu> {
         final popupButtonObject =
             _popupMenuButtonKey.currentContext?.findRenderObject();
         if (popupButtonObject == null) return;
+        final layout = context.read<Layout>();
+        var mousePos = mouseClickPosition;
+        if (layout.size == LayoutSize.desktop) {
+          final double offset;
+          if (MediaQuery.of(context).size.width > 1300) {
+            offset = 180;
+          } else {
+            offset = 66;
+          }
+          if (mouseClickPosition!.dx < overlay.paintBounds.width * 0.5) {
+            mousePos = mouseClickPosition!.translate(-offset, 0);
+          }
+        }
         final result = showMenu(
             context: context,
             position: RelativeRect.fromRect(
                 Rect.fromLTWH(
-                  mouseClickPosition!.dx,
-                  mouseClickPosition!.dy,
+                  mousePos!.dx,
+                  mousePos.dy,
                   popupButtonObject.paintBounds.width,
                   popupButtonObject.paintBounds.height,
                 ),
