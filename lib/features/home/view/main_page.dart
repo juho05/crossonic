@@ -2,8 +2,8 @@ import 'package:crossonic/components/state/layout.dart';
 import 'package:crossonic/features/home/view/main_page_desktop.dart';
 import 'package:crossonic/features/home/view/main_page_mobile.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:provider/provider.dart';
 
 class MainPage extends StatelessWidget {
   final StatefulNavigationShell _navigationShell;
@@ -15,17 +15,13 @@ class MainPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => Layout(size: LayoutSize.mobile),
-      child: LayoutBuilder(builder: (context, constraints) {
-        if (constraints.maxWidth > 1000) {
-          context.read<Layout>().size = LayoutSize.desktop;
-          return MainPageDesktop(navigationShell: _navigationShell);
-        } else {
-          context.read<Layout>().size = LayoutSize.mobile;
-          return MainPageMobile(navigationShell: _navigationShell);
-        }
-      }),
-    );
+    return Builder(builder: (context) {
+      final layout = context.read<Layout>();
+      if (layout.size == LayoutSize.desktop) {
+        return MainPageDesktop(navigationShell: _navigationShell);
+      } else {
+        return MainPageMobile(navigationShell: _navigationShell);
+      }
+    });
   }
 }

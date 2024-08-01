@@ -68,7 +68,7 @@ class PlaylistPage extends StatelessWidget {
                         contentTitle: "Tracks",
                         cover: LayoutBuilder(
                           builder: (context, constraints2) {
-                            final layout = context.watch<Layout>();
+                            final layout = context.read<Layout>();
                             return CoverArtWithMenu(
                               id: state.id,
                               name: state.name,

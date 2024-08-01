@@ -1,3 +1,4 @@
+import 'package:crossonic/components/state/layout.dart';
 import 'package:crossonic/features/auth/state/auth_bloc.dart';
 import 'package:crossonic/routing/router.dart';
 import 'package:dynamic_color/dynamic_color.dart';
@@ -45,20 +46,46 @@ class _AppViewState extends State<AppView> {
           listener: (context, state) {
             goRouter.refresh();
           },
-          child: MaterialApp.router(
-            title: 'Crossonic',
-            restorationScopeId: "crossonic_app",
-            routerConfig: goRouter,
-            debugShowCheckedModeBanner: false,
-            theme: ThemeData(
-              useMaterial3: true,
-              colorScheme: lightColorScheme ?? _defaultLightColorScheme,
-            ),
-            darkTheme: ThemeData(
-              useMaterial3: true,
-              colorScheme: darkColorScheme ?? _defaultDarkColorScheme,
-            ),
-          ),
+          child: LayoutBuilder(builder: (context, constraints) {
+            final layout = context.read<Layout>();
+            final oldSize = layout.size;
+            if (constraints.maxWidth > 1000) {
+              layout.size = LayoutSize.desktop;
+            } else {
+              layout.size = LayoutSize.mobile;
+            }
+            if (oldSize != layout.size) {
+              goRouter.refresh();
+              Future.delayed(const Duration(milliseconds: 200))
+                  .then((value) => setState(() {}));
+              return MaterialApp(
+                home: const Center(child: CircularProgressIndicator.adaptive()),
+                debugShowCheckedModeBanner: false,
+                theme: ThemeData(
+                  useMaterial3: true,
+                  colorScheme: lightColorScheme ?? _defaultLightColorScheme,
+                ),
+                darkTheme: ThemeData(
+                  useMaterial3: true,
+                  colorScheme: darkColorScheme ?? _defaultDarkColorScheme,
+                ),
+              );
+            }
+            return MaterialApp.router(
+              title: 'Crossonic',
+              restorationScopeId: "crossonic_app",
+              routerConfig: goRouter,
+              debugShowCheckedModeBanner: false,
+              theme: ThemeData(
+                useMaterial3: true,
+                colorScheme: lightColorScheme ?? _defaultLightColorScheme,
+              ),
+              darkTheme: ThemeData(
+                useMaterial3: true,
+                colorScheme: darkColorScheme ?? _defaultDarkColorScheme,
+              ),
+            );
+          }),
         );
       },
     );

@@ -51,7 +51,7 @@ class ArtistPage extends StatelessWidget {
                               state.favorites.contains(artist.id);
                           return LayoutBuilder(
                             builder: (context, constraints2) {
-                              final layout = context.watch<Layout>();
+                              final layout = context.read<Layout>();
                               return CoverArtWithMenu(
                                 id: artist.id,
                                 name: artist.name,

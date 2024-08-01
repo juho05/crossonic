@@ -37,11 +37,11 @@ class PlaylistRepository {
     _loadIndex().then((_) {
       playlists.listen((_) async {
         await _storeIndex();
+      _loadDownloads();
+      playlistDownloads.listen((value) async {
+        await _storeDownloads();
       });
-    });
-    _loadDownloads();
-    playlistDownloads.listen((value) async {
-      await _storeDownloads();
+      });
     });
     _apiRepository.authStatus.listen((status) async {
       if (status == AuthStatus.unauthenticated) {

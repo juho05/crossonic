@@ -1,17 +1,10 @@
-import 'package:flutter/material.dart';
-
 enum LayoutSize {
   mobile,
   desktop,
 }
 
-class Layout with ChangeNotifier {
-  LayoutSize _size;
-  LayoutSize get size => _size;
-  set size(LayoutSize size) {
-    _size = size;
-    notifyListeners();
-  }
+class Layout {
+  LayoutSize size;
 
-  Layout({required size}) : _size = size;
+  Layout({required this.size});
 }

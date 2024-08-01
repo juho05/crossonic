@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 
 AppBar createAppBar(BuildContext context, String pageTitle,
     {bool disableConnect = false}) {
+  final layout = context.read<Layout>();
   return AppBar(
     title: Text('Crossonic | $pageTitle'),
     actions: [
@@ -33,14 +34,11 @@ AppBar createAppBar(BuildContext context, String pageTitle,
                 },
               );
             }),
-      Builder(builder: (context) {
-        final layout = context.watch<Layout>();
-        if (layout.size == LayoutSize.desktop) return const SizedBox();
-        return IconButton(
+      if (layout.size == LayoutSize.mobile)
+        IconButton(
           icon: const Icon(Icons.settings),
           onPressed: () => context.push("/settings"),
-        );
-      }),
+        ),
     ],
   );
 }

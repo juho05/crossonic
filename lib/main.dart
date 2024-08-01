@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:audio_service/audio_service.dart';
 import 'package:audio_session/audio_session.dart';
 import 'package:crossonic/app.dart';
+import 'package:crossonic/components/state/layout.dart';
 import 'package:crossonic/features/auth/auth.dart';
 import 'package:crossonic/features/home/view/state/now_playing_cubit.dart';
 import 'package:crossonic/features/search/state/search_bloc.dart';
@@ -110,6 +111,7 @@ Future<void> main() async {
       RepositoryProvider.value(value: settings),
       RepositoryProvider.value(value: connectManager),
       RepositoryProvider.value(value: playlistRepository),
+      RepositoryProvider(create: (context) => Layout(size: LayoutSize.mobile))
     ],
     child: MultiBlocProvider(
       providers: [

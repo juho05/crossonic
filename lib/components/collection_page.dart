@@ -48,7 +48,7 @@ class CollectionPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final layout = context.watch<Layout>();
+    final layout = context.read<Layout>();
     return LayoutBuilder(builder: (context, constraints) {
       if (layout.size == LayoutSize.desktop) {
         return CollectionPageDesktop(

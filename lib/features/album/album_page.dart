@@ -48,7 +48,7 @@ class AlbumPage extends StatelessWidget {
                             current.changedId == album.id,
                         builder: (context, state) {
                           final isFavorite = state.favorites.contains(album.id);
-                          final layout = context.watch<Layout>();
+                          final layout = context.read<Layout>();
                           return LayoutBuilder(
                             builder: (context, constraints2) =>
                                 CoverArtWithMenu(
