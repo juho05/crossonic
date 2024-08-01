@@ -33,15 +33,16 @@ class PlaylistRepository {
     required OfflineCache offlineCache,
   })  : _apiRepository = apiRepository,
         _sharedPreferences = sharedPreferences,
-        _offlineCache = offlineCache {
-    _loadIndex().then((_) {
-      playlists.listen((_) async {
-        await _storeIndex();
-      _loadDownloads();
-      playlistDownloads.listen((value) async {
-        await _storeDownloads();
-      });
-      });
+        _offlineCache = offlineCache;
+
+  Future<void> init() async {
+    await _loadIndex();
+    playlists.listen((_) async {
+      await _storeIndex();
+    });
+    _loadDownloads();
+    playlistDownloads.listen((value) async {
+      await _storeDownloads();
     });
     _apiRepository.authStatus.listen((status) async {
       if (status == AuthStatus.unauthenticated) {
@@ -49,7 +50,7 @@ class PlaylistRepository {
         playlistDownloads.add({});
         await _offlineCache.clear();
       } else {
-        fetch();
+        await fetch();
       }
     });
   }

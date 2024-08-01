@@ -59,6 +59,7 @@ Future<void> main() async {
       apiRepository: apiRepository,
       sharedPreferences: sharedPreferences,
       offlineCache: offlineCache);
+  await playlistRepository.init();
 
   final CrossonicAudioPlayer audioPlayer;
   final NativeIntegration nativeIntegration;
