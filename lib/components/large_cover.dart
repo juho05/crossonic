@@ -344,10 +344,10 @@ class _CoverArtWithMenuState extends State<CoverArtWithMenu> {
                       Visibility(
                         visible: widget.isFavorite,
                         child: DecoratedIcon(
-                          decoration: const IconDecoration(
+                          decoration: IconDecoration(
                               border: IconBorder(
-                                  color: Color.fromARGB(255, 199, 101, 81),
-                                  width: 3)),
+                                  color: Theme.of(context).colorScheme.primary,
+                                  width: 4)),
                           icon: Icon(
                             Icons.favorite,
                             shadows: const [
