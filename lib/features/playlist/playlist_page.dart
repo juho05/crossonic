@@ -149,7 +149,7 @@ class PlaylistPage extends StatelessWidget {
                             onClick: () {
                               audioHandler.playOnNextMediaChange();
                               audioHandler.mediaQueue.replaceQueue(
-                                  List.from(state.songs)..shuffle());
+                                  List.of(state.songs)..shuffle());
                             },
                           ),
                           CollectionAction(

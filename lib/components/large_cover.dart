@@ -209,8 +209,7 @@ class _CoverArtWithMenuState extends State<CoverArtWithMenu> {
       case LargeCoverPopupMenuValue.shuffle:
         final songs = widget.getSongsShuffled != null
             ? await widget.getSongsShuffled!()
-            : (await widget.getSongs!()
-              ..shuffle());
+            : (List.of(await widget.getSongs!())..shuffle());
         if (songs == null) return;
         audioHandler.playOnNextMediaChange();
         audioHandler.mediaQueue.replaceQueue(songs);
