@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:crossonic/repositories/api/api.dart';
 import 'package:crossonic/services/audio_handler/players/player.dart';
+import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -89,6 +91,12 @@ class AudioPlayerJustAudio implements CrossonicAudioPlayer {
 
   @override
   Future<void> setCurrent(Media media, Uri url) async {
+    canSeek = url.scheme == "file" ||
+        (url.queryParameters.containsKey("format") &&
+            url.queryParameters["format"] == "raw");
+    if (!canSeek && !kIsWeb && Platform.isAndroid) {
+      url = Uri.parse("$url&estimateContentLength=true");
+    }
     _eventStream.add(AudioPlayerEvent.loading);
     _playlist?.clear();
     _currentPlayerPlaylistIndex = 0;
@@ -97,20 +105,10 @@ class AudioPlayerJustAudio implements CrossonicAudioPlayer {
       if (_nextURL != null) AudioSource.uri(_nextURL!),
     ]);
     await _player.setAudioSource(_playlist!);
-    canSeek = url.scheme == "file" ||
-        (url.queryParameters.containsKey("format") &&
-            url.queryParameters["format"] == "raw");
   }
 
   @override
   Future<void> setNext(Media? media, Uri? url) async {
-    if (_currentPlayerPlaylistIndex + 1 < _playlist!.length) {
-      _playlist!.removeAt(_currentPlayerPlaylistIndex + 1);
-    }
-    if (url != null) {
-      _playlist!.add(AudioSource.uri(url));
-    }
-    _nextURL = url;
     if (url != null) {
       _nextCanSeek = url.scheme == "file" ||
           (url.queryParameters.containsKey("format") &&
@@ -118,6 +116,20 @@ class AudioPlayerJustAudio implements CrossonicAudioPlayer {
     } else {
       _nextCanSeek = false;
     }
+    if (url != null &&
+        !_nextCanSeek &&
+        url.scheme != "file" &&
+        !kIsWeb &&
+        Platform.isAndroid) {
+      url = Uri.parse("$url&estimateContentLength=true");
+    }
+    if (_currentPlayerPlaylistIndex + 1 < _playlist!.length) {
+      _playlist!.removeAt(_currentPlayerPlaylistIndex + 1);
+    }
+    if (url != null) {
+      _playlist!.add(AudioSource.uri(url));
+    }
+    _nextURL = url;
   }
 
   @override
