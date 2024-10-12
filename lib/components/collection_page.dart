@@ -286,31 +286,6 @@ class CollectionPageDesktop extends StatelessWidget {
                               ),
                       ),
                     ),
-                  if (actions != null) const SizedBox(height: 10),
-                  if (actions != null)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      child: SizedBox(
-                        child: Wrap(
-                            alignment: WrapAlignment.center,
-                            spacing: 8,
-                            runSpacing: 8,
-                            children: actions!.map((element) {
-                              if (element.icon != null) {
-                                return ElevatedButton.icon(
-                                  icon: Icon(element.icon!),
-                                  onPressed: element.onClick,
-                                  label: Text(element.title),
-                                );
-                              } else {
-                                return ElevatedButton(
-                                  onPressed: element.onClick,
-                                  child: Text(element.title),
-                                );
-                              }
-                            }).toList()),
-                      ),
-                    ),
                 ],
               ),
             )),
@@ -334,6 +309,32 @@ class CollectionPageDesktop extends StatelessWidget {
                           .copyWith(fontSize: 20),
                     ),
                   ),
+                if (actions != null) const SizedBox(height: 10),
+                if (actions != null)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: SizedBox(
+                      child: Wrap(
+                          alignment: WrapAlignment.start,
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: actions!.map((element) {
+                            if (element.icon != null) {
+                              return ElevatedButton.icon(
+                                icon: Icon(element.icon!),
+                                onPressed: element.onClick,
+                                label: Text(element.title),
+                              );
+                            } else {
+                              return ElevatedButton(
+                                onPressed: element.onClick,
+                                child: Text(element.title),
+                              );
+                            }
+                          }).toList()),
+                    ),
+                  ),
+                if (actions != null) const SizedBox(height: 4),
                 if (content != null) content!,
               ],
             ),
