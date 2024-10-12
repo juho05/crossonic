@@ -13,6 +13,7 @@ import 'package:crossonic/components/large_cover.dart';
 import 'package:crossonic/components/song.dart';
 import 'package:crossonic/components/state/favorites_cubit.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
@@ -34,6 +35,8 @@ class AlbumPage extends StatelessWidget {
               return const Center(child: CircularProgressIndicator.adaptive());
             }
             final audioHandler = context.read<CrossonicAudioHandler>();
+            final multipleDiscs =
+                (album.subsonicSongs.last.discNumber ?? 1) > 1;
             return switch (album.status) {
               FetchStatus.initial ||
               FetchStatus.loading =>
@@ -126,17 +129,62 @@ class AlbumPage extends StatelessWidget {
                       content: Column(
                         children: List<Widget>.generate(
                           album.songs.length,
-                          (i) => Song(
-                            key: ValueKey(i),
-                            song: album.subsonicSongs[i],
-                            leadingItem: SongLeadingItem.track,
-                            showGotoAlbum: false,
-                            onTap: () {
-                              audioHandler.playOnNextMediaChange();
-                              audioHandler.mediaQueue
-                                  .replaceQueue(album.subsonicSongs, i);
-                            },
-                          ),
+                          (i) {
+                            var song = Song(
+                              key: ValueKey(i),
+                              song: album.subsonicSongs[i],
+                              leadingItem: SongLeadingItem.track,
+                              showGotoAlbum: false,
+                              onTap: () {
+                                audioHandler.playOnNextMediaChange();
+                                audioHandler.mediaQueue
+                                    .replaceQueue(album.subsonicSongs, i);
+                              },
+                            );
+                            if (multipleDiscs &&
+                                (album.subsonicSongs[i].track ?? 0) == 1) {
+                              return Column(
+                                children: [
+                                  Padding(
+                                    padding: EdgeInsets.only(
+                                      top: i == 0 ? 8 : 0,
+                                      left: 12,
+                                      right: 12,
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        const Icon(Icons.album),
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: Builder(builder: (context) {
+                                            final layout =
+                                                context.read<Layout>();
+                                            return Text(
+                                              "Disc ${album.subsonicSongs[i].discNumber}",
+                                              textAlign: TextAlign.center,
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .titleMedium!
+                                                  .copyWith(
+                                                    fontWeight: layout.size ==
+                                                            LayoutSize.mobile
+                                                        ? FontWeight.w800
+                                                        : FontWeight.bold,
+                                                  ),
+                                            );
+                                          }),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        const Icon(Icons.album),
+                                      ],
+                                    ),
+                                  ),
+                                  song,
+                                ],
+                              );
+                            }
+                            return song;
+                          },
                         ),
                       ),
                     );
