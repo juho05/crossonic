@@ -30,7 +30,7 @@ class ConnectManager {
       : _apiRepository = apiRepository {
     _apiRepository.authStatus.listen((value) async {
       if (value == AuthStatus.authenticated) {
-        await connect();
+        // await connect();
       } else {
         await disconnect();
       }
