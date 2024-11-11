@@ -137,6 +137,13 @@ class PlaylistRepository {
     _downloadOfflinePlaylists();
   }
 
+  Future<void> removePlaylistDownloads(List<String> ids) async {
+    final newMap = Map<String, bool>.from(playlistDownloads.value);
+    newMap.removeWhere((key, value) => ids.contains(key));
+    playlistDownloads.add(newMap);
+    _downloadOfflinePlaylists();
+  }
+
   bool _downloadingSongs = false;
   bool _rerunSongDownload = false;
   Future<void> _downloadOfflinePlaylists() async {
@@ -149,12 +156,12 @@ class PlaylistRepository {
     final Map<String, bool> downloaded = {};
     try {
       final downloadedSongIDs = await _offlineCache.getDownloadedSongIDs();
-      final playlists = await Future.wait(playlistDownloads.value.keys
-          .map((id) async => await getUpdatedPlaylist(id)));
-      for (var playlist in playlists) {
-        if (playlist.entry != null) {
+      final toRemove = <String>[];
+      for (var playlistID in playlistDownloads.value.keys) {
+        final playlist = await getUpdatedPlaylist(playlistID);
+        if (playlist?.entry != null) {
           bool everythingDownloaded = true;
-          for (var s in playlist.entry!) {
+          for (var s in playlist!.entry!) {
             if (!downloadedSongIDs.remove(s.id)) {
               everythingDownloaded = false;
             }
@@ -184,8 +191,11 @@ class PlaylistRepository {
               },
             ));
           }
+        } else {
+          toRemove.add(playlistID);
         }
       }
+      removePlaylistDownloads(toRemove);
       await _offlineCache.remove(downloadedSongIDs);
     } finally {
       _downloadingSongs = false;
@@ -385,15 +395,19 @@ class PlaylistRepository {
     return playlist;
   }
 
-  Future<Playlist> getUpdatedPlaylist(String id) async {
-    final playlist = playlists.value.firstWhere((p) => p.id == id);
+  Future<Playlist?> getUpdatedPlaylist(String id) async {
     try {
-      final p = await _updatePlaylist(playlist);
-      return p!;
-    } on ServerUnreachableException {
-      return playlist;
-    } catch (e) {
-      rethrow;
+      final playlist = playlists.value.firstWhere((p) => p.id == id);
+      try {
+        final p = await _updatePlaylist(playlist);
+        return p;
+      } on ServerUnreachableException {
+        return playlist;
+      } catch (e) {
+        rethrow;
+      }
+    } on StateError {
+      return null;
     }
   }
 

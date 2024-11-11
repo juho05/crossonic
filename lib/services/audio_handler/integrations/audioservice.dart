@@ -107,9 +107,9 @@ class AudioServiceIntegration extends BaseAudioHandler
       final playlist = await _playlistRepository.getUpdatedPlaylist(parts[2]);
       final List<Media> songs;
       if (parts[1] == "play") {
-        songs = playlist.entry ?? [];
+        songs = playlist?.entry ?? [];
       } else if (parts[1] == "shuffle") {
-        songs = List<Media>.from(playlist.entry ?? [])..shuffle();
+        songs = List<Media>.from(playlist?.entry ?? [])..shuffle();
       } else {
         songs = [];
       }

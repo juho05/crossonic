@@ -56,7 +56,7 @@ class ChooserDialog extends StatelessWidget {
     if (index == null) return;
     final playlist = playlists[index];
     final playlistSongs =
-        (await repository.getUpdatedPlaylist(playlist.id)).entry ?? [];
+        (await repository.getUpdatedPlaylist(playlist.id))!.entry ?? [];
     final List<Media> songsToAdd = [];
     for (int i = 0; i < songs.length; i++) {
       Media s = songs[i];
