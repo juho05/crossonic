@@ -32,6 +32,7 @@ class Scrobbler {
 
   Future<void> _clearScrobbles() async {
     _scrobbles.clear();
+    _hasCurrentMedia = false;
     await _storeScrobbles();
   }
 

@@ -80,14 +80,14 @@ Future<void> main() async {
     nativeIntegration = audioService;
   }
 
+  final audioSession = await AudioSession.instance;
   if (!kIsWeb && Platform.isAndroid) {
     audioPlayer = AudioPlayerJustAudio();
   } else if (!kIsWeb && Platform.isLinux) {
-    audioPlayer = AudioPlayerGstreamer();
+    audioPlayer = AudioPlayerGstreamer(audioSession);
   } else {
     audioPlayer = AudioPlayerAudioPlayers();
   }
-  final audioSession = await AudioSession.instance;
   await audioSession.configure(const AudioSessionConfiguration.music());
 
   final audioHandler = CrossonicAudioHandler(

@@ -6,95 +6,15 @@
 #endif
 
 #include "flutter/generated_plugin_registrant.h"
-#include "gstreamer.h"
 #include <iostream>
 
 struct _MyApplication
 {
   GtkApplication parent_instance;
   char **dart_entrypoint_arguments;
-  FlMethodChannel *gstreamer_method_channel;
-  FlEventChannel *gstreamer_event_channel;
 };
 
 G_DEFINE_TYPE(MyApplication, my_application, GTK_TYPE_APPLICATION)
-
-Gstreamer *gstreamer;
-
-static void gstreamer_call_handler(FlMethodChannel *channel, FlMethodCall *method_call, gpointer user_data)
-{
-  g_autoptr(FlMethodResponse) response = nullptr;
-  g_autoptr(GError) error = nullptr;
-  const gchar *method = fl_method_call_get_name(method_call);
-  FlValue *args = fl_method_call_get_args(method_call);
-  try
-  {
-    if (strcmp(method, "setCurrent") == 0)
-    {
-      auto url = fl_value_lookup_string(args, "url");
-      if (url == nullptr || fl_value_get_type(url) == FL_VALUE_TYPE_NULL)
-      {
-        gstreamer->set_current("");
-      }
-      else
-      {
-        auto str = fl_value_get_string(url);
-        gstreamer->set_current(str != nullptr ? str : "");
-      }
-    }
-    else if (strcmp(method, "setNext") == 0)
-    {
-      auto url = fl_value_lookup_string(args, "url");
-      if (url == nullptr || fl_value_get_type(url) == FL_VALUE_TYPE_NULL)
-      {
-        gstreamer->set_next("");
-      }
-      else
-      {
-        auto str = fl_value_get_string(url);
-        gstreamer->set_next(str != nullptr ? str : "");
-      }
-    }
-    else if (strcmp(method, "play") == 0)
-    {
-      gstreamer->play();
-    }
-    else if (strcmp(method, "pause") == 0)
-    {
-      gstreamer->pause();
-    }
-    else if (strcmp(method, "seek") == 0)
-    {
-      auto milliseconds = fl_value_lookup_string(args, "position");
-      gstreamer->seek(fl_value_get_int(milliseconds));
-    }
-    else if (strcmp(method, "getPosition") == 0)
-    {
-      auto pos = gstreamer->get_position_ms();
-      response = FL_METHOD_RESPONSE(fl_method_success_response_new(fl_value_new_int(pos)));
-    }
-    else
-    {
-      response = FL_METHOD_RESPONSE(fl_method_not_implemented_response_new());
-    }
-  }
-  catch (const char* msg)
-  {
-    response = FL_METHOD_RESPONSE(fl_method_error_response_new("EXCEPTION", msg, nullptr));
-  }
-  catch (...)
-  {
-    response = FL_METHOD_RESPONSE(fl_method_error_response_new("EXCEPTION", "An unexpected error occured.", nullptr));
-  }
-  if (response == nullptr)
-  {
-    response = FL_METHOD_RESPONSE(fl_method_success_response_new(nullptr));
-  }
-  if (!fl_method_call_respond(method_call, response, &error))
-  {
-    g_warning("Failed to send gstreamer channel response: %s", error->message);
-  }
-}
 
 // Implements GApplication::activate.
 static void my_application_activate(GApplication *application)
@@ -147,13 +67,6 @@ static void my_application_activate(GApplication *application)
 
   fl_register_plugins(FL_PLUGIN_REGISTRY(view));
 
-  g_autoptr(FlStandardMethodCodec) codec = fl_standard_method_codec_new();
-  self->gstreamer_method_channel = fl_method_channel_new(fl_engine_get_binary_messenger(fl_view_get_engine(view)), "crossonic.julianh.de/gstreamer/method", FL_METHOD_CODEC(codec));
-  fl_method_channel_set_method_call_handler(self->gstreamer_method_channel, gstreamer_call_handler, self, nullptr);
-
-  self->gstreamer_event_channel = fl_event_channel_new(fl_engine_get_binary_messenger(fl_view_get_engine(view)), "crossonic.julianh.de/gstreamer/event", FL_METHOD_CODEC(codec));
-  gstreamer->event_channel = self->gstreamer_event_channel;
-
   gtk_widget_grab_focus(GTK_WIDGET(view));
 }
 
@@ -181,7 +94,6 @@ static gboolean my_application_local_command_line(GApplication *application, gch
 // Implements GApplication::startup.
 static void my_application_startup(GApplication *application)
 {
-  gstreamer = new Gstreamer();
   G_APPLICATION_CLASS(my_application_parent_class)->startup(application);
 }
 
@@ -200,9 +112,6 @@ static void my_application_dispose(GObject *object)
 {
   MyApplication *self = MY_APPLICATION(object);
   g_clear_pointer(&self->dart_entrypoint_arguments, g_strfreev);
-  g_clear_object(&self->gstreamer_method_channel);
-  g_clear_object(&self->gstreamer_event_channel);
-  delete gstreamer;
   G_OBJECT_CLASS(my_application_parent_class)
       ->dispose(object);
 }

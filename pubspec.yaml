@@ -8,6 +8,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  gstreamer_binding:
+    path: ./native_bindings/gstreamer_binding
   dynamic_color: ^1.7.0
   http: ^1.2.1
   bloc: ^8.1.4
