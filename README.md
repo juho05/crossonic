@@ -102,6 +102,17 @@ In the directory of the repository run:
 flutter build windows --release
 ```
 
+### Android
+
+- [Download](https://gstreamer.freedesktop.org/data/pkg/android/1.24.10/gstreamer-1.0-android-universal-1.24.10.tar.xz) GStreamer for Android
+- Extract the file and rename the resulting directory to `gst-android`
+- Move `gst-android` into `./native_bindings/gstreamer_binding/third-party`
+
+In the directory of the repository run:
+```bash
+flutter build apk --release
+```
+
 ### Web
 
 No extra dependencies should be required.

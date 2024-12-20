@@ -15,7 +15,6 @@ import 'package:crossonic/services/audio_handler/audio_handler.dart';
 import 'package:crossonic/services/audio_handler/offline_cache/offline_cache.dart';
 import 'package:crossonic/services/audio_handler/players/audioplayers.dart';
 import 'package:crossonic/services/audio_handler/players/gstreamer.dart';
-import 'package:crossonic/services/audio_handler/players/justaudio.dart';
 import 'package:crossonic/services/audio_handler/players/player.dart';
 import 'package:crossonic/services/audio_handler/integrations/integration.dart';
 import 'package:crossonic/services/connect/connect_manager.dart';
@@ -81,9 +80,7 @@ Future<void> main() async {
   }
 
   final audioSession = await AudioSession.instance;
-  if (!kIsWeb && Platform.isAndroid) {
-    audioPlayer = AudioPlayerJustAudio();
-  } else if (!kIsWeb && Platform.isLinux) {
+  if (!kIsWeb && (Platform.isLinux || Platform.isAndroid)) {
     audioPlayer = AudioPlayerGstreamer(audioSession);
   } else {
     audioPlayer = AudioPlayerAudioPlayers();

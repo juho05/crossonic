@@ -85,10 +85,13 @@ void init({
 
   void onErrorWrapper(
       int code, Pointer<Char> message, Pointer<Char> debugInfo) {
-    onError!(code, message.cast<Utf8>().toDartString(),
-        debugInfo.cast<Utf8>().toDartString());
+    String dbgMsg =
+        debugInfo.address != 0 ? debugInfo.cast<Utf8>().toDartString() : "";
+    onError!(code, message.cast<Utf8>().toDartString(), dbgMsg);
     malloc.free(message);
-    malloc.free(debugInfo);
+    if (debugInfo.address != 0) {
+      malloc.free(debugInfo);
+    }
   }
 
   var nOnError = onError != null
@@ -148,6 +151,7 @@ void init({
     nOnStateChanged?.nativeFunction ?? Pointer.fromAddress(0),
     nOnStreamStart?.nativeFunction ?? Pointer.fromAddress(0),
     nOnAboutToFinish?.nativeFunction ?? Pointer.fromAddress(0),
+    Platform.isLinux ? 0 : 1,
   );
 }
 

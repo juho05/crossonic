@@ -47,7 +47,8 @@ FFI_PLUGIN_EXPORT ErrorType init(
   OnBuffering on_buffering,
   OnStateChanged on_state_changed,
   OnStreamStart on_stream_start,
-  OnAboutToFinish on_about_to_finish
+  OnAboutToFinish on_about_to_finish,
+  int run_main_loop
 );
 
 FFI_PLUGIN_EXPORT ErrorType set_state(State state);

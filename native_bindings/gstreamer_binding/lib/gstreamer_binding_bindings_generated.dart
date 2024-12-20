@@ -43,6 +43,7 @@ class GstreamerBindingBindings {
     OnStateChanged on_state_changed,
     OnStreamStart on_stream_start,
     OnAboutToFinish on_about_to_finish,
+    int run_main_loop,
   ) {
     return _init(
       on_eos,
@@ -52,16 +53,24 @@ class GstreamerBindingBindings {
       on_state_changed,
       on_stream_start,
       on_about_to_finish,
+      run_main_loop,
     );
   }
 
   late final _initPtr = _lookup<
       ffi.NativeFunction<
-          ffi.Int32 Function(OnEOS, OnError, OnWarning, OnBuffering,
-              OnStateChanged, OnStreamStart, OnAboutToFinish)>>('init');
+          ffi.Int32 Function(
+              OnEOS,
+              OnError,
+              OnWarning,
+              OnBuffering,
+              OnStateChanged,
+              OnStreamStart,
+              OnAboutToFinish,
+              ffi.Int)>>('init');
   late final _init = _initPtr.asFunction<
       int Function(OnEOS, OnError, OnWarning, OnBuffering, OnStateChanged,
-          OnStreamStart, OnAboutToFinish)>();
+          OnStreamStart, OnAboutToFinish, int)>();
 
   int set_state(
     int state,

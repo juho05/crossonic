@@ -6,6 +6,7 @@ typedef struct
 {
   GstElement *playbin;
   GstBus *bus;
+  GMainLoop *main_loop;
 
   OnEOS on_eos;
   OnError on_error;
@@ -27,6 +28,12 @@ char* copyString(const char* str) {
 
 FFI_PLUGIN_EXPORT void free_resources()
 {
+  if (data->main_loop)
+  {
+    g_main_loop_quit(data->main_loop);
+    g_main_loop_unref(data->main_loop);
+    data->main_loop = NULL;
+  }
   if (data->bus) gst_object_unref(data->bus);
   data->bus = NULL;
 
@@ -44,6 +51,11 @@ FFI_PLUGIN_EXPORT void free_resources()
 void cb_about_to_finish(GstElement* element, void* _)
 {
   data->on_about_to_finish();
+}
+
+void cb_source_setup(GstElement* element, GstElement* source, void* _)
+{
+  g_object_set(GST_OBJECT(source), "ssl-strict", 0, NULL);
 }
 
 gboolean cb_message(GstBus* bus, GstMessage *msg, void* _)
@@ -124,6 +136,12 @@ gboolean cb_message(GstBus* bus, GstMessage *msg, void* _)
   return TRUE;
 }
 
+gpointer run_main_loop_thread(gpointer _)
+{
+  g_main_loop_run(data->main_loop);
+  return NULL;
+}
+
 FFI_PLUGIN_EXPORT ErrorType init(
   OnEOS on_eos,
   OnError on_error,
@@ -131,7 +149,8 @@ FFI_PLUGIN_EXPORT ErrorType init(
   OnBuffering on_buffering,
   OnStateChanged on_state_changed,
   OnStreamStart on_stream_start,
-  OnAboutToFinish on_about_to_finish
+  OnAboutToFinish on_about_to_finish,
+  int run_main_loop
 )
 {
   gst_init(NULL, NULL);
@@ -148,6 +167,13 @@ FFI_PLUGIN_EXPORT ErrorType init(
   data->playbin = gst_element_factory_make("playbin3", NULL);
   data->bus = gst_element_get_bus(data->playbin);
   if (!data->playbin || !data->bus) return ERR_CREATE_ELEMENTS;
+
+  if (run_main_loop)
+  {
+    data->main_loop = g_main_loop_new(NULL, FALSE);
+    g_thread_new("main_loop", run_main_loop_thread, NULL);
+  }
+
   GstStateChangeReturn ret = gst_element_set_state(data->playbin, GST_STATE_READY);
   if (ret == GST_STATE_CHANGE_FAILURE)
   {
@@ -156,10 +182,13 @@ FFI_PLUGIN_EXPORT ErrorType init(
   }
 
   gst_bus_add_watch(data->bus, (GstBusFunc)cb_message, NULL);
+
+  g_signal_connect(data->playbin, "source-setup", G_CALLBACK(cb_source_setup), NULL);
   if (data->on_about_to_finish)
   {
     g_signal_connect(data->playbin, "about-to-finish", G_CALLBACK(cb_about_to_finish), NULL);
   }
+
   return ERR_NONE;
 }
 
