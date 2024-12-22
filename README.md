@@ -33,7 +33,7 @@ Not all [platforms](#supported_platforms) are properly supported yet.
   - [x] unsynced
   - [ ] synced
 - [ ] Remote control other devices running the app
-- [ ] Cast to [SONOS](https://www.sonos.com) (implemented, but *very* buggy)
+- [ ] Cast to [SONOS](https://www.sonos.com) (implemented, but *very* buggy and currently disabled)
 - [ ] Browse favorites
 - [ ] Save queues
 
@@ -73,13 +73,13 @@ Install [GStreamer](https://gstreamer.freedesktop.org/documentation/installing/o
 ##### Debian
 
 ```bash
-sudo apt-get install libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev gstreamer1.0-plugins-good
+sudo apt-get install libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev gstreamer1.0-plugins-good gstreamer1.0-plugins-bad
 ```
 
 ##### ArchLinux
 
 ```bash
-sudo pacman -S gstreamer gst-libav gst-plugins-base gst-plugins-good
+sudo pacman -S gstreamer gst-libav gst-plugins-base gst-plugins-goodgstreamer1.0-plugins-bad
 ```
 
 #### Build

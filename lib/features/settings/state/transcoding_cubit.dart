@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:bloc/bloc.dart';
 import 'package:crossonic/repositories/settings/settings_repository.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 
 part 'transcoding_state.dart';
 
@@ -14,13 +17,14 @@ class TranscodingOption {
 }
 
 class TranscodingCubit extends Cubit<TranscodingState> {
-  static const Map<String, TranscodingOption> options = {
-    "default": TranscodingOption(null, "Default", null, null),
-    "raw": TranscodingOption("raw", "Original", 0, 0),
-    "mp3": TranscodingOption("mp3", "MP3", 64, 320),
-    "opus": TranscodingOption("opus", "Opus", 32, 512),
-    "vorbis": TranscodingOption("vorbis", "Vorbis", 64, 500),
-    "aac": TranscodingOption("aac", "AAC", 64, 500),
+  static Map<String, TranscodingOption> options = {
+    "default": const TranscodingOption(null, "Default", null, null),
+    "raw": const TranscodingOption("raw", "Original", 0, 0),
+    "mp3": const TranscodingOption("mp3", "MP3", 64, 320),
+    "opus": const TranscodingOption("opus", "Opus", 32, 512),
+    "vorbis": const TranscodingOption("vorbis", "Vorbis", 64, 500),
+    if (kIsWeb || !Platform.isAndroid)
+      "aac": const TranscodingOption("aac", "AAC", 64, 500),
   };
 
   final Settings _settings;

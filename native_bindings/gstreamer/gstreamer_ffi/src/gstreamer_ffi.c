@@ -1,6 +1,9 @@
 #include "gstreamer_ffi.h"
 
 #include <gst/gst.h>
+#ifdef __ANDROID__
+#include <android/log.h>
+#endif
 
 typedef struct
 {
@@ -142,6 +145,24 @@ gpointer run_main_loop_thread(gpointer _)
   return NULL;
 }
 
+#ifdef __ANDROID__
+void gstAndroidLog(GstDebugCategory * category,
+                   GstDebugLevel      level,
+                   const gchar      * file,
+                   const gchar      * function,
+                   gint               line,
+                   GObject          * object,
+                   GstDebugMessage  * message,
+                   gpointer           data)
+{
+  if (level <= gst_debug_category_get_threshold (category))
+  {
+    __android_log_print(ANDROID_LOG_ERROR, "flutter", "%s,%s: %s",
+                        file, function, gst_debug_message_get(message));
+  }
+}
+#endif
+
 FFI_PLUGIN_EXPORT ErrorType init(
   OnEOS on_eos,
   OnError on_error,
@@ -153,6 +174,11 @@ FFI_PLUGIN_EXPORT ErrorType init(
   int run_main_loop
 )
 {
+#ifdef __ANDROID__
+  gst_debug_set_default_threshold(GST_LEVEL_ERROR);
+  gst_debug_add_log_function(&gstAndroidLog, NULL, NULL);
+#endif
+
   gst_init(NULL, NULL);
 
   data = calloc(1, sizeof(GstData));

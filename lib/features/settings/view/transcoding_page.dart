@@ -24,7 +24,7 @@ class _TranscodingPageState extends State<TranscodingPage> {
         create: (context) => TranscodingCubit(context.read<Settings>()),
         child: BlocBuilder<TranscodingCubit, TranscodingState>(
           builder: (context, state) {
-            const options = TranscodingCubit.options;
+            final options = TranscodingCubit.options;
 
             const bitrates = [32, 64, 96, 128, 192, 256, 320, 410, 500];
             final wifiFormat = state.wifiFormat ?? "default";
