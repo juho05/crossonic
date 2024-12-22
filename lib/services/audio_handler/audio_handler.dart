@@ -59,6 +59,8 @@ class CrossonicAudioHandler {
 
   final CrossonicAudioPlayer _localPlayer;
   CrossonicAudioPlayer _player;
+  bool _playerLoaded = false;
+
   final APIRepository _apiRepository;
   final NativeIntegration _integration;
   final Settings _settings;
@@ -126,46 +128,31 @@ class CrossonicAudioHandler {
     _playerEventStream = _localPlayer.eventStream.listen(_playerEvent);
   }
 
-  Future<void> _controlDevice(Device? device) async {
-    if (device == null && _player == _localPlayer) return;
-    _playerEventStream?.cancel();
-    _playerEventStream = null;
-
-    final state = _playbackState.value;
-
-    if (_player == _localPlayer) {
-      await _player.stop();
-    } else {
-      await _player.dispose();
+  Future<void> _ensurePlayerLoaded([bool restorePlayerState = true]) async {
+    if (_playerLoaded) return;
+    print("initializing player...");
+    _player.init();
+    _playerLoaded = true;
+    if (restorePlayerState) {
+      await _restorePlayerState();
     }
+  }
 
+  Future<void> _restorePlayerState() async {
+    print("restoring player state...");
     final media = _queue.current.value;
-    if (device == null) {
-      _player = _localPlayer;
-    } else {
-      _player = AudioPlayerRemote(device, _connectManager);
-      await _player.stop();
-      await Future.delayed(const Duration(seconds: 1));
-      if (media != null) {
-        _player.eventStream.add(AudioPlayerEvent.loading);
-      }
-    }
-
     _positionOffset = Duration.zero;
-
-    _playerEventStream = _player.eventStream.listen(_playerEvent);
-    _currentTranscode = await _settings.getTranscodeSettings();
     if (media != null) {
       await _player.setCurrent(
         media.item,
         await _getStreamURL(
           songID: media.item.id,
-          timeOffset: state.position.inSeconds,
+          timeOffset: _playbackState.value.position.inSeconds,
           transcode: _currentTranscode,
         ),
       );
-      _positionOffset = state.position;
-      if (state.status == CrossonicPlaybackStatus.playing) {
+      _positionOffset = _playbackState.value.position;
+      if (_playbackState.value.status == CrossonicPlaybackStatus.playing) {
         await play();
       } else {
         await pause();
@@ -184,11 +171,43 @@ class CrossonicAudioHandler {
     } else {
       await stop();
     }
+  }
+
+  Future<void> _disposePlayer() async {
+    if (!_playerLoaded ||
+        _playbackState.value.status == CrossonicPlaybackStatus.playing ||
+        _playbackState.value.status == CrossonicPlaybackStatus.loading) return;
+    _playerLoaded = false;
+    print("disposing player...");
+    await _player.dispose();
+  }
+
+  Future<void> _controlDevice(Device? device) async {
+    if (device == null && _player == _localPlayer) return;
+    _playerEventStream?.cancel();
+    _playerEventStream = null;
+
+    await _disposePlayer();
+
+    if (device == null) {
+      _player = _localPlayer;
+      await _ensurePlayerLoaded();
+    } else {
+      _player = AudioPlayerRemote(device, _connectManager);
+      _player.init();
+      await _player.stop();
+      await Future.delayed(const Duration(seconds: 1));
+    }
+
+    _playerEventStream = _player.eventStream.listen(_playerEvent);
+    _currentTranscode = await _settings.getTranscodeSettings();
 
     _updatePosition(true);
   }
 
+  Timer? _disposePlayerTimeout;
   void _playerEvent(AudioPlayerEvent event) {
+    if (!_playerLoaded) return;
     if (event == AudioPlayerEvent.advance) {
       _queue.advance();
       return;
@@ -217,6 +236,15 @@ class CrossonicAudioHandler {
         } else {
           _stopPositionTimer();
         }
+
+        if (status != CrossonicPlaybackStatus.playing &&
+            status != CrossonicPlaybackStatus.loading) {
+          _disposePlayerTimeout ??=
+              Timer(const Duration(minutes: 3), _disposePlayer);
+        } else {
+          _disposePlayerTimeout?.cancel();
+          _disposePlayerTimeout = null;
+        }
       }
     }
   }
@@ -243,6 +271,8 @@ class CrossonicAudioHandler {
       }
       return;
     }
+
+    await _ensurePlayerLoaded(false);
 
     if (media.currentChanged) {
       _playOnNextMediaChange = false;
@@ -309,6 +339,9 @@ class CrossonicAudioHandler {
     }
     if (_playbackState.value.status != CrossonicPlaybackStatus.playing &&
         _playbackState.value.status != CrossonicPlaybackStatus.paused) return;
+
+    await _ensurePlayerLoaded();
+
     final pos = await _player.position;
     final bufferedPos = await _player.bufferedPosition;
     _playbackState.add(_playbackState.value.copyWith(
@@ -338,10 +371,12 @@ class CrossonicAudioHandler {
 
   Future<void> play() async {
     if (_queue.current.valueOrNull == null) return;
+    await _ensurePlayerLoaded();
     await _player.play();
   }
 
   Future<void> pause() async {
+    await _ensurePlayerLoaded();
     await _player.pause();
   }
 
@@ -351,12 +386,13 @@ class CrossonicAudioHandler {
     _integration.updateMedia(null, null);
     _integration.updatePosition(Duration.zero);
     _integration.updatePlaybackState(CrossonicPlaybackStatus.stopped);
-    await _player.stop();
+    await _disposePlayer();
     _queue.clear();
   }
 
   Future<void> seek(Duration position) async {
     final media = _queue.current.valueOrNull?.item;
+    await _ensurePlayerLoaded();
     if (media == null) return;
     if (_player.canSeek) {
       await _player.seek(position);

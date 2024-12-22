@@ -22,7 +22,41 @@ class AudioPlayerGstreamer implements CrossonicAudioPlayer {
 
   bool _newStreamStart = false;
 
-  AudioPlayerGstreamer(AudioSession audioSession) {
+  final AudioSession _audioSession;
+
+  AudioPlayerGstreamer(AudioSession audioSession)
+      : _audioSession = audioSession {
+    _audioSession.interruptionEventStream.listen((event) async {
+      if (event.begin) {
+        switch (event.type) {
+          case AudioInterruptionType.duck:
+            _setVolume(_volume * 0.5);
+            break;
+          case AudioInterruptionType.pause:
+          case AudioInterruptionType.unknown:
+            await pause();
+            break;
+        }
+      } else {
+        switch (event.type) {
+          case AudioInterruptionType.duck:
+            _setVolume(min(_volume * 2, 1));
+            break;
+          case AudioInterruptionType.pause:
+          case AudioInterruptionType.unknown:
+            await play();
+            break;
+        }
+      }
+    });
+
+    _audioSession.becomingNoisyEventStream.listen((_) async {
+      await pause();
+    });
+  }
+
+  @override
+  void init() async {
     Timer? debounce;
     gst.init(
       onStateChanged: (oldState, newState) {
@@ -31,11 +65,11 @@ class AudioPlayerGstreamer implements CrossonicAudioPlayer {
         if (debounce?.isActive ?? false) debounce?.cancel();
         debounce = Timer(const Duration(milliseconds: 50), () async {
           if (newState == gst.State.playing) {
-            if (!await audioSession.setActive(true)) {
+            if (!await _audioSession.setActive(true)) {
               gst.setState(gst.State.paused);
             }
           } else {
-            await audioSession.setActive(false);
+            await _audioSession.setActive(false);
           }
           switch (newState) {
             case gst.State.paused:
@@ -90,34 +124,6 @@ class AudioPlayerGstreamer implements CrossonicAudioPlayer {
         }
       },
     );
-
-    audioSession.interruptionEventStream.listen((event) async {
-      if (event.begin) {
-        switch (event.type) {
-          case AudioInterruptionType.duck:
-            _setVolume(_volume * 0.5);
-            break;
-          case AudioInterruptionType.pause:
-          case AudioInterruptionType.unknown:
-            await pause();
-            break;
-        }
-      } else {
-        switch (event.type) {
-          case AudioInterruptionType.duck:
-            _setVolume(min(_volume * 2, 1));
-            break;
-          case AudioInterruptionType.pause:
-          case AudioInterruptionType.unknown:
-            await play();
-            break;
-        }
-      }
-    });
-
-    audioSession.becomingNoisyEventStream.listen((_) async {
-      await pause();
-    });
   }
 
   void _setVolume(double volume) {
@@ -141,7 +147,7 @@ class AudioPlayerGstreamer implements CrossonicAudioPlayer {
 
   @override
   Future<void> dispose() async {
-    await stop();
+    gst.freeResources();
   }
 
   @override

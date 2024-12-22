@@ -23,7 +23,10 @@ class AudioPlayerRemote implements CrossonicAudioPlayer {
 
   AudioPlayerRemote(Device device, ConnectManager manager)
       : _device = device,
-        _manager = manager {
+        _manager = manager;
+
+  @override
+  void init() {
     _manager.speakerState.listen((value) async {
       if (value == null) return;
       var state = AudioPlayerEvent.values.byName(value.state);

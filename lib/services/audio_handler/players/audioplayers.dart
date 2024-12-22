@@ -20,7 +20,10 @@ class AudioPlayerAudioPlayers implements CrossonicAudioPlayer {
   bool canSeek = false;
   bool _nextCanSeek = false;
 
-  AudioPlayerAudioPlayers() {
+  AudioPlayerAudioPlayers();
+
+  @override
+  void init() {
     for (var i = 0; i < _players.length; i++) {
       _players[i].onPlayerComplete.listen((_) async {
         if (i != _currentPlayer) {
