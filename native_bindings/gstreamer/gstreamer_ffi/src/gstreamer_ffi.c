@@ -1,4 +1,4 @@
-#include "gstreamer_binding.h"
+#include "gstreamer_ffi.h"
 
 #include <gst/gst.h>
 

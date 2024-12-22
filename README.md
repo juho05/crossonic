@@ -42,12 +42,11 @@ Not all [platforms](#supported_platforms) are properly supported yet.
 While this app can be built for every platform [Flutter](https://flutter.dev) supports (although some additional configuration might be necessary), playback can be very buggy on some platforms and might not support all features.
 
 **reliable**
-- Linux (*gapless*)
-- Windows
+- Linux
+- Android
+- Windows (*no gapless*)
 
 **semi-reliable**
-- Android (*gapless*)
-  - playback sometimes restarting when streaming transcoded media that's not cached on the server
 - Web (*no playlist download*)
   - Safari playback randomly stops when streaming transcoded media
 
@@ -106,7 +105,7 @@ flutter build windows --release
 
 - [Download](https://gstreamer.freedesktop.org/data/pkg/android/1.24.10/gstreamer-1.0-android-universal-1.24.10.tar.xz) GStreamer for Android
 - Extract the file and rename the resulting directory to `gst-android`
-- Move `gst-android` into `./native_bindings/gstreamer_binding/third-party`
+- Move `gst-android` into `./native_bindings/gstreamer/gstreamer_ffi/third-party`
 
 In the directory of the repository run:
 ```bash

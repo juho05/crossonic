@@ -592,10 +592,24 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.3.1"
-  gstreamer_binding:
+  gstreamer:
     dependency: "direct main"
     description:
-      path: "native_bindings/gstreamer_binding"
+      path: "native_bindings/gstreamer/gstreamer"
+      relative: true
+    source: path
+    version: "0.0.1"
+  gstreamer_ffi:
+    dependency: transitive
+    description:
+      path: "native_bindings/gstreamer/gstreamer_ffi"
+      relative: true
+    source: path
+    version: "0.0.1"
+  gstreamer_platform_interface:
+    dependency: transitive
+    description:
+      path: "native_bindings/gstreamer/gstreamer_platform_interface"
       relative: true
     source: path
     version: "0.0.1"

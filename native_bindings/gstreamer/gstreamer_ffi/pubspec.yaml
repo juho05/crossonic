@@ -1,0 +1,30 @@
+name: gstreamer_ffi
+description: "Native Gstreamer bindings using ffigen"
+version: 0.0.1
+publish_to: none
+
+environment:
+  sdk: ">=3.3.4 <4.0.0"
+  flutter: ">=3.3.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  ffi: ^2.1.0
+  gstreamer_platform_interface:
+    path: ../gstreamer_platform_interface
+
+dev_dependencies:
+  ffigen: ^9.0.1
+  flutter_lints: ^3.0.0
+
+flutter:
+  plugin:
+    implements: gstreamer
+    platforms:
+      android:
+        ffiPlugin: true
+        dartPluginClass: GstreamerFFI
+      linux:
+        ffiPlugin: true
+        dartPluginClass: GstreamerFFI

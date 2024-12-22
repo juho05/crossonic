@@ -1,0 +1,24 @@
+name: gstreamer
+description: "Native Gstreamer bindings"
+version: 0.0.1
+publish_to: none
+
+flutter:
+  plugin:
+    platforms:
+      linux:
+        default_package: gstreamer_ffi
+      android:
+        default_package: gstreamer_ffi
+
+environment:
+  sdk: ">=3.3.4 <4.0.0"
+  flutter: ">=3.3.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  gstreamer_platform_interface:
+    path: ../gstreamer_platform_interface
+  gstreamer_ffi:
+    path: ../gstreamer_ffi

@@ -6,7 +6,7 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:rxdart/rxdart.dart';
 
 class AudioPlayerAudioPlayers implements CrossonicAudioPlayer {
-  final List<AudioPlayer> _players = [AudioPlayer(), AudioPlayer()];
+  final List<AudioPlayer> _players = [];
   int _currentPlayer = 0;
 
   Media? _currentMedia;
@@ -24,7 +24,8 @@ class AudioPlayerAudioPlayers implements CrossonicAudioPlayer {
 
   @override
   void init() {
-    for (var i = 0; i < _players.length; i++) {
+    for (var i = 0; i < 2; i++) {
+      _players[i] = AudioPlayer();
       _players[i].onPlayerComplete.listen((_) async {
         if (i != _currentPlayer) {
           _players[i].pause();
@@ -138,6 +139,7 @@ class AudioPlayerAudioPlayers implements CrossonicAudioPlayer {
     for (var i = 0; i < _players.length; i++) {
       await _players[i].dispose();
     }
+    _players.clear();
   }
 
   @override

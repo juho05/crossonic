@@ -4,8 +4,8 @@ import 'dart:math';
 import 'package:audio_session/audio_session.dart';
 import 'package:crossonic/repositories/api/models/media_model.dart';
 import 'package:crossonic/services/audio_handler/players/player.dart';
+import 'package:gstreamer/gstreamer.dart' as gst;
 import 'package:rxdart/rxdart.dart';
-import 'package:gstreamer_binding/gstreamer_binding.dart' as gst;
 
 class AudioPlayerGstreamer implements CrossonicAudioPlayer {
   @override
@@ -171,7 +171,6 @@ class AudioPlayerGstreamer implements CrossonicAudioPlayer {
   Future<void> stop() async {
     _buffering = false;
     _eventStream.add(AudioPlayerEvent.stopped);
-    // TODO free resources and re-init when needed
     _desiredState = AudioPlayerEvent.stopped;
     _activateDesiredState();
   }

@@ -1,0 +1,14 @@
+name: gstreamer_platform_interface
+description: "Native Gstreamer bindings platform interface"
+version: 0.0.1
+homepage:
+publish_to: none
+
+environment:
+  sdk: ">=3.3.4 <4.0.0"
+  flutter: ">=3.3.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  plugin_platform_interface: ^2.1.0

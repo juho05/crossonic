@@ -239,8 +239,11 @@ class CrossonicAudioHandler {
 
         if (status != CrossonicPlaybackStatus.playing &&
             status != CrossonicPlaybackStatus.loading) {
-          _disposePlayerTimeout ??=
-              Timer(const Duration(minutes: 3), _disposePlayer);
+          // web browsers stop media os integration without active player
+          if (!kIsWeb) {
+            _disposePlayerTimeout ??=
+                Timer(const Duration(minutes: 3), _disposePlayer);
+          }
         } else {
           _disposePlayerTimeout?.cancel();
           _disposePlayerTimeout = null;

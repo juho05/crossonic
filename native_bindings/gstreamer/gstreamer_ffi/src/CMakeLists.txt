@@ -3,7 +3,7 @@
 # the plugin to fail to compile for some customers of the plugin.
 cmake_minimum_required(VERSION 3.10)
 
-project(gstreamer_binding_library VERSION 0.0.1 LANGUAGES C)
+project(gstreamer_ffi_library VERSION 0.0.1 LANGUAGES C)
 
 IF(ANDROID OR __ANDROID__)
   SET(GST_FOLDER ${CMAKE_CURRENT_SOURCE_DIR}/../third-party/gst-android)
@@ -65,16 +65,16 @@ ELSE()
   include_directories(${GST_INCLUDE_DIRS})
 ENDIF()
 
-add_library(gstreamer_binding SHARED
-  "gstreamer_binding.c"
+add_library(gstreamer_ffi SHARED
+  "gstreamer_ffi.c"
   ${APPENDED_SOURCE}
 )
 
-target_link_libraries(gstreamer_binding PRIVATE ${GST_LDFLAGS} ${LINK_LIBS})
+target_link_libraries(gstreamer_ffi PRIVATE ${GST_LDFLAGS} ${LINK_LIBS})
 
-set_target_properties(gstreamer_binding PROPERTIES
-  PUBLIC_HEADER gstreamer_binding.h
-  OUTPUT_NAME "gstreamer_binding"
+set_target_properties(gstreamer_ffi PROPERTIES
+  PUBLIC_HEADER gstreamer_ffi.h
+  OUTPUT_NAME "gstreamer_ffi"
 )
 
-target_compile_definitions(gstreamer_binding PUBLIC DART_SHARED_LIB)
+target_compile_definitions(gstreamer_ffi PUBLIC DART_SHARED_LIB)
