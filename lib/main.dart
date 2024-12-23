@@ -22,6 +22,7 @@ import 'package:crossonic/services/scrobble/scrobbler.dart';
 import 'package:crossonic/components/state/favorites_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:optimize_battery/optimize_battery.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -65,15 +66,27 @@ Future<void> main() async {
   if (!kIsWeb && Platform.isWindows) {
     nativeIntegration = SMTCIntegration();
   } else {
+    var androidBackgroundAvailable = true;
+    if (Platform.isAndroid) {
+      androidBackgroundAvailable =
+          await OptimizeBattery.isIgnoringBatteryOptimizations();
+      if (!androidBackgroundAvailable) {
+        await OptimizeBattery.stopOptimizingBatteryUsage();
+        // because there is no way to know when/if the user clicks yes on the dialog
+        // androidBackgroundAvailable stays false until the next start of the app
+      }
+    }
+    print(androidBackgroundAvailable);
+
     final audioService = await AudioService.init(
         builder: () => AudioServiceIntegration(
             apiRepository: apiRepository,
             playlistRepository: playlistRepository),
-        config: const AudioServiceConfig(
+        config: AudioServiceConfig(
           androidNotificationChannelId: "de.julianh.crossonic",
           androidNotificationChannelName: "Music playback",
           androidNotificationIcon: "drawable/ic_stat_crossonic",
-          androidStopForegroundOnPause: false,
+          androidStopForegroundOnPause: androidBackgroundAvailable,
           androidNotificationChannelDescription: "Playback notification",
         ));
     nativeIntegration = audioService;
