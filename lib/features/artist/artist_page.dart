@@ -190,39 +190,25 @@ class ArtistPage extends StatelessWidget {
                       content: Padding(
                         padding: const EdgeInsets.symmetric(
                             vertical: 8, horizontal: 16),
-                        child: LayoutBuilder(
-                          builder: (context, constraints) {
-                            return Column(
-                              crossAxisAlignment: constraints.maxWidth > 500
-                                  ? CrossAxisAlignment.stretch
-                                  : CrossAxisAlignment.center,
-                              children: [
-                                Wrap(
-                                  spacing: constraints.maxWidth <= 462 &&
-                                          constraints.maxWidth > 380
-                                      ? 30
-                                      : 15,
-                                  runSpacing: 12,
-                                  alignment: WrapAlignment.start,
-                                  children: List<Widget>.generate(
-                                      artist.albums.length,
-                                      (i) => SizedBox(
-                                            height: 180,
-                                            child: Album(
-                                              id: artist.albums[i].id,
-                                              name: artist.albums[i].name,
-                                              coverID: artist.albums[i].coverID,
-                                              extraInfo: artist
-                                                          .albums[i].year !=
-                                                      null
-                                                  ? "${artist.albums[i].year}"
-                                                  : "Unknown year",
-                                            ),
-                                          )),
-                                ),
-                              ],
-                            );
-                          },
+                        child: GridView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          gridDelegate:
+                              const SliverGridDelegateWithMaxCrossAxisExtent(
+                            maxCrossAxisExtent: 200,
+                            childAspectRatio: 4.0 / 5,
+                            crossAxisSpacing: 10,
+                            mainAxisSpacing: 10,
+                          ),
+                          itemCount: artist.albums.length,
+                          itemBuilder: (context, i) => Album(
+                            id: artist.albums[i].id,
+                            name: artist.albums[i].name,
+                            coverID: artist.albums[i].coverID,
+                            extraInfo: artist.albums[i].year != null
+                                ? "${artist.albums[i].year}"
+                                : "Unknown year",
+                          ),
                         ),
                       ),
                     );

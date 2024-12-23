@@ -76,7 +76,6 @@ Future<void> main() async {
         // androidBackgroundAvailable stays false until the next start of the app
       }
     }
-    print(androidBackgroundAvailable);
 
     final audioService = await AudioService.init(
         builder: () => AudioServiceIntegration(
