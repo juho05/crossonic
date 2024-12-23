@@ -28,3 +28,6 @@ flutter:
       linux:
         ffiPlugin: true
         dartPluginClass: GstreamerFFI
+      macos:
+        ffiPlugin: true
+        dartPluginClass: GstreamerFFI

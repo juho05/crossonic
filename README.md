@@ -44,6 +44,7 @@ While this app can be built for every platform [Flutter](https://flutter.dev) su
 **reliable**
 - Linux
 - Android
+- macOS
 - Windows (*no gapless*)
 
 **semi-reliable**
@@ -51,7 +52,6 @@ While this app can be built for every platform [Flutter](https://flutter.dev) su
   - Safari playback randomly stops when streaming transcoded media
 
 **unsupported**
-- macOS
 - iOS
 
 ## Build/run
@@ -68,18 +68,19 @@ cd crossonic
 
 #### Install dependencies
 
-Install [GStreamer](https://gstreamer.freedesktop.org/documentation/installing/on-linux.html?gi-language=c).
+- Install [GStreamer](https://gstreamer.freedesktop.org/documentation/installing/on-linux.html?gi-language=c).
+- Install libsecret-1-0 and libjsoncpp1
 
 ##### Debian
 
 ```bash
-sudo apt-get install libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev gstreamer1.0-plugins-good gstreamer1.0-plugins-bad
+sudo apt-get install libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev gstreamer1.0-plugins-good gstreamer1.0-plugins-bad libsecret-1-dev libjsoncpp-dev
 ```
 
 ##### ArchLinux
 
 ```bash
-sudo pacman -S gstreamer gst-libav gst-plugins-base gst-plugins-goodgstreamer1.0-plugins-bad
+sudo pacman -S gstreamer gst-libav gst-plugins-base gst-plugins-goodgstreamer1.0-plugins-bad libsecret jsoncpp
 ```
 
 #### Build
@@ -94,11 +95,20 @@ The built executable is at `./build/linux/x64/release/bundle/Crossonic`.
 
 ### Windows
 
-No extra dependencies should be required.
+No additional dependencies should be required.
 
 In the directory of the repository run:
 ```bash
 flutter build windows --release
+```
+
+### macOS
+
+- Install [GStreamer](https://gstreamer.freedesktop.org/download/#macos) (*runtime* **and** *development*)
+
+In the directory of the repository run:
+```bash
+flutter build macos --release
 ```
 
 ### Android
@@ -114,7 +124,7 @@ flutter build apk --release
 
 ### Web
 
-No extra dependencies should be required.
+No additional dependencies should be required.
 
 In the directory of the repository run:
 ```bash

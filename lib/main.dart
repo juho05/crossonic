@@ -92,7 +92,7 @@ Future<void> main() async {
   }
 
   final audioSession = await AudioSession.instance;
-  if (!kIsWeb && (Platform.isLinux || Platform.isAndroid)) {
+  if (!kIsWeb && (Platform.isLinux || Platform.isAndroid || Platform.isMacOS)) {
     audioPlayer = AudioPlayerGstreamer(audioSession);
   } else {
     audioPlayer = AudioPlayerAudioPlayers();

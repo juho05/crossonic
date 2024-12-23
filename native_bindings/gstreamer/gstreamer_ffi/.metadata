@@ -21,6 +21,9 @@ migration:
     - platform: linux
       create_revision: 54e66469a933b60ddf175f858f82eaeb97e48c8d
       base_revision: 54e66469a933b60ddf175f858f82eaeb97e48c8d
+    - platform: macos
+      create_revision: 54e66469a933b60ddf175f858f82eaeb97e48c8d
+      base_revision: 54e66469a933b60ddf175f858f82eaeb97e48c8d
 
   # User provided section
 
