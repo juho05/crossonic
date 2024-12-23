@@ -13,7 +13,6 @@ import 'package:crossonic/components/large_cover.dart';
 import 'package:crossonic/components/song.dart';
 import 'package:crossonic/components/state/favorites_cubit.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
