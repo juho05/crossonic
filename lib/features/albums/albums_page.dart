@@ -103,6 +103,17 @@ class _AlbumsPageBodyState extends State<AlbumsPageBody> {
                 Future.delayed(const Duration(milliseconds: 200))
                     .then((value) => _onScroll());
               }
+              if (state.albums.isEmpty) {
+                switch (state.status) {
+                  case FetchStatus.success:
+                    return const Center(child: Text("No albums found"));
+                  case FetchStatus.failure:
+                    return const Center(child: Icon(Icons.wifi_off));
+                  default:
+                    return const Center(
+                        child: CircularProgressIndicator.adaptive());
+                }
+              }
               return Expanded(
                 child: GridView.builder(
                   shrinkWrap: true,
@@ -113,15 +124,26 @@ class _AlbumsPageBodyState extends State<AlbumsPageBody> {
                     crossAxisSpacing: 10,
                     mainAxisSpacing: 10,
                   ),
-                  itemCount: state.albums.length,
-                  itemBuilder: (context, i) => Album(
-                    id: state.albums[i].id,
-                    name: state.albums[i].name,
-                    coverID: state.albums[i].coverID,
-                    artists: state.albums[i].artists.artists.toList(),
-                    extraInfo:
-                        "${state.albums[i].artists.displayName}${state.albums[i].year != null ? " • ${state.albums[i].year}" : ""}",
-                  ),
+                  itemCount: state.reachedEnd
+                      ? state.albums.length
+                      : state.albums.length + 1,
+                  itemBuilder: (context, i) {
+                    if (i == state.albums.length) {
+                      if (state.status == FetchStatus.failure) {
+                        const Center(child: Icon(Icons.wifi_off));
+                      }
+                      return const Center(
+                          child: CircularProgressIndicator.adaptive());
+                    }
+                    return Album(
+                      id: state.albums[i].id,
+                      name: state.albums[i].name,
+                      coverID: state.albums[i].coverID,
+                      artists: state.albums[i].artists.artists.toList(),
+                      extraInfo:
+                          "${state.albums[i].artists.displayName}${state.albums[i].year != null ? " • ${state.albums[i].year}" : ""}",
+                    );
+                  },
                 ),
               );
             },
