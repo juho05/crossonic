@@ -52,6 +52,11 @@ dependency_overrides:
   win32: ^5.5.3
   flutter_secure_storage_macos:
     path: ./dependency_overrides/flutter_secure_storage/flutter_secure_storage_macos
+  dynamic_color:
+    git:
+      url: https://github.com/hasali19/material-foundation-flutter-packages.git
+      ref: "78667e1"
+      path: packages/dynamic_color
 
 dev_dependencies:
   flutter_test:

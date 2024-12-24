@@ -92,18 +92,20 @@ class _MainPageMobileState extends State<MainPageMobile> {
           },
         );
       }),
-      bottomNavigationBar: SizedBox(
-        height: 60,
-        child: BottomNavigation(
-          currentIndex: widget._navigationShell.currentIndex,
-          onIndexChanged: (newIndex) {
-            if (_slidingUpPanelController.isAttached) {
-              _slidingUpPanelController.close();
-            }
-            widget._navigationShell.goBranch(newIndex,
-                initialLocation:
-                    newIndex == widget._navigationShell.currentIndex);
-          },
+      bottomNavigationBar: SafeArea(
+        child: SizedBox(
+          height: 60,
+          child: BottomNavigation(
+            currentIndex: widget._navigationShell.currentIndex,
+            onIndexChanged: (newIndex) {
+              if (_slidingUpPanelController.isAttached) {
+                _slidingUpPanelController.close();
+              }
+              widget._navigationShell.goBranch(newIndex,
+                  initialLocation:
+                      newIndex == widget._navigationShell.currentIndex);
+            },
+          ),
         ),
       ),
     );
