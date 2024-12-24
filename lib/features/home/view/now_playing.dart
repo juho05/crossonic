@@ -528,7 +528,9 @@ class NowPlayingDesktop extends StatelessWidget {
                             ),
                             const SizedBox(width: 5),
                             if (state.playbackState.status ==
-                                CrossonicPlaybackStatus.loading)
+                                    CrossonicPlaybackStatus.loading ||
+                                state.playbackState.status ==
+                                    CrossonicPlaybackStatus.stopped)
                               const SizedBox(
                                   width: 40,
                                   height: 40,
@@ -537,7 +539,9 @@ class NowPlayingDesktop extends StatelessWidget {
                                     child: CircularProgressIndicator.adaptive(),
                                   )),
                             if (state.playbackState.status !=
-                                CrossonicPlaybackStatus.loading)
+                                    CrossonicPlaybackStatus.loading &&
+                                state.playbackState.status !=
+                                    CrossonicPlaybackStatus.stopped)
                               IconButton(
                                 icon: Icon(
                                   state.playbackState.status ==

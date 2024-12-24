@@ -420,7 +420,9 @@ class PlaylistRepository {
         (p) {
           if (p.id == playlist.id) newPlaylist = p;
           if (p.id != playlist.id ||
-              (p.changed == playlist.changed && p.entry != null)) return p;
+              (p.changed == playlist.changed && p.entry != null)) {
+            return p;
+          }
           updateDownloads = true;
           final pl = Playlist(
             id: p.id,

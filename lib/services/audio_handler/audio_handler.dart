@@ -176,7 +176,9 @@ class CrossonicAudioHandler {
   Future<void> _disposePlayer() async {
     if (!_playerLoaded ||
         _playbackState.value.status == CrossonicPlaybackStatus.playing ||
-        _playbackState.value.status == CrossonicPlaybackStatus.loading) return;
+        _playbackState.value.status == CrossonicPlaybackStatus.loading) {
+      return;
+    }
     _playerLoaded = false;
     print("disposing player...");
     await _player.dispose();
@@ -341,7 +343,9 @@ class CrossonicAudioHandler {
       return;
     }
     if (_playbackState.value.status != CrossonicPlaybackStatus.playing &&
-        _playbackState.value.status != CrossonicPlaybackStatus.paused) return;
+        _playbackState.value.status != CrossonicPlaybackStatus.paused) {
+      return;
+    }
 
     await _ensurePlayerLoaded();
 

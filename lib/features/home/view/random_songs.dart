@@ -20,7 +20,7 @@ class RandomSongs extends StatelessWidget {
             context.push("/home/randomSongs");
           },
           style: TextButton.styleFrom(
-            foregroundColor: theme.colorScheme.onBackground,
+            foregroundColor: theme.colorScheme.onSurface,
             textStyle: theme.textTheme.headlineSmall!.copyWith(fontSize: 20),
           ),
           child: const Row(

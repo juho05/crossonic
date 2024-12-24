@@ -20,7 +20,7 @@ class HomeCarousel extends StatelessWidget {
         TextButton(
           onPressed: onMore,
           style: TextButton.styleFrom(
-            foregroundColor: theme.colorScheme.onBackground,
+            foregroundColor: theme.colorScheme.onSurface,
             textStyle: theme.textTheme.headlineSmall!.copyWith(fontSize: 20),
           ),
           child: Row(

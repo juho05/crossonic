@@ -63,7 +63,8 @@ class AudioPlayerGstreamer implements CrossonicAudioPlayer {
         _gstState = newState;
         if (_buffering || _desiredState == AudioPlayerEvent.stopped) return;
         if (debounce?.isActive ?? false) debounce?.cancel();
-        debounce = Timer(const Duration(milliseconds: 50), () async {
+
+        debounce = Timer(const Duration(milliseconds: 25), () async {
           if (newState == gst.State.playing) {
             if (!await _audioSession.setActive(true)) {
               gst.setState(gst.State.paused);
@@ -71,16 +72,13 @@ class AudioPlayerGstreamer implements CrossonicAudioPlayer {
           } else {
             await _audioSession.setActive(false);
           }
-          switch (newState) {
-            case gst.State.paused:
-              eventStream.add(AudioPlayerEvent.paused);
-              break;
-            case gst.State.playing:
-              eventStream.add(AudioPlayerEvent.playing);
-              break;
-            default:
-              eventStream.add(AudioPlayerEvent.loading);
-              break;
+          if (newState == gst.State.playing) {
+            eventStream.add(AudioPlayerEvent.playing);
+          } else if (newState == gst.State.paused &&
+              _desiredState == AudioPlayerEvent.paused) {
+            eventStream.add(AudioPlayerEvent.paused);
+          } else {
+            eventStream.add(AudioPlayerEvent.loading);
           }
         });
       },
