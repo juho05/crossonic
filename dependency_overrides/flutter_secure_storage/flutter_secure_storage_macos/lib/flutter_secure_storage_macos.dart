@@ -33,8 +33,8 @@ class FlutterSecureStorageMacOS extends FlutterSecureStoragePlatform {
         "-wa",
         key,
       ],
-      stderrEncoding: Utf8Codec(),
-      stdoutEncoding: Utf8Codec(),
+      stderrEncoding: const Utf8Codec(),
+      stdoutEncoding: const Utf8Codec(),
     );
     if (result.exitCode != 0) {
       if (((result.stdout as String) + (result.stderr as String))
@@ -63,8 +63,8 @@ class FlutterSecureStorageMacOS extends FlutterSecureStoragePlatform {
         "-a",
         key,
       ],
-      stderrEncoding: Utf8Codec(),
-      stdoutEncoding: Utf8Codec(),
+      stderrEncoding: const Utf8Codec(),
+      stdoutEncoding: const Utf8Codec(),
     );
     if (result.exitCode != 0) {
       if (((result.stdout as String) + (result.stderr as String))
@@ -103,8 +103,8 @@ class FlutterSecureStorageMacOS extends FlutterSecureStoragePlatform {
         "-wa",
         key,
       ],
-      stderrEncoding: Utf8Codec(),
-      stdoutEncoding: Utf8Codec(),
+      stderrEncoding: const Utf8Codec(),
+      stdoutEncoding: const Utf8Codec(),
     );
     if (result.exitCode != 0) {
       if (((result.stdout as String) + (result.stderr as String))
@@ -114,7 +114,7 @@ class FlutterSecureStorageMacOS extends FlutterSecureStoragePlatform {
       print(result.stderr);
       throw Exception("$execPath exited with status code ${result.exitCode}");
     }
-    return _decode(result.stdout);
+    return _decode((result.stdout as String).trim());
   }
 
   /// Decrypts and returns all keys with associated values.
@@ -148,11 +148,9 @@ class FlutterSecureStorageMacOS extends FlutterSecureStoragePlatform {
         key,
         "-w",
         value,
-        "-T",
-        execPath,
         "-U"
       ],
-      stderrEncoding: Utf8Codec(),
+      stderrEncoding: const Utf8Codec(),
     );
     if (result.exitCode != 0) {
       print(result.stderr);

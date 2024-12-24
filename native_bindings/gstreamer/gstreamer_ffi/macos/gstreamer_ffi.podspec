@@ -9,7 +9,7 @@ Pod::Spec.new do |s|
   s.description      = <<-DESC
 Native gstreamer bindings using ffigen
                        DESC
-  s.homepage         = ''
+  s.homepage         = 'https://github.com/juho05/crossonic'
   s.license          = { :file => '../../../../LICENSE' }
   s.author           = { 'Julian Hofmann' => 'contact@julianh.de' }
 

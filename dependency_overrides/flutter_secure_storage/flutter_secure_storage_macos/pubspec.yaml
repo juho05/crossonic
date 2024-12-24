@@ -11,13 +11,11 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_secure_storage_platform_interface: ^1.1.1
-  flutter_web_plugins:
-    sdk: flutter
   web: ">=0.5.0 <2.0.0"
 
 flutter:
   plugin:
+    implements: flutter_secure_storage
     platforms:
-      web:
-        pluginClass: FlutterSecureStorageMacOS
-        fileName: flutter_secure_storage_macos.dart
+      macos:
+        dartPluginClass: FlutterSecureStorageMacOS
