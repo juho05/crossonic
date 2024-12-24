@@ -90,10 +90,7 @@ class APIRepository {
         _username = username ?? "",
         _password = password ?? "";
 
-  static const _storage = FlutterSecureStorage(
-      aOptions: AndroidOptions(
-    encryptedSharedPreferences: true,
-  ));
+  static const _storage = FlutterSecureStorage();
 
   static Future<APIRepository> init() async {
     final serverURL = await _storage.read(key: "crossonic_auth_server_url");

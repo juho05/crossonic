@@ -44,8 +44,14 @@ dependencies:
     git: https://github.com/juho05/optimize_battery
 dependency_overrides:
   audioplayers_linux:
-    path: ./audioplayers_linux_stub
+    path: ./dependency_overrides/stubs/audioplayers_linux
+  audioplayers_android:
+    path: ./dependency_overrides/stubs/audioplayers_android
+  audioplayers_macos:
+    path: ./dependency_overrides/stubs/audioplayers_macos
   win32: ^5.5.3
+  flutter_secure_storage_macos:
+    path: ./dependency_overrides/flutter_secure_storage/flutter_secure_storage_macos
 
 dev_dependencies:
   flutter_test:

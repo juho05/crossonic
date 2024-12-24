@@ -98,13 +98,12 @@ packages:
     source: hosted
     version: "6.1.0"
   audioplayers_android:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: audioplayers_android
-      sha256: de576b890befe27175c2f511ba8b742bec83765fa97c3ce4282bba46212f58e4
-      url: "https://pub.dev"
-    source: hosted
-    version: "5.0.0"
+      path: "dependency_overrides/stubs/audioplayers_android"
+      relative: true
+    source: path
+    version: "0.0.0"
   audioplayers_darwin:
     dependency: transitive
     description:
@@ -116,7 +115,14 @@ packages:
   audioplayers_linux:
     dependency: "direct overridden"
     description:
-      path: audioplayers_linux_stub
+      path: "dependency_overrides/stubs/audioplayers_linux"
+      relative: true
+    source: path
+    version: "0.0.0"
+  audioplayers_macos:
+    dependency: "direct overridden"
+    description:
+      path: "dependency_overrides/stubs/audioplayers_macos"
       relative: true
     source: path
     version: "0.0.0"
@@ -511,13 +517,12 @@ packages:
     source: hosted
     version: "1.2.1"
   flutter_secure_storage_macos:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: flutter_secure_storage_macos
-      sha256: "1693ab11121a5f925bbea0be725abfcfbbcf36c1e29e571f84a0c0f436147a81"
-      url: "https://pub.dev"
-    source: hosted
-    version: "3.1.2"
+      path: "dependency_overrides/flutter_secure_storage/flutter_secure_storage_macos"
+      relative: true
+    source: path
+    version: "0.1.0"
   flutter_secure_storage_platform_interface:
     dependency: transitive
     description:
