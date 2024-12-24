@@ -45,6 +45,7 @@ dependencies:
 dependency_overrides:
   audioplayers_linux:
     path: ./audioplayers_linux_stub
+  win32: ^5.5.3
 
 dev_dependencies:
   flutter_test:
