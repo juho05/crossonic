@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:crossonic/features/login/login.dart';
 import 'package:crossonic/features/login/state/login_bloc.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:formz/formz.dart';
@@ -9,7 +12,7 @@ class LoginForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<LoginBloc, LoginState>(
+    return BlocConsumer<LoginBloc, LoginState>(
       listener: (context, state) {
         if (state.status.isFailure) {
           final String message;
@@ -30,7 +33,7 @@ class LoginForm extends StatelessWidget {
           context.read<LoginBloc>().add(const LoginErrorReset());
         }
       },
-      child: Builder(builder: (context) {
+      builder: (context, state) {
         final bloc = context.read<LoginBloc>();
         return Align(
           alignment: const Alignment(0, -1 / 3),
@@ -69,6 +72,12 @@ class LoginForm extends StatelessWidget {
                     obscureText: true,
                     icon: Icons.password,
                     autofillHints: const [AutofillHints.password],
+                    onSubmitted: state.isValid &&
+                            (kIsWeb || (!Platform.isAndroid && !Platform.isIOS))
+                        ? (_) => context
+                            .read<LoginBloc>()
+                            .add(const LoginSubmitted())
+                        : null,
                   ),
                   const SizedBox(height: 40),
                   _LoginButton(),
@@ -77,7 +86,7 @@ class LoginForm extends StatelessWidget {
             ),
           ),
         );
-      }),
+      },
     );
   }
 }
@@ -90,6 +99,7 @@ class _LoginInput extends StatefulWidget {
   final String errorText;
   final bool obscureText;
   final Iterable<String>? autofillHints;
+  final ValueChanged<String>? onSubmitted;
   const _LoginInput({
     required this.inputName,
     required this.bloc,
@@ -98,6 +108,7 @@ class _LoginInput extends StatefulWidget {
     required this.icon,
     this.autofillHints,
     this.obscureText = false,
+    this.onSubmitted,
   });
   @override
   State<_LoginInput> createState() => _LoginInputState();
@@ -150,6 +161,7 @@ class _LoginInputState extends State<_LoginInput> with RestorationMixin {
                 ? widget.errorText
                 : null,
           ),
+          onSubmitted: widget.onSubmitted,
         );
       },
     );

@@ -1,7 +1,10 @@
+import 'dart:io';
+
 import 'package:crossonic/features/playlists/state/create_playlist_cubit.dart';
 import 'package:crossonic/repositories/api/api_repository.dart';
 import 'package:crossonic/repositories/playlist/playlist_repository.dart';
 import 'package:crossonic/components/app_bar.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -92,6 +95,14 @@ class _CreatePlaylistPageState extends State<CreatePlaylistPage>
                                       ? "Playlist name is required"
                                       : null,
                                 ),
+                                onSubmitted: state.name.isNotEmpty &&
+                                        (kIsWeb ||
+                                            (!Platform.isAndroid &&
+                                                !Platform.isIOS))
+                                    ? (_) => context
+                                        .read<CreatePlaylistCubit>()
+                                        .submit()
+                                    : null,
                               ),
                             ],
                           ),

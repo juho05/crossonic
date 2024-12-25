@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:crossonic/features/settings/state/listen_brainz_cubit.dart';
 import 'package:crossonic/repositories/api/api_repository.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -71,6 +74,15 @@ class _ListenBrainzPageState extends State<ListenBrainzPage>
                         errorText:
                             state.errorText.isNotEmpty ? state.errorText : null,
                       ),
+                      onSubmitted:
+                          kIsWeb || (!Platform.isAndroid && !Platform.isIOS)
+                              ? (_) {
+                                  if (state.status !=
+                                      ListenBrainzStatus.submitting) {
+                                    cubit?.connect();
+                                  }
+                                }
+                              : null,
                     ),
                   const SizedBox(height: 15),
                   if (state.listenBrainzUsername.isEmpty)
