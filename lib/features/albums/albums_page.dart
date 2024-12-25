@@ -121,8 +121,8 @@ class _AlbumsPageBodyState extends State<AlbumsPageBody> {
                   gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
                     maxCrossAxisExtent: 180,
                     childAspectRatio: 4.0 / 5,
-                    crossAxisSpacing: 10,
-                    mainAxisSpacing: 10,
+                    crossAxisSpacing: 15,
+                    mainAxisSpacing: 15,
                   ),
                   itemCount: state.reachedEnd
                       ? state.albums.length
