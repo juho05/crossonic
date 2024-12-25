@@ -195,7 +195,7 @@ class ArtistPage extends StatelessWidget {
                           physics: const NeverScrollableScrollPhysics(),
                           gridDelegate:
                               const SliverGridDelegateWithMaxCrossAxisExtent(
-                            maxCrossAxisExtent: 200,
+                            maxCrossAxisExtent: 180,
                             childAspectRatio: 4.0 / 5,
                             crossAxisSpacing: 10,
                             mainAxisSpacing: 10,

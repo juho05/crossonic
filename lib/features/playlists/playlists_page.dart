@@ -24,50 +24,35 @@ class PlaylistsPage extends StatelessWidget {
         create: (context) => PlaylistsCubit(context.read<PlaylistRepository>()),
         child: Builder(
           builder: (context) {
-            return RefreshIndicator(
-              onRefresh: () async =>
-                  await context.read<PlaylistRepository>().fetch(),
-              child: SingleChildScrollView(
-                restorationId: "playlists_scroll",
-                child: BlocBuilder<PlaylistsCubit, PlaylistsState>(
-                  builder: (context, state) {
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 15, vertical: 8),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          if (state.playlists.isEmpty)
-                            const Padding(
-                              padding: EdgeInsets.only(top: 8.0),
-                              child: Text("No playlists",
-                                  textAlign: TextAlign.center),
-                            ),
-                          Wrap(
-                            spacing: 15,
-                            runSpacing: 12,
-                            alignment: WrapAlignment.start,
-                            children: List<Widget>.generate(
-                              state.playlists.length,
-                              (i) => SizedBox(
-                                height: 200,
-                                child: PlaylistGridCell(
-                                  playlist: state.playlists[i],
-                                  downloadStatus: state.playlistDownloads
-                                          .containsKey(state.playlists[i].id)
-                                      ? state.playlistDownloads[
-                                          state.playlists[i].id]
-                                      : null,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
+            return BlocBuilder<PlaylistsCubit, PlaylistsState>(
+              builder: (context, state) {
+                return Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
+                  child: RefreshIndicator(
+                    onRefresh: () async =>
+                        await context.read<PlaylistRepository>().fetch(),
+                    child: GridView.builder(
+                      restorationId: "playlists_grid_view",
+                      gridDelegate:
+                          const SliverGridDelegateWithMaxCrossAxisExtent(
+                        maxCrossAxisExtent: 180,
+                        childAspectRatio: 4.0 / 5,
+                        crossAxisSpacing: 10,
+                        mainAxisSpacing: 10,
                       ),
-                    );
-                  },
-                ),
-              ),
+                      itemCount: state.playlists.length,
+                      itemBuilder: (context, i) => PlaylistGridCell(
+                        playlist: state.playlists[i],
+                        downloadStatus: state.playlistDownloads
+                                .containsKey(state.playlists[i].id)
+                            ? state.playlistDownloads[state.playlists[i].id]
+                            : null,
+                      ),
+                    ),
+                  ),
+                );
+              },
             );
           },
         ),
