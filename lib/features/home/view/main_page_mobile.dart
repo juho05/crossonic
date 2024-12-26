@@ -30,6 +30,7 @@ class _MainPageMobileState extends State<MainPageMobile> {
   Widget build(BuildContext context) {
     final hasMedia =
         context.select<NowPlayingCubit, bool>((value) => value.state.hasMedia);
+    final bottomPadding = MediaQuery.of(context).viewPadding.bottom;
     return Scaffold(
       body: LayoutBuilder(builder: (context, constraints) {
         return SlidingUpPanel(
@@ -50,7 +51,8 @@ class _MainPageMobileState extends State<MainPageMobile> {
           ),
           body: SafeArea(
             child: Padding(
-              padding: EdgeInsets.only(bottom: hasMedia ? 113 : 60),
+              padding: EdgeInsets.only(
+                  bottom: (hasMedia ? 113 : 60) + bottomPadding),
               child: BlocListener<NowPlayingCubit, NowPlayingState>(
                 listenWhen: (previous, current) =>
                     previous.playbackState.status !=
