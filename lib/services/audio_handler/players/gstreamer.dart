@@ -55,32 +55,30 @@ class AudioPlayerGstreamer implements CrossonicAudioPlayer {
     });
   }
 
+  Timer? _debounce;
   @override
   void init() async {
-    Timer? debounce;
     gst.init(
-      onStateChanged: (oldState, newState) {
+      onStateChanged: (oldState, newState) async {
         _gstState = newState;
-        if (_buffering || _desiredState == AudioPlayerEvent.stopped) return;
-        if (debounce?.isActive ?? false) debounce?.cancel();
 
-        debounce = Timer(const Duration(milliseconds: 25), () async {
-          if (newState == gst.State.playing) {
-            if (!await _audioSession.setActive(true)) {
-              gst.setState(gst.State.paused);
-            }
-          } else {
-            await _audioSession.setActive(false);
-          }
-          if (newState == gst.State.playing) {
-            eventStream.add(AudioPlayerEvent.playing);
-          } else if (newState == gst.State.paused &&
-              _desiredState == AudioPlayerEvent.paused) {
-            eventStream.add(AudioPlayerEvent.paused);
-          } else {
+        if (_buffering || _desiredState == AudioPlayerEvent.stopped) return;
+
+        if (newState == gst.State.playing) {
+          _debounce?.cancel();
+          _debounce = null;
+          eventStream.add(AudioPlayerEvent.playing);
+        } else if (newState == gst.State.paused &&
+            _desiredState == AudioPlayerEvent.paused) {
+          _debounce?.cancel();
+          _debounce = null;
+          eventStream.add(AudioPlayerEvent.paused);
+        } else {
+          if (_debounce?.isActive ?? false) _debounce?.cancel();
+          _debounce = Timer(const Duration(seconds: 1), () {
             eventStream.add(AudioPlayerEvent.loading);
-          }
-        });
+          });
+        }
       },
       onStreamStart: () {
         if (_newStreamStart) {
@@ -92,7 +90,9 @@ class AudioPlayerGstreamer implements CrossonicAudioPlayer {
         _nextCanSeek = false;
         eventStream.add(AudioPlayerEvent.advance);
       },
-      onEOS: () => eventStream.add(AudioPlayerEvent.stopped),
+      onEOS: () {
+        eventStream.add(AudioPlayerEvent.stopped);
+      },
       onError: (code, message, debugInfo) {
         print("ERROR: Gstreamer: $message\n$debugInfo");
       },
@@ -101,9 +101,7 @@ class AudioPlayerGstreamer implements CrossonicAudioPlayer {
       },
       onBuffering: (percent, mode, avgIn, avgOut) {
         if (percent < 100) {
-          if (_eventStream.value != AudioPlayerEvent.loading) {
-            _eventStream.add(AudioPlayerEvent.loading);
-          }
+          _eventStream.add(AudioPlayerEvent.loading);
           _buffering = true;
           gst.setState(gst.State.paused);
         } else {
@@ -129,14 +127,22 @@ class AudioPlayerGstreamer implements CrossonicAudioPlayer {
     _volume = volume;
   }
 
-  void _activateDesiredState() {
+  Future<void> _activateDesiredState() async {
     switch (_desiredState) {
       case AudioPlayerEvent.playing:
+        if (eventStream.value != AudioPlayerEvent.playing &&
+            _gstState != gst.State.playing &&
+            !await _audioSession.setActive(true)) {
+          print("audio session denied");
+          await pause();
+          break;
+        }
         gst.setState(gst.State.playing);
         break;
       case AudioPlayerEvent.paused:
       case AudioPlayerEvent.stopped:
         gst.setState(gst.State.paused);
+        await _audioSession.setActive(false);
         break;
       default:
         break;
@@ -146,18 +152,20 @@ class AudioPlayerGstreamer implements CrossonicAudioPlayer {
   @override
   Future<void> dispose() async {
     gst.freeResources();
+    _debounce?.cancel();
+    _gstState = gst.State.initial;
   }
 
   @override
   Future<void> pause() async {
     _desiredState = AudioPlayerEvent.paused;
-    _activateDesiredState();
+    await _activateDesiredState();
   }
 
   @override
   Future<void> play() async {
     _desiredState = AudioPlayerEvent.playing;
-    _activateDesiredState();
+    await _activateDesiredState();
   }
 
   @override
@@ -170,7 +178,7 @@ class AudioPlayerGstreamer implements CrossonicAudioPlayer {
     _buffering = false;
     _eventStream.add(AudioPlayerEvent.stopped);
     _desiredState = AudioPlayerEvent.stopped;
-    _activateDesiredState();
+    await _activateDesiredState();
   }
 
   @override
@@ -191,7 +199,7 @@ class AudioPlayerGstreamer implements CrossonicAudioPlayer {
     eventStream.add(AudioPlayerEvent.loading);
     gst.setState(gst.State.ready);
     gst.setUrl(url.toString());
-    _activateDesiredState();
+    await _activateDesiredState();
     canSeek = url.scheme == "file" ||
         (url.queryParameters.containsKey("format") &&
             url.queryParameters["format"] == "raw");
