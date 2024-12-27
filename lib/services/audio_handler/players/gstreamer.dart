@@ -75,7 +75,7 @@ class AudioPlayerGstreamer implements CrossonicAudioPlayer {
           eventStream.add(AudioPlayerEvent.paused);
         } else {
           if (_debounce?.isActive ?? false) _debounce?.cancel();
-          _debounce = Timer(const Duration(seconds: 1), () {
+          _debounce = Timer(const Duration(seconds: 5), () {
             eventStream.add(AudioPlayerEvent.loading);
           });
         }
