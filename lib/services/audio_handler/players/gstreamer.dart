@@ -80,6 +80,11 @@ class AudioPlayerGstreamer implements CrossonicAudioPlayer {
           });
         }
       },
+      onEOS: () {
+        if (_nextURL == null) {
+          eventStream.add(AudioPlayerEvent.stopped);
+        }
+      },
       onStreamStart: () {
         if (_newStreamStart) {
           _newStreamStart = false;
