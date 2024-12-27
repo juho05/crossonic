@@ -90,9 +90,6 @@ class AudioPlayerGstreamer implements CrossonicAudioPlayer {
         _nextCanSeek = false;
         eventStream.add(AudioPlayerEvent.advance);
       },
-      onEOS: () {
-        eventStream.add(AudioPlayerEvent.stopped);
-      },
       onError: (code, message, debugInfo) {
         print("ERROR: Gstreamer: $message\n$debugInfo");
       },
