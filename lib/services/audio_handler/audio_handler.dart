@@ -414,14 +414,13 @@ class CrossonicAudioHandler {
             transcode: _currentTranscode,
           ));
       _positionOffset = position;
-      await play();
     }
-    _playbackState.add(_playbackState.value.copyWith(position: position));
+    _playbackState.add(_playbackState.value
+        .copyWith(position: position, bufferedPosition: position));
   }
 
   Future<void> skipToNext() async {
     if (_queue.canAdvance) {
-      playOnNextMediaChange();
       _queue.advance(false);
     }
   }
@@ -432,7 +431,6 @@ class CrossonicAudioHandler {
       return;
     }
     if (_queue.canGoBack) {
-      playOnNextMediaChange();
       _queue.back();
     }
   }
