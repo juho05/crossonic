@@ -132,13 +132,7 @@ class AudioPlayerGstreamer implements CrossonicAudioPlayer {
   Future<void> _activateDesiredState() async {
     switch (_desiredState) {
       case AudioPlayerEvent.playing:
-        if (eventStream.value != AudioPlayerEvent.playing &&
-            _gstState != gst.State.playing &&
-            !await _audioSession.setActive(true)) {
-          print("audio session denied");
-          await pause();
-          break;
-        }
+        await _audioSession.setActive(true);
         gst.setState(gst.State.playing);
         break;
       case AudioPlayerEvent.paused:
