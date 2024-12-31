@@ -107,12 +107,14 @@ class APIRepository {
       if (!authenticated) {
         apiRepository.authStatus.add(AuthStatus.unauthenticated);
       } else {
-        try {
-          await apiRepository.login(serverURL, username, password);
-          apiRepository.authStatus.add(AuthStatus.authenticated);
-        } on ServerUnreachableException {
-          apiRepository.authStatus.add(AuthStatus.authenticated);
-        }
+        apiRepository.authStatus.add(AuthStatus.authenticated);
+        apiRepository
+            .login(serverURL, username, password)
+            .onError((err, stacktrace) {
+          if (err is! ServerUnreachableException) {
+            apiRepository.authStatus.add(AuthStatus.unauthenticated);
+          }
+        });
       }
     } catch (_) {
       apiRepository.authStatus.add(AuthStatus.unauthenticated);
