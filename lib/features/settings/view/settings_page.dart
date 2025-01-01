@@ -22,6 +22,13 @@ class SettingsPage extends StatelessWidget {
             },
           ),
           ListTile(
+            title: const Text("Replay Gain"),
+            trailing: const Icon(Icons.arrow_forward_ios),
+            onTap: () {
+              context.push("/settings/replaygain");
+            },
+          ),
+          ListTile(
             title: const Text("ListenBrainz"),
             trailing: const Icon(Icons.arrow_forward_ios),
             onTap: () {

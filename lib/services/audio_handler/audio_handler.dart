@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:crossonic/repositories/api/api_repository.dart';
 import 'package:crossonic/repositories/settings/settings_repository.dart';
@@ -123,6 +124,10 @@ class CrossonicAudioHandler {
       }
     });
 
+    _settings.replayGain.listen((_) async {
+      await _applyReplayGain();
+    });
+
     _queue.current.listen(_mediaChanged);
 
     _playerEventStream = _localPlayer.eventStream.listen(_playerEvent);
@@ -133,6 +138,7 @@ class CrossonicAudioHandler {
     print("initializing player...");
     _player.init();
     _playerLoaded = true;
+    _applyReplayGain();
     if (restorePlayerState) {
       await _restorePlayerState();
     }
@@ -204,6 +210,7 @@ class CrossonicAudioHandler {
     _playerEventStream = _player.eventStream.listen(_playerEvent);
     _currentTranscode = await _settings.getTranscodeSettings();
 
+    _applyReplayGain();
     _updatePosition(true);
   }
 
@@ -280,6 +287,8 @@ class CrossonicAudioHandler {
     await _ensurePlayerLoaded(false);
 
     if (media.currentChanged) {
+      _applyReplayGain();
+
       _playOnNextMediaChange = false;
       if (!media.fromNext) {
         _currentTranscode = await _settings.getTranscodeSettings();
@@ -437,6 +446,58 @@ class CrossonicAudioHandler {
 
   Future<void> dispose() async {
     await _player.dispose();
+  }
+
+  Future<void> _applyReplayGain() async {
+    if (!_playerLoaded) return;
+    ReplayGainMode mode = _settings.replayGain.value.mode;
+    if (mode == ReplayGainMode.disabled) {
+      if (_player.volume < 1) _player.setVolume(1);
+      return;
+    }
+    final media = _queue.current.value?.item;
+    if (media == null) return;
+
+    double gain = _settings.replayGain.value.fallbackGain;
+
+    if (mode == ReplayGainMode.auto) {
+      mode = ReplayGainMode.track;
+
+      if (media.albumId != null) {
+        bool previousIsSameAlbum = true;
+        if (_queue.current.value!.index > 0) {
+          final previous = _queue.queue[_queue.current.value!.index - 1];
+          previousIsSameAlbum = previous.albumId == media.albumId;
+        }
+
+        final next = _queue.current.value!.next;
+        bool nextIsSameAlbum = next == null || next.albumId == media.albumId;
+
+        if (previousIsSameAlbum && nextIsSameAlbum && _queue.length > 1) {
+          mode = ReplayGainMode.album;
+        }
+      }
+    }
+
+    if ((mode == ReplayGainMode.track && media.replayGain?.trackGain != null) ||
+        media.replayGain?.albumGain == null) {
+      gain = media.replayGain!.trackGain!;
+    } else if (media.replayGain?.albumGain != null) {
+      gain = media.replayGain!.albumGain!;
+    } else if (_settings.replayGain.value.preferServerFallback) {
+      gain = media.replayGain?.fallbackGain ?? gain;
+    }
+
+    double? peak = media.replayGain?.trackPeak;
+    if (mode == ReplayGainMode.album && media.replayGain?.albumPeak != null) {
+      peak = media.replayGain?.albumPeak;
+    }
+
+    if (peak != null && peak + gain > 0) {
+      gain -= peak + gain;
+    }
+
+    await _player.setVolume(pow(10, gain / 20) as double);
   }
 
   void playOnNextMediaChange() {

@@ -119,4 +119,10 @@ class AudioPlayerRemote implements CrossonicAudioPlayer {
   bool get supportsFileURLs => false;
   @override
   bool get canSeek => false;
+
+  @override
+  Future<void> setVolume(double volume) async {}
+
+  @override
+  double get volume => 1;
 }

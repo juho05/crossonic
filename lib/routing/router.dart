@@ -16,6 +16,7 @@ import 'package:crossonic/features/queue/queue_page.dart';
 import 'package:crossonic/features/search/search_page.dart';
 import 'package:crossonic/features/settings/settings.dart';
 import 'package:crossonic/features/settings/view/listenbrainz_page.dart';
+import 'package:crossonic/features/settings/view/replaygain_page.dart';
 import 'package:crossonic/features/settings/view/scan_page.dart';
 import 'package:crossonic/features/settings/view/transcoding_page.dart';
 import 'package:crossonic/features/splash/splash.dart';
@@ -35,6 +36,7 @@ final _topLevelRoutes = [
   _newRoute("/settings", const SettingsPage()),
   _newRoute("/settings/listenbrainz", const ListenBrainzPage()),
   _newRoute("/settings/transcoding", const TranscodingPage()),
+  _newRoute("/settings/replaygain", const ReplayGainPage()),
   _newRoute("/settings/scan", const ScanPage()),
   _newRoute("/queue", const QueuePage()),
   _newRoute("/lyrics", const LyricsPage()),

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math';
 
 import 'package:audio_session/audio_session.dart';
 import 'package:crossonic/repositories/api/models/media_model.dart';
@@ -11,8 +10,6 @@ class AudioPlayerGstreamer implements CrossonicAudioPlayer {
   @override
   bool canSeek = false;
   bool _nextCanSeek = false;
-
-  double _volume = 1;
 
   String? _nextURL;
 
@@ -30,7 +27,8 @@ class AudioPlayerGstreamer implements CrossonicAudioPlayer {
       if (event.begin) {
         switch (event.type) {
           case AudioInterruptionType.duck:
-            _setVolume(_volume * 0.5);
+            _ducking = true;
+            _applyVolume();
             break;
           case AudioInterruptionType.pause:
           case AudioInterruptionType.unknown:
@@ -40,7 +38,8 @@ class AudioPlayerGstreamer implements CrossonicAudioPlayer {
       } else {
         switch (event.type) {
           case AudioInterruptionType.duck:
-            _setVolume(min(_volume * 2, 1));
+            _ducking = false;
+            _applyVolume();
             break;
           case AudioInterruptionType.pause:
           case AudioInterruptionType.unknown:
@@ -122,11 +121,6 @@ class AudioPlayerGstreamer implements CrossonicAudioPlayer {
         }
       },
     );
-  }
-
-  void _setVolume(double volume) {
-    gst.setVolume(volume);
-    _volume = volume;
   }
 
   Future<void> _activateDesiredState() async {
@@ -215,4 +209,26 @@ class AudioPlayerGstreamer implements CrossonicAudioPlayer {
 
   @override
   bool get supportsFileURLs => true;
+
+  double _targetVolume = 1;
+  bool _ducking = false;
+
+  @override
+  Future<void> setVolume(double volume) async {
+    // gstreamer volume element supports up to 1000%
+    volume = volume.clamp(0, 10);
+    _targetVolume = volume;
+    _applyVolume();
+  }
+
+  void _applyVolume() {
+    if (_ducking) {
+      gst.setVolume(_targetVolume * 0.5);
+    } else {
+      gst.setVolume(_targetVolume);
+    }
+  }
+
+  @override
+  double get volume => _targetVolume;
 }

@@ -178,4 +178,21 @@ class AudioPlayerAudioPlayers implements CrossonicAudioPlayer {
 
   @override
   bool get supportsFileURLs => false;
+
+  double _volume = 1;
+
+  @override
+  double get volume {
+    return _volume;
+  }
+
+  @override
+  Future<void> setVolume(double volume) async {
+    _volume = volume.clamp(0, 1);
+    List<Future<void>> futures = [];
+    for (var p in _players) {
+      futures.add(p.setVolume(_volume));
+    }
+    await futures.wait;
+  }
 }
