@@ -49,7 +49,7 @@ While this app can be built for every platform [Flutter](https://flutter.dev) su
 - Windows (*no gapless*)
 
 **semi-reliable**
-- Web (*no playlist download*)
+- Web (*no playlist download*, *no gapless*)
   - Safari playback randomly stops when streaming transcoded media
 
 **unsupported**
@@ -144,7 +144,7 @@ Now you can serve `./build/web` with a web server like [Caddy](https://caddyserv
 
 ## License
 
-Copyright (c) 2024 Julian Hofmann
+Copyright (c) 2024-2025 Julian Hofmann
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as published
