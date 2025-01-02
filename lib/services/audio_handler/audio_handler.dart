@@ -452,7 +452,10 @@ class CrossonicAudioHandler {
     if (!_playerLoaded) return;
     ReplayGainMode mode = _settings.replayGain.value.mode;
     if (mode == ReplayGainMode.disabled) {
-      if (_player.volume < 1) _player.setVolume(1);
+      if (_player.volume < 1) {
+        print("replay gain disabled, settings volume to 1");
+        _player.setVolume(1);
+      }
       return;
     }
     final media = _queue.current.value?.item;
@@ -479,25 +482,22 @@ class CrossonicAudioHandler {
       }
     }
 
+    String gainMode = "local fallback";
     if ((mode == ReplayGainMode.track && media.replayGain?.trackGain != null) ||
         media.replayGain?.albumGain == null) {
       gain = media.replayGain!.trackGain!;
+      gainMode = "track";
     } else if (media.replayGain?.albumGain != null) {
       gain = media.replayGain!.albumGain!;
+      gainMode = "album";
     } else if (_settings.replayGain.value.preferServerFallback) {
       gain = media.replayGain?.fallbackGain ?? gain;
+      gainMode = "server fallback";
     }
 
-    double? peak = media.replayGain?.trackPeak;
-    if (mode == ReplayGainMode.album && media.replayGain?.albumPeak != null) {
-      peak = media.replayGain?.albumPeak;
-    }
-
-    if (peak != null && peak + gain > 0) {
-      gain -= peak + gain;
-    }
-
-    await _player.setVolume(pow(10, gain / 20) as double);
+    double volume = pow(10, gain / 20) as double;
+    print("applying $gainMode gain: $gain dB -> volume: $volume...");
+    await _player.setVolume(volume);
   }
 
   void playOnNextMediaChange() {

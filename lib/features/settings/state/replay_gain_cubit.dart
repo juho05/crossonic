@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc/bloc.dart';
 import 'package:crossonic/repositories/settings/settings_repository.dart';
 import 'package:equatable/equatable.dart';
@@ -6,6 +8,8 @@ part 'replay_gain_state.dart';
 
 class ReplayGainCubit extends Cubit<ReplayGainState> {
   final Settings _settings;
+  late final StreamSubscription _settingsSubscription;
+
   ReplayGainCubit(Settings settings)
       : _settings = settings,
         super(ReplayGainState(
@@ -13,7 +17,7 @@ class ReplayGainCubit extends Cubit<ReplayGainState> {
           fallbackGain: settings.replayGain.value.fallbackGain.toString(),
           preferServerFallback: settings.replayGain.value.preferServerFallback,
         )) {
-    _settings.replayGain.listen((replayGain) {
+    _settingsSubscription = _settings.replayGain.listen((replayGain) {
       emit(state.copyWith(
         mode: replayGain.mode,
         fallbackGain: replayGain.fallbackGain.toString(),
@@ -43,5 +47,11 @@ class ReplayGainCubit extends Cubit<ReplayGainState> {
 
   void preferServerFallbackChanged(bool preferServer) {
     _settings.setReplayGainPreferServerFallback(preferServer);
+  }
+
+  @override
+  Future<void> close() async {
+    await _settingsSubscription.cancel();
+    await super.close();
   }
 }

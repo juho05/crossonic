@@ -32,6 +32,7 @@ Not all [platforms](#supported_platforms) are properly supported yet.
 - [x] Lyrics
   - [x] unsynced
   - [ ] synced
+- [x] Replay gain
 - [ ] Remote control other devices running the app
 - [ ] Cast to [SONOS](https://www.sonos.com) (implemented, but *very* buggy and currently disabled)
 - [ ] Browse favorites
