@@ -49,6 +49,8 @@ dependency_overrides:
     path: ./dependency_overrides/stubs/audioplayers_android
   audioplayers_macos:
     path: ./dependency_overrides/stubs/audioplayers_macos
+  audioplayers_windows:
+    path: ./dependency_overrides/stubs/audioplayers_windows
   win32: ^5.5.3
   flutter_secure_storage_macos:
     path: ./dependency_overrides/flutter_secure_storage/flutter_secure_storage_macos

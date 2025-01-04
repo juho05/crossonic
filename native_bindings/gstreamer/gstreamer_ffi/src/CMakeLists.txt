@@ -65,12 +65,26 @@ ELSE()
   include_directories(${GST_INCLUDE_DIRS})
 ENDIF()
 
+IF(WIN32)
+  find_program(CMAKE_PKGCONFIG_EXECUTABLE pkg-config)
+  IF(CMAKE_PKGCONFIG_EXECUTABLE)
+    # pkg-config.exe gstreamer-1.0 --libs --msvc-syntax
+    execute_process(COMMAND ${CMAKE_PKGCONFIG_EXECUTABLE} --libs --msvc-syntax gstreamer-1.0 OUTPUT_VARIABLE GST_LDFLAGS RESULT_VARIABLE result OUTPUT_STRIP_TRAILING_WHITESPACE)
+    # replace spaces with semicolons so that we don't have quotation marks in command line option
+    string(REPLACE " " ";" GST_LDFLAGS ${GST_LDFLAGS})
+  ENDIF()
+ENDIF()
+
 add_library(gstreamer_ffi SHARED
   "gstreamer_ffi.c"
   ${APPENDED_SOURCE}
 )
 
-target_link_libraries(gstreamer_ffi PRIVATE ${GST_LDFLAGS} ${LINK_LIBS})
+IF(WIN32)
+  target_link_options(gstreamer_ffi PRIVATE ${GST_LDFLAGS})
+ELSE()
+  target_link_libraries(gstreamer_ffi PRIVATE ${GST_LDFLAGS} ${LINK_LIBS})
+ENDIF()
 
 set_target_properties(gstreamer_ffi PROPERTIES
   PUBLIC_HEADER gstreamer_ffi.h

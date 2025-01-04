@@ -42,13 +42,13 @@ Not all [platforms](#supported_platforms) are properly supported yet.
 
 While this app can be built for every platform [Flutter](https://flutter.dev) supports (although some additional configuration might be necessary), playback can be very buggy on some platforms and might not support all features.
 
-**reliable**
+**fully supported**
 - Linux
 - Android
 - macOS
-- Windows (*no gapless*)
+- Windows
 
-**semi-reliable**
+**some limitations**
 - Web (*no playlist download*, *no gapless*)
   - Safari playback randomly stops when streaming transcoded media
 
@@ -96,12 +96,24 @@ The built executable is at `./build/linux/x64/release/bundle/Crossonic`.
 
 ### Windows
 
-No additional dependencies should be required.
+#### Install dependencies
+
+Install [GStreamer](https://gstreamer.freedesktop.org/documentation/installing/on-windows.html?gi-language=c) for example with [chocolatey](https://chocolatey.org/):
+
+```bash
+choco install gstreamer gstreamer-devel
+```
+
+#### Build
 
 In the directory of the repository run:
+
 ```bash
 flutter build windows --release
 ```
+
+*NOTE:* The first time starting playback the program might hang for a few seconds and a command prompt window might pop up.
+This is a one-time event. Just wait until the playback starts.
 
 ### macOS
 
