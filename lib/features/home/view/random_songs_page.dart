@@ -5,6 +5,7 @@ import 'package:crossonic/services/audio_handler/audio_handler.dart';
 import 'package:crossonic/components/app_bar.dart';
 import 'package:crossonic/components/song.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class RandomSongsPage extends StatelessWidget {
@@ -92,8 +93,13 @@ class RandomSongsPage extends StatelessWidget {
                             showYear: true,
                             onTap: () async {
                               audioHandler.playOnNextMediaChange();
-                              audioHandler.mediaQueue
-                                  .replaceQueue(state.songs, index);
+                              if (HardwareKeyboard.instance.isControlPressed) {
+                                audioHandler.mediaQueue
+                                    .replaceQueue([state.songs[index]]);
+                              } else {
+                                audioHandler.mediaQueue
+                                    .replaceQueue(state.songs, index);
+                              }
                             },
                           ),
                           restorationId: "random_songs_page_scroll",

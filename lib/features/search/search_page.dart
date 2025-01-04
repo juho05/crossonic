@@ -6,6 +6,7 @@ import 'package:crossonic/components/app_bar.dart';
 import 'package:crossonic/components/song.dart';
 import 'package:crossonic/components/song_collection.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
@@ -122,11 +123,17 @@ class _SearchPageState extends State<SearchPage> with RestorationMixin {
                                   showYear: true,
                                   onTap: () {
                                     audioHandler.playOnNextMediaChange();
-                                    audioHandler.mediaQueue.replaceQueue(
-                                        state.results
-                                            .map((e) => e.media!)
-                                            .toList(),
-                                        i);
+                                    if (HardwareKeyboard
+                                        .instance.isControlPressed) {
+                                      audioHandler.mediaQueue.replaceQueue(
+                                          [state.results[i].media!]);
+                                    } else {
+                                      audioHandler.mediaQueue.replaceQueue(
+                                          state.results
+                                              .map((e) => e.media!)
+                                              .toList(),
+                                          i);
+                                    }
                                   },
                                 ),
                               SearchType.album => SongCollection(

@@ -410,7 +410,7 @@ class CrossonicAudioHandler {
     final media = _queue.current.valueOrNull?.item;
     await _ensurePlayerLoaded();
     if (media == null) return;
-    if (_player.canSeek) {
+    if (_player.canSeek && _positionOffset == Duration.zero) {
       await _player.seek(position);
     } else {
       position = Duration(seconds: position.inSeconds);

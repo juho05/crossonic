@@ -3,6 +3,7 @@ import 'package:crossonic/fetch_status.dart';
 import 'package:crossonic/services/audio_handler/audio_handler.dart';
 import 'package:crossonic/components/song.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
@@ -50,7 +51,12 @@ class RandomSongs extends StatelessWidget {
                         final audioHandler =
                             context.read<CrossonicAudioHandler>();
                         audioHandler.playOnNextMediaChange();
-                        audioHandler.mediaQueue.replaceQueue(state.songs, i);
+                        if (HardwareKeyboard.instance.isControlPressed) {
+                          audioHandler.mediaQueue
+                              .replaceQueue([state.songs[i]]);
+                        } else {
+                          audioHandler.mediaQueue.replaceQueue(state.songs, i);
+                        }
                       },
                     );
                   }),

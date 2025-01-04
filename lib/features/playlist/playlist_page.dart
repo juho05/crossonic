@@ -14,6 +14,7 @@ import 'package:crossonic/components/large_cover.dart';
 import 'package:crossonic/components/song.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
@@ -216,8 +217,13 @@ class PlaylistPage extends StatelessWidget {
                           },
                           onTap: () {
                             audioHandler.playOnNextMediaChange();
-                            audioHandler.mediaQueue
-                                .replaceQueue(state.songs, i);
+                            if (HardwareKeyboard.instance.isControlPressed) {
+                              audioHandler.mediaQueue
+                                  .replaceQueue([state.songs[i]]);
+                            } else {
+                              audioHandler.mediaQueue
+                                  .replaceQueue(state.songs, i);
+                            }
                           },
                         ),
                         onReorder: (int oldIndex, int newIndex) {
