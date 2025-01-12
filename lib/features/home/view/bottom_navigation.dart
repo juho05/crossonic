@@ -15,6 +15,7 @@ class BottomNavigation extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BottomNavigationBar(
+      elevation: 0,
       currentIndex: _currentIndex,
       items: const [
         BottomNavigationBarItem(

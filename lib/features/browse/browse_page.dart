@@ -73,7 +73,7 @@ class _BrowsePageState extends State<BrowsePage> with RestorationMixin {
                           icon: Icon(Icons.person)),
                     ],
                   ),
-                  const SizedBox(height: 13),
+                  const SizedBox(height: 12),
                   TextField(
                     controller: _controller.value,
                     focusNode: _focusNode,
@@ -89,7 +89,7 @@ class _BrowsePageState extends State<BrowsePage> with RestorationMixin {
                 ],
               ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 12),
             BlocBuilder<BrowseBloc, BrowseState>(
               builder: (context, state) {
                 if (state.showGrid) {
