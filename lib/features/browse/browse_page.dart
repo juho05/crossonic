@@ -1,4 +1,5 @@
-import 'package:crossonic/features/search/state/search_bloc.dart';
+import 'package:crossonic/features/browse/browse_content.dart';
+import 'package:crossonic/features/browse/state/browse_bloc.dart';
 import 'package:crossonic/fetch_status.dart';
 import 'package:crossonic/repositories/api/api.dart';
 import 'package:crossonic/services/audio_handler/audio_handler.dart';
@@ -10,15 +11,15 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
-class SearchPage extends StatefulWidget {
-  const SearchPage({super.key});
+class BrowsePage extends StatefulWidget {
+  const BrowsePage({super.key});
 
   @override
-  State<SearchPage> createState() => _SearchPageState();
+  State<BrowsePage> createState() => _BrowsePageState();
 }
 
-class _SearchPageState extends State<SearchPage> with RestorationMixin {
-  SearchType _selectedType = SearchType.song;
+class _BrowsePageState extends State<BrowsePage> with RestorationMixin {
+  BrowseType _selectedType = BrowseType.song;
 
   final _controller = RestorableTextEditingController();
   final _focusNode = FocusNode();
@@ -26,8 +27,8 @@ class _SearchPageState extends State<SearchPage> with RestorationMixin {
   @override
   void initState() {
     super.initState();
-    context.read<SearchBloc>().add(const SearchTextChanged(""));
-    context.read<SearchBloc>().add(SearchTypeChanged(_selectedType));
+    context.read<BrowseBloc>().add(const SearchTextChanged(""));
+    context.read<BrowseBloc>().add(BrowseTypeChanged(_selectedType));
     _focusNode.addListener(() {
       if (_focusNode.hasFocus) {
         _controller.value.selection = TextSelection(
@@ -39,7 +40,7 @@ class _SearchPageState extends State<SearchPage> with RestorationMixin {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: createAppBar(context, "Search"),
+      appBar: createAppBar(context, "Browse"),
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -47,6 +48,32 @@ class _SearchPageState extends State<SearchPage> with RestorationMixin {
               padding: const EdgeInsets.symmetric(horizontal: 8.0),
               child: Column(
                 children: [
+                  SegmentedButton<BrowseType>(
+                    selected: {_selectedType},
+                    onSelectionChanged: (selected) {
+                      context
+                          .read<BrowseBloc>()
+                          .add(BrowseTypeChanged(selected.first));
+                      setState(() {
+                        _selectedType = selected.first;
+                      });
+                    },
+                    segments: const <ButtonSegment<BrowseType>>[
+                      ButtonSegment(
+                          value: BrowseType.song,
+                          label: Text('Songs'),
+                          icon: Icon(Icons.music_note)),
+                      ButtonSegment(
+                          value: BrowseType.album,
+                          label: Text('Albums'),
+                          icon: Icon(Icons.album)),
+                      ButtonSegment(
+                          value: BrowseType.artist,
+                          label: Text('Artists'),
+                          icon: Icon(Icons.person)),
+                    ],
+                  ),
+                  const SizedBox(height: 13),
                   TextField(
                     controller: _controller.value,
                     focusNode: _focusNode,
@@ -54,43 +81,20 @@ class _SearchPageState extends State<SearchPage> with RestorationMixin {
                       labelText: "Search",
                       icon: Icon(Icons.search),
                     ),
-                    restorationId: "search-page-search-input",
+                    restorationId: "browse-page-search-input",
                     onChanged: (value) {
-                      context.read<SearchBloc>().add(SearchTextChanged(value));
+                      context.read<BrowseBloc>().add(SearchTextChanged(value));
                     },
                   ),
-                  const SizedBox(height: 13),
-                  SegmentedButton<SearchType>(
-                    selected: {_selectedType},
-                    onSelectionChanged: (selected) {
-                      context
-                          .read<SearchBloc>()
-                          .add(SearchTypeChanged(selected.first));
-                      setState(() {
-                        _selectedType = selected.first;
-                      });
-                    },
-                    segments: const <ButtonSegment<SearchType>>[
-                      ButtonSegment(
-                          value: SearchType.song,
-                          label: Text('Songs'),
-                          icon: Icon(Icons.music_note)),
-                      ButtonSegment(
-                          value: SearchType.album,
-                          label: Text('Albums'),
-                          icon: Icon(Icons.album)),
-                      ButtonSegment(
-                          value: SearchType.artist,
-                          label: Text('Artists'),
-                          icon: Icon(Icons.person)),
-                    ],
-                  )
                 ],
               ),
             ),
             const SizedBox(height: 10),
-            BlocBuilder<SearchBloc, SearchState>(
+            BlocBuilder<BrowseBloc, BrowseState>(
               builder: (context, state) {
+                if (state.showGrid) {
+                  return BrowseContent(type: _selectedType);
+                }
                 if (state.status == FetchStatus.initial ||
                     state.status == FetchStatus.loading ||
                     state.type != _selectedType) {
@@ -116,7 +120,7 @@ class _SearchPageState extends State<SearchPage> with RestorationMixin {
                     ...List<Widget>.generate(
                         state.results.length,
                         (i) => switch (state.type) {
-                              SearchType.song => Song(
+                              BrowseType.song => Song(
                                   song: state.results[i].media!,
                                   leadingItem: SongLeadingItem.cover,
                                   showArtist: true,
@@ -136,7 +140,7 @@ class _SearchPageState extends State<SearchPage> with RestorationMixin {
                                     }
                                   },
                                 ),
-                              SearchType.album => SongCollection(
+                              BrowseType.album => SongCollection(
                                   id: state.results[i].id,
                                   name: state.results[i].name,
                                   coverID: state.results[i].coverID,
@@ -150,10 +154,10 @@ class _SearchPageState extends State<SearchPage> with RestorationMixin {
                                       repository: apiRepository),
                                   onTap: () {
                                     context.push(
-                                        "/search/album/${state.results[i].id}");
+                                        "/browse/album/${state.results[i].id}");
                                   },
                                 ),
-                              SearchType.artist => SongCollection(
+                              BrowseType.artist => SongCollection(
                                   id: state.results[i].id,
                                   name: state.results[i].name,
                                   coverID: state.results[i].coverID,
@@ -166,7 +170,7 @@ class _SearchPageState extends State<SearchPage> with RestorationMixin {
                                       repository: apiRepository),
                                   onTap: () {
                                     context.push(
-                                        "/search/artist/${state.results[i].id}");
+                                        "/browse/artist/${state.results[i].id}");
                                   },
                                 )
                             })
@@ -208,10 +212,10 @@ class _SearchPageState extends State<SearchPage> with RestorationMixin {
   }
 
   @override
-  String? get restorationId => "search_page";
+  String? get restorationId => "browse_page";
 
   @override
   void restoreState(RestorationBucket? oldBucket, bool initialRestore) {
-    registerForRestoration(_controller, "search_page_search_controller");
+    registerForRestoration(_controller, "browse_page_search_controller");
   }
 }

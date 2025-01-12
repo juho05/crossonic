@@ -11,6 +11,7 @@ part 'albums_state.dart';
 part 'albums_event.dart';
 
 enum AlbumSortMode {
+  none,
   random,
   added,
   lastPlayed,
@@ -42,11 +43,15 @@ class AlbumsBloc extends Bloc<AlbumsEvent, AlbumsState> {
       if (_sortMode == event.mode) return;
       _sortMode = event.mode;
       await _fetch(
-          _sortMode == AlbumSortMode.random ? 500 : albumsPerPage, 0, emit);
+          _sortMode == AlbumSortMode.random ? 300 : albumsPerPage, 0, emit);
+    });
+    on<AlbumsRefresh>((event, emit) async {
+      await _fetch(
+          _sortMode == AlbumSortMode.random ? 300 : albumsPerPage, 0, emit);
     });
   }
 
-  AlbumSortMode _sortMode = AlbumSortMode.random;
+  AlbumSortMode _sortMode = AlbumSortMode.none;
 
   Future<void> _fetch(int count, int offset, Emitter<AlbumsState> emit) async {
     emit(state.copyWith(
@@ -63,8 +68,9 @@ class AlbumsBloc extends Bloc<AlbumsEvent, AlbumsState> {
           AlbumSortMode.added => GetAlbumList2Type.newest,
           AlbumSortMode.lastPlayed => GetAlbumList2Type.recent,
           AlbumSortMode.releaseDate => GetAlbumList2Type.byYear,
+          _ => GetAlbumList2Type.alphabeticalByName,
         },
-        size: min(count, 500),
+        size: min(count, 300),
         offset: offset,
         fromYear: _sortMode == AlbumSortMode.releaseDate ? 1 : null,
         toYear: _sortMode == AlbumSortMode.releaseDate ? 2300 : null,

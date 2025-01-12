@@ -1,8 +1,8 @@
 import 'package:crossonic/features/home/view/home_carousel.dart';
 import 'package:crossonic/features/home/view/random_songs.dart';
 import 'package:crossonic/features/home/view/recently_added_albums.dart';
-import 'package:crossonic/features/home/view/state/random_songs_cubit.dart';
 import 'package:crossonic/features/home/view/state/recently_added_albums_cubit.dart';
+import 'package:crossonic/features/songs/state/songs_cubit.dart';
 import 'package:crossonic/repositories/api/api_repository.dart';
 import 'package:crossonic/components/app_bar.dart';
 import 'package:flutter/material.dart';
@@ -18,7 +18,7 @@ class HomePage extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider(
-          create: (_) => RandomSongsCubit(apiRepository)..fetch(10),
+          create: (_) => SongsCubit(apiRepository, SongsSort.random)..load(10),
         ),
         BlocProvider(
           create: (_) => RecentlyAddedAlbumsCubit(apiRepository)..fetch(15),
@@ -30,7 +30,7 @@ class HomePage extends StatelessWidget {
           body: RefreshIndicator.adaptive(
             onRefresh: () async {
               context.read<RecentlyAddedAlbumsCubit>().fetch(15);
-              context.read<RandomSongsCubit>().fetch(50);
+              context.read<SongsCubit>().load(10);
             },
             child: SingleChildScrollView(
               child: Column(

@@ -1,4 +1,4 @@
-part of 'search_bloc.dart';
+part of 'browse_bloc.dart';
 
 class SearchResult {
   final String id;
@@ -24,14 +24,16 @@ class SearchResult {
   });
 }
 
-class SearchState {
+class BrowseState {
   final FetchStatus status;
   final List<SearchResult> results;
-  final SearchType type;
+  final BrowseType type;
+  final bool showGrid;
 
-  const SearchState({
+  const BrowseState({
     required this.status,
     required this.results,
     required this.type,
+    required this.showGrid,
   });
 }

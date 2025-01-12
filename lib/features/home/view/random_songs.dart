@@ -1,4 +1,4 @@
-import 'package:crossonic/features/home/view/state/random_songs_cubit.dart';
+import 'package:crossonic/features/songs/state/songs_cubit.dart';
 import 'package:crossonic/fetch_status.dart';
 import 'package:crossonic/services/audio_handler/audio_handler.dart';
 import 'package:crossonic/components/song.dart';
@@ -18,7 +18,7 @@ class RandomSongs extends StatelessWidget {
       children: [
         TextButton(
           onPressed: () {
-            context.push("/home/randomSongs");
+            context.push("/home/songs/random");
           },
           style: TextButton.styleFrom(
             foregroundColor: theme.colorScheme.onSurface,
@@ -33,7 +33,7 @@ class RandomSongs extends StatelessWidget {
             ],
           ),
         ),
-        BlocBuilder<RandomSongsCubit, RandomSongsState>(
+        BlocBuilder<SongsCubit, SongsState>(
           builder: (context, state) {
             return switch (state.status) {
               FetchStatus.initial ||

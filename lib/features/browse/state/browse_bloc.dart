@@ -5,54 +5,76 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:rxdart/rxdart.dart';
 
-part 'search_event.dart';
-part 'search_state.dart';
+part 'browse_event.dart';
+part 'browse_state.dart';
 
-enum SearchType { song, album, artist }
+enum BrowseType { song, album, artist }
 
 EventTransformer<E> debounce<E>(Duration duration) {
   return (events, mapper) => events.debounceTime(duration).switchMap(mapper);
 }
 
-class SearchBloc extends Bloc<SearchEvent, SearchState> {
+class BrowseBloc extends Bloc<BrowseEvent, BrowseState> {
   final APIRepository _apiRepository;
 
   String _text = "";
-  SearchType _type = SearchType.song;
+  BrowseType _type = BrowseType.song;
 
-  SearchBloc(this._apiRepository)
-      : super(const SearchState(
-            status: FetchStatus.initial, results: [], type: SearchType.song)) {
+  BrowseBloc(this._apiRepository)
+      : super(const BrowseState(
+          status: FetchStatus.initial,
+          results: [],
+          type: BrowseType.song,
+          showGrid: true,
+        )) {
     on<SearchTextChanged>((event, emit) async {
       _text = event.text;
       await _fetchResults(emit);
     }, transformer: debounce(const Duration(milliseconds: 500)));
-    on<SearchTypeChanged>((event, emit) async {
+    on<BrowseTypeChanged>((event, emit) async {
       _type = event.type;
       await _fetchResults(emit);
     }, transformer: debounce(const Duration(milliseconds: 100)));
   }
 
-  Future<void> _fetchResults(Emitter<SearchState> emit) async {
+  Future<void> _fetchResults(Emitter<BrowseState> emit) async {
     if (_text.characters.length < 2) {
-      emit(SearchState(status: FetchStatus.success, results: [], type: _type));
+      emit(BrowseState(
+        status: FetchStatus.success,
+        results: [],
+        type: _type,
+        showGrid: true,
+      ));
       return;
     }
-    emit(SearchState(status: FetchStatus.loading, results: [], type: _type));
+    emit(BrowseState(
+      status: FetchStatus.loading,
+      results: [],
+      type: _type,
+      showGrid: false,
+    ));
     try {
       List<SearchResult> results;
       switch (_type) {
-        case SearchType.song:
+        case BrowseType.song:
           results = await _fetchSongs();
-        case SearchType.album:
+        case BrowseType.album:
           results = await _fetchAlbums();
-        case SearchType.artist:
+        case BrowseType.artist:
           results = await _fetchArtists();
       }
-      emit(SearchState(
-          status: FetchStatus.success, results: results, type: _type));
+      emit(BrowseState(
+          status: FetchStatus.success,
+          results: results,
+          type: _type,
+          showGrid: false));
     } catch (e) {
-      emit(SearchState(status: FetchStatus.failure, results: [], type: _type));
+      emit(BrowseState(
+        status: FetchStatus.failure,
+        results: [],
+        type: _type,
+        showGrid: false,
+      ));
     }
   }
 

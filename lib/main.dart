@@ -6,7 +6,7 @@ import 'package:crossonic/app.dart';
 import 'package:crossonic/components/state/layout.dart';
 import 'package:crossonic/features/auth/auth.dart';
 import 'package:crossonic/features/home/view/state/now_playing_cubit.dart';
-import 'package:crossonic/features/search/state/search_bloc.dart';
+import 'package:crossonic/features/browse/state/browse_bloc.dart';
 import 'package:crossonic/repositories/api/api.dart';
 import 'package:crossonic/repositories/api/api_repository.dart';
 import 'package:crossonic/repositories/playlist/playlist_repository.dart';
@@ -92,7 +92,11 @@ Future<void> main() async {
   }
 
   final audioSession = await AudioSession.instance;
-  if (!kIsWeb && (Platform.isLinux || Platform.isAndroid || Platform.isMacOS || Platform.isWindows)) {
+  if (!kIsWeb &&
+      (Platform.isLinux ||
+          Platform.isAndroid ||
+          Platform.isMacOS ||
+          Platform.isWindows)) {
     audioPlayer = AudioPlayerGstreamer(audioSession);
   } else {
     audioPlayer = AudioPlayerAudioPlayers();
@@ -127,7 +131,7 @@ Future<void> main() async {
       providers: [
         BlocProvider(create: (_) => AuthBloc(apiRepository: apiRepository)),
         BlocProvider(create: (_) => NowPlayingCubit(audioHandler)),
-        BlocProvider(create: (_) => SearchBloc(apiRepository)),
+        BlocProvider(create: (_) => BrowseBloc(apiRepository)),
         BlocProvider(create: (_) => FavoritesCubit(apiRepository)),
       ],
       child: const App(),

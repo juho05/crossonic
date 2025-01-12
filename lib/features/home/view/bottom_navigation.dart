@@ -22,8 +22,8 @@ class BottomNavigation extends StatelessWidget {
           label: "Home",
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.search),
-          label: "Search",
+          icon: Icon(Icons.library_music_outlined),
+          label: "Browse",
         ),
         BottomNavigationBarItem(
           icon: Icon(Icons.queue_music),

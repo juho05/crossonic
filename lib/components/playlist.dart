@@ -9,7 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
-class PlaylistGridCell extends StatefulWidget {
+class PlaylistGridCell extends StatelessWidget {
   final Playlist playlist;
   final bool? downloadStatus;
   const PlaylistGridCell({
@@ -19,11 +19,6 @@ class PlaylistGridCell extends StatefulWidget {
   });
 
   @override
-  State<PlaylistGridCell> createState() => _PlaylistGridCellState();
-}
-
-class _PlaylistGridCellState extends State<PlaylistGridCell> {
-  @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -32,7 +27,7 @@ class _PlaylistGridCellState extends State<PlaylistGridCell> {
           cursor: SystemMouseCursors.click,
           child: GestureDetector(
             onTap: () {
-              context.push("/home/playlist/${widget.playlist.id}");
+              context.push("/home/playlist/${playlist.id}");
             },
             child: SizedBox(
               width: constraints.maxHeight * (4 / 5),
@@ -40,28 +35,28 @@ class _PlaylistGridCellState extends State<PlaylistGridCell> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CoverArtWithMenu(
-                    id: widget.playlist.id,
-                    name: widget.playlist.name,
+                    id: playlist.id,
+                    name: playlist.name,
                     size: constraints.maxHeight * (4 / 5),
                     resolution: const CoverResolution.medium(),
                     enablePlay: true,
                     enableShuffle: true,
                     enableQueue: true,
-                    downloadStatus: widget.downloadStatus,
+                    downloadStatus: downloadStatus,
                     enableToggleFavorite: false,
-                    coverID: widget.playlist.coverArt,
+                    coverID: playlist.coverArt,
                     getSongs: () async => context
                         .read<PlaylistRepository>()
-                        .getPlaylistThenUpdate(widget.playlist.id)
+                        .getPlaylistThenUpdate(playlist.id)
                         .entry!,
                     onToggleDownload: kIsWeb
                         ? null
                         : () {
                             final repo = context.read<PlaylistRepository>();
-                            if (widget.downloadStatus == null) {
-                              repo.downloadPlaylist(widget.playlist.id);
+                            if (downloadStatus == null) {
+                              repo.downloadPlaylist(playlist.id);
                             } else {
-                              repo.removePlaylistDownload(widget.playlist.id);
+                              repo.removePlaylistDownload(playlist.id);
                             }
                           },
                     onDelete: () async {
@@ -72,7 +67,7 @@ class _PlaylistGridCellState extends State<PlaylistGridCell> {
                         if (context.mounted) {
                           await context
                               .read<PlaylistRepository>()
-                              .delete(widget.playlist.id);
+                              .delete(playlist.id);
                         }
                       } on ServerUnreachableException {
                         if (context.mounted) {
@@ -94,7 +89,7 @@ class _PlaylistGridCellState extends State<PlaylistGridCell> {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    widget.playlist.name,
+                    playlist.name,
                     overflow: TextOverflow.ellipsis,
                     style: textTheme.bodyMedium!.copyWith(
                       fontWeight: FontWeight.w400,
@@ -102,7 +97,7 @@ class _PlaylistGridCellState extends State<PlaylistGridCell> {
                     ),
                   ),
                   Text(
-                    "Songs: ${widget.playlist.songCount}", // TODO: consider adding playlist duration
+                    "Songs: ${playlist.songCount}", // TODO: consider adding playlist duration
                     overflow: TextOverflow.ellipsis,
                     style: textTheme.bodyMedium!.copyWith(
                       fontWeight: FontWeight.w300,

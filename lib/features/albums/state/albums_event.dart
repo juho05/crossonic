@@ -11,3 +11,5 @@ final class AlbumSortModeSelected extends AlbumsEvent {
 }
 
 final class AlbumsNextPageFetched extends AlbumsEvent {}
+
+final class AlbumsRefresh extends AlbumsEvent {}

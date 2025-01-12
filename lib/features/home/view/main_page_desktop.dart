@@ -62,8 +62,8 @@ class _MainPageDesktopState extends State<MainPageDesktop> {
                             sideMenuController.changePage(index),
                       ),
                       SideMenuItem(
-                        title: "Search",
-                        icon: const Icon(Icons.search),
+                        title: "Browse",
+                        icon: const Icon(Icons.library_music_outlined),
                         onTap: (index, sideMenuController) =>
                             sideMenuController.changePage(index),
                       ),

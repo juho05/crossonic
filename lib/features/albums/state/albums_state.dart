@@ -24,7 +24,7 @@ class AlbumsState extends Equatable {
     this.status = FetchStatus.initial,
     this.albums = const [],
     this.reachedEnd = false,
-    this.sortMode = AlbumSortMode.random,
+    this.sortMode = AlbumSortMode.none,
   });
 
   final FetchStatus status;

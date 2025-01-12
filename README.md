@@ -16,6 +16,7 @@ Not all [platforms](#supported_platforms) are properly supported yet.
 - [x] Stream original or transcoded media
   - [x] configurable transcoding settings for WiFi and mobile
 - [x] Browse/search songs, albums, artists
+- [x] Favorite songs/albums/artists
 - [x] Playlists
   - [x] download for offline listening (*except web*)
 - [x] [ListenBrainz](https://listenbrainz.org) integration
@@ -35,7 +36,6 @@ Not all [platforms](#supported_platforms) are properly supported yet.
 - [x] Replay gain
 - [ ] Remote control other devices running the app
 - [ ] Cast to [SONOS](https://www.sonos.com) (implemented, but *very* buggy and currently disabled)
-- [ ] Browse favorites
 - [ ] Save queues
 
 ## Supported platforms
@@ -44,7 +44,7 @@ While this app can be built for every platform [Flutter](https://flutter.dev) su
 
 **fully supported**
 - Linux
-- Android
+- Android (*no AAC support*)
 - macOS
 - Windows
 
