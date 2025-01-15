@@ -6,7 +6,7 @@ A cross platform music client for [crossonic-server](https://github.com/juho05/c
 
 This app is still in development. Some features are missing and bugs are to be expected.
 
-Not all [platforms](#supported_platforms) are properly supported yet.
+See [Supported platforms](#supported-platforms) for a status per platform.
 
 ## Features
 
@@ -29,7 +29,7 @@ Not all [platforms](#supported_platforms) are properly supported yet.
     - for songs you want to listen now before continuing with the normal queue
   - both can be freely modified
 - [x] Shuffle artists by song or by album
-- [x] Gapless playback (*Linux, Android*)
+- [x] Gapless playback
 - [x] Lyrics
   - [x] unsynced
   - [ ] synced
