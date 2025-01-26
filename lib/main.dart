@@ -67,7 +67,7 @@ Future<void> main() async {
     nativeIntegration = SMTCIntegration();
   } else {
     var androidBackgroundAvailable = true;
-    if (Platform.isAndroid) {
+    if (!kIsWeb && Platform.isAndroid) {
       androidBackgroundAvailable =
           await OptimizeBattery.isIgnoringBatteryOptimizations();
       if (!androidBackgroundAvailable) {
