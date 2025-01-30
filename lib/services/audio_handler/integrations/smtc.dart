@@ -73,11 +73,11 @@ class SMTCIntegration implements NativeIntegration {
   void updatePlaybackState(CrossonicPlaybackStatus status) {
     switch (status) {
       case CrossonicPlaybackStatus.playing:
-        _smtc.setPlaybackStatus(PlaybackStatus.Playing);
+        _smtc.setPlaybackStatus(PlaybackStatus.playing);
       case CrossonicPlaybackStatus.paused:
-        _smtc.setPlaybackStatus(PlaybackStatus.Paused);
+        _smtc.setPlaybackStatus(PlaybackStatus.paused);
       case CrossonicPlaybackStatus.stopped:
-        _smtc.setPlaybackStatus(PlaybackStatus.Stopped);
+        _smtc.setPlaybackStatus(PlaybackStatus.stopped);
       default:
         break;
     }

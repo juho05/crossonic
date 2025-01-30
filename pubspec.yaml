@@ -12,9 +12,9 @@ dependencies:
     path: ./native_bindings/gstreamer/gstreamer
   dynamic_color: ^1.7.0
   http: ^1.2.1
-  bloc: ^8.1.4
+  bloc: ^9.0.0
   equatable: ^2.0.5
-  flutter_bloc: ^8.1.5
+  flutter_bloc: ^9.0.0
   formz: ^0.7.0
   flutter_secure_storage: ^9.0.0
   shared_preferences: ^2.2.3
@@ -28,10 +28,10 @@ dependencies:
   rxdart: ^0.28.0
   cached_network_image: ^3.3.1
   audioplayers: ^6.0.0
-  smtc_windows: ^0.1.2
+  smtc_windows: ^1.0.0
   audio_video_progress_bar: ^2.0.2
   stream_transform: ^2.1.0
-  bloc_concurrency: ^0.2.5
+  bloc_concurrency: ^0.3.0
   window_manager: ^0.4.3
   connectivity_plus: ^6.0.3
   web_socket_channel: ^2.4.5
