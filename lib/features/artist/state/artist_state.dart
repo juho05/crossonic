@@ -43,6 +43,7 @@ class ArtistState extends Equatable {
     required this.coverID,
     required this.albums,
     required this.genres,
+    required this.description,
   });
 
   final FetchStatus status;
@@ -52,6 +53,7 @@ class ArtistState extends Equatable {
   final String coverID;
   final List<ArtistAlbum> albums;
   final List<String> genres;
+  final String description;
 
   ArtistState copyWith({
     FetchStatus? status,
@@ -61,6 +63,7 @@ class ArtistState extends Equatable {
     String? coverID,
     List<ArtistAlbum>? albums,
     List<String>? genres,
+    String? description,
   }) {
     return ArtistState(
       status: status ?? this.status,
@@ -70,6 +73,7 @@ class ArtistState extends Equatable {
       coverID: coverID ?? this.coverID,
       albums: albums ?? this.albums,
       genres: genres ?? this.genres,
+      description: description ?? this.description,
     );
   }
 
@@ -81,5 +85,7 @@ class ArtistState extends Equatable {
         albumCount,
         coverID,
         albums,
+        genres,
+        description,
       ];
 }

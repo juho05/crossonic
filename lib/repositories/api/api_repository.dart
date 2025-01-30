@@ -4,7 +4,9 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:crossonic/exceptions.dart';
+import 'package:crossonic/repositories/api/models/album_info_model.dart';
 import 'package:crossonic/repositories/api/models/albumid3_model.dart';
+import 'package:crossonic/repositories/api/models/artist_info_model.dart';
 import 'package:crossonic/repositories/api/models/artist_model.dart';
 import 'package:crossonic/repositories/api/models/listenbrainz_model.dart';
 import 'package:crossonic/repositories/api/models/models.dart';
@@ -290,6 +292,28 @@ class APIRepository {
     final status =
         await _jsonRequest("startScan", {}, ScanStatus.fromJson, "scanStatus");
     return status!;
+  }
+
+  Future<AlbumInfo> getAlbumInfo2(String albumID) async {
+    final response = await _jsonRequest(
+        "getAlbumInfo2",
+        {
+          "id": [albumID]
+        },
+        AlbumInfo.fromJson,
+        "albumInfo");
+    return response!;
+  }
+
+  Future<ArtistInfo2> getArtistInfo2(String artistID) async {
+    final response = await _jsonRequest(
+        "getArtistInfo2",
+        {
+          "id": [artistID]
+        },
+        ArtistInfo2.fromJson,
+        "artistInfo2");
+    return response!;
   }
 
   Future<GetLyricsBySongIdResponse> getLyricsBySongId(String songID) async {

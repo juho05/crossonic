@@ -31,11 +31,11 @@ class AlbumPage extends StatelessWidget {
         body: BlocBuilder<AlbumCubit, AlbumState>(
           builder: (context, album) {
             if (album.id != albumID && album.status != FetchStatus.failure) {
-              context.read<AlbumCubit>().updateID(albumID);
+              context.read<AlbumCubit>().load(albumID);
               return const Center(child: CircularProgressIndicator.adaptive());
             }
             final audioHandler = context.read<CrossonicAudioHandler>();
-            final multipleDiscs =
+            final multipleDiscs = album.subsonicSongs.isNotEmpty &&
                 (album.subsonicSongs.last.discNumber ?? 1) > 1;
             return switch (album.status) {
               FetchStatus.initial ||
@@ -46,6 +46,9 @@ class AlbumPage extends StatelessWidget {
                   builder: (context, constraints) {
                     return CollectionPage(
                       name: album.name,
+                      description: album.description.isNotEmpty
+                          ? album.description
+                          : null,
                       cover: BlocBuilder<FavoritesCubit, FavoritesState>(
                         buildWhen: (previous, current) =>
                             current.changedId == album.id,

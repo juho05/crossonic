@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:crossonic/components/state/layout.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -28,8 +30,8 @@ class CollectionPage extends StatelessWidget {
   final String name;
   final List<CollectionExtraInfo>? extraInfo;
   final List<CollectionAction>? actions;
-  final Widget? extraContent;
   final void Function(int oldIndex, int newIndex)? onReorder;
+  final String? description;
 
   const CollectionPage({
     super.key,
@@ -42,8 +44,8 @@ class CollectionPage extends StatelessWidget {
     required this.name,
     this.extraInfo,
     this.actions,
-    this.extraContent,
     this.onReorder,
+    this.description,
   });
 
   @override
@@ -61,7 +63,7 @@ class CollectionPage extends StatelessWidget {
           name: name,
           extraInfo: extraInfo,
           actions: actions,
-          extraContent: extraContent,
+          description: description,
         );
       } else {
         return CollectionPageMobile(
@@ -74,7 +76,7 @@ class CollectionPage extends StatelessWidget {
           name: name,
           extraInfo: extraInfo,
           actions: actions,
-          extraContent: extraContent,
+          description: description,
         );
       }
     });
@@ -91,8 +93,8 @@ class CollectionPageMobile extends StatelessWidget {
   final String name;
   final List<CollectionExtraInfo>? extraInfo;
   final List<CollectionAction>? actions;
-  final Widget? extraContent;
   final void Function(int oldIndex, int newIndex)? onReorder;
+  final String? description;
 
   const CollectionPageMobile({
     super.key,
@@ -104,8 +106,8 @@ class CollectionPageMobile extends StatelessWidget {
     required this.name,
     this.extraInfo,
     this.actions,
-    this.extraContent,
     this.onReorder,
+    this.description,
   });
 
   @override
@@ -189,6 +191,14 @@ class CollectionPageMobile extends StatelessWidget {
               ),
             if (contentTitle != null) const SizedBox(height: 10),
             if (content != null) content!,
+            if (description != null)
+              Padding(
+                padding: const EdgeInsets.all(12),
+                child: DescriptionTextWidget(
+                  text: description!,
+                  enableScroll: false,
+                ),
+              ),
           ],
         ),
       ),
@@ -211,8 +221,8 @@ class CollectionPageDesktop extends StatelessWidget {
   final String name;
   final List<CollectionExtraInfo>? extraInfo;
   final List<CollectionAction>? actions;
-  final Widget? extraContent;
   final void Function(int oldIndex, int newIndex)? onReorder;
+  final String? description;
 
   const CollectionPageDesktop({
     super.key,
@@ -224,8 +234,8 @@ class CollectionPageDesktop extends StatelessWidget {
     required this.name,
     this.extraInfo,
     this.actions,
-    this.extraContent,
     this.onReorder,
+    this.description,
   });
 
   @override
@@ -235,45 +245,32 @@ class CollectionPageDesktop extends StatelessWidget {
       children: [
         Expanded(
             flex: 3,
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  if (cover != null)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: cover!,
-                    ),
-                  if (cover != null) const SizedBox(height: 10),
+            child: Column(
+              children: [
+                if (cover != null)
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    child: Text(
-                      name,
-                      style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 22,
-                          ),
-                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: cover!,
                   ),
-                  if (extraInfo != null)
-                    ...extraInfo!.map(
-                      (i) => Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        child: i.onClick != null
-                            ? TextButton(
-                                onPressed: i.onClick,
-                                child: Text(
-                                  i.text,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodyLarge!
-                                      .copyWith(
-                                        fontWeight: FontWeight.w400,
-                                        fontSize: 15,
-                                      ),
-                                ),
-                              )
-                            : Text(
+                if (cover != null) const SizedBox(height: 10),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: Text(
+                    name,
+                    style: Theme.of(context).textTheme.bodyLarge!.copyWith(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 22,
+                        ),
+                  ),
+                ),
+                if (extraInfo != null)
+                  ...extraInfo!.map(
+                    (i) => Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: i.onClick != null
+                          ? TextButton(
+                              onPressed: i.onClick,
+                              child: Text(
                                 i.text,
                                 overflow: TextOverflow.ellipsis,
                                 style: Theme.of(context)
@@ -284,10 +281,28 @@ class CollectionPageDesktop extends StatelessWidget {
                                       fontSize: 15,
                                     ),
                               ),
-                      ),
+                            )
+                          : Text(
+                              i.text,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyLarge!
+                                  .copyWith(
+                                    fontWeight: FontWeight.w400,
+                                    fontSize: 15,
+                                  ),
+                            ),
                     ),
-                ],
-              ),
+                  ),
+                if (description != null)
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: DescriptionTextWidget(text: description!),
+                    ),
+                  ),
+              ],
             )),
         const VerticalDivider(width: 1, thickness: 1),
         Expanded(
@@ -343,6 +358,61 @@ class CollectionPageDesktop extends StatelessWidget {
             itemCount: reorderableItemCount ?? 0,
           ),
         ),
+      ],
+    );
+  }
+}
+
+class DescriptionTextWidget extends StatefulWidget {
+  final String text;
+  final bool enableScroll;
+  const DescriptionTextWidget(
+      {super.key, required this.text, this.enableScroll = true});
+
+  @override
+  State<DescriptionTextWidget> createState() => _DescriptionTextWidgetState();
+}
+
+class _DescriptionTextWidgetState extends State<DescriptionTextWidget> {
+  bool open = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final column = Column(
+      children: [
+        Container(
+          constraints: open ? null : const BoxConstraints(maxHeight: 182),
+          child: Text(widget.text),
+        ),
+        Align(
+          alignment: Alignment.bottomRight,
+          child: TextButton(
+            onPressed: () => setState(() {
+              open = !open;
+            }),
+            child: Text(open ? "show less" : "show more"),
+          ),
+        )
+      ],
+    );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "About",
+          style: Theme.of(context)
+              .textTheme
+              .headlineSmall!
+              .copyWith(fontSize: 24, fontWeight: FontWeight.w500),
+        ),
+        const SizedBox(height: 8),
+        if (widget.enableScroll)
+          Expanded(
+            child: SingleChildScrollView(
+              child: column,
+            ),
+          ),
+        if (!widget.enableScroll) column,
       ],
     );
   }

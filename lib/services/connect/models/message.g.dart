@@ -24,20 +24,10 @@ Message _$MessageFromJson(Map<String, dynamic> json) => $checkedCreate(
       },
     );
 
-Map<String, dynamic> _$MessageToJson(Message instance) {
-  final val = <String, dynamic>{
-    'op': instance.op,
-    'type': instance.type,
-    'source': instance.source,
-    'target': instance.target,
-  };
-
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('payload', instance.payload);
-  return val;
-}
+Map<String, dynamic> _$MessageToJson(Message instance) => <String, dynamic>{
+      'op': instance.op,
+      'type': instance.type,
+      'source': instance.source,
+      'target': instance.target,
+      if (instance.payload case final value?) 'payload': value,
+    };

@@ -27,6 +27,7 @@ class AlbumState extends Equatable {
     required this.artists,
     required this.songs,
     required this.subsonicSongs,
+    required this.description,
   });
 
   final FetchStatus status;
@@ -37,6 +38,7 @@ class AlbumState extends Equatable {
   final Artists artists;
   final List<Track> songs;
   final List<Media> subsonicSongs;
+  final String description;
 
   AlbumState copyWith({
     FetchStatus? status,
@@ -47,6 +49,7 @@ class AlbumState extends Equatable {
     Artists? artists,
     List<Track>? songs,
     List<Media>? subsonicSongs,
+    String? description,
   }) {
     return AlbumState(
       status: status ?? this.status,
@@ -57,6 +60,7 @@ class AlbumState extends Equatable {
       artists: artists ?? this.artists,
       songs: songs ?? this.songs,
       subsonicSongs: subsonicSongs ?? this.subsonicSongs,
+      description: description ?? this.description,
     );
   }
 
@@ -70,5 +74,6 @@ class AlbumState extends Equatable {
         artists,
         songs,
         subsonicSongs,
+        description,
       ];
 }

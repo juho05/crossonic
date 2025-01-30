@@ -43,6 +43,9 @@ class ArtistPage extends StatelessWidget {
                       name: artist.name,
                       contentTitle: "Albums (${artist.albumCount})",
                       showContentTitleInMobileView: true,
+                      description: artist.description.isNotEmpty
+                          ? artist.description
+                          : null,
                       cover: BlocBuilder<FavoritesCubit, FavoritesState>(
                         buildWhen: (previous, current) =>
                             current.changedId == artist.id,

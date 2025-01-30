@@ -15,13 +15,24 @@ class ArtistCubit extends Cubit<ArtistState> {
           coverID: "",
           albums: [],
           genres: [],
+          description: "",
         ));
 
   final APIRepository _apiRepository;
   String _artistID = "";
 
+  void _loadInfo(String artistID) async {
+    try {
+      final info = await _apiRepository.getArtistInfo2(artistID);
+      emit(state.copyWith(description: info.biography ?? ""));
+    } catch (e) {
+      emit(state.copyWith(description: ""));
+    }
+  }
+
   void load(String artistID) async {
     if (artistID == _artistID) return;
+    _loadInfo(artistID);
     _artistID = artistID;
     emit(state.copyWith(
       status: FetchStatus.loading,

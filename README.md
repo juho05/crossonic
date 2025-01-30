@@ -65,6 +65,11 @@ git clone https://github.com/juho05/crossonic
 cd crossonic
 ```
 
+Generate json bindings:
+```bash
+dart run build_runner build
+```
+
 ### Linux
 
 #### Install dependencies
