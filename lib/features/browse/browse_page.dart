@@ -48,30 +48,32 @@ class _BrowsePageState extends State<BrowsePage> with RestorationMixin {
               padding: const EdgeInsets.symmetric(horizontal: 8.0),
               child: Column(
                 children: [
-                  SegmentedButton<BrowseType>(
-                    selected: {_selectedType},
-                    onSelectionChanged: (selected) {
-                      context
-                          .read<BrowseBloc>()
-                          .add(BrowseTypeChanged(selected.first));
-                      setState(() {
-                        _selectedType = selected.first;
-                      });
-                    },
-                    segments: const <ButtonSegment<BrowseType>>[
-                      ButtonSegment(
-                          value: BrowseType.song,
-                          label: Text('Songs'),
-                          icon: Icon(Icons.music_note)),
-                      ButtonSegment(
-                          value: BrowseType.album,
-                          label: Text('Albums'),
-                          icon: Icon(Icons.album)),
-                      ButtonSegment(
-                          value: BrowseType.artist,
-                          label: Text('Artists'),
-                          icon: Icon(Icons.person)),
-                    ],
+                  TextFieldTapRegion(
+                    child: SegmentedButton<BrowseType>(
+                      selected: {_selectedType},
+                      onSelectionChanged: (selected) {
+                        context
+                            .read<BrowseBloc>()
+                            .add(BrowseTypeChanged(selected.first));
+                        setState(() {
+                          _selectedType = selected.first;
+                        });
+                      },
+                      segments: const <ButtonSegment<BrowseType>>[
+                        ButtonSegment(
+                            value: BrowseType.song,
+                            label: Text('Songs'),
+                            icon: Icon(Icons.music_note)),
+                        ButtonSegment(
+                            value: BrowseType.album,
+                            label: Text('Albums'),
+                            icon: Icon(Icons.album)),
+                        ButtonSegment(
+                            value: BrowseType.artist,
+                            label: Text('Artists'),
+                            icon: Icon(Icons.person)),
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 12),
                   TextField(
@@ -84,6 +86,9 @@ class _BrowsePageState extends State<BrowsePage> with RestorationMixin {
                     restorationId: "browse-page-search-input",
                     onChanged: (value) {
                       context.read<BrowseBloc>().add(SearchTextChanged(value));
+                    },
+                    onTapOutside: (event) {
+                      _focusNode.unfocus();
                     },
                   ),
                 ],
