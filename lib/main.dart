@@ -17,7 +17,6 @@ import 'package:crossonic/services/audio_handler/players/audioplayers.dart';
 import 'package:crossonic/services/audio_handler/players/gstreamer.dart';
 import 'package:crossonic/services/audio_handler/players/player.dart';
 import 'package:crossonic/services/audio_handler/integrations/integration.dart';
-import 'package:crossonic/services/connect/connect_manager.dart';
 import 'package:crossonic/services/scrobble/scrobbler.dart';
 import 'package:crossonic/components/state/favorites_cubit.dart';
 import 'package:flutter/material.dart';
@@ -48,8 +47,6 @@ Future<void> main() async {
 
   final settings = Settings(
       sharedPreferences: sharedPreferences, apiRepository: apiRepository);
-
-  final connectManager = ConnectManager(apiRepository: apiRepository);
 
   final offlineCache = OfflineCache(
     apiRepository: apiRepository,
@@ -108,7 +105,6 @@ Future<void> main() async {
     player: audioPlayer,
     integration: nativeIntegration,
     settings: settings,
-    connectManager: connectManager,
     offlineCache: offlineCache,
   );
 
@@ -123,7 +119,6 @@ Future<void> main() async {
       RepositoryProvider.value(value: apiRepository),
       RepositoryProvider.value(value: audioHandler),
       RepositoryProvider.value(value: settings),
-      RepositoryProvider.value(value: connectManager),
       RepositoryProvider.value(value: playlistRepository),
       RepositoryProvider(create: (context) => Layout(size: LayoutSize.mobile))
     ],

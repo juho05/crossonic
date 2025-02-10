@@ -34,9 +34,9 @@ See [Supported platforms](#supported-platforms) for a status per platform.
   - [x] unsynced
   - [ ] synced
 - [x] Replay gain
-- [ ] Remote control other devices running the app
-- [ ] Cast to [SONOS](https://www.sonos.com) (implemented, but *very* buggy and currently disabled)
+- [ ] Jukebox
 - [ ] Save queues
+- [ ] Remote control other devices running the app
 
 ## Supported platforms
 

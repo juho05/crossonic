@@ -8,9 +8,6 @@ import 'package:crossonic/services/audio_handler/offline_cache/offline_cache.dar
 import 'package:crossonic/services/audio_handler/players/player.dart';
 import 'package:crossonic/services/audio_handler/media_queue.dart';
 import 'package:crossonic/services/audio_handler/integrations/integration.dart';
-import 'package:crossonic/services/audio_handler/players/remoteplayer.dart';
-import 'package:crossonic/services/connect/connect_manager.dart';
-import 'package:crossonic/services/connect/models/device.dart';
 import 'package:crossonic/components/cover_art.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
@@ -58,14 +55,12 @@ class CrossonicAudioHandler {
   BehaviorSubject<CrossonicPlaybackState> get crossonicPlaybackStatus =>
       _playbackState;
 
-  final CrossonicAudioPlayer _localPlayer;
-  CrossonicAudioPlayer _player;
+  final CrossonicAudioPlayer _player;
   bool _playerLoaded = false;
 
   final APIRepository _apiRepository;
   final NativeIntegration _integration;
   final Settings _settings;
-  final ConnectManager _connectManager;
 
   StreamSubscription? _playerEventStream;
 
@@ -85,21 +80,17 @@ class CrossonicAudioHandler {
     required CrossonicAudioPlayer player,
     required NativeIntegration integration,
     required Settings settings,
-    required ConnectManager connectManager,
     required OfflineCache offlineCache,
   })  : _apiRepository = apiRepository,
-        _localPlayer = player,
         _player = player,
         _integration = integration,
         _settings = settings,
-        _connectManager = connectManager,
         _offlineCache = offlineCache {
     _apiRepository.authStatus.listen((status) async {
       if (status != AuthStatus.authenticated) {
         await stop();
       }
     });
-    _connectManager.controllingDevice.listen(_controlDevice);
     _integration.ensureInitialized(
       audioHandler: this,
       onPause: pause,
@@ -130,7 +121,7 @@ class CrossonicAudioHandler {
 
     _queue.current.listen(_mediaChanged);
 
-    _playerEventStream = _localPlayer.eventStream.listen(_playerEvent);
+    _playerEventStream = _player.eventStream.listen(_playerEvent);
   }
 
   Future<void> _ensurePlayerLoaded([bool restorePlayerState = true]) async {
@@ -188,30 +179,6 @@ class CrossonicAudioHandler {
     _playerLoaded = false;
     print("disposing player...");
     await _player.dispose();
-  }
-
-  Future<void> _controlDevice(Device? device) async {
-    if (device == null && _player == _localPlayer) return;
-    _playerEventStream?.cancel();
-    _playerEventStream = null;
-
-    await _disposePlayer();
-
-    if (device == null) {
-      _player = _localPlayer;
-      await _ensurePlayerLoaded();
-    } else {
-      _player = AudioPlayerRemote(device, _connectManager);
-      _player.init();
-      await _player.stop();
-      await Future.delayed(const Duration(seconds: 1));
-    }
-
-    _playerEventStream = _player.eventStream.listen(_playerEvent);
-    _currentTranscode = await _settings.getTranscodeSettings();
-
-    _applyReplayGain();
-    _updatePosition(true);
   }
 
   Timer? _disposePlayerTimeout;
@@ -445,6 +412,7 @@ class CrossonicAudioHandler {
   }
 
   Future<void> dispose() async {
+    _playerEventStream?.cancel();
     await _player.dispose();
   }
 
@@ -523,5 +491,5 @@ class CrossonicAudioHandler {
     );
   }
 
-  bool get supportsLocalPlayback => _localPlayer.supportsFileURLs;
+  bool get supportsLocalPlayback => _player.supportsFileURLs;
 }
