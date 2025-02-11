@@ -1,6 +1,3 @@
-/// Custom macOS library for flutter_secure_storage using /usr/bin/security
-library flutter_secure_storage_macos;
-
 import 'dart:convert';
 import 'dart:io';
 
