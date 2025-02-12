@@ -15,20 +15,50 @@ class AppRouter extends RootStackRouter {
         AuthGuard(authRepository: _authRepository),
       ];
 
+  final List<AutoRoute> _childRoutes = [
+    AutoRoute(
+      path: "artist",
+      page: ArtistRoute.page,
+      restorationId: (match) => match.fullPath,
+    ),
+  ];
+
   @override
   List<AutoRoute> get routes => [
         AutoRoute(
           initial: true,
           path: "/",
           page: MainRoute.page,
+          children: [
+            AutoRoute(
+              path: "home",
+              page: EmptyShellRoute("HomeTab"),
+              children: [
+                AutoRoute(page: HomeRoute.page, path: ""),
+                ..._childRoutes,
+              ],
+              restorationId: (match) => match.fullPath,
+            ),
+            AutoRoute(
+              path: "browse",
+              page: EmptyShellRoute("BrowseTab"),
+              children: [
+                AutoRoute(page: BrowseRoute.page, path: ""),
+                ..._childRoutes,
+              ],
+              restorationId: (match) => match.fullPath,
+            ),
+          ],
         ),
         AutoRoute(
           path: "/auth/connect",
           page: ConnectServerRoute.page,
+          restorationId: (match) => match.fullPath,
         ),
         AutoRoute(
           path: "/auth/login",
           page: LoginRoute.page,
+          restorationId: (match) => match.fullPath,
         ),
       ];
 }

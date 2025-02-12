@@ -17,18 +17,19 @@ class LoginPage extends StatefulWidget {
   State<LoginPage> createState() => _LoginPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _LoginPageState extends State<LoginPage> with RestorationMixin {
   final _formKey = GlobalKey<FormBuilderState>();
 
   late LoginViewModel viewModel;
-  late AuthType _authType;
+  late RestorableEnum<AuthType> _authType;
 
   @override
   void initState() {
     super.initState();
     viewModel = LoginViewModel(authRepository: context.read<AuthRepository>());
     viewModel.login.addListener(_onResult);
-    _authType = viewModel.supportedAuthTypes[0];
+    _authType = RestorableEnum(viewModel.supportedAuthTypes[0],
+        values: AuthType.values);
   }
 
   @override
@@ -87,7 +88,7 @@ class _LoginPageState extends State<LoginPage> {
                             ],
                           ),
                           DropdownButtonFormField<AuthType>(
-                            value: _authType,
+                            value: _authType.value,
                             decoration: const InputDecoration(
                               labelText: "Authentication Method",
                               border: OutlineInputBorder(),
@@ -110,13 +111,14 @@ class _LoginPageState extends State<LoginPage> {
                               },
                             ),
                             onChanged: (value) => setState(() {
-                              _authType =
+                              _authType.value =
                                   value ?? viewModel.supportedAuthTypes[0];
                             }),
                           ),
-                          if (_authType != AuthType.apiKey)
+                          if (_authType.value != AuthType.apiKey)
                             FormBuilderTextField(
                               name: "username",
+                              restorationId: "login_page_username",
                               decoration: const InputDecoration(
                                 labelText: "Username",
                                 icon: Icon(Icons.person),
@@ -125,9 +127,10 @@ class _LoginPageState extends State<LoginPage> {
                               autofillHints: const [AutofillHints.username],
                               validator: FormBuilderValidators.required(),
                             ),
-                          if (_authType != AuthType.apiKey)
+                          if (_authType.value != AuthType.apiKey)
                             FormBuilderTextField(
                               name: "password",
+                              restorationId: "login_page_password",
                               decoration: const InputDecoration(
                                 labelText: "Password",
                                 icon: Icon(Icons.link),
@@ -137,9 +140,10 @@ class _LoginPageState extends State<LoginPage> {
                               autofillHints: const [AutofillHints.password],
                               validator: FormBuilderValidators.required(),
                             ),
-                          if (_authType == AuthType.apiKey)
+                          if (_authType.value == AuthType.apiKey)
                             FormBuilderTextField(
                               name: "apiKey",
+                              restorationId: "login_page_apiKey",
                               decoration: const InputDecoration(
                                 labelText: "API Key",
                                 icon: Icon(Icons.key),
@@ -164,14 +168,14 @@ class _LoginPageState extends State<LoginPage> {
                                   return;
                                 }
                                 await viewModel.login.execute(LoginData(
-                                  type: _authType,
-                                  username: _authType != AuthType.apiKey
+                                  type: _authType.value,
+                                  username: _authType.value != AuthType.apiKey
                                       ? _formKey.currentState!.value["username"]
                                       : null,
-                                  password: _authType != AuthType.apiKey
+                                  password: _authType.value != AuthType.apiKey
                                       ? _formKey.currentState!.value["password"]
                                       : null,
-                                  apiKey: _authType == AuthType.apiKey
+                                  apiKey: _authType.value == AuthType.apiKey
                                       ? _formKey.currentState!.value["apiKey"]
                                       : null,
                                 ));
@@ -216,5 +220,13 @@ class _LoginPageState extends State<LoginPage> {
           .showSnackBar(SnackBar(content: Text(message)));
       viewModel.login.clearResult();
     }
+  }
+
+  @override
+  String? get restorationId => "login_page";
+
+  @override
+  void restoreState(RestorationBucket? oldBucket, bool initialRestore) {
+    registerForRestoration(_authType, "auth_type");
   }
 }

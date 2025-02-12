@@ -64,6 +64,7 @@ class _ConnectServerPageState extends State<ConnectServerPage> {
                     Expanded(
                       child: FormBuilderTextField(
                         name: "serverUri",
+                        restorationId: "connect_server_page_serverUri",
                         decoration: const InputDecoration(
                           labelText: "Server URL",
                           icon: Icon(Icons.link),
