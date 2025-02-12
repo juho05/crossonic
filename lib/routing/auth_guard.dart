@@ -11,20 +11,24 @@ class AuthGuard extends AutoRouteGuard {
   @override
   void onNavigation(NavigationResolver resolver, StackRouter router) {
     if (resolver.routeName == ConnectServerRoute.name) {
-      resolver.next(true);
+      resolver.next(!_authRepository.hasServer);
       return;
     }
     if (!_authRepository.hasServer) {
       resolver.redirect(
-        ConnectServerRoute(onServerSelected: () => resolver.next(true)),
+        ConnectServerRoute(),
       );
       return;
     }
 
-    if (!_authRepository.isAuthenticated &&
-        resolver.routeName != LoginRoute.name) {
+    if (resolver.routeName == LoginRoute.name) {
+      resolver.next(!_authRepository.isAuthenticated);
+      return;
+    }
+
+    if (!_authRepository.isAuthenticated) {
       resolver.redirect(
-        LoginRoute(onSignedIn: () => resolver.next(true)),
+        LoginRoute(),
       );
       return;
     }

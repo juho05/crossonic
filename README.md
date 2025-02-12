@@ -65,9 +65,9 @@ git clone https://github.com/juho05/crossonic
 cd crossonic
 ```
 
-Generate json bindings:
+Run code generation:
 ```bash
-dart run build_runner build
+dart run build_runner build # or watch to automatically run build on file changes
 ```
 
 ### Linux

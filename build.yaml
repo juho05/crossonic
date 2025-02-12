@@ -11,3 +11,8 @@ targets:
       auto_route_generator:auto_router_generator:
         generate_for:
           - lib/routing/router.dart
+      json_serializable:
+        options:
+          create_to_json: true
+          checked: true
+          include_if_null: false

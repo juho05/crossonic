@@ -1,3 +1,0 @@
-class SelectServerViewModel {
-  SelectServerViewModel();
-}

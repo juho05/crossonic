@@ -26,5 +26,9 @@ class AppRouter extends RootStackRouter {
           path: "/auth/connect",
           page: ConnectServerRoute.page,
         ),
+        AutoRoute(
+          path: "/auth/login",
+          page: LoginRoute.page,
+        ),
       ];
 }
