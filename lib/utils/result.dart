@@ -22,6 +22,8 @@
 sealed class Result<T> {
   const Result();
 
+  T? get tryValue => this is Ok ? (this as Ok).value : null;
+
   /// Creates a successful [Result], completed with the specified [value].
   const factory Result.ok(T value) = Ok._;
 

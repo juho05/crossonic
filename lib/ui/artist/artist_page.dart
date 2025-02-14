@@ -7,6 +7,6 @@ class ArtistPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text("Artist");
+    return Material(child: Text("Artist"));
   }
 }

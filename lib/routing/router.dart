@@ -19,6 +19,7 @@ class AppRouter extends RootStackRouter {
     AutoRoute(
       path: "artist",
       page: ArtistRoute.page,
+      title: (context, data) => "Artist",
       restorationId: (match) => match.fullPath,
     ),
   ];
@@ -33,8 +34,13 @@ class AppRouter extends RootStackRouter {
             AutoRoute(
               path: "home",
               page: EmptyShellRoute("HomeTab"),
+              title: (context, data) => "",
               children: [
-                AutoRoute(page: HomeRoute.page, path: ""),
+                AutoRoute(
+                  page: HomeRoute.page,
+                  path: "",
+                  title: (context, data) => "Home",
+                ),
                 ..._childRoutes,
               ],
               restorationId: (match) => match.fullPath,
@@ -42,8 +48,13 @@ class AppRouter extends RootStackRouter {
             AutoRoute(
               path: "browse",
               page: EmptyShellRoute("BrowseTab"),
+              title: (context, data) => "",
               children: [
-                AutoRoute(page: BrowseRoute.page, path: ""),
+                AutoRoute(
+                  page: BrowseRoute.page,
+                  path: "",
+                  title: (context, data) => "Browse",
+                ),
                 ..._childRoutes,
               ],
               restorationId: (match) => match.fullPath,
@@ -53,11 +64,13 @@ class AppRouter extends RootStackRouter {
         AutoRoute(
           path: "/auth/connect",
           page: ConnectServerRoute.page,
+          title: (context, data) => "Connect Server",
           restorationId: (match) => match.fullPath,
         ),
         AutoRoute(
           path: "/auth/login",
           page: LoginRoute.page,
+          title: (context, data) => "Login",
           restorationId: (match) => match.fullPath,
         ),
       ];

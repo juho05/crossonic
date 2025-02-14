@@ -54,7 +54,7 @@ class LoginViewModel extends ChangeNotifier {
     if (data.type == AuthType.apiKey) {
       return await _authRepository.loginApiKey(data.apiKey!);
     }
-    return await _authRepository.loginUsernamPassword(
+    return await _authRepository.loginUsernamePassword(
         data.username!, data.password!, data.type == AuthType.token);
   }
 }

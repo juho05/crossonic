@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:crossonic/data/services/opensubsonic/auth.dart';
 import 'package:crossonic/data/services/opensubsonic/exceptions.dart';
 import 'package:crossonic/data/services/opensubsonic/models/opensubsonic_extension_model.dart';
+import 'package:crossonic/data/services/opensubsonic/models/random_songs_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/server_info.dart';
 import 'package:crossonic/data/services/opensubsonic/models/token_info_model.dart';
 import 'package:crossonic/utils/exceptions.dart';
@@ -12,6 +13,19 @@ import 'package:http/http.dart' as http;
 class SubsonicService {
   static const String _clientName = "crossonic";
   static const String _protocolVersion = "1.16.1";
+
+  Future<Result<RandomSongsModel>> getRandomSongs(
+      Connection con, int count) async {
+    return await _fetchObject(
+      con,
+      "getRandomSongs",
+      {
+        "size": [count.toString()],
+      },
+      RandomSongsModel.fromJson,
+      "randomSongs",
+    );
+  }
 
   Future<Result<void>> ping(Connection con) async {
     return _fetchJson(con, "ping", {}, null);

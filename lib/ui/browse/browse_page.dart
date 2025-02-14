@@ -7,6 +7,6 @@ class BrowsePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text("Browse");
+    return Material(child: Text("Browse"));
   }
 }

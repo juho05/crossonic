@@ -48,7 +48,7 @@ class MainPage extends StatelessWidget {
               Expanded(
                 child: Scaffold(
                   appBar: AppBar(
-                    title: Text("Crossonic"),
+                    title: Text(tabsRouter.topPage!.routeData.title(context)),
                     leading: tabsRouter.activeRouterCanPop()
                         ? AutoLeadingButton()
                         : null,

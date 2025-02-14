@@ -121,7 +121,7 @@ class AuthRepository extends ChangeNotifier {
     return Result.ok(null);
   }
 
-  Future<Result<void>> loginUsernamPassword(
+  Future<Result<void>> loginUsernamePassword(
       String username, String password, bool useTokenAuth) async {
     final auth = useTokenAuth
         ? AuthStateToken(username: username, password: password)
