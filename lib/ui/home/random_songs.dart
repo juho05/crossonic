@@ -33,6 +33,7 @@ class RandomSongs extends StatelessWidget {
           return Column(
             children: songs
                 .map((s) => SongListItem(
+                      id: s.id,
                       title: s.title,
                       artist: s.displayArtist,
                       coverId: s.coverId,
@@ -42,7 +43,6 @@ class RandomSongs extends StatelessWidget {
                       onAddToQueue: (prio) {},
                       onGoToAlbum: () {},
                       onGoToArtist: () {},
-                      onSetFavoriteStatus: (favorite) {},
                       onTap: () {},
                     ))
                 .toList(),

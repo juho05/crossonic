@@ -32,11 +32,9 @@ class AuthRepository extends ChangeNotifier {
   Uri? get serverUri => _serverUri;
 
   AuthRepository({
-    required FlutterSecureStorage secureStorage,
-    required SharedPreferencesAsync sharedPreferences,
     required SubsonicService openSubsonicService,
-  })  : _secureStorage = secureStorage,
-        _sharedPreferences = sharedPreferences,
+  })  : _secureStorage = FlutterSecureStorage(),
+        _sharedPreferences = SharedPreferencesAsync(),
         _openSubsonicService = openSubsonicService;
 
   static const _serverUriKey = "server_uri";

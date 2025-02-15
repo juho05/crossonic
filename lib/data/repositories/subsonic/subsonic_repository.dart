@@ -1,4 +1,5 @@
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
+import 'package:crossonic/data/repositories/subsonic/favorites_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
 import 'package:crossonic/data/services/opensubsonic/models/child_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/random_songs_model.dart';
@@ -8,11 +9,14 @@ import 'package:crossonic/utils/result.dart';
 class SubsonicRepository {
   final AuthRepository _auth;
   final SubsonicService _service;
+  final FavoritesRepository _favorites;
   SubsonicRepository({
     required AuthRepository authRepository,
     required SubsonicService subsonicService,
+    required FavoritesRepository favoritesRepository,
   })  : _auth = authRepository,
-        _service = subsonicService;
+        _service = subsonicService,
+        _favorites = favoritesRepository;
 
   Future<Result<List<Song>>> getRandomSongs({required int count}) async {
     final result = await _service.getRandomSongs(_auth.con, count);
@@ -21,6 +25,8 @@ class SubsonicRepository {
         return Result.error(result.error);
       case Ok<RandomSongsModel>():
     }
+    _favorites.updateAll((result.value.song ?? []).map((c) =>
+        (type: FavoriteType.song, id: c.id, favorite: c.starred != null)));
     return Result.ok(
         (result.value.song ?? []).map((c) => _childToSong(c)).toList());
   }

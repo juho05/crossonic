@@ -5,6 +5,7 @@ import 'package:crossonic/data/services/opensubsonic/exceptions.dart';
 import 'package:crossonic/data/services/opensubsonic/models/opensubsonic_extension_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/random_songs_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/server_info.dart';
+import 'package:crossonic/data/services/opensubsonic/models/starred2_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/token_info_model.dart';
 import 'package:crossonic/utils/exceptions.dart';
 import 'package:crossonic/utils/result.dart';
@@ -13,6 +14,45 @@ import 'package:http/http.dart' as http;
 class SubsonicService {
   static const String _clientName = "crossonic";
   static const String _protocolVersion = "1.16.1";
+
+  Future<Result<void>> star(
+    Connection con, {
+    Iterable<String> ids = const [],
+    Iterable<String> albumIds = const [],
+    Iterable<String> artistIds = const [],
+  }) async {
+    return await _fetchJson(
+        con,
+        "star",
+        {
+          "id": ids,
+          "albumId": albumIds,
+          "artistId": artistIds,
+        },
+        null);
+  }
+
+  Future<Result<void>> unstar(
+    Connection con, {
+    Iterable<String> ids = const [],
+    Iterable<String> albumIds = const [],
+    Iterable<String> artistIds = const [],
+  }) async {
+    return await _fetchJson(
+        con,
+        "unstar",
+        {
+          "id": ids,
+          "albumId": albumIds,
+          "artistId": artistIds,
+        },
+        null);
+  }
+
+  Future<Result<Starred2Model>> getStarred2(Connection con) async {
+    return await _fetchObject(
+        con, "getStarred2", {}, Starred2Model.fromJson, "starred2");
+  }
 
   Future<Result<RandomSongsModel>> getRandomSongs(
       Connection con, int count) async {

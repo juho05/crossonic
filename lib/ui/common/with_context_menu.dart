@@ -49,10 +49,7 @@ class WithContextMenu extends StatelessWidget {
               Rect.fromLTWH(
                 mousePos!.dx -
                     (mediaQuery.size.width - overlay.paintBounds.width),
-                mousePos.dy -
-                    (mediaQuery.size.height - overlay.paintBounds.height) +
-                    // bottom nav
-                    (mediaQuery.orientation == Orientation.portrait ? 58 : 0),
+                mousePos.dy - 56, // app bar: 56px
                 popupButtonObject.paintBounds.width,
                 popupButtonObject.paintBounds.height,
               ),
