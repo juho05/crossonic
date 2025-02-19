@@ -2,6 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
 import 'package:crossonic/routing/router.gr.dart';
 import 'package:crossonic/ui/auth/connect_server/connect_server_viewmodel.dart';
+import 'package:crossonic/ui/common/toast.dart';
 import 'package:crossonic/utils/result.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
@@ -129,8 +130,7 @@ class _ConnectServerPageState extends State<ConnectServerPage> {
       } else {
         message = "Failed to connect to server";
       }
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(message)));
+      Toast.show(context, message);
       viewModel.connect.clearResult();
     }
   }

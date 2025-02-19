@@ -16,6 +16,7 @@ class HomePage extends StatelessWidget {
           RandomSongs(
             viewModel: RandomSongsViewModel(
               subsonicRepository: context.read(),
+              audioHandler: context.read(),
             ),
           ),
         ],

@@ -2,6 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
 import 'package:crossonic/routing/router.gr.dart';
 import 'package:crossonic/ui/auth/login/login_viewmodel.dart';
+import 'package:crossonic/ui/common/toast.dart';
 import 'package:crossonic/utils/exceptions.dart';
 import 'package:crossonic/utils/result.dart';
 import 'package:flutter/material.dart';
@@ -216,8 +217,7 @@ class _LoginPageState extends State<LoginPage> with RestorationMixin {
       } else {
         message = "An unexpected error occured";
       }
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(message)));
+      Toast.show(context, message);
       viewModel.login.clearResult();
     }
   }

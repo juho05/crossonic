@@ -1,11 +1,22 @@
+import 'dart:io';
+
+import 'package:audio_service/audio_service.dart';
+import 'package:audio_session/audio_session.dart';
+import 'package:crossonic/data/repositories/audio/audio_handler.dart' as ah;
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/favorites_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/subsonic_repository.dart';
+import 'package:crossonic/data/services/audio_players/audioplayers.dart';
+import 'package:crossonic/data/services/audio_players/gstreamer.dart';
+import 'package:crossonic/data/services/audio_players/player.dart';
+import 'package:crossonic/data/services/media_integration/audioservice.dart';
+import 'package:crossonic/data/services/media_integration/media_integration.dart';
+import 'package:crossonic/data/services/media_integration/smtc.dart';
 import 'package:crossonic/data/services/opensubsonic/subsonic_service.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter/foundation.dart';
+import 'package:optimize_battery/optimize_battery.dart';
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 Future<List<SingleChildWidget>> get providers async {
   final subsonicService = SubsonicService();
@@ -14,6 +25,46 @@ Future<List<SingleChildWidget>> get providers async {
     openSubsonicService: subsonicService,
   );
   await authRepository.loadState();
+
+  final MediaIntegration mediaIntegration;
+  if (!kIsWeb && Platform.isWindows) {
+    mediaIntegration = SMTCIntegration();
+  } else {
+    var androidBackgroundAvailable = true;
+    if (!kIsWeb && Platform.isAndroid) {
+      androidBackgroundAvailable =
+          await OptimizeBattery.isIgnoringBatteryOptimizations();
+      if (!androidBackgroundAvailable) {
+        await OptimizeBattery.stopOptimizingBatteryUsage();
+        // because there is no way to know when/if the user clicks yes on the dialog
+        // androidBackgroundAvailable stays false until the next start of the app
+      }
+    }
+
+    final audioService = await AudioService.init(
+        builder: () => AudioServiceIntegration(),
+        config: AudioServiceConfig(
+          androidNotificationChannelId: "de.julianh.crossonic",
+          androidNotificationChannelName: "Music playback",
+          androidNotificationIcon: "drawable/ic_stat_crossonic",
+          androidStopForegroundOnPause: androidBackgroundAvailable,
+          androidNotificationChannelDescription: "Playback notification",
+        ));
+    mediaIntegration = audioService;
+  }
+
+  final AudioPlayer audioPlayer;
+  final audioSession = await AudioSession.instance;
+  if (!kIsWeb &&
+      (Platform.isLinux ||
+          Platform.isAndroid ||
+          Platform.isMacOS ||
+          Platform.isWindows)) {
+    audioPlayer = AudioPlayerGstreamer(audioSession);
+  } else {
+    audioPlayer = AudioPlayerAudioPlayers();
+  }
+  await audioSession.configure(const AudioSessionConfiguration.music());
 
   return [
     Provider.value(
@@ -35,5 +86,13 @@ Future<List<SingleChildWidget>> get providers async {
         favoritesRepository: context.read(),
       ),
     ),
+    Provider(
+      create: (context) => ah.AudioHandler(
+        player: audioPlayer,
+        integration: mediaIntegration,
+        authRepository: authRepository,
+        subsonicService: subsonicService,
+      ),
+    )
   ];
 }

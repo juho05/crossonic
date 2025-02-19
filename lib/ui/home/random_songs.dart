@@ -1,5 +1,6 @@
 import 'package:crossonic/routing/router.gr.dart';
 import 'package:crossonic/ui/common/song_list_item.dart';
+import 'package:crossonic/ui/common/toast.dart';
 import 'package:crossonic/ui/home/random_songs_viewmodel.dart';
 import 'package:crossonic/ui/home/widgets/home_page_component.dart';
 import 'package:flutter/material.dart';
@@ -31,21 +32,37 @@ class RandomSongs extends StatelessWidget {
             ));
           }
           return Column(
-            children: songs
-                .map((s) => SongListItem(
-                      id: s.id,
-                      title: s.title,
-                      artist: s.displayArtist,
-                      coverId: s.coverId,
-                      duration: s.duration,
-                      year: s.year,
-                      onAddToPlaylist: () {},
-                      onAddToQueue: (prio) {},
-                      onGoToAlbum: () {},
-                      onGoToArtist: () {},
-                      onTap: () {},
-                    ))
-                .toList(),
+            children: songs.indexed.map(
+              (e) {
+                final i = e.$1;
+                final s = e.$2;
+                return SongListItem(
+                  id: s.id,
+                  title: s.title,
+                  artist: s.displayArtist,
+                  coverId: s.coverId,
+                  duration: s.duration,
+                  year: s.year,
+                  onAddToPlaylist: () {
+                    // TODO
+                  },
+                  onAddToQueue: (prio) {
+                    viewModel.addSongToQueue(s, prio);
+                    Toast.show(context,
+                        "Added '${s.title}' to ${prio ? "priority " : ""}queue!");
+                  },
+                  onGoToAlbum: () {
+                    // TODO
+                  },
+                  onGoToArtist: () {
+                    // TODO
+                  },
+                  onTap: () {
+                    viewModel.play(i);
+                  },
+                );
+              },
+            ).toList(),
           );
         },
       ),

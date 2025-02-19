@@ -22,6 +22,14 @@ dependencies:
   form_builder_validators: ^11.1.1
   json_annotation: ^4.9.0
   transparent_image: ^2.0.1
+  rxdart: ^0.28.0
+  audio_session: ^0.1.25
+  audioplayers: ^6.1.2
+  smtc_windows: ^1.0.0
+  audio_service: ^0.18.17
+  optimize_battery:
+    git: https://github.com/juho05/optimize_battery
+  audio_service_mpris: ^0.2.0
 
 dependency_overrides:
   flutter_secure_storage_macos:
@@ -31,6 +39,14 @@ dependency_overrides:
       url: https://github.com/hasali19/material-foundation-flutter-packages.git
       ref: "78667e1"
       path: packages/dynamic_color
+  audioplayers_linux:
+    path: ./dependency_overrides/stubs/audioplayers_linux
+  audioplayers_android:
+    path: ./dependency_overrides/stubs/audioplayers_android
+  audioplayers_macos:
+    path: ./dependency_overrides/stubs/audioplayers_macos
+  audioplayers_windows:
+    path: ./dependency_overrides/stubs/audioplayers_windows
 
 dev_dependencies:
   flutter_test:

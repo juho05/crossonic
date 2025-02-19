@@ -1,6 +1,7 @@
 import 'package:crossonic/ui/common/clickable_list_item_with_context_menu.dart';
 import 'package:crossonic/ui/common/cover_art.dart';
 import 'package:crossonic/ui/common/song_list_item_viewmodel.dart';
+import 'package:crossonic/ui/common/toast.dart';
 import 'package:crossonic/ui/common/with_context_menu.dart';
 import 'package:crossonic/utils/exceptions.dart';
 import 'package:crossonic/utils/format.dart';
@@ -123,11 +124,9 @@ class _SongListItemState extends State<SongListItem> {
                   final result = await viewModel.toggleFavorite();
                   if (result is Error && context.mounted) {
                     if (result.error is ConnectionException) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text("Failed to contact server")));
+                      Toast.show(context, "Failed to contact server");
                     } else {
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                          content: Text("An unexpected error occured")));
+                      Toast.show(context, "An unexpected error occured");
                     }
                   }
                 },
