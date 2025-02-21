@@ -1,4 +1,5 @@
 import 'package:crossonic/ui/common/clickable_list_item.dart';
+import 'package:crossonic/ui/common/context_menu_button.dart';
 import 'package:crossonic/ui/common/with_context_menu.dart';
 import 'package:flutter/material.dart';
 
@@ -43,24 +44,9 @@ class _ClickableListItemWithContextMenuState
         leading: widget.leading,
         isFavorite: widget.isFavorite,
         trailing: widget.options.isNotEmpty
-            ? PopupMenuButton(
-                key: _popupMenuButton,
-                icon: const Icon(Icons.more_vert),
-                onSelected: (option) {
-                  if (option.onSelected == null) return;
-                  option.onSelected!();
-                },
-                itemBuilder: (context) => widget.options
-                    .map(
-                      (o) => PopupMenuItem<ContextMenuOption>(
-                        value: o,
-                        child: ListTile(
-                          leading: o.icon != null ? Icon(o.icon) : null,
-                          title: Text(o.title),
-                        ),
-                      ),
-                    )
-                    .toList(),
+            ? ContextMenuButton(
+                popupMenuButtonKey: _popupMenuButton,
+                options: widget.options,
               )
             : null,
         trailingInfo: widget.trailingInfo,

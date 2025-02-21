@@ -10,8 +10,16 @@ class CoverArtViewModel extends ChangeNotifier {
   CoverArtViewModel({required SubsonicRepository subsonicRepository})
       : _subsonicRepository = subsonicRepository;
 
-  void load(String id) {
-    _uri = _subsonicRepository.getCoverUri(id);
+  String? _oldId;
+  void updateId(String? id) {
+    if (_oldId == id) return;
+    _oldId = id;
+
+    if (id == null) {
+      _uri == null;
+    } else {
+      _uri = _subsonicRepository.getCoverUri(id);
+    }
     notifyListeners();
   }
 }

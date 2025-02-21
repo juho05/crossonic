@@ -177,6 +177,8 @@ class AudioHandler {
   }
 
   Future<void> _onCurrentChanged(Song? song, bool fromAdvance) async {
+    _currentSong.add(song);
+
     final playAfterChange = _playOnNextMediaChange;
     _playOnNextMediaChange = false;
     if (song == null) {

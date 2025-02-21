@@ -28,11 +28,12 @@ class _CoverArtState extends State<CoverArt> {
   void initState() {
     super.initState();
     viewModel = CoverArtViewModel(subsonicRepository: context.read());
-    if (widget.coverId != null) viewModel.load(widget.coverId!);
+    if (widget.coverId != null) viewModel.updateId(widget.coverId!);
   }
 
   @override
   Widget build(BuildContext context) {
+    viewModel.updateId(widget.coverId);
     return ListenableBuilder(
       listenable: viewModel,
       builder: (context, child) {
@@ -46,10 +47,11 @@ class _CoverArtState extends State<CoverArt> {
           if (viewModel.uri == null) {
             return placeholder;
           }
-          return SizedBox.square(
-            dimension: size,
+          return AspectRatio(
+            aspectRatio: 1,
             child: Stack(
-              fit: StackFit.expand,
+              fit: StackFit.loose,
+              alignment: Alignment.center,
               children: [
                 placeholder,
                 ClipRRect(

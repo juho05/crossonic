@@ -30,6 +30,9 @@ dependencies:
   optimize_battery:
     git: https://github.com/juho05/optimize_battery
   audio_service_mpris: ^0.2.0
+  audio_video_progress_bar: ^2.0.3
+  sliding_up_panel: ^2.0.0+1
+  icon_decoration: ^2.1.0
 
 dependency_overrides:
   flutter_secure_storage_macos:
