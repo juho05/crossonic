@@ -45,11 +45,12 @@ class NowPlayingViewModel extends ChangeNotifier {
   })  : _favoritesRepository = favoritesRepository,
         _audioHandler = audioHandler {
     _favoritesRepository.addListener(_onFavoriteChanged);
-    _currentSongSubscription = _audioHandler.currentSong.listen(_onSongChanged);
+    _currentSongSubscription =
+        _audioHandler.queue.current.listen(_onSongChanged);
     _positionSubscription = _audioHandler.position.listen(_onPositionChanged);
     _playbackStatusSubscription =
         _audioHandler.playbackStatus.listen(_onStatusChanged);
-    _loopSubscription = _audioHandler.loop.listen(
+    _loopSubscription = _audioHandler.queue.looping.listen(
       (loop) {
         _loop = loop;
         notifyListeners();
@@ -58,7 +59,7 @@ class NowPlayingViewModel extends ChangeNotifier {
   }
 
   void toggleLoop() async {
-    _audioHandler.setLoop(!_loop);
+    _audioHandler.queue.setLoop(!_loop);
   }
 
   Future<Result<void>> toggleFavorite() async {
@@ -99,8 +100,8 @@ class NowPlayingViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void _onSongChanged(Song? song) {
-    _song = song;
+  void _onSongChanged(({Song? song, bool fromAdvance}) event) {
+    _song = event.song;
     if (_song == null) {
       _favorite = false;
       return;

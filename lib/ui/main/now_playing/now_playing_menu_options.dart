@@ -28,6 +28,13 @@ List<ContextMenuOption> getNowPlayingMenuOptions(
         icon: viewModel.favorite ? Icons.heart_broken : Icons.favorite,
       ),
       ContextMenuOption(
+        title: "Add to playlist",
+        onSelected: () {
+          // TODO
+        },
+        icon: Icons.playlist_add,
+      ),
+      ContextMenuOption(
         title: "Go to album",
         onSelected: () {
           // TODO

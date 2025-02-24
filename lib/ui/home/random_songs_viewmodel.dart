@@ -26,10 +26,10 @@ class RandomSongsViewModel {
   Future<void> play(int songIndex) async {
     if (!load.completed) return;
     _audioHandler.playOnNextMediaChange();
-    _audioHandler.replace(load.result!.tryValue!, songIndex);
+    _audioHandler.queue.replace(load.result!.tryValue!, songIndex);
   }
 
   void addSongToQueue(Song song, bool priority) {
-    _audioHandler.add(song, priority);
+    _audioHandler.queue.add(song, priority);
   }
 }

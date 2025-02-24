@@ -216,12 +216,6 @@ class NowPlayingDesktop extends StatelessWidget {
                       },
                       icon: const Icon(Icons.queue_music),
                     ),
-                    IconButton(
-                      onPressed: () async {
-                        // TODO add to playlist
-                      },
-                      icon: const Icon(Icons.playlist_add),
-                    ),
                     ContextMenuButton(
                       options: getNowPlayingMenuOptions(_viewModel),
                     ),

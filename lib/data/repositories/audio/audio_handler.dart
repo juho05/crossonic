@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:crossonic/data/repositories/audio/queue/changable_queue.dart';
 import 'package:crossonic/data/repositories/audio/queue/local_queue.dart';
 import 'package:crossonic/data/repositories/audio/queue/media_queue.dart';
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
@@ -27,9 +28,6 @@ class AudioHandler {
 
   final MediaIntegration _integration;
 
-  final BehaviorSubject<void> _queueChanged = BehaviorSubject();
-  Stream<void> get queueChanged => _queueChanged.stream;
-
   final BehaviorSubject<PlaybackStatus> _playbackStatus =
       BehaviorSubject.seeded(PlaybackStatus.stopped);
   ValueStream<PlaybackStatus> get playbackStatus => _playbackStatus.stream;
@@ -40,9 +38,9 @@ class AudioHandler {
   ValueStream<({Duration position, Duration? bufferedPosition})> get position =>
       _position.stream;
 
-  MediaQueue _queue = LocalQueue();
-  StreamSubscription? _currentSubscription;
-  StreamSubscription? _nextSubscription;
+  final ChangableQueue _queue = ChangableQueue(LocalQueue());
+  StreamSubscription? _queueCurrentSubscription;
+  StreamSubscription? _queueNextSubscription;
 
   Duration _positionOffset = Duration.zero;
   Timer? _positionTimer;
@@ -60,9 +58,10 @@ class AudioHandler {
         _integration = integration,
         _auth = authRepository,
         _subsonic = subsonicService {
-    queue = _queue;
-
     _auth.addListener(_authChanged);
+
+    _queueCurrentSubscription = _queue.current.listen(_onCurrentChanged);
+    _queueNextSubscription = _queue.next.listen(_onNextChanged);
 
     _integration.ensureInitialized(
       audioHandler: this,
@@ -176,12 +175,10 @@ class AudioHandler {
     }
   }
 
-  Future<void> _onCurrentChanged(Song? song, bool fromAdvance) async {
-    _currentSong.add(song);
-
+  Future<void> _onCurrentChanged(({Song? song, bool fromAdvance}) event) async {
     final playAfterChange = _playOnNextMediaChange;
     _playOnNextMediaChange = false;
-    if (song == null) {
+    if (event.song == null) {
       await stop();
       return;
     }
@@ -189,13 +186,13 @@ class AudioHandler {
 
     await _ensurePlayerLoaded(false);
 
-    if (!fromAdvance) {
-      await _player.setCurrent(_getStreamUri(song));
+    if (!event.fromAdvance) {
+      await _player.setCurrent(_getStreamUri(event.song!));
       if (playAfterChange) {
         await _player.play();
       }
     }
-    _integration.updateMedia(song, _getCoverUri(song.coverId));
+    _integration.updateMedia(event.song, _getCoverUri(event.song!.coverId));
   }
 
   Future<void> _onNextChanged(Song? song) async {
@@ -204,8 +201,6 @@ class AudioHandler {
     }
     await _player.setNext(song != null ? _getStreamUri(song) : null);
   }
-
-  void _onQueueChanged() => _queueChanged.add(null);
 
   Future<void> _authChanged() async {
     if (_auth.isAuthenticated) return;
@@ -316,112 +311,19 @@ class AudioHandler {
 
   // ================ queue ================
 
-  set queue(MediaQueue queue) {
+  MediaQueue get queue => _queue;
+
+  Future<void> changeQueue(MediaQueue queue) async {
     _playOnNextMediaChange = false;
-
-    _currentSubscription?.cancel();
-    _nextSubscription?.cancel();
-    _queue.removeListener(_onQueueChanged);
-
-    _queue = queue;
-
-    _currentSubscription = _queue.current.listen(
-        (current) => _onCurrentChanged(current.song, current.fromAdvance));
-    _nextSubscription = _queue.next.listen(_onNextChanged);
-    _queue.addListener(_onQueueChanged);
-
-    _loop.add(_queue.loop);
-
-    _onQueueChanged();
+    await _queue.change(queue);
   }
 
-  final BehaviorSubject<bool> _loop = BehaviorSubject.seeded(false);
-  ValueStream<bool> get loop => _loop.stream;
-
-  void setLoop(bool loop) {
-    _queue.loop = loop;
-    _loop.add(loop);
-  }
-
-  void add(Song song, bool priority) {
-    _queue.add(song, priority);
-  }
-
-  void addAll(Iterable<Song> songs, bool priority) {
-    _queue.addAll(songs, priority);
-  }
-
-  bool get hasNext => _queue.canAdvance;
-
-  bool get hasPrevious => _queue.canGoBack;
-
-  void clear(
-      {bool queue = true, int fromIndex = 0, bool priorityQueue = true}) {
-    _queue.clear(
-        queue: queue, fromIndex: fromIndex, priorityQueue: priorityQueue);
-  }
-
-  final BehaviorSubject<Song?> _currentSong = BehaviorSubject.seeded(null);
-  ValueStream<Song?> get currentSong => _currentSong.stream;
-
-  void goTo(int index) {
-    _queue.goTo(index);
-  }
-
-  void goToPriority(int index) {
-    _queue.goToPriority(index);
-  }
-
-  void insert(int index, Song song) {
-    _queue.insert(index, song);
-  }
-
-  void insertAll(int index, Iterable<Song> songs) {
-    _queue.insertAll(index, songs);
-  }
-
-  int get queueIndex => _queue.currentIndex;
-
-  Iterable<Song> get priorityQueue => _queue.priority;
-  int get priorityLength => _queue.priorityLength;
-
-  Iterable<Song> get regularQueue => _queue.regular;
-  int get queueLength => _queue.length;
-
-  void remove(int index) {
-    _queue.remove(index);
-  }
-
-  void removeFromPriorityQueue(int index) {
-    _queue.removeFromPriorityQueue(index);
-  }
-
-  void replace(Iterable<Song> songs, [int startIndex = 0]) {
-    _queue.replace(songs, startIndex);
-  }
-
-  void shuffleFollowing() {
-    _queue.shuffleFollowing();
-  }
-
-  void shufflePriority() {
-    _queue.shufflePriority();
-  }
-
-  void skipNext() {
-    _queue.skipNext();
-  }
-
-  void skipPrev() {
-    _queue.skipPrev();
-  }
-
-  // dispose
+  // =============== dispose ===============
   Future<void> dispose() async {
     await stop();
     // dispose queue
-    await _currentSubscription?.cancel();
-    await _nextSubscription?.cancel();
+    await _queueCurrentSubscription?.cancel();
+    await _queueNextSubscription?.cancel();
     _queue.dispose();
 
     // dispose player

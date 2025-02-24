@@ -11,7 +11,7 @@ class LocalQueue extends ChangeNotifier implements MediaQueue {
   @override
   ValueStream<({Song? song, bool fromAdvance})> get current => _current.stream;
 
-  final BehaviorSubject<Song?> _next = BehaviorSubject();
+  final BehaviorSubject<Song?> _next = BehaviorSubject.seeded(null);
   @override
   ValueStream<Song?> get next => _next.stream;
 
@@ -20,13 +20,14 @@ class LocalQueue extends ChangeNotifier implements MediaQueue {
 
   int _currentIndex = -1;
 
-  bool _loop = false;
+  final BehaviorSubject<bool> _looping = BehaviorSubject.seeded(false);
   @override
-  bool get loop => _loop;
+  ValueStream<bool> get looping => _looping.stream;
+
   @override
-  set loop(bool loop) {
-    if (loop == _loop) return;
-    _loop = loop;
+  void setLoop(bool loop) {
+    if (_looping.value == loop) return;
+    _looping.add(loop);
   }
 
   @override
@@ -265,7 +266,7 @@ class LocalQueue extends ChangeNotifier implements MediaQueue {
   }
 
   void _normalizeCurrentIndex() {
-    if (_loop) {
+    if (looping.value) {
       _currentIndex %= _queue.length;
     } else if (_currentIndex < 0) {
       _currentIndex = -1;
@@ -273,12 +274,13 @@ class LocalQueue extends ChangeNotifier implements MediaQueue {
   }
 
   int get _nextIndex {
-    if (!_loop) return _currentIndex + 1;
+    if (!looping.value) return _currentIndex + 1;
     return (_currentIndex + 1) % _queue.length;
   }
 
   @override
-  bool get canGoBack => _queue.isNotEmpty && (_loop || _currentIndex > 0);
+  bool get canGoBack =>
+      _queue.isNotEmpty && (looping.value || _currentIndex > 0);
 
   @override
   bool get canAdvance =>

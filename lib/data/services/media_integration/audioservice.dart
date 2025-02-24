@@ -33,9 +33,9 @@ class AudioServiceIntegration extends asv.BaseAudioHandler
   }) {
     if (_audioHandler != null) return;
     _audioHandler = audioHandler;
-    _audioHandler!.loop.listen((loop) {
+    _audioHandler!.queue.looping.listen((loop) {
       playbackState.add(playbackState.value.copyWith(
-        repeatMode: _audioHandler!.loop.value
+        repeatMode: _audioHandler!.queue.looping.value
             ? asv.AudioServiceRepeatMode.all
             : asv.AudioServiceRepeatMode.none,
       ));
@@ -169,7 +169,7 @@ class AudioServiceIntegration extends asv.BaseAudioHandler
             asv.MediaAction.setRepeatMode,
           },
           androidCompactActionIndices: [0, 1],
-          repeatMode: _audioHandler!.loop.value
+          repeatMode: _audioHandler!.queue.looping.value
               ? asv.AudioServiceRepeatMode.all
               : asv.AudioServiceRepeatMode.none,
         ));
@@ -229,6 +229,6 @@ class AudioServiceIntegration extends asv.BaseAudioHandler
 
   @override
   Future<void> setRepeatMode(asv.AudioServiceRepeatMode repeatMode) async {
-    _audioHandler!.setLoop(repeatMode != asv.AudioServiceRepeatMode.none);
+    _audioHandler!.queue.setLoop(repeatMode != asv.AudioServiceRepeatMode.none);
   }
 }

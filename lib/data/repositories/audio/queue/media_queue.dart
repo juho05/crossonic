@@ -66,9 +66,10 @@ abstract interface class MediaQueue extends ChangeNotifier {
   bool get canAdvance;
 
   // Whether the first song will be played after the last song in the regular queue.
-  bool get loop;
-  // Enable/disable loop.
-  set loop(bool loop);
+  ValueStream<bool> get looping;
+
+  // Enable/disable looping.
+  void setLoop(bool loop);
 
   // The number of songs in the regular queue.
   int get length;
