@@ -217,7 +217,7 @@ class NowPlayingDesktop extends StatelessWidget {
                       icon: const Icon(Icons.queue_music),
                     ),
                     ContextMenuButton(
-                      options: getNowPlayingMenuOptions(_viewModel),
+                      options: getNowPlayingMenuOptions(context, _viewModel),
                     ),
                     const SizedBox(width: 5),
                   ],

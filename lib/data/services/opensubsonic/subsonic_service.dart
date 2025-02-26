@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:crossonic/data/services/opensubsonic/auth.dart';
 import 'package:crossonic/data/services/opensubsonic/exceptions.dart';
+import 'package:crossonic/data/services/opensubsonic/models/album_info_model.dart';
+import 'package:crossonic/data/services/opensubsonic/models/albumid3_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/opensubsonic_extension_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/random_songs_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/server_info.dart';
@@ -14,6 +16,29 @@ import 'package:http/http.dart' as http;
 class SubsonicService {
   static const String _clientName = "crossonic";
   static const String _protocolVersion = "1.16.1";
+
+  Future<Result<AlbumInfoModel>> getAlbumInfo2(Connection con, String id) {
+    return _fetchObject(
+      con,
+      "getAlbumInfo2",
+      {
+        "id": [id],
+      },
+      AlbumInfoModel.fromJson,
+      "albumInfo",
+    );
+  }
+
+  Future<Result<AlbumID3Model>> getAlbum(Connection con, String id) {
+    return _fetchObject(
+        con,
+        "getAlbum",
+        {
+          "id": [id],
+        },
+        AlbumID3Model.fromJson,
+        "album");
+  }
 
   Future<Result<void>> star(
     Connection con, {
@@ -55,12 +80,20 @@ class SubsonicService {
   }
 
   Future<Result<RandomSongsModel>> getRandomSongs(
-      Connection con, int count) async {
+    Connection con, {
+    int? size,
+    String? genre,
+    int? fromYear,
+    int? toYear,
+  }) async {
     return await _fetchObject(
       con,
       "getRandomSongs",
       {
-        "size": [count.toString()],
+        if (size != null) "size": [size.toString()],
+        if (genre != null) "genre": [genre],
+        if (fromYear != null) "fromYear": [fromYear.toString()],
+        if (toYear != null) "toYear": [toYear.toString()],
       },
       RandomSongsModel.fromJson,
       "randomSongs",

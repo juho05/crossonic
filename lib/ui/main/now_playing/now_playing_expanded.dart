@@ -49,7 +49,8 @@ class NowPlayingExpanded extends StatelessWidget {
                       borderRadius: BorderRadius.circular(10),
                       isFavorite: _viewModel.favorite,
                       placeholderIcon: Icons.album,
-                      menuOptions: getNowPlayingMenuOptions(_viewModel),
+                      menuOptions:
+                          getNowPlayingMenuOptions(context, _viewModel),
                     ),
                   ),
                   StreamBuilder(

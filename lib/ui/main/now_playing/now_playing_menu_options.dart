@@ -1,9 +1,11 @@
+import 'package:auto_route/auto_route.dart';
+import 'package:crossonic/routing/router.gr.dart';
 import 'package:crossonic/ui/common/with_context_menu.dart';
 import 'package:crossonic/ui/main/now_playing/now_playing_viewmodel.dart';
 import 'package:flutter/material.dart';
 
 List<ContextMenuOption> getNowPlayingMenuOptions(
-        NowPlayingViewModel viewModel) =>
+        BuildContext context, NowPlayingViewModel viewModel) =>
     [
       ContextMenuOption(
         title: "Add to priority queue",
@@ -41,11 +43,12 @@ List<ContextMenuOption> getNowPlayingMenuOptions(
         },
         icon: Icons.album,
       ),
-      ContextMenuOption(
-        title: "Go to artist",
-        onSelected: () {
-          // TODO
-        },
-        icon: Icons.person,
-      ),
+      if (viewModel.album != null)
+        ContextMenuOption(
+          title: "Go to artist",
+          onSelected: () {
+            context.router.push(AlbumRoute(albumId: viewModel.album!.id));
+          },
+          icon: Icons.person,
+        ),
     ];

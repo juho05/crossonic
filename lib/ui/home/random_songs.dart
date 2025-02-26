@@ -1,3 +1,4 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:crossonic/routing/router.gr.dart';
 import 'package:crossonic/ui/common/song_list_item.dart';
 import 'package:crossonic/ui/common/toast.dart';
@@ -51,9 +52,11 @@ class RandomSongs extends StatelessWidget {
                     Toast.show(context,
                         "Added '${s.title}' to ${prio ? "priority " : ""}queue!");
                   },
-                  onGoToAlbum: () {
-                    // TODO
-                  },
+                  onGoToAlbum: s.album != null
+                      ? () {
+                          context.router.push(AlbumRoute(albumId: s.album!.id));
+                        }
+                      : null,
                   onGoToArtist: () {
                     // TODO
                   },

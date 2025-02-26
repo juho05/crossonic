@@ -17,6 +17,12 @@ class AppRouter extends RootStackRouter {
 
   final List<AutoRoute> _childRoutes = [
     AutoRoute(
+      path: "album/:id",
+      page: AlbumRoute.page,
+      title: (context, data) => "Album",
+      restorationId: (match) => match.fullPath,
+    ),
+    AutoRoute(
       path: "artist",
       page: ArtistRoute.page,
       title: (context, data) => "Artist",
