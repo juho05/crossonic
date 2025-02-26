@@ -113,12 +113,20 @@ class CollectionPageMobile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ReorderableListView.builder(
-      header: Center(
-        child: Column(
+    return LayoutBuilder(builder: (context, constraints) {
+      return ReorderableListView.builder(
+        header: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            if (cover != null) cover!,
+            if (cover != null)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: ConstrainedBox(
+                  constraints:
+                      BoxConstraints(maxHeight: constraints.maxHeight * 0.6),
+                  child: cover!,
+                ),
+              ),
             if (cover != null) const SizedBox(height: 10),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -204,13 +212,13 @@ class CollectionPageMobile extends StatelessWidget {
               ),
           ],
         ),
-      ),
-      itemBuilder: reorderableItemBuilder ??
-          (BuildContext context, int index) => const SizedBox(),
-      itemCount: reorderableItemCount ?? 0,
-      onReorder: onReorder ?? (int oldIndex, int newIndex) {},
-      buildDefaultDragHandles: false,
-    );
+        itemBuilder: reorderableItemBuilder ??
+            (BuildContext context, int index) => const SizedBox(),
+        itemCount: reorderableItemCount ?? 0,
+        onReorder: onReorder ?? (int oldIndex, int newIndex) {},
+        buildDefaultDragHandles: false,
+      );
+    });
   }
 }
 

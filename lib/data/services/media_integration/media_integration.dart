@@ -1,6 +1,9 @@
 import 'package:crossonic/data/repositories/audio/audio_handler.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
 
+export 'audioservice.dart';
+export 'smtc_stub.dart' if (dart.library.ffi) 'smtc.dart';
+
 abstract interface class MediaIntegration {
   void ensureInitialized({
     required AudioHandler audioHandler,

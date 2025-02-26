@@ -80,16 +80,21 @@ class _SongListItemState extends State<SongListItem> {
               if (widget.year != null) widget.year!.toString(),
             ],
             leading: widget.trackNr != null
-                ? Text(
-                    widget.trackNr!.toString().padLeft(2, "0"),
-                    overflow: TextOverflow.ellipsis,
-                    style: textTheme.bodyMedium!
-                        .copyWith(fontWeight: FontWeight.w500),
-                  )
-                : SizedBox(
-                    height: 40,
+                ? SizedBox(
                     child: Padding(
                       padding: const EdgeInsets.only(left: 8),
+                      child: Text(
+                        widget.trackNr!.toString().padLeft(2, "0"),
+                        overflow: TextOverflow.ellipsis,
+                        style: textTheme.bodyMedium!
+                            .copyWith(fontWeight: FontWeight.w500),
+                      ),
+                    ),
+                  )
+                : Padding(
+                    padding: const EdgeInsets.only(left: 8),
+                    child: SizedBox(
+                      height: 40,
                       child: CoverArt(
                         placeholderIcon: Icons.album,
                         coverId: widget.coverId,

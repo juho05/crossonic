@@ -110,8 +110,11 @@ class _MainPageState extends State<MainPage> {
                               ? AutoLeadingButton()
                               : null,
                         ),
-                        body: SafeArea(
-                          child: child,
+                        body: Padding(
+                          padding: const EdgeInsets.only(bottom: 58),
+                          child: SafeArea(
+                            child: child,
+                          ),
                         ),
                       ),
                     ),
@@ -182,6 +185,7 @@ class _MainPageState extends State<MainPage> {
                         body: body,
                         bottomNavigationBar: orientation == Orientation.portrait
                             ? BottomNavigationBar(
+                                useLegacyColorScheme: false,
                                 currentIndex: tabsRouter.activeIndex,
                                 onTap: (index) {
                                   try {
