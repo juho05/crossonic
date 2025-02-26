@@ -1,3 +1,4 @@
+import 'package:crossonic/data/repositories/audio/audio_handler.dart';
 import 'package:crossonic/ui/common/clickable_list_item_with_context_menu.dart';
 import 'package:crossonic/ui/common/cover_art.dart';
 import 'package:crossonic/ui/common/song_list_item_viewmodel.dart';
@@ -56,6 +57,7 @@ class _SongListItemState extends State<SongListItem> {
     super.initState();
     viewModel = SongListItemViewModel(
       favoritesRepository: context.read(),
+      audioHandler: context.read(),
       songId: widget.id,
     );
   }
@@ -68,40 +70,22 @@ class _SongListItemState extends State<SongListItem> {
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
     return ListenableBuilder(
         listenable: viewModel,
         builder: (context, snapshot) {
           return ClickableListItemWithContextMenu(
             title: widget.title,
+            titleBold: viewModel.playbackStatus != null,
             extraInfo: [
               if (widget.artist != null) widget.artist!,
               if (widget.album != null) widget.album!,
               if (widget.year != null) widget.year!.toString(),
             ],
-            leading: widget.trackNr != null
-                ? SizedBox(
-                    child: Padding(
-                      padding: const EdgeInsets.only(left: 8),
-                      child: Text(
-                        widget.trackNr!.toString().padLeft(2, "0"),
-                        overflow: TextOverflow.ellipsis,
-                        style: textTheme.bodyMedium!
-                            .copyWith(fontWeight: FontWeight.w500),
-                      ),
-                    ),
-                  )
-                : Padding(
-                    padding: const EdgeInsets.only(left: 8),
-                    child: SizedBox(
-                      height: 40,
-                      child: CoverArt(
-                        placeholderIcon: Icons.album,
-                        coverId: widget.coverId,
-                        borderRadius: BorderRadius.circular(5),
-                      ),
-                    ),
-                  ),
+            leading: SongLeadingWidget(
+              viewModel: viewModel,
+              coverId: widget.coverId,
+              trackNr: widget.trackNr,
+            ),
             trailingInfo: widget.duration != null
                 ? formatDuration(widget.duration!)
                 : null,
@@ -163,5 +147,92 @@ class _SongListItemState extends State<SongListItem> {
             ],
           );
         });
+  }
+}
+
+class SongLeadingWidget extends StatelessWidget {
+  final int? trackNr;
+  final String? coverId;
+
+  final SongListItemViewModel viewModel;
+
+  const SongLeadingWidget({
+    super.key,
+    this.trackNr,
+    this.coverId,
+    required this.viewModel,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    if (trackNr != null) {
+      return SizedBox(
+        child: Padding(
+          padding: const EdgeInsets.only(left: 8),
+          child: SizedBox(
+            width: 40,
+            height: 40,
+            child: Center(
+              child: viewModel.playbackStatus == null
+                  ? Text(
+                      trackNr!.toString().padLeft(2, "0"),
+                      overflow: TextOverflow.ellipsis,
+                      style: textTheme.bodyMedium!
+                          .copyWith(fontWeight: FontWeight.w500),
+                    )
+                  : IconButton(
+                      onPressed: () {
+                        viewModel.playPause();
+                      },
+                      icon: Icon(
+                        viewModel.playbackStatus == PlaybackStatus.playing
+                            ? Icons.pause
+                            : (viewModel.playbackStatus ==
+                                    PlaybackStatus.loading
+                                ? Icons.hourglass_empty
+                                : Icons.play_arrow),
+                      ),
+                    ),
+            ),
+          ),
+        ),
+      );
+    }
+    return Padding(
+      padding: const EdgeInsets.only(left: 8),
+      child: SizedBox(
+        width: 40,
+        height: 40,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            CoverArt(
+              placeholderIcon: Icons.album,
+              coverId: coverId,
+              borderRadius: BorderRadius.circular(5),
+            ),
+            if (viewModel.playbackStatus != null)
+              ClipRRect(
+                borderRadius: BorderRadius.circular(5),
+                child: ColoredBox(color: Color.fromARGB(90, 0, 0, 0)),
+              ),
+            if (viewModel.playbackStatus != null)
+              IconButton(
+                onPressed: () {
+                  viewModel.playPause();
+                },
+                icon: Icon(
+                  viewModel.playbackStatus == PlaybackStatus.playing
+                      ? Icons.pause
+                      : (viewModel.playbackStatus == PlaybackStatus.loading
+                          ? Icons.hourglass_empty
+                          : Icons.play_arrow),
+                ),
+              )
+          ],
+        ),
+      ),
+    );
   }
 }

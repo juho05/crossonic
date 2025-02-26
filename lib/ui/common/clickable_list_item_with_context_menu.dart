@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 class ClickableListItemWithContextMenu extends StatefulWidget {
   final String title;
+  final bool titleBold;
   final Iterable<String> extraInfo;
   final Widget? leading;
   final String? trailingInfo;
@@ -17,6 +18,7 @@ class ClickableListItemWithContextMenu extends StatefulWidget {
     super.key,
     required this.title,
     required this.extraInfo,
+    this.titleBold = false,
     this.leading,
     this.trailingInfo,
     this.onTap,
@@ -40,6 +42,7 @@ class _ClickableListItemWithContextMenuState
       popupMenuButtonKey: _popupMenuButton,
       child: ClickableListItem(
         title: widget.title,
+        titleBold: widget.titleBold,
         extraInfo: widget.extraInfo,
         leading: widget.leading,
         isFavorite: widget.isFavorite,

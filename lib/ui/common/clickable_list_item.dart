@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 class ClickableListItem extends StatelessWidget {
   final String title;
+  final bool titleBold;
   final Iterable<String> extraInfo;
   final Widget? leading;
   final Widget? trailing;
@@ -12,6 +13,7 @@ class ClickableListItem extends StatelessWidget {
   const ClickableListItem({
     super.key,
     required this.title,
+    this.titleBold = false,
     this.extraInfo = const [],
     this.leading,
     this.trailing,
@@ -35,6 +37,7 @@ class ClickableListItem extends StatelessWidget {
                   title,
                   style: textTheme.bodyMedium!.copyWith(
                     fontSize: 15,
+                    fontWeight: titleBold ? FontWeight.w600 : FontWeight.w400,
                   ),
                 ),
                 if (extraInfo.isNotEmpty)
