@@ -55,7 +55,7 @@ class FavoritesRepository extends ChangeNotifier {
   Future<void> load() async {
     final result = await _subsonic.getStarred2(_auth.con);
     switch (result) {
-      case Error():
+      case Err():
         print("failed to load favorites: ${result.error}");
         return;
       case Ok<Starred2Model>():

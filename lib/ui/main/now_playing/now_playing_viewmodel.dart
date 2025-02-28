@@ -68,7 +68,7 @@ class NowPlayingViewModel extends ChangeNotifier {
     notifyListeners();
     final result = await _favoritesRepository.setFavorite(
         FavoriteType.song, _song!.id, favorite);
-    if (result is Error) {
+    if (result is Err) {
       _favorite = !favorite;
       notifyListeners();
     }

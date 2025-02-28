@@ -34,7 +34,7 @@ class AlbumID3Model {
   // "explicit" (>0 songs explicit), "clean" (0 songs explicit, > 0 songs 'clean') or "" (otherwise)
   final String? explicitStatus;
   final List<({int disc, String title})>? discTitles;
-  final List<ChildModel> song;
+  final List<ChildModel>? song;
 
   AlbumID3Model({
     required this.id,

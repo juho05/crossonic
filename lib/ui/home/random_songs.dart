@@ -1,5 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:crossonic/routing/router.gr.dart';
+import 'package:crossonic/ui/common/dialogs/chooser.dart';
 import 'package:crossonic/ui/common/song_list_item.dart';
 import 'package:crossonic/ui/common/toast.dart';
 import 'package:crossonic/ui/home/random_songs_viewmodel.dart';
@@ -15,7 +16,7 @@ class RandomSongs extends StatelessWidget {
   Widget build(BuildContext context) {
     return HomePageComponent(
       text: "Random songs",
-      route: ArtistRoute(), // TODO change to correct route
+      route: BrowseRoute(), // TODO change to correct route
       child: ListenableBuilder(
         listenable: viewModel.load,
         builder: (context, child) {
@@ -57,8 +58,12 @@ class RandomSongs extends StatelessWidget {
                           context.router.push(AlbumRoute(albumId: s.album!.id));
                         }
                       : null,
-                  onGoToArtist: () {
-                    // TODO
+                  onGoToArtist: () async {
+                    final router = context.router;
+                    final artistId = await ChooserDialog.chooseArtist(
+                        context, s.artists.toList());
+                    if (artistId == null) return;
+                    router.push(ArtistRoute(artistId: artistId));
                   },
                   onTap: () {
                     viewModel.play(i);

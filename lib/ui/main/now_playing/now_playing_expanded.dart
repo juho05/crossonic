@@ -1,7 +1,9 @@
 import 'dart:math';
 
 import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
+import 'package:auto_route/auto_route.dart';
 import 'package:crossonic/data/repositories/audio/audio_handler.dart';
+import 'package:crossonic/routing/router.gr.dart';
 import 'package:crossonic/ui/common/cover_art_decorated.dart';
 import 'package:crossonic/ui/common/dialogs/chooser.dart';
 import 'package:crossonic/ui/main/now_playing/now_playing_menu_options.dart';
@@ -111,11 +113,12 @@ class NowPlayingExpanded extends StatelessWidget {
                     cursor: SystemMouseCursors.click,
                     child: GestureDetector(
                       onTap: () async {
-                        final artistID = await ChooserDialog.chooseArtist(
+                        final router = context.router;
+                        final artistId = await ChooserDialog.chooseArtist(
                             context, _viewModel.artists.toList());
-                        if (artistID == null) return;
-                        // TODO open artist page
+                        if (artistId == null) return;
                         _panelController.close();
+                        router.push(ArtistRoute(artistId: artistId));
                       },
                       child: Padding(
                         padding: const EdgeInsets.only(top: 3),

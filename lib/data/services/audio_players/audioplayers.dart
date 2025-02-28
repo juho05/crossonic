@@ -27,8 +27,9 @@ class AudioPlayerAudioPlayers implements AudioPlayer {
 
   @override
   void init() {
+    _players.clear();
     for (var i = 0; i < 2; i++) {
-      _players[i] = ap.AudioPlayer();
+      _players.add(ap.AudioPlayer());
       _players[i]
           .onDurationChanged
           .debounceTime(Duration(seconds: 5))

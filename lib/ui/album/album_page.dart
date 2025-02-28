@@ -1,4 +1,5 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:crossonic/routing/router.gr.dart';
 import 'package:crossonic/ui/album/album_viewmodel.dart';
 import 'package:crossonic/ui/common/collection_page.dart';
 import 'package:crossonic/ui/common/cover_art_decorated.dart';
@@ -55,8 +56,9 @@ class _AlbumPageState extends State<AlbumPage> {
             case FetchStatus.success:
           }
           final album = _viewModel.album!;
-          final multipleDiscs =
-              album.songs.isNotEmpty && (album.songs.last.discNr ?? 1) > 1;
+          final songs = _viewModel.album!.songs ?? [];
+          final showDiscs = songs.isNotEmpty &&
+              ((songs.last.discNr ?? 1) > 1 || album.discTitles.isNotEmpty);
           return CollectionPage(
             name: album.name,
             loadingDescription: _viewModel.description == null,
@@ -108,7 +110,7 @@ class _AlbumPageState extends State<AlbumPage> {
                       _viewModel.favorite ? Icons.heart_broken : Icons.favorite,
                   onSelected: () async {
                     final result = await _viewModel.toggleFavorite();
-                    if (result is Error && context.mounted) {
+                    if (result is Err && context.mounted) {
                       switch (result.error) {
                         case ConnectionException():
                           Toast.show(context, "Failed to contact server");
@@ -130,10 +132,10 @@ class _AlbumPageState extends State<AlbumPage> {
                   icon: Icons.person,
                   onSelected: () async {
                     final router = context.router;
-                    final artistID = await ChooserDialog.chooseArtist(
+                    final artistId = await ChooserDialog.chooseArtist(
                         context, album.artists.toList());
-                    if (artistID == null) return;
-                    // TODO navigate to artist page
+                    if (artistId == null) return;
+                    router.push(ArtistRoute(artistId: artistId));
                   },
                 ),
               ],
@@ -144,10 +146,10 @@ class _AlbumPageState extends State<AlbumPage> {
                     (album.year != null ? ' • ${album.year}' : ''),
                 onClick: () async {
                   final router = context.router;
-                  final artistID = await ChooserDialog.chooseArtist(
+                  final artistId = await ChooserDialog.chooseArtist(
                       context, album.artists.toList());
-                  if (artistID == null) return;
-                  // TODO navigate to artist page
+                  if (artistId == null) return;
+                  router.push(ArtistRoute(artistId: artistId));
                 },
               ),
             ],
@@ -177,10 +179,10 @@ class _AlbumPageState extends State<AlbumPage> {
                 },
               ),
             ],
-            contentTitle: "Tracks (${album.songs.length})",
+            contentTitle: "Tracks (${songs.length})",
             content: Column(
-                children: List<Widget>.generate(album.songs.length, (index) {
-              final s = album.songs[index];
+                children: List<Widget>.generate(songs.length, (index) {
+              final s = songs[index];
               final listItem = SongListItem(
                 id: s.id,
                 title: s.title,
@@ -196,26 +198,28 @@ class _AlbumPageState extends State<AlbumPage> {
                   Toast.show(context,
                       "Added '${s.title}' to ${priority ? "priority " : ""}queue");
                 },
-                onGoToArtist: () {
-                  // TODO
+                onGoToArtist: () async {
+                  final router = context.router;
+                  final artistId = await ChooserDialog.chooseArtist(
+                      context, s.artists.toList());
+                  if (artistId == null) return;
+                  router.push(ArtistRoute(artistId: artistId));
                 },
                 onTap: () {
                   _viewModel.play(index);
                 },
               );
-              // TODO add disc separators
-              if (multipleDiscs &&
-                  album.songs[index].discNr != null &&
+              if (showDiscs &&
+                  songs[index].discNr != null &&
                   (index == 0 ||
-                      album.songs[index].discNr !=
-                          album.songs[index - 1].discNr)) {
+                      songs[index].discNr != songs[index - 1].discNr)) {
                 return Column(
                   children: [
                     Material(
                       type: MaterialType.transparency,
                       child: InkWell(
                         onTap: () {
-                          _viewModel.playDisc(album.songs[index].discNr!);
+                          _viewModel.playDisc(songs[index].discNr!);
                         },
                         child: Padding(
                           padding: EdgeInsets.only(
@@ -230,8 +234,11 @@ class _AlbumPageState extends State<AlbumPage> {
                               Expanded(
                                 child: OrientationBuilder(
                                   builder: (context, orientation) => Text(
-                                    "Disc ${album.songs[index].discNr}",
+                                    album.discTitles[songs[index].discNr!] ??
+                                        "Disc ${songs[index].discNr}",
                                     textAlign: TextAlign.center,
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 1,
                                     style: Theme.of(context)
                                         .textTheme
                                         .titleMedium!

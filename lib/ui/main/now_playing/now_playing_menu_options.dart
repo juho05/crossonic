@@ -36,18 +36,19 @@ List<ContextMenuOption> getNowPlayingMenuOptions(
         },
         icon: Icons.playlist_add,
       ),
-      ContextMenuOption(
-        title: "Go to album",
-        onSelected: () {
-          // TODO
-        },
-        icon: Icons.album,
-      ),
       if (viewModel.album != null)
+        ContextMenuOption(
+          title: "Go to album",
+          onSelected: () {
+            context.router.push(AlbumRoute(albumId: viewModel.album!.id));
+          },
+          icon: Icons.album,
+        ),
+      if (viewModel.artists.isNotEmpty)
         ContextMenuOption(
           title: "Go to artist",
           onSelected: () {
-            context.router.push(AlbumRoute(albumId: viewModel.album!.id));
+            // TODO
           },
           icon: Icons.person,
         ),

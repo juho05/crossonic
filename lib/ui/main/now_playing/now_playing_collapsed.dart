@@ -71,7 +71,7 @@ class NowPlayingCollapsed extends StatelessWidget {
                   padding: const EdgeInsets.all(0),
                   onPressed: () async {
                     final result = await _viewModel.toggleFavorite();
-                    if (result is Error && context.mounted) {
+                    if (result is Err && context.mounted) {
                       if (result.error is ConnectionException) {
                         Toast.show(context, "Failed to contact server");
                       } else {

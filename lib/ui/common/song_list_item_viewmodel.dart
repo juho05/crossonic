@@ -47,7 +47,7 @@ class SongListItemViewModel extends ChangeNotifier {
     notifyListeners();
     final result = await _favoritesRepository.setFavorite(
         FavoriteType.song, songId, favorite);
-    if (result is Error) {
+    if (result is Err) {
       _favorite = !favorite;
       notifyListeners();
     }

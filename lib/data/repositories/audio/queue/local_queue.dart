@@ -57,7 +57,8 @@ class LocalQueue extends ChangeNotifier implements MediaQueue {
   @override
   void replace(Iterable<Song> songs, [int startIndex = 0]) {
     if (songs.isEmpty) {
-      throw ArgumentError("songs must not be empty");
+      clear(priorityQueue: false);
+      return;
     }
     if (startIndex < 0 || startIndex >= songs.length) {
       throw IndexError.withLength(startIndex, songs.length,

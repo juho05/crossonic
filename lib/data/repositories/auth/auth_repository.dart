@@ -64,7 +64,7 @@ class AuthRepository extends ChangeNotifier {
 
     final result = await _openSubsonicService.fetchServerInfo(serverUri);
     switch (result) {
-      case Error<ServerInfo>():
+      case Err<ServerInfo>():
         if (result is UnexpectedResponseException) {
           return Result.error(InvalidServerException(
               (result.error as UnexpectedResponseException).message));
@@ -80,7 +80,7 @@ class AuthRepository extends ChangeNotifier {
 
     bool supportsPasswordAuth = true;
     switch (passwordPingRes) {
-      case Error():
+      case Err():
         if (passwordPingRes.error is SubsonicException) {
           final err = passwordPingRes.error as SubsonicException;
           supportsPasswordAuth =
@@ -95,7 +95,7 @@ class AuthRepository extends ChangeNotifier {
 
     bool supportsTokenAuth = true;
     switch (tokenPingRes) {
-      case Error():
+      case Err():
         if (tokenPingRes.error is SubsonicException) {
           final err = tokenPingRes.error as SubsonicException;
           supportsTokenAuth =
@@ -131,7 +131,7 @@ class AuthRepository extends ChangeNotifier {
 
     final result = await _openSubsonicService.ping(connection);
     switch (result) {
-      case Error():
+      case Err():
         return Result.error(result.error);
       case Ok():
     }
@@ -155,7 +155,7 @@ class AuthRepository extends ChangeNotifier {
         auth: AuthStateApiKey(username: "", apiKey: apiKey));
     final result = await _openSubsonicService.tokenInfo(connection);
     switch (result) {
-      case Error():
+      case Err():
         return Result.error(result.error);
       case Ok():
     }
@@ -216,8 +216,7 @@ class AuthRepository extends ChangeNotifier {
       await _persistState();
       notifyListeners();
     } else {
-      print(
-          "failed to load OpenSubsonic extensions: ${(result as Error).error}");
+      print("failed to load OpenSubsonic extensions: ${(result as Err).error}");
     }
   }
 

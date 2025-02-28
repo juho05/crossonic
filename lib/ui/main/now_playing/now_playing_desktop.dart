@@ -1,5 +1,7 @@
 import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
+import 'package:auto_route/auto_route.dart';
 import 'package:crossonic/data/repositories/audio/audio_handler.dart';
+import 'package:crossonic/routing/router.gr.dart';
 import 'package:crossonic/ui/common/context_menu_button.dart';
 import 'package:crossonic/ui/common/cover_art.dart';
 import 'package:crossonic/ui/common/dialogs/chooser.dart';
@@ -40,7 +42,8 @@ class NowPlayingDesktop extends StatelessWidget {
                       child: GestureDetector(
                         onTap: () {
                           if (_viewModel.album != null) {
-                            // TODO open album page
+                            context.router.push(
+                                AlbumRoute(albumId: _viewModel.album!.id));
                           }
                         },
                         child: SizedBox(
@@ -73,11 +76,12 @@ class NowPlayingDesktop extends StatelessWidget {
                             cursor: SystemMouseCursors.click,
                             child: GestureDetector(
                               onTap: () async {
-                                final artistID =
+                                final router = context.router;
+                                final artistId =
                                     await ChooserDialog.chooseArtist(
                                         context, _viewModel.artists.toList());
-                                if (artistID == null) return;
-                                // TODO open artist page
+                                if (artistId == null) return;
+                                router.push(ArtistRoute(artistId: artistId));
                               },
                               child: Text(
                                 _viewModel.displayArtist,
@@ -112,7 +116,7 @@ class NowPlayingDesktop extends StatelessWidget {
                           padding: const EdgeInsets.all(0),
                           onPressed: () async {
                             final result = await _viewModel.toggleFavorite();
-                            if (result is Error && context.mounted) {
+                            if (result is Err && context.mounted) {
                               if (result.error is ConnectionException) {
                                 Toast.show(context, "Failed to contact server");
                               } else {

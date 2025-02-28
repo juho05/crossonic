@@ -208,7 +208,7 @@ class _LoginPageState extends State<LoginPage> with RestorationMixin {
     }
 
     if (viewModel.login.error) {
-      final result = viewModel.login.result as Error;
+      final result = viewModel.login.result as Err;
       final String message;
       if (result.error is UnauthenticatedException) {
         message = "Incorrect credentials";

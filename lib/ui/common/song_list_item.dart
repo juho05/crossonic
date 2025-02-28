@@ -111,7 +111,7 @@ class _SongListItemState extends State<SongListItem> {
                     : "Add to favorites",
                 onSelected: () async {
                   final result = await viewModel.toggleFavorite();
-                  if (result is Error && context.mounted) {
+                  if (result is Err && context.mounted) {
                     if (result.error is ConnectionException) {
                       Toast.show(context, "Failed to contact server");
                     } else {

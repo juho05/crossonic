@@ -2,7 +2,7 @@ import 'package:crossonic/data/services/opensubsonic/models/child_model.dart';
 
 class Song {
   final String id;
-  final String? coverId;
+  final String coverId;
   final String title;
   final String displayArtist;
   final Iterable<({String id, String name})> artists;
@@ -30,7 +30,7 @@ class Song {
   factory Song.fromChildModel(ChildModel child) {
     return Song(
       id: child.id,
-      coverId: child.coverArt,
+      coverId: child.coverArt ?? child.id,
       title: child.title,
       displayArtist: child.displayArtist ??
           child.artists?.map((a) => a.name).join(", ") ??

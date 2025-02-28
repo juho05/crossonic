@@ -53,7 +53,7 @@ class AlbumViewModel extends ChangeNotifier {
     notifyListeners();
     final result = await _subsonic.getAlbum(albumId);
     switch (result) {
-      case Error():
+      case Err():
         _status = FetchStatus.failure;
       case Ok():
         _album = result.value;
@@ -65,36 +65,33 @@ class AlbumViewModel extends ChangeNotifier {
   }
 
   void play([int index = 0]) {
-    if (album!.songs.isEmpty) {
+    if ((album!.songs ?? []).isEmpty) {
       _audioHandler.queue.clear(priorityQueue: false);
       return;
     }
     _audioHandler.playOnNextMediaChange();
-    _audioHandler.queue.replace(album!.songs, index);
+    _audioHandler.queue.replace(album!.songs!, index);
   }
 
   void playDisc(int disc) {
-    final songs = album!.songs.where((song) => song.discNr == disc).toList();
-    if (songs.isEmpty) {
-      _audioHandler.queue.clear(priorityQueue: false);
-      return;
-    }
+    final songs =
+        (album!.songs ?? []).where((song) => song.discNr == disc).toList();
     _audioHandler.playOnNextMediaChange();
     _audioHandler.queue.replace(songs);
   }
 
   void shuffle() {
-    if (album!.songs.isEmpty) {
+    if ((album!.songs ?? []).isEmpty) {
       _audioHandler.queue.clear(priorityQueue: false);
       return;
     }
     _audioHandler.playOnNextMediaChange();
-    _audioHandler.queue.replace(List.of(album!.songs)..shuffle());
+    _audioHandler.queue.replace(List.of(album!.songs!)..shuffle());
   }
 
   void addToQueue(bool priority) {
-    if (album!.songs.isEmpty) return;
-    _audioHandler.queue.addAll(album!.songs, priority);
+    if ((album!.songs ?? []).isEmpty) return;
+    _audioHandler.queue.addAll(album!.songs!, priority);
   }
 
   void addSongToQueue(Song song, bool priority) {
@@ -106,7 +103,7 @@ class AlbumViewModel extends ChangeNotifier {
     notifyListeners();
     final result =
         await _favorites.setFavorite(FavoriteType.album, album!.id, !favorite);
-    if (result is Error) {
+    if (result is Err) {
       _favorite = !_favorite;
       notifyListeners();
     }

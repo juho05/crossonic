@@ -123,7 +123,7 @@ class _ConnectServerPageState extends State<ConnectServerPage> {
     }
 
     if (viewModel.connect.error) {
-      final result = viewModel.connect.result as Error;
+      final result = viewModel.connect.result as Err;
       final String message;
       if (result.error is InvalidServerException) {
         message = "URL does not point to an OpenSubsonic compatible server";

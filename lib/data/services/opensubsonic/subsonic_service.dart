@@ -4,6 +4,8 @@ import 'package:crossonic/data/services/opensubsonic/auth.dart';
 import 'package:crossonic/data/services/opensubsonic/exceptions.dart';
 import 'package:crossonic/data/services/opensubsonic/models/album_info_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/albumid3_model.dart';
+import 'package:crossonic/data/services/opensubsonic/models/artist_info2_model.dart';
+import 'package:crossonic/data/services/opensubsonic/models/artistid3_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/opensubsonic_extension_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/random_songs_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/server_info.dart';
@@ -16,6 +18,34 @@ import 'package:http/http.dart' as http;
 class SubsonicService {
   static const String _clientName = "crossonic";
   static const String _protocolVersion = "1.16.1";
+
+  Future<Result<ArtistInfo2Model>> getArtistInfo2(Connection con, String id,
+      {int? count, bool? includeNotPresent}) {
+    return _fetchObject(
+      con,
+      "getArtistInfo2",
+      {
+        "id": [id],
+        "count": count != null ? [count.toString()] : [],
+        "includeNotPresent":
+            includeNotPresent != null ? [includeNotPresent.toString()] : [],
+      },
+      ArtistInfo2Model.fromJson,
+      "artistInfo2",
+    );
+  }
+
+  Future<Result<ArtistID3Model>> getArtist(Connection con, String id) async {
+    return _fetchObject(
+      con,
+      "getArtist",
+      {
+        "id": [id]
+      },
+      ArtistID3Model.fromJson,
+      "artist",
+    );
+  }
 
   Future<Result<AlbumInfoModel>> getAlbumInfo2(Connection con, String id) {
     return _fetchObject(
@@ -118,7 +148,7 @@ class SubsonicService {
   Future<Result<ServerInfo>> fetchServerInfo(Uri baseUri) async {
     final result = await _request(baseUri, "ping", {}, EmptyAuth());
     switch (result) {
-      case Error():
+      case Err():
         return Result.error(result.error);
       case Ok<http.Response>():
     }
@@ -164,7 +194,7 @@ class SubsonicService {
     final result =
         await _fetchJson(con, endpointName, queryParams, responseKey);
     switch (result) {
-      case Error():
+      case Err():
         return Result.error(result.error);
       case Ok<dynamic>():
         return Result.ok(fromJson(result.value));
@@ -181,7 +211,7 @@ class SubsonicService {
     final result =
         await _fetchJson(con, endpointName, queryParams, responseKey);
     switch (result) {
-      case Error():
+      case Err():
         return Result.error(result.error);
       case Ok<dynamic>():
         final list = result.value as List<dynamic>;
@@ -200,7 +230,7 @@ class SubsonicService {
       final result =
           await _request(con.baseUri, endpointName, queryParams, con.auth);
       switch (result) {
-        case Error():
+        case Err():
           return Result.error(result.error);
         case Ok<http.Response>():
       }

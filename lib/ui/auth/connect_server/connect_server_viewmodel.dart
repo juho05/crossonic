@@ -30,7 +30,7 @@ class ConnectServerViewModel {
     );
     final result = await _authRepository.connect(uri);
     switch (result) {
-      case Error():
+      case Err():
         return Result.error(result.error);
       case Ok():
         return Result.ok(null);
