@@ -38,20 +38,24 @@ class LocalQueue extends ChangeNotifier implements MediaQueue {
   @override
   void addAll(Iterable<Song> songs, bool priority) {
     if (priority) {
-      _addPrio(songs);
+      _insertPrio(_priorityQueue.length, songs);
     } else {
       _insert(_queue.length, songs);
     }
   }
 
   @override
-  void insert(int index, Song song) {
-    insertAll(index, [song]);
+  void insert(int index, Song song, bool priority) {
+    insertAll(index, [song], priority);
   }
 
   @override
-  void insertAll(int index, Iterable<Song> songs) {
-    _insert(index, songs);
+  void insertAll(int index, Iterable<Song> songs, bool priority) {
+    if (priority) {
+      _insertPrio(index, songs);
+    } else {
+      _insert(index, songs);
+    }
   }
 
   @override
@@ -183,13 +187,22 @@ class LocalQueue extends ChangeNotifier implements MediaQueue {
     notifyListeners();
   }
 
-  void _addPrio(Iterable<Song> songs) {
+  void _insertPrio(int index, Iterable<Song> songs) {
     if (songs.isEmpty) return;
-    bool wasEmpty = _priorityQueue.isEmpty;
-    _priorityQueue.addAll(songs);
-    if (wasEmpty) {
+
+    if (index == _priorityQueue.length) {
+      _priorityQueue.addAll(songs);
+    } else {
+      final list = _priorityQueue.toList();
+      list.insertAll(index, songs);
+      _priorityQueue.clear();
+      _priorityQueue.addAll(list);
+    }
+
+    if (index == 0) {
       _next.add(_priorityQueue.first);
     }
+
     notifyListeners();
   }
 
@@ -203,6 +216,7 @@ class LocalQueue extends ChangeNotifier implements MediaQueue {
     if (_priorityQueue.isEmpty) {
       _next.add(_queue.elementAtOrNull(_nextIndex));
     }
+    notifyListeners();
   }
 
   @override
@@ -212,6 +226,7 @@ class LocalQueue extends ChangeNotifier implements MediaQueue {
     _priorityQueue.clear();
     _priorityQueue.addAll(newQueue);
     _next.add(_priorityQueue.first);
+    notifyListeners();
   }
 
   @override

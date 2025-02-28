@@ -26,18 +26,21 @@ class SongListItemViewModel extends ChangeNotifier {
     required FavoritesRepository favoritesRepository,
     required AudioHandler audioHandler,
     required this.songId,
+    bool disablePlaybackStatus = false,
   })  : _favoritesRepository = favoritesRepository,
         _audioHandler = audioHandler {
     _favoritesRepository.addListener(_updateFavoriteStatus);
 
-    _currentSubscription = _audioHandler.queue.current.listen((current) {
-      _currentSongId = current.song?.id;
-      notifyListeners();
-    });
-    _statusSubscription = _audioHandler.playbackStatus.listen((status) {
-      _playbackStatus = status;
-      notifyListeners();
-    });
+    if (!disablePlaybackStatus) {
+      _currentSubscription = _audioHandler.queue.current.listen((current) {
+        _currentSongId = current.song?.id;
+        notifyListeners();
+      });
+      _statusSubscription = _audioHandler.playbackStatus.listen((status) {
+        _playbackStatus = status;
+        notifyListeners();
+      });
+    }
 
     _updateFavoriteStatus();
   }

@@ -93,13 +93,13 @@ class ChangableQueue extends ChangeNotifier implements MediaQueue {
   }
 
   @override
-  void insert(int index, Song song) {
-    _queue.insert(index, song);
+  void insert(int index, Song song, bool priority) {
+    _queue.insert(index, song, priority);
   }
 
   @override
-  void insertAll(int index, Iterable<Song> songs) {
-    _queue.insertAll(index, songs);
+  void insertAll(int index, Iterable<Song> songs, bool priority) {
+    _queue.insertAll(index, songs, priority);
   }
 
   @override

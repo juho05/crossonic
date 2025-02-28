@@ -222,8 +222,8 @@ class _MainPageState extends State<MainPage> {
   }
 
   @override
-  Future<void> dispose() async {
-    await _nowPlayingViewModel.dispose();
+  void dispose() {
+    _nowPlayingViewModel.dispose();
     super.dispose();
   }
 }

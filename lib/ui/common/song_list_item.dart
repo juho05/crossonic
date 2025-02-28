@@ -19,6 +19,8 @@ class SongListItem extends StatefulWidget {
   final int? trackNr;
   final String? coverId;
   final Duration? duration;
+  final int? reorderIndex;
+  final bool disablePlaybackStatus;
 
   final void Function()? onTap;
   final void Function(bool priority)? onAddToQueue;
@@ -43,6 +45,8 @@ class SongListItem extends StatefulWidget {
     this.onGoToAlbum,
     this.onGoToArtist,
     this.onRemove,
+    this.reorderIndex,
+    this.disablePlaybackStatus = false,
   });
 
   @override
@@ -59,6 +63,7 @@ class _SongListItemState extends State<SongListItem> {
       favoritesRepository: context.read(),
       audioHandler: context.read(),
       songId: widget.id,
+      disablePlaybackStatus: widget.disablePlaybackStatus,
     );
   }
 
@@ -85,6 +90,7 @@ class _SongListItemState extends State<SongListItem> {
               viewModel: viewModel,
               coverId: widget.coverId,
               trackNr: widget.trackNr,
+              reorderIndex: widget.reorderIndex,
             ),
             trailingInfo: widget.duration != null
                 ? formatDuration(widget.duration!)
@@ -153,6 +159,7 @@ class _SongListItemState extends State<SongListItem> {
 class SongLeadingWidget extends StatelessWidget {
   final int? trackNr;
   final String? coverId;
+  final int? reorderIndex;
 
   final SongListItemViewModel viewModel;
 
@@ -160,65 +167,24 @@ class SongLeadingWidget extends StatelessWidget {
     super.key,
     this.trackNr,
     this.coverId,
+    this.reorderIndex,
     required this.viewModel,
   });
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
+    Widget leading;
     if (trackNr != null) {
-      return SizedBox(
-        child: Padding(
-          padding: const EdgeInsets.only(left: 8),
-          child: SizedBox(
-            width: 40,
-            height: 40,
-            child: Center(
-              child: viewModel.playbackStatus == null
-                  ? Text(
-                      trackNr!.toString().padLeft(2, "0"),
-                      overflow: TextOverflow.ellipsis,
-                      style: textTheme.bodyMedium!
-                          .copyWith(fontWeight: FontWeight.w500),
-                    )
-                  : IconButton(
-                      onPressed: () {
-                        viewModel.playPause();
-                      },
-                      icon: Icon(
-                        viewModel.playbackStatus == PlaybackStatus.playing
-                            ? Icons.pause
-                            : (viewModel.playbackStatus ==
-                                    PlaybackStatus.loading
-                                ? Icons.hourglass_empty
-                                : Icons.play_arrow),
-                      ),
-                    ),
-            ),
-          ),
-        ),
-      );
-    }
-    return Padding(
-      padding: const EdgeInsets.only(left: 8),
-      child: SizedBox(
-        width: 40,
-        height: 40,
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            CoverArt(
-              placeholderIcon: Icons.album,
-              coverId: coverId,
-              borderRadius: BorderRadius.circular(5),
-            ),
-            if (viewModel.playbackStatus != null)
-              ClipRRect(
-                borderRadius: BorderRadius.circular(5),
-                child: ColoredBox(color: Color.fromARGB(90, 0, 0, 0)),
-              ),
-            if (viewModel.playbackStatus != null)
-              IconButton(
+      leading = Center(
+        child: viewModel.playbackStatus == null
+            ? Text(
+                trackNr!.toString().padLeft(2, "0"),
+                overflow: TextOverflow.ellipsis,
+                style:
+                    textTheme.bodyMedium!.copyWith(fontWeight: FontWeight.w500),
+              )
+            : IconButton(
                 onPressed: () {
                   viewModel.playPause();
                 },
@@ -229,10 +195,60 @@ class SongLeadingWidget extends StatelessWidget {
                           ? Icons.hourglass_empty
                           : Icons.play_arrow),
                 ),
-              )
-          ],
+              ),
+      );
+    }
+    leading = Stack(
+      fit: StackFit.expand,
+      children: [
+        CoverArt(
+          placeholderIcon: Icons.album,
+          coverId: coverId,
+          borderRadius: BorderRadius.circular(5),
         ),
+        if (viewModel.playbackStatus != null)
+          ClipRRect(
+            borderRadius: BorderRadius.circular(5),
+            child: ColoredBox(color: Color.fromARGB(90, 0, 0, 0)),
+          ),
+        if (viewModel.playbackStatus != null)
+          IconButton(
+            onPressed: () {
+              viewModel.playPause();
+            },
+            icon: Icon(
+              viewModel.playbackStatus == PlaybackStatus.playing
+                  ? Icons.pause
+                  : (viewModel.playbackStatus == PlaybackStatus.loading
+                      ? Icons.hourglass_empty
+                      : Icons.play_arrow),
+            ),
+          )
+      ],
+    );
+    leading = Padding(
+      padding: const EdgeInsets.only(left: 8),
+      child: SizedBox(
+        width: 40,
+        height: 40,
+        child: leading,
       ),
     );
+    if (reorderIndex != null) {
+      leading = ReorderableDragStartListener(
+        index: reorderIndex!,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(left: 8),
+              child: Icon(Icons.drag_handle),
+            ),
+            leading,
+          ],
+        ),
+      );
+    }
+    return leading;
   }
 }

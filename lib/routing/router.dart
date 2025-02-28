@@ -79,5 +79,11 @@ class AppRouter extends RootStackRouter {
           title: (context, data) => "Login",
           restorationId: (match) => match.fullPath,
         ),
+        AutoRoute(
+          path: "/queue",
+          page: QueueRoute.page,
+          title: (context, data) => "Queue",
+          restorationId: (match) => match.fullPath,
+        ),
       ];
 }

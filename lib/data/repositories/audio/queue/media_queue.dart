@@ -16,11 +16,13 @@ abstract interface class MediaQueue extends ChangeNotifier {
   /// or to the end of the priority queue if [priority] is `true`.
   void addAll(Iterable<Song> songs, bool priority);
 
-  /// Inserts [song] at position [index] in the regular queue.
-  void insert(int index, Song song);
+  /// Insert [song] at position [index] in the regular queue if [priority] is `false`
+  /// or in the priority queue if [priority] is `true`.
+  void insert(int index, Song song, bool priority);
 
-  /// Inserts all [songs] at position [index] in the regular queue.
-  void insertAll(int index, Iterable<Song> songs);
+  /// Inserts all [songs] at position [index] in the regular queue if [priority] is `false`
+  /// or in the priority queue if [priority] is `true`.
+  void insertAll(int index, Iterable<Song> songs, bool priority);
 
   /// Replaces the contents of the regular queue with [songs] and sets the current index to [startIndex].
   /// [songs] must not be empty and `0 <= startIndex < songs.length`.

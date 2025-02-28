@@ -223,7 +223,7 @@ class NowPlayingDesktop extends StatelessWidget {
                     ),
                     IconButton(
                       onPressed: () {
-                        // TODO open queue page
+                        context.router.push(QueueRoute());
                       },
                       icon: const Icon(Icons.queue_music),
                     ),
