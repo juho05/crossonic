@@ -37,23 +37,30 @@ class NowPlayingDesktop extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   mainAxisSize: MainAxisSize.max,
                   children: [
-                    MouseRegion(
-                      cursor: SystemMouseCursors.click,
-                      child: GestureDetector(
-                        onTap: () {
-                          if (_viewModel.album != null) {
-                            context.router.push(
-                                AlbumRoute(albumId: _viewModel.album!.id));
-                          }
-                        },
-                        child: SizedBox(
-                          height: 60,
-                          child: CoverArt(
+                    SizedBox(
+                      height: 60,
+                      width: 60,
+                      child: Stack(
+                        children: [
+                          CoverArt(
                             coverId: _viewModel.coverId,
                             placeholderIcon: Icons.album,
                             borderRadius: BorderRadius.circular(5),
                           ),
-                        ),
+                          if (_viewModel.album != null)
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(5),
+                              child: Material(
+                                type: MaterialType.transparency,
+                                child: InkWell(
+                                  onTap: () {
+                                    context.router.push(AlbumRoute(
+                                        albumId: _viewModel.album!.id));
+                                  },
+                                ),
+                              ),
+                            )
+                        ],
                       ),
                     ),
                     const SizedBox(width: 10),
