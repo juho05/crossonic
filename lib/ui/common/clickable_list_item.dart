@@ -53,7 +53,7 @@ class ClickableListItem extends StatelessWidget {
           if (isFavorite) const Icon(Icons.favorite, size: 15),
           if (trailingInfo != null)
             Padding(
-              padding: const EdgeInsets.only(left: 8),
+              padding: const EdgeInsets.only(left: 12),
               child: Text(
                 trailingInfo!,
                 style: textTheme.bodySmall,

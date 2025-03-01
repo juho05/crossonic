@@ -5,11 +5,9 @@ import 'package:crossonic/routing/router.gr.dart';
 import 'package:crossonic/ui/common/context_menu_button.dart';
 import 'package:crossonic/ui/common/cover_art.dart';
 import 'package:crossonic/ui/common/dialogs/chooser.dart';
-import 'package:crossonic/ui/common/toast.dart';
 import 'package:crossonic/ui/main/now_playing/now_playing_menu_options.dart';
 import 'package:crossonic/ui/main/now_playing/now_playing_viewmodel.dart';
-import 'package:crossonic/utils/exceptions.dart';
-import 'package:crossonic/utils/result.dart';
+import 'package:crossonic/utils/result_toast.dart';
 import 'package:flutter/material.dart';
 
 class NowPlayingDesktop extends StatelessWidget {
@@ -123,14 +121,8 @@ class NowPlayingDesktop extends StatelessWidget {
                           padding: const EdgeInsets.all(0),
                           onPressed: () async {
                             final result = await _viewModel.toggleFavorite();
-                            if (result is Err && context.mounted) {
-                              if (result.error is ConnectionException) {
-                                Toast.show(context, "Failed to contact server");
-                              } else {
-                                Toast.show(
-                                    context, "An unexpected error occured");
-                              }
-                            }
+                            if (!context.mounted) return;
+                            toastResult(context, result);
                           },
                         ),
                         const SizedBox(width: 7),

@@ -48,6 +48,7 @@ class AlbumViewModel extends ChangeNotifier {
 
   Future<void> load(String albumId) async {
     _albumId = albumId;
+    _onFavoritesChanged();
     _status = FetchStatus.loading;
     _album = null;
     notifyListeners();
@@ -102,7 +103,7 @@ class AlbumViewModel extends ChangeNotifier {
     _favorite = !_favorite;
     notifyListeners();
     final result =
-        await _favorites.setFavorite(FavoriteType.album, album!.id, !favorite);
+        await _favorites.setFavorite(FavoriteType.album, album!.id, favorite);
     if (result is Err) {
       _favorite = !_favorite;
       notifyListeners();

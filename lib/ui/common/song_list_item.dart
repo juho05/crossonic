@@ -2,11 +2,9 @@ import 'package:crossonic/data/repositories/audio/audio_handler.dart';
 import 'package:crossonic/ui/common/clickable_list_item_with_context_menu.dart';
 import 'package:crossonic/ui/common/cover_art.dart';
 import 'package:crossonic/ui/common/song_list_item_viewmodel.dart';
-import 'package:crossonic/ui/common/toast.dart';
 import 'package:crossonic/ui/common/with_context_menu.dart';
-import 'package:crossonic/utils/exceptions.dart';
 import 'package:crossonic/utils/format.dart';
-import 'package:crossonic/utils/result.dart';
+import 'package:crossonic/utils/result_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -117,13 +115,8 @@ class _SongListItemState extends State<SongListItem> {
                     : "Add to favorites",
                 onSelected: () async {
                   final result = await viewModel.toggleFavorite();
-                  if (result is Err && context.mounted) {
-                    if (result.error is ConnectionException) {
-                      Toast.show(context, "Failed to contact server");
-                    } else {
-                      Toast.show(context, "An unexpected error occured");
-                    }
-                  }
+                  if (!context.mounted) return;
+                  toastResult(context, result);
                 },
               ),
               if (widget.onAddToPlaylist != null)
@@ -197,35 +190,36 @@ class SongLeadingWidget extends StatelessWidget {
                 ),
               ),
       );
-    }
-    leading = Stack(
-      fit: StackFit.expand,
-      children: [
-        CoverArt(
-          placeholderIcon: Icons.album,
-          coverId: coverId,
-          borderRadius: BorderRadius.circular(5),
-        ),
-        if (viewModel.playbackStatus != null)
-          ClipRRect(
+    } else {
+      leading = Stack(
+        fit: StackFit.expand,
+        children: [
+          CoverArt(
+            placeholderIcon: Icons.album,
+            coverId: coverId,
             borderRadius: BorderRadius.circular(5),
-            child: ColoredBox(color: Color.fromARGB(90, 0, 0, 0)),
           ),
-        if (viewModel.playbackStatus != null)
-          IconButton(
-            onPressed: () {
-              viewModel.playPause();
-            },
-            icon: Icon(
-              viewModel.playbackStatus == PlaybackStatus.playing
-                  ? Icons.pause
-                  : (viewModel.playbackStatus == PlaybackStatus.loading
-                      ? Icons.hourglass_empty
-                      : Icons.play_arrow),
+          if (viewModel.playbackStatus != null)
+            ClipRRect(
+              borderRadius: BorderRadius.circular(5),
+              child: ColoredBox(color: Color.fromARGB(90, 0, 0, 0)),
             ),
-          )
-      ],
-    );
+          if (viewModel.playbackStatus != null)
+            IconButton(
+              onPressed: () {
+                viewModel.playPause();
+              },
+              icon: Icon(
+                viewModel.playbackStatus == PlaybackStatus.playing
+                    ? Icons.pause
+                    : (viewModel.playbackStatus == PlaybackStatus.loading
+                        ? Icons.hourglass_empty
+                        : Icons.play_arrow),
+              ),
+            )
+        ],
+      );
+    }
     leading = Padding(
       padding: const EdgeInsets.only(left: 8),
       child: SizedBox(

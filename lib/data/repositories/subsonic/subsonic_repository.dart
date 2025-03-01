@@ -21,6 +21,12 @@ enum AlbumsSortMode {
   alphabetical,
 }
 
+typedef SearchResult = ({
+  Iterable<Song> songs,
+  Iterable<Album> albums,
+  Iterable<Artist> artists,
+});
+
 class SubsonicRepository {
   final AuthRepository _auth;
   final SubsonicService _service;
@@ -33,6 +39,41 @@ class SubsonicRepository {
   })  : _auth = authRepository,
         _service = subsonicService,
         _favorites = favoritesRepository;
+
+  Future<Result<SearchResult>> search(
+    String query, {
+    int? artistCount,
+    int? artistOffset,
+    int? albumCount,
+    int? albumOffset,
+    int? songCount,
+    int? songOffset,
+  }) async {
+    final result = await _service.search3(
+      _auth.con,
+      query,
+      artistCount: artistCount,
+      artistOffset: artistOffset,
+      albumCount: albumCount,
+      albumOffset: albumOffset,
+      songCount: songCount,
+      songOffset: songOffset,
+    );
+    switch (result) {
+      case Err():
+        return Result.error(result.error);
+      case Ok():
+    }
+    _updateArtistFavorites(result.value.artist);
+    _updateAlbumFavorites(result.value.album);
+    _updateSongFavorites(result.value.song);
+    return Result.ok((
+      songs: result.value.song?.map((c) => Song.fromChildModel(c)) ?? [],
+      albums: result.value.album?.map((a) => Album.fromAlbumID3Model(a)) ?? [],
+      artists:
+          result.value.artist?.map((a) => Artist.fromArtistID3Model(a)) ?? [],
+    ));
+  }
 
   Future<Result<Iterable<Album>>> getAlbums(AlbumsSortMode sort, int count,
       [int offset = 0]) async {

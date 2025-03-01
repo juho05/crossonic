@@ -1,9 +1,7 @@
 import 'package:crossonic/data/repositories/audio/audio_handler.dart';
 import 'package:crossonic/ui/common/cover_art.dart';
-import 'package:crossonic/ui/common/toast.dart';
 import 'package:crossonic/ui/main/now_playing/now_playing_viewmodel.dart';
-import 'package:crossonic/utils/exceptions.dart';
-import 'package:crossonic/utils/result.dart';
+import 'package:crossonic/utils/result_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 
@@ -71,13 +69,8 @@ class NowPlayingCollapsed extends StatelessWidget {
                   padding: const EdgeInsets.all(0),
                   onPressed: () async {
                     final result = await _viewModel.toggleFavorite();
-                    if (result is Err && context.mounted) {
-                      if (result.error is ConnectionException) {
-                        Toast.show(context, "Failed to contact server");
-                      } else {
-                        Toast.show(context, "An unexpected error occured");
-                      }
-                    }
+                    if (!context.mounted) return;
+                    toastResult(context, result);
                   },
                 ),
               ),

@@ -8,11 +8,9 @@ import 'package:crossonic/ui/common/albums_grid_delegate.dart';
 import 'package:crossonic/ui/common/collection_page.dart';
 import 'package:crossonic/ui/common/cover_art_decorated.dart';
 import 'package:crossonic/ui/common/dialogs/chooser.dart';
-import 'package:crossonic/ui/common/toast.dart';
 import 'package:crossonic/ui/common/with_context_menu.dart';
-import 'package:crossonic/utils/exceptions.dart';
 import 'package:crossonic/utils/fetch_status.dart';
-import 'package:crossonic/utils/result.dart';
+import 'package:crossonic/utils/result_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -76,14 +74,8 @@ class _ArtistPageState extends State<ArtistPage> {
                   icon: Icons.play_arrow,
                   onSelected: () async {
                     final result = await _viewModel.play();
-                    if (result is Err && context.mounted) {
-                      switch (result.error) {
-                        case ConnectionException():
-                          Toast.show(context, "Failed to contact server");
-                        default:
-                          Toast.show(context, "An unexpected error occured");
-                      }
-                    }
+                    if (!context.mounted) return;
+                    toastResult(context, result);
                   },
                 ),
                 ContextMenuOption(
@@ -103,17 +95,8 @@ class _ArtistPageState extends State<ArtistPage> {
                   onSelected: () async {
                     final result = await _viewModel.addToQueue(true);
                     if (!context.mounted) return;
-                    if (result is Err) {
-                      switch (result.error) {
-                        case ConnectionException():
-                          Toast.show(context, "Failed to contact server");
-                        default:
-                          Toast.show(context, "An unexpected error occured");
-                      }
-                    } else {
-                      Toast.show(
-                          context, "Added '${artist.name}' to priority queue");
-                    }
+                    toastResult(context, result,
+                        "Added '${artist.name} to priority queue");
                   },
                 ),
                 ContextMenuOption(
@@ -122,16 +105,8 @@ class _ArtistPageState extends State<ArtistPage> {
                   onSelected: () async {
                     final result = await _viewModel.addToQueue(false);
                     if (!context.mounted) return;
-                    if (result is Err) {
-                      switch (result.error) {
-                        case ConnectionException():
-                          Toast.show(context, "Failed to contact server");
-                        default:
-                          Toast.show(context, "An unexpected error occured");
-                      }
-                    } else {
-                      Toast.show(context, "Added '${artist.name}' to queue");
-                    }
+                    toastResult(
+                        context, result, "Added '${artist.name} to queue");
                   },
                 ),
                 ContextMenuOption(
@@ -142,14 +117,8 @@ class _ArtistPageState extends State<ArtistPage> {
                       _viewModel.favorite ? Icons.heart_broken : Icons.favorite,
                   onSelected: () async {
                     final result = await _viewModel.toggleFavorite();
-                    if (result is Err && context.mounted) {
-                      switch (result.error) {
-                        case ConnectionException():
-                          Toast.show(context, "Failed to contact server");
-                        default:
-                          Toast.show(context, "An unexpected error occured");
-                      }
-                    }
+                    if (!context.mounted) return;
+                    toastResult(context, result);
                   },
                 ),
                 ContextMenuOption(
@@ -176,14 +145,8 @@ class _ArtistPageState extends State<ArtistPage> {
                 icon: Icons.play_arrow,
                 onClick: () async {
                   final result = await _viewModel.play();
-                  if (result is Err && context.mounted) {
-                    switch (result.error) {
-                      case ConnectionException():
-                        Toast.show(context, "Failed to contact server");
-                      default:
-                        Toast.show(context, "An unexpected error occured");
-                    }
-                  }
+                  if (!context.mounted) return;
+                  toastResult(context, result);
                 },
               ),
               CollectionAction(
@@ -192,17 +155,8 @@ class _ArtistPageState extends State<ArtistPage> {
                 onClick: () async {
                   final result = await _viewModel.addToQueue(true);
                   if (!context.mounted) return;
-                  if (result is Err) {
-                    switch (result.error) {
-                      case ConnectionException():
-                        Toast.show(context, "Failed to contact server");
-                      default:
-                        Toast.show(context, "An unexpected error occured");
-                    }
-                  } else {
-                    Toast.show(
-                        context, "Added '${artist.name}' priority to queue");
-                  }
+                  toastResult(context, result,
+                      "Added '${artist.name}' priority to queue");
                 },
               ),
               CollectionAction(
@@ -211,16 +165,8 @@ class _ArtistPageState extends State<ArtistPage> {
                 onClick: () async {
                   final result = await _viewModel.addToQueue(false);
                   if (!context.mounted) return;
-                  if (result is Err) {
-                    switch (result.error) {
-                      case ConnectionException():
-                        Toast.show(context, "Failed to contact server");
-                      default:
-                        Toast.show(context, "An unexpected error occured");
-                    }
-                  } else {
-                    Toast.show(context, "Added '${artist.name}' to queue");
-                  }
+                  toastResult(
+                      context, result, "Added '${artist.name}' to queue");
                 },
               ),
             ],
@@ -246,42 +192,21 @@ class _ArtistPageState extends State<ArtistPage> {
                   },
                   onPlay: () async {
                     final result = await _viewModel.playAlbum(albums[i]);
-                    if (result is Err && context.mounted) {
-                      switch (result.error) {
-                        case ConnectionException():
-                          Toast.show(context, "Failed to contact server");
-                        default:
-                          Toast.show(context, "An unexpected error occured");
-                      }
-                    }
+                    if (!context.mounted) return;
+                    toastResult(context, result);
                   },
                   onShuffle: () async {
                     final result =
                         await _viewModel.playAlbum(albums[i], shuffle: true);
-                    if (result is Err && context.mounted) {
-                      switch (result.error) {
-                        case ConnectionException():
-                          Toast.show(context, "Failed to contact server");
-                        default:
-                          Toast.show(context, "An unexpected error occured");
-                      }
-                    }
+                    if (!context.mounted) return;
+                    toastResult(context, result);
                   },
                   onAddToQueue: (priority) async {
                     final result =
                         await _viewModel.addAlbumToQueue(albums[i], priority);
                     if (!context.mounted) return;
-                    if (result is Err) {
-                      switch (result.error) {
-                        case ConnectionException():
-                          Toast.show(context, "Failed to contact server");
-                        default:
-                          Toast.show(context, "An unexpected error occured");
-                      }
-                    } else {
-                      Toast.show(context,
-                          "Added '${albums[i].name}' to ${priority ? " priority" : ""} queue");
-                    }
+                    toastResult(context, result,
+                        "Added '${albums[i].name}' to ${priority ? " priority" : ""} queue");
                   },
                   onAddToPlaylist: () {
                     // TODO

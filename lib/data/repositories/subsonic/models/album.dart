@@ -7,6 +7,7 @@ class Album {
   final String coverId;
   final int? year;
   final List<Song>? songs;
+  final int songCount;
   final String displayArtist;
   final Iterable<({String id, String name})> artists;
   final Map<int, String> discTitles;
@@ -17,6 +18,7 @@ class Album {
     required this.coverId,
     required this.year,
     required this.songs,
+    required this.songCount,
     required this.displayArtist,
     required this.artists,
     required this.discTitles,
@@ -37,6 +39,7 @@ class Album {
                 : []),
         year: album.year,
         songs: album.song?.map((c) => Song.fromChildModel(c)).toList(),
+        songCount: album.songCount,
         discTitles: {
           for (var d in album.discTitles ?? <({int disc, String title})>[])
             d.disc: d.title

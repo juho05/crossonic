@@ -7,9 +7,8 @@ import 'package:crossonic/ui/common/dialogs/chooser.dart';
 import 'package:crossonic/ui/common/song_list_item.dart';
 import 'package:crossonic/ui/common/toast.dart';
 import 'package:crossonic/ui/common/with_context_menu.dart';
-import 'package:crossonic/utils/exceptions.dart';
 import 'package:crossonic/utils/fetch_status.dart';
-import 'package:crossonic/utils/result.dart';
+import 'package:crossonic/utils/result_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -110,14 +109,8 @@ class _AlbumPageState extends State<AlbumPage> {
                       _viewModel.favorite ? Icons.heart_broken : Icons.favorite,
                   onSelected: () async {
                     final result = await _viewModel.toggleFavorite();
-                    if (result is Err && context.mounted) {
-                      switch (result.error) {
-                        case ConnectionException():
-                          Toast.show(context, "Failed to contact server");
-                        default:
-                          Toast.show(context, "An unexpected error occured");
-                      }
-                    }
+                    if (!context.mounted) return;
+                    toastResult(context, result);
                   },
                 ),
                 ContextMenuOption(
@@ -187,7 +180,6 @@ class _AlbumPageState extends State<AlbumPage> {
                 id: s.id,
                 title: s.title,
                 artist: s.displayArtist,
-                coverId: s.coverId,
                 duration: s.duration,
                 trackNr: s.trackNr ?? index,
                 onAddToPlaylist: () {

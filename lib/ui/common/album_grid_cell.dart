@@ -1,10 +1,8 @@
 import 'package:crossonic/ui/common/album_grid_cell_viewmodel.dart';
 import 'package:crossonic/ui/common/context_menu_button.dart';
 import 'package:crossonic/ui/common/cover_art_decorated.dart';
-import 'package:crossonic/ui/common/toast.dart';
 import 'package:crossonic/ui/common/with_context_menu.dart';
-import 'package:crossonic/utils/exceptions.dart';
-import 'package:crossonic/utils/result.dart';
+import 'package:crossonic/utils/result_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -94,13 +92,8 @@ class _AlbumGridCellState extends State<AlbumGridCell> {
             _viewModel.favorite ? "Remove from favorites" : "Add to favorites",
         onSelected: () async {
           final result = await _viewModel.toggleFavorite();
-          if (result is Err && context.mounted) {
-            if (result.error is ConnectionException) {
-              Toast.show(context, "Failed to contact server");
-            } else {
-              Toast.show(context, "An unexpected error occured");
-            }
-          }
+          if (!context.mounted) return;
+          toastResult(context, result);
         },
       ),
       if (widget.onAddToQueue != null)

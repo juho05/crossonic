@@ -49,6 +49,7 @@ class ArtistViewModel extends ChangeNotifier {
 
   Future<void> load(String artistId) async {
     _artistId = artistId;
+    _onFavoritesChanged();
     _status = FetchStatus.loading;
     _artist = null;
     notifyListeners();
@@ -126,7 +127,7 @@ class ArtistViewModel extends ChangeNotifier {
     _favorite = !_favorite;
     notifyListeners();
     final result =
-        await _favorites.setFavorite(FavoriteType.album, artist!.id, !favorite);
+        await _favorites.setFavorite(FavoriteType.artist, artist!.id, favorite);
     if (result is Err) {
       _favorite = !_favorite;
       notifyListeners();

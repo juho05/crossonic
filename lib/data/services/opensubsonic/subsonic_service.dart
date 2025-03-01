@@ -9,6 +9,7 @@ import 'package:crossonic/data/services/opensubsonic/models/artist_info2_model.d
 import 'package:crossonic/data/services/opensubsonic/models/artistid3_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/opensubsonic_extension_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/random_songs_model.dart';
+import 'package:crossonic/data/services/opensubsonic/models/search_result3_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/server_info.dart';
 import 'package:crossonic/data/services/opensubsonic/models/starred2_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/token_info_model.dart';
@@ -32,6 +33,33 @@ enum AlbumListType {
 class SubsonicService {
   static const String _clientName = "crossonic";
   static const String _protocolVersion = "1.16.1";
+
+  Future<Result<SearchResult3Model>> search3(
+    Connection con,
+    String query, {
+    int? artistCount,
+    int? artistOffset,
+    int? albumCount,
+    int? albumOffset,
+    int? songCount,
+    int? songOffset,
+  }) async {
+    return _fetchObject(
+      con,
+      "search3",
+      {
+        "query": [query],
+        "artistCount": artistCount != null ? [artistCount.toString()] : [],
+        "artistOffset": artistOffset != null ? [artistOffset.toString()] : [],
+        "albumCount": albumCount != null ? [albumCount.toString()] : [],
+        "albumOffset": albumOffset != null ? [albumOffset.toString()] : [],
+        "songCount": songCount != null ? [songCount.toString()] : [],
+        "songOffset": songOffset != null ? [songOffset.toString()] : [],
+      },
+      SearchResult3Model.fromJson,
+      "searchResult3",
+    );
+  }
 
   Future<Result<AlbumList2Model>> getAlbumList2(
     Connection con,

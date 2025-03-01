@@ -1,5 +1,4 @@
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
-import 'package:crossonic/data/services/opensubsonic/models/starred2_model.dart';
 import 'package:crossonic/data/services/opensubsonic/subsonic_service.dart';
 import 'package:crossonic/utils/result.dart';
 import 'package:flutter/material.dart';
@@ -52,19 +51,6 @@ class FavoritesRepository extends ChangeNotifier {
     return result;
   }
 
-  Future<void> load() async {
-    final result = await _subsonic.getStarred2(_auth.con);
-    switch (result) {
-      case Err():
-        print("failed to load favorites: ${result.error}");
-        return;
-      case Ok<Starred2Model>():
-    }
-    _favoriteIDs
-        .addAll(result.value.song.map((s) => (FavoriteType.song, s.id)));
-    notifyListeners();
-  }
-
   void update(FavoriteType type, String id, bool favorite) {
     if (_favoriteIDs.contains((type, id)) == favorite) return;
     if (favorite) {
@@ -80,9 +66,9 @@ class FavoritesRepository extends ChangeNotifier {
     bool changed = false;
     for (var e in list) {
       if (e.favorite) {
-        changed = changed || _favoriteIDs.add((e.type, e.id));
+        changed = _favoriteIDs.add((e.type, e.id)) || changed;
       } else {
-        changed = changed || _favoriteIDs.remove((e.type, e.id));
+        changed = _favoriteIDs.remove((e.type, e.id)) || changed;
       }
     }
     if (changed) {
