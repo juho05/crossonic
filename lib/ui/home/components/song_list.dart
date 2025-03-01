@@ -3,30 +3,39 @@ import 'package:crossonic/routing/router.gr.dart';
 import 'package:crossonic/ui/common/dialogs/chooser.dart';
 import 'package:crossonic/ui/common/song_list_item.dart';
 import 'package:crossonic/ui/common/toast.dart';
-import 'package:crossonic/ui/home/random_songs_viewmodel.dart';
-import 'package:crossonic/ui/home/widgets/home_page_component.dart';
+import 'package:crossonic/ui/home/components/home_page_component.dart';
+import 'package:crossonic/ui/home/components/song_list_viewmodel.dart';
+import 'package:crossonic/utils/fetch_status.dart';
 import 'package:flutter/material.dart';
 
-class RandomSongs extends StatelessWidget {
-  final RandomSongsViewModel viewModel;
+class HomeSongList extends StatelessWidget {
+  final HomeSongListViewModel viewModel;
 
-  const RandomSongs({super.key, required this.viewModel});
+  final String title;
+  final PageRouteInfo? route;
+
+  const HomeSongList({
+    super.key,
+    required this.viewModel,
+    required this.title,
+    required this.route,
+  });
 
   @override
   Widget build(BuildContext context) {
     return HomePageComponent(
-      text: "Random songs",
-      route: BrowseRoute(), // TODO change to correct route
+      text: title,
+      route: route,
       child: ListenableBuilder(
-        listenable: viewModel.load,
+        listenable: viewModel,
         builder: (context, child) {
-          if (viewModel.load.error) {
+          if (viewModel.status == FetchStatus.failure) {
             return Center(child: Icon(Icons.wifi_off));
           }
-          if (viewModel.load.running || !viewModel.load.completed) {
+          if (viewModel.status != FetchStatus.success) {
             return Center(child: CircularProgressIndicator.adaptive());
           }
-          final songs = viewModel.load.result!.tryValue!;
+          final songs = viewModel.songs;
           if (songs.isEmpty) {
             return Center(
                 child: Text(

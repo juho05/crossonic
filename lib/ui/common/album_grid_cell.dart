@@ -11,7 +11,7 @@ import 'package:provider/provider.dart';
 class AlbumGridCell extends StatefulWidget {
   final String id;
   final String name;
-  final String extraInfo;
+  final List<String> extraInfo;
   final String? coverId;
 
   final void Function()? onTap;
@@ -147,7 +147,7 @@ class _AlbumGridCellState extends State<AlbumGridCell> {
                         ),
                       ),
                       Text(
-                        widget.extraInfo,
+                        widget.extraInfo.join(" • "),
                         overflow: TextOverflow.ellipsis,
                         style: textTheme.bodyMedium!.copyWith(
                           fontWeight: FontWeight.w300,
@@ -170,30 +170,35 @@ class _AlbumGridCellState extends State<AlbumGridCell> {
             ),
             AspectRatio(
               aspectRatio: 1,
-              child: Padding(
-                padding: EdgeInsets.all(16),
-                child: Align(
-                  alignment: Alignment.bottomRight,
-                  child: Material(
-                    type: MaterialType.transparency,
-                    child: Ink(
-                      decoration: ShapeDecoration(
-                        color: Colors.black.withAlpha(90),
-                        shape: const CircleBorder(),
-                      ),
-                      child: SizedBox(
-                        width: 38,
-                        height: 38,
-                        child: ContextMenuButton(
-                          popupMenuButtonKey: _popupMenuButton,
-                          options: menuOptions,
-                          icon: Icon(Icons.more_vert, size: 22),
+              child: LayoutBuilder(builder: (context, constraints) {
+                final largeLayout = constraints.maxHeight > 256;
+                return Padding(
+                  padding: EdgeInsets.all(8 + (largeLayout ? 10 : 6)),
+                  child: Align(
+                    alignment: Alignment.bottomRight,
+                    child: Material(
+                      type: MaterialType.transparency,
+                      child: Ink(
+                        decoration: ShapeDecoration(
+                          color: Colors.black.withAlpha(90),
+                          shape: const CircleBorder(),
+                        ),
+                        child: SizedBox(
+                          width: largeLayout ? 40 : 30,
+                          height: largeLayout ? 40 : 30,
+                          child: ContextMenuButton(
+                            popupMenuButtonKey: _popupMenuButton,
+                            options: menuOptions,
+                            padding: const EdgeInsets.all(0),
+                            icon: Icon(Icons.more_vert,
+                                size: largeLayout ? 26 : 20),
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-              ),
+                );
+              }),
             ),
           ],
         ),

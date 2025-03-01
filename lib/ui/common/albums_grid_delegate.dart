@@ -5,7 +5,7 @@ class AlbumsGridDelegate extends SliverGridDelegateWithMaxCrossAxisExtent {
       : super(
           maxCrossAxisExtent: 180,
           childAspectRatio: 4.0 / 5,
-          crossAxisSpacing: 4,
-          mainAxisSpacing: 4,
+          crossAxisSpacing: 2,
+          mainAxisSpacing: 2,
         );
 }

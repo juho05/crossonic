@@ -236,9 +236,11 @@ class _ArtistPageState extends State<ArtistPage> {
                   id: albums[i].id,
                   name: albums[i].name,
                   coverId: albums[i].coverId,
-                  extraInfo: albums[i].year != null
-                      ? "${albums[i].year}"
-                      : "Unknown year",
+                  extraInfo: [
+                    albums[i].year != null
+                        ? "${albums[i].year}"
+                        : "Unknown year"
+                  ],
                   onTap: () {
                     context.router.push(AlbumRoute(albumId: albums[i].id));
                   },

@@ -12,10 +12,20 @@ import 'package:crossonic/data/services/opensubsonic/models/random_songs_model.d
 import 'package:crossonic/data/services/opensubsonic/subsonic_service.dart';
 import 'package:crossonic/utils/result.dart';
 
+enum AlbumsSortMode {
+  random,
+  recentlyAdded,
+  highestRated,
+  frequentlyPlayed,
+  recentlyReleased,
+  alphabetical,
+}
+
 class SubsonicRepository {
   final AuthRepository _auth;
   final SubsonicService _service;
   final FavoritesRepository _favorites;
+
   SubsonicRepository({
     required AuthRepository authRepository,
     required SubsonicService subsonicService,
@@ -23,6 +33,29 @@ class SubsonicRepository {
   })  : _auth = authRepository,
         _service = subsonicService,
         _favorites = favoritesRepository;
+
+  Future<Result<Iterable<Album>>> getAlbums(AlbumsSortMode sort, int count,
+      [int offset = 0]) async {
+    final result = await _service.getAlbumList2(
+      _auth.con,
+      switch (sort) {
+        AlbumsSortMode.random => AlbumListType.random,
+        AlbumsSortMode.recentlyAdded => AlbumListType.newest,
+        AlbumsSortMode.highestRated => AlbumListType.highest,
+        AlbumsSortMode.frequentlyPlayed => AlbumListType.frequent,
+        AlbumsSortMode.recentlyReleased => AlbumListType.recent,
+        AlbumsSortMode.alphabetical => AlbumListType.alphabeticalByName,
+      },
+      size: count,
+      offset: offset,
+    );
+    switch (result) {
+      case Err():
+        return Result.error(result.error);
+      case Ok():
+    }
+    return Result.ok(result.value.album.map((a) => Album.fromAlbumID3Model(a)));
+  }
 
   Future<Result<ArtistInfo>> getArtistInfo(String id) async {
     final result = await _service.getArtistInfo2(_auth.con, id);
@@ -66,7 +99,7 @@ class SubsonicRepository {
     return Result.ok(AlbumInfo.fromAlbumInfoModel(result.value));
   }
 
-  Future<Result<List<Song>>> getRandomSongs({int? count}) async {
+  Future<Result<Iterable<Song>>> getRandomSongs({int? count}) async {
     final result = await _service.getRandomSongs(_auth.con, size: count);
     switch (result) {
       case Err():

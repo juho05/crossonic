@@ -1,6 +1,10 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:crossonic/ui/home/random_songs.dart';
-import 'package:crossonic/ui/home/random_songs_viewmodel.dart';
+import 'package:crossonic/ui/home/components/album_list.dart';
+import 'package:crossonic/ui/home/components/album_list_viewmodel.dart';
+import 'package:crossonic/ui/home/components/random_songs_datasource.dart';
+import 'package:crossonic/ui/home/components/recent_albums_datasource.dart';
+import 'package:crossonic/ui/home/components/song_list.dart';
+import 'package:crossonic/ui/home/components/song_list_viewmodel.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -11,15 +15,31 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      child: Column(
-        children: [
-          RandomSongs(
-            viewModel: RandomSongsViewModel(
-              subsonicRepository: context.read(),
-              audioHandler: context.read(),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            HomeAlbumList(
+              title: "Recently added albums",
+              route: null,
+              viewModel: HomeAlbumListViewModel(
+                dataSource:
+                    RecentlyAddedAlbumsDataSource(repository: context.read()),
+                audioHandler: context.read(),
+                subsonicRepository: context.read(),
+              ),
             ),
-          ),
-        ],
+            HomeSongList(
+              title: "Random songs",
+              route: null,
+              viewModel: HomeSongListViewModel(
+                dataSource: RandomSongsDataSource(repository: context.read()),
+                audioHandler: context.read(),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

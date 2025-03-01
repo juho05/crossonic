@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:crossonic/data/services/opensubsonic/auth.dart';
 import 'package:crossonic/data/services/opensubsonic/exceptions.dart';
 import 'package:crossonic/data/services/opensubsonic/models/album_info_model.dart';
+import 'package:crossonic/data/services/opensubsonic/models/album_list2_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/albumid3_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/artist_info2_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/artistid3_model.dart';
@@ -15,9 +16,46 @@ import 'package:crossonic/utils/exceptions.dart';
 import 'package:crossonic/utils/result.dart';
 import 'package:http/http.dart' as http;
 
+enum AlbumListType {
+  random,
+  newest,
+  highest,
+  frequent,
+  recent,
+  alphabeticalByName,
+  alphabeticalByArtist,
+  starred,
+  byYear,
+  byGenre,
+}
+
 class SubsonicService {
   static const String _clientName = "crossonic";
   static const String _protocolVersion = "1.16.1";
+
+  Future<Result<AlbumList2Model>> getAlbumList2(
+    Connection con,
+    AlbumListType type, {
+    int? size,
+    int? offset,
+    int? fromYear,
+    int? toYear,
+    String? genre,
+  }) async {
+    return await _fetchObject(
+        con,
+        "getAlbumList2",
+        {
+          "type": [type.name],
+          "size": size != null ? [size.toString()] : [],
+          "offset": offset != null ? [offset.toString()] : [],
+          "fromYear": fromYear != null ? [fromYear.toString()] : [],
+          "toYear": toYear != null ? [toYear.toString()] : [],
+          "genre": genre != null ? [genre] : [],
+        },
+        AlbumList2Model.fromJson,
+        "albumList2");
+  }
 
   Future<Result<ArtistInfo2Model>> getArtistInfo2(Connection con, String id,
       {int? count, bool? includeNotPresent}) {
