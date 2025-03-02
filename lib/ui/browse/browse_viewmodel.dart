@@ -62,7 +62,7 @@ class BrowseViewModel extends ChangeNotifier {
     bool shuffleAlbums = false,
     bool shuffleSongs = false,
   }) async {
-    final result = await _loadArtistSongs(artist);
+    final result = await _subsonic.getArtistSongs(artist);
     switch (result) {
       case Err():
         return Result.error(result.error);
@@ -81,7 +81,7 @@ class BrowseViewModel extends ChangeNotifier {
   }
 
   Future<Result<void>> addArtistToQueue(Artist artist, bool priority) async {
-    final result = await _loadArtistSongs(artist);
+    final result = await _subsonic.getArtistSongs(artist);
     switch (result) {
       case Err():
         return Result.error(result.error);
@@ -92,7 +92,7 @@ class BrowseViewModel extends ChangeNotifier {
   }
 
   Future<Result<void>> playAlbum(Album album, {bool shuffle = false}) async {
-    final result = await _loadAlbumSongs(album);
+    final result = await _subsonic.getAlbumSongs(album);
     switch (result) {
       case Err():
         return Result.error(result.error);
@@ -107,7 +107,7 @@ class BrowseViewModel extends ChangeNotifier {
   }
 
   Future<Result<void>> addAlbumToQueue(Album album, bool priority) async {
-    final result = await _loadAlbumSongs(album);
+    final result = await _subsonic.getAlbumSongs(album);
     switch (result) {
       case Err():
         return Result.error(result.error);
@@ -146,43 +146,6 @@ class BrowseViewModel extends ChangeNotifier {
         _artists = result.value.artists.toList();
     }
     notifyListeners();
-  }
-
-  Future<Result<List<List<Song>>>> _loadArtistSongs(Artist artist) async {
-    final List<Album> albums;
-    if (artist.albums != null) {
-      albums = artist.albums!;
-    } else {
-      final result = await _subsonic.getArtist(artist.id);
-      switch (result) {
-        case Err():
-          return Result.error(result.error);
-        case Ok():
-          albums = result.value.albums ?? [];
-      }
-    }
-    final results = await Future.wait(albums.map((a) => _loadAlbumSongs(a)));
-    final result = <List<Song>>[];
-    for (var r in results) {
-      switch (r) {
-        case Err():
-          return Result.error(r.error);
-        case Ok():
-          result.add(r.value);
-      }
-    }
-    return Result.ok(result);
-  }
-
-  Future<Result<List<Song>>> _loadAlbumSongs(Album album) async {
-    if (album.songs != null) return Result.ok(album.songs!);
-    final result = await _subsonic.getAlbum(album.id);
-    switch (result) {
-      case Err():
-        return Result.error(result.error);
-      case Ok():
-    }
-    return Result.ok(result.value.songs ?? []);
   }
 
   @override

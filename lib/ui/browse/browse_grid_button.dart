@@ -27,7 +27,7 @@ class BrowseGridButton extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 16),
                   Icon(icon, size: constraints.maxHeight * 0.5),
                   const SizedBox(height: 8),
                   Text(

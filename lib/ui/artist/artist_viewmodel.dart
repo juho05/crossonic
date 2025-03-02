@@ -2,7 +2,6 @@ import 'package:crossonic/data/repositories/audio/audio_handler.dart';
 import 'package:crossonic/data/repositories/subsonic/favorites_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/models/album.dart';
 import 'package:crossonic/data/repositories/subsonic/models/artist.dart';
-import 'package:crossonic/data/repositories/subsonic/models/song.dart';
 import 'package:crossonic/data/repositories/subsonic/subsonic_repository.dart';
 import 'package:crossonic/utils/fetch_status.dart';
 import 'package:crossonic/utils/result.dart';
@@ -67,7 +66,7 @@ class ArtistViewModel extends ChangeNotifier {
   }
 
   Future<Result<void>> playAlbum(Album album, {bool shuffle = false}) async {
-    final result = await _loadAlbumSongs(album);
+    final result = await _subsonic.getAlbumSongs(album);
     switch (result) {
       case Err():
         return Result.error(result.error);
@@ -83,7 +82,7 @@ class ArtistViewModel extends ChangeNotifier {
 
   Future<Result<void>> play(
       {bool shuffleAlbums = false, bool shuffleSongs = false}) async {
-    final result = await _loadSongs();
+    final result = await _subsonic.getArtistSongs(artist!);
     switch (result) {
       case Err():
         return Result.error(result.error);
@@ -102,7 +101,7 @@ class ArtistViewModel extends ChangeNotifier {
   }
 
   Future<Result<void>> addToQueue(bool priority) async {
-    final result = await _loadSongs();
+    final result = await _subsonic.getArtistSongs(_artist!);
     switch (result) {
       case Err():
         return Result.error(result.error);
@@ -113,7 +112,7 @@ class ArtistViewModel extends ChangeNotifier {
   }
 
   Future<Result<void>> addAlbumToQueue(Album album, bool priority) async {
-    final result = await _loadAlbumSongs(album);
+    final result = await _subsonic.getAlbumSongs(album);
     switch (result) {
       case Err():
         return Result.error(result.error);
@@ -151,31 +150,5 @@ class ArtistViewModel extends ChangeNotifier {
   void dispose() {
     _favorites.removeListener(_onFavoritesChanged);
     super.dispose();
-  }
-
-  Future<Result<List<List<Song>>>> _loadSongs() async {
-    final results = await Future.wait(
-        (_artist?.albums ?? []).map((a) => _loadAlbumSongs(a)));
-    final result = <List<Song>>[];
-    for (var r in results) {
-      switch (r) {
-        case Err():
-          return Result.error(r.error);
-        case Ok():
-          result.add(r.value);
-      }
-    }
-    return Result.ok(result);
-  }
-
-  Future<Result<List<Song>>> _loadAlbumSongs(Album album) async {
-    if (album.songs != null) return Result.ok(album.songs!);
-    final result = await _subsonic.getAlbum(album.id);
-    switch (result) {
-      case Err():
-        return Result.error(result.error);
-      case Ok():
-    }
-    return Result.ok(result.value.songs ?? []);
   }
 }

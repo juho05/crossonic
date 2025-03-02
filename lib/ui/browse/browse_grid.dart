@@ -25,7 +25,7 @@ class BrowseGrid extends StatelessWidget {
           BrowseGridButton(
             icon: Icons.album,
             text: "Albums",
-            route: BrowseRoute(), // TODO
+            route: AlbumsRoute(), // TODO
           ),
           BrowseGridButton(
             icon: Icons.library_music,

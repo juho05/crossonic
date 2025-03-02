@@ -1,6 +1,5 @@
 import 'package:crossonic/data/repositories/audio/audio_handler.dart';
 import 'package:crossonic/data/repositories/subsonic/models/album.dart';
-import 'package:crossonic/data/repositories/subsonic/models/song.dart';
 import 'package:crossonic/data/repositories/subsonic/subsonic_repository.dart';
 import 'package:crossonic/ui/home/components/data_source.dart';
 import 'package:crossonic/utils/fetch_status.dart';
@@ -45,7 +44,7 @@ class HomeAlbumListViewModel extends ChangeNotifier {
   }
 
   Future<Result<void>> play(Album album, {bool shuffle = false}) async {
-    final result = await _loadAlbumSongs(album);
+    final result = await _subsonic.getAlbumSongs(album);
     switch (result) {
       case Err():
         return Result.error(result.error);
@@ -60,7 +59,7 @@ class HomeAlbumListViewModel extends ChangeNotifier {
   }
 
   Future<Result<void>> addToQueue(Album album, bool priority) async {
-    final result = await _loadAlbumSongs(album);
+    final result = await _subsonic.getAlbumSongs(album);
     switch (result) {
       case Err():
         return Result.error(result.error);
@@ -68,16 +67,5 @@ class HomeAlbumListViewModel extends ChangeNotifier {
     }
     _audioHandler.queue.addAll(result.value, priority);
     return Result.ok(null);
-  }
-
-  Future<Result<List<Song>>> _loadAlbumSongs(Album album) async {
-    if (album.songs != null) return Result.ok(album.songs!);
-    final result = await _subsonic.getAlbum(album.id);
-    switch (result) {
-      case Err():
-        return Result.error(result.error);
-      case Ok():
-    }
-    return Result.ok(result.value.songs ?? []);
   }
 }

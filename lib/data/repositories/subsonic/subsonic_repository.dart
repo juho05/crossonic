@@ -17,8 +17,9 @@ enum AlbumsSortMode {
   recentlyAdded,
   highestRated,
   frequentlyPlayed,
-  recentlyReleased,
+  recentlyPlayed,
   alphabetical,
+  starred,
 }
 
 typedef SearchResult = ({
@@ -84,8 +85,9 @@ class SubsonicRepository {
         AlbumsSortMode.recentlyAdded => AlbumListType.newest,
         AlbumsSortMode.highestRated => AlbumListType.highest,
         AlbumsSortMode.frequentlyPlayed => AlbumListType.frequent,
-        AlbumsSortMode.recentlyReleased => AlbumListType.recent,
+        AlbumsSortMode.recentlyPlayed => AlbumListType.recent,
         AlbumsSortMode.alphabetical => AlbumListType.alphabeticalByName,
+        AlbumsSortMode.starred => AlbumListType.starred,
       },
       size: count,
       offset: offset,
@@ -95,6 +97,7 @@ class SubsonicRepository {
         return Result.error(result.error);
       case Ok():
     }
+    _updateAlbumFavorites(result.value.album);
     return Result.ok(result.value.album.map((a) => Album.fromAlbumID3Model(a)));
   }
 
@@ -158,6 +161,32 @@ class SubsonicRepository {
     }, _auth.con.auth);
     return Uri.parse(
         '${_auth.con.baseUri}/rest/getCoverArt${Uri(queryParameters: query)}');
+  }
+
+  Future<Result<List<List<Song>>>> getArtistSongs(Artist artist) async {
+    final results =
+        await Future.wait((artist.albums ?? []).map((a) => getAlbumSongs(a)));
+    final result = <List<Song>>[];
+    for (var r in results) {
+      switch (r) {
+        case Err():
+          return Result.error(r.error);
+        case Ok():
+          result.add(r.value);
+      }
+    }
+    return Result.ok(result);
+  }
+
+  Future<Result<List<Song>>> getAlbumSongs(Album album) async {
+    if (album.songs != null) return Result.ok(album.songs!);
+    final result = await getAlbum(album.id);
+    switch (result) {
+      case Err():
+        return Result.error(result.error);
+      case Ok():
+    }
+    return Result.ok(result.value.songs ?? []);
   }
 
   void _updateArtistFavorites(Iterable<ArtistID3Model>? artists) {
