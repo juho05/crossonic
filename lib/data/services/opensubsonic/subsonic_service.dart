@@ -7,6 +7,7 @@ import 'package:crossonic/data/services/opensubsonic/models/album_list2_model.da
 import 'package:crossonic/data/services/opensubsonic/models/albumid3_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/artist_info2_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/artistid3_model.dart';
+import 'package:crossonic/data/services/opensubsonic/models/artists_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/opensubsonic_extension_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/random_songs_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/search_result3_model.dart';
@@ -33,6 +34,11 @@ enum AlbumListType {
 class SubsonicService {
   static const String _clientName = "crossonic";
   static const String _protocolVersion = "1.16.1";
+
+  Future<Result<ArtistsModel>> getArtists(Connection con) async {
+    return await _fetchObject(
+        con, "getArtists", {}, ArtistsModel.fromJson, "artists");
+  }
 
   Future<Result<SearchResult3Model>> search3(
     Connection con,

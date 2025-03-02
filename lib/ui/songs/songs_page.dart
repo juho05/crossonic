@@ -73,12 +73,12 @@ class _SongsPageState extends State<SongsPage> {
                               child: Text("All"),
                             ),
                           DropdownMenuItem(
-                            value: SongsPageMode.random,
-                            child: Text("Random"),
-                          ),
-                          DropdownMenuItem(
                             value: SongsPageMode.favorites,
                             child: Text("Favorites"),
+                          ),
+                          DropdownMenuItem(
+                            value: SongsPageMode.random,
+                            child: Text("Random"),
                           ),
                         ],
                         onChanged: (SongsPageMode? sortMode) {

@@ -44,6 +44,19 @@ class SubsonicRepository {
         _service = subsonicService,
         _favorites = favoritesRepository;
 
+  Future<Result<Iterable<Artist>>> getArtists() async {
+    final result = await _service.getArtists(_auth.con);
+    switch (result) {
+      case Err():
+        return Result.error(result.error);
+      case Ok():
+    }
+    final artistModels = (result.value.index ?? [])
+        .expand((i) => (i.artist ?? <ArtistID3Model>[]));
+    _updateArtistFavorites(artistModels);
+    return Result.ok(artistModels.map((a) => Artist.fromArtistID3Model(a)));
+  }
+
   Future<Result<Iterable<Song>>> getStarredSongs() async {
     final result = await _service.getStarred2(_auth.con);
     switch (result) {
@@ -54,6 +67,18 @@ class SubsonicRepository {
     _updateSongFavorites(result.value.song);
     return Result.ok(
         (result.value.song ?? []).map((c) => Song.fromChildModel(c)));
+  }
+
+  Future<Result<Iterable<Artist>>> getStarredArtists() async {
+    final result = await _service.getStarred2(_auth.con);
+    switch (result) {
+      case Err():
+        return Result.error(result.error);
+      case Ok():
+    }
+    _updateArtistFavorites(result.value.artist);
+    return Result.ok(
+        (result.value.artist ?? []).map((a) => Artist.fromArtistID3Model(a)));
   }
 
   Future<Result<SearchResult>> search(

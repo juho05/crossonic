@@ -20,17 +20,17 @@ class BrowseGrid extends StatelessWidget {
           BrowseGridButton(
             icon: Icons.people,
             text: "Artists",
-            route: BrowseRoute(), // TODO
+            route: ArtistsRoute(),
           ),
           BrowseGridButton(
             icon: Icons.album,
             text: "Albums",
-            route: AlbumsRoute(), // TODO
+            route: AlbumsRoute(),
           ),
           BrowseGridButton(
             icon: Icons.library_music,
             text: "Songs",
-            route: SongsRoute(), // TODO
+            route: SongsRoute(),
           ),
         ],
       ),
