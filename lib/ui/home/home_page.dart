@@ -23,26 +23,32 @@ class HomePage extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            HomeAlbumList(
-              title: "Recently added albums",
-              route: AlbumsRoute(
-                initialSort: AlbumsSortMode.recentlyAdded.name,
-              ),
-              viewModel: HomeAlbumListViewModel(
+            ChangeNotifierProvider(
+              create: (context) => HomeAlbumListViewModel(
                 dataSource:
                     RecentlyAddedAlbumsDataSource(repository: context.read()),
                 audioHandler: context.read(),
                 subsonicRepository: context.read(),
               ),
-            ),
-            HomeSongList(
-              title: "Random songs",
-              route: SongsRoute(
-                initialSort: SongsPageMode.random.name,
+              builder: (context, _) => HomeAlbumList(
+                title: "Recently added albums",
+                route: AlbumsRoute(
+                  initialSort: AlbumsSortMode.recentlyAdded.name,
+                ),
+                viewModel: context.read(),
               ),
-              viewModel: HomeSongListViewModel(
+            ),
+            ChangeNotifierProvider(
+              create: (context) => HomeSongListViewModel(
                 dataSource: RandomSongsDataSource(repository: context.read()),
                 audioHandler: context.read(),
+              ),
+              builder: (context, _) => HomeSongList(
+                title: "Random songs",
+                route: SongsRoute(
+                  initialSort: SongsPageMode.random.name,
+                ),
+                viewModel: context.read(),
               ),
             ),
           ],

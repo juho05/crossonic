@@ -29,6 +29,11 @@ typedef SearchResult = ({
   Iterable<Artist> artists,
 });
 
+typedef ScanStatus = ({
+  bool scanning,
+  int? scanned,
+});
+
 class SubsonicRepository {
   final AuthRepository _auth;
   final SubsonicService _service;
@@ -43,6 +48,28 @@ class SubsonicRepository {
   })  : _auth = authRepository,
         _service = subsonicService,
         _favorites = favoritesRepository;
+
+  Future<Result<ScanStatus>> startScan() async {
+    final result = await _service.startScan(_auth.con);
+    switch (result) {
+      case Err():
+        return Result.error(result.error);
+      case Ok():
+        return Result.ok(
+            (scanning: result.value.scanning, scanned: result.value.count));
+    }
+  }
+
+  Future<Result<ScanStatus>> getScanStatus() async {
+    final result = await _service.getScanStatus(_auth.con);
+    switch (result) {
+      case Err():
+        return Result.error(result.error);
+      case Ok():
+        return Result.ok(
+            (scanning: result.value.scanning, scanned: result.value.count));
+    }
+  }
 
   Future<Result<Iterable<Artist>>> getArtists() async {
     final result = await _service.getArtists(_auth.con);

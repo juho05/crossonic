@@ -109,5 +109,11 @@ class AppRouter extends RootStackRouter {
           title: (context, data) => "Settings",
           restorationId: (match) => match.fullPath,
         ),
+        AutoRoute(
+          path: "/settings/scan",
+          page: ScanRoute.page,
+          title: (context, data) => "Scan",
+          restorationId: (match) => match.fullPath,
+        )
       ];
 }
