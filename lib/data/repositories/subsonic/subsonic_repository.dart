@@ -5,6 +5,7 @@ import 'package:crossonic/data/repositories/subsonic/models/album.dart';
 import 'package:crossonic/data/repositories/subsonic/models/album_info.dart';
 import 'package:crossonic/data/repositories/subsonic/models/artist.dart';
 import 'package:crossonic/data/repositories/subsonic/models/artist_info.dart';
+import 'package:crossonic/data/repositories/subsonic/models/listenbrainz_config.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
 import 'package:crossonic/data/services/opensubsonic/models/albumid3_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/artistid3_model.dart';
@@ -48,6 +49,32 @@ class SubsonicRepository {
   })  : _auth = authRepository,
         _service = subsonicService,
         _favorites = favoritesRepository;
+
+  Future<Result<ListenBrainzConfig>> connectListenBrainz(String token) async {
+    final result = await _service.connectListenBrainz(_auth.con, token);
+    switch (result) {
+      case Err():
+        return Result.error(result.error);
+      case Ok():
+    }
+    return Result.ok(
+        ListenBrainzConfig.fromListenBrainzConfigModel(result.value));
+  }
+
+  Future<Result<ListenBrainzConfig>> disconnectListenBrainz() async {
+    return connectListenBrainz("");
+  }
+
+  Future<Result<ListenBrainzConfig>> getListenBrainzConfig() async {
+    final result = await _service.getListenBrainzConfig(_auth.con);
+    switch (result) {
+      case Err():
+        return Result.error(result.error);
+      case Ok():
+    }
+    return Result.ok(
+        ListenBrainzConfig.fromListenBrainzConfigModel(result.value));
+  }
 
   Future<Result<ScanStatus>> startScan() async {
     final result = await _service.startScan(_auth.con);

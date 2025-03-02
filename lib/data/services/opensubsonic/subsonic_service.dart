@@ -8,6 +8,7 @@ import 'package:crossonic/data/services/opensubsonic/models/albumid3_model.dart'
 import 'package:crossonic/data/services/opensubsonic/models/artist_info2_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/artistid3_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/artists_model.dart';
+import 'package:crossonic/data/services/opensubsonic/models/listenbrainz_config_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/opensubsonic_extension_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/random_songs_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/scan_status_model.dart';
@@ -35,6 +36,24 @@ enum AlbumListType {
 class SubsonicService {
   static const String _clientName = "crossonic";
   static const String _protocolVersion = "1.16.1";
+
+  Future<Result<ListenBrainzConfigModel>> getListenBrainzConfig(
+      Connection con) async {
+    return await _fetchObject(con, "crossonic/getListenBrainzConfig", {},
+        ListenBrainzConfigModel.fromJson, "listenBrainzConfig");
+  }
+
+  Future<Result<ListenBrainzConfigModel>> connectListenBrainz(
+      Connection con, String token) async {
+    return await _fetchObject(
+        con,
+        "crossonic/connectListenBrainz",
+        {
+          "token": [token],
+        },
+        ListenBrainzConfigModel.fromJson,
+        "listenBrainzConfig");
+  }
 
   Future<Result<ScanStatusModel>> startScan(Connection con) async {
     return await _fetchObject(

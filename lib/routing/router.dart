@@ -114,6 +114,12 @@ class AppRouter extends RootStackRouter {
           page: ScanRoute.page,
           title: (context, data) => "Scan",
           restorationId: (match) => match.fullPath,
+        ),
+        AutoRoute(
+          path: "/settings/listenBrainz",
+          page: ListenBrainzRoute.page,
+          title: (context, data) => "ListenBrainz",
+          restorationId: (match) => match.fullPath,
         )
       ];
 }
