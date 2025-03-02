@@ -99,7 +99,7 @@ class _AlbumsPageState extends State<AlbumsPage> {
                 ),
                 if (_viewModel.status == FetchStatus.success &&
                     _viewModel.albums.isEmpty)
-                  Text("No albums available"),
+                  SliverToBoxAdapter(child: Text("No albums available")),
                 SliverGrid(
                   gridDelegate: AlbumsGridDelegate(),
                   delegate: SliverChildBuilderDelegate(
@@ -148,17 +148,26 @@ class _AlbumsPageState extends State<AlbumsPage> {
                           toastResult(context, result,
                               "Added '${a.name}' to ${priority ? "priority " : ""}queue");
                         },
-                        onGoToArtist: () async {
-                          final artistId = await ChooserDialog.chooseArtist(
-                              context, a.artists.toList());
-                          if (artistId == null || !context.mounted) return;
-                          context.router.push(ArtistRoute(artistId: artistId));
-                        },
+                        onGoToArtist: a.artists.isNotEmpty
+                            ? () async {
+                                final artistId =
+                                    await ChooserDialog.chooseArtist(
+                                        context, a.artists.toList());
+                                if (artistId == null || !context.mounted) {
+                                  return;
+                                }
+                                context.router
+                                    .push(ArtistRoute(artistId: artistId));
+                              }
+                            : null,
                         onAddToPlaylist: () {
                           // TODO
                         },
                       );
                     },
+                    childCount:
+                        (_viewModel.status == FetchStatus.success ? 0 : 1) +
+                            _viewModel.albums.length,
                   ),
                 ),
               ],

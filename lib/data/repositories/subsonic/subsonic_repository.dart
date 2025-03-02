@@ -1,4 +1,5 @@
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
+import 'package:crossonic/data/repositories/auth/models/server_features.dart';
 import 'package:crossonic/data/repositories/subsonic/favorites_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/models/album.dart';
 import 'package:crossonic/data/repositories/subsonic/models/album_info.dart';
@@ -33,6 +34,8 @@ class SubsonicRepository {
   final SubsonicService _service;
   final FavoritesRepository _favorites;
 
+  ServerFeatures get serverFeatures => _auth.serverFeatures;
+
   SubsonicRepository({
     required AuthRepository authRepository,
     required SubsonicService subsonicService,
@@ -40,6 +43,18 @@ class SubsonicRepository {
   })  : _auth = authRepository,
         _service = subsonicService,
         _favorites = favoritesRepository;
+
+  Future<Result<Iterable<Song>>> getStarredSongs() async {
+    final result = await _service.getStarred2(_auth.con);
+    switch (result) {
+      case Err():
+        return Result.error(result.error);
+      case Ok():
+    }
+    _updateSongFavorites(result.value.song);
+    return Result.ok(
+        (result.value.song ?? []).map((c) => Song.fromChildModel(c)));
+  }
 
   Future<Result<SearchResult>> search(
     String query, {

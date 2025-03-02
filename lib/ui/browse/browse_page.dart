@@ -196,13 +196,17 @@ class _BrowsePageState extends State<BrowsePage> with RestorationMixin {
                               toastResult(context, result,
                                   "Added '${a.name}' to ${priority ? "priority " : ""}queue");
                             },
-                            onGoToArtist: () async {
-                              final artistId = await ChooserDialog.chooseArtist(
-                                  context, a.artists.toList());
-                              if (artistId == null || !context.mounted) return;
-                              context.router
-                                  .push(ArtistRoute(artistId: artistId));
-                            },
+                            onGoToArtist: a.artists.isNotEmpty
+                                ? () async {
+                                    final artistId =
+                                        await ChooserDialog.chooseArtist(
+                                            context, a.artists.toList());
+                                    if (artistId == null || !context.mounted)
+                                      return;
+                                    context.router
+                                        .push(ArtistRoute(artistId: artistId));
+                                  }
+                                : null,
                           );
                         },
                       ),
@@ -239,13 +243,17 @@ class _BrowsePageState extends State<BrowsePage> with RestorationMixin {
                                         .push(AlbumRoute(albumId: s.album!.id));
                                   }
                                 : null,
-                            onGoToArtist: () async {
-                              final artistId = await ChooserDialog.chooseArtist(
-                                  context, s.artists.toList());
-                              if (artistId == null || !context.mounted) return;
-                              context.router
-                                  .push(ArtistRoute(artistId: artistId));
-                            },
+                            onGoToArtist: s.artists.isNotEmpty
+                                ? () async {
+                                    final artistId =
+                                        await ChooserDialog.chooseArtist(
+                                            context, s.artists.toList());
+                                    if (artistId == null || !context.mounted)
+                                      return;
+                                    context.router
+                                        .push(ArtistRoute(artistId: artistId));
+                                  }
+                                : null,
                           );
                         },
                       ),

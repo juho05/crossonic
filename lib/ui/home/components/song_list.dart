@@ -67,13 +67,15 @@ class HomeSongList extends StatelessWidget {
                           context.router.push(AlbumRoute(albumId: s.album!.id));
                         }
                       : null,
-                  onGoToArtist: () async {
-                    final router = context.router;
-                    final artistId = await ChooserDialog.chooseArtist(
-                        context, s.artists.toList());
-                    if (artistId == null) return;
-                    router.push(ArtistRoute(artistId: artistId));
-                  },
+                  onGoToArtist: s.artists.isNotEmpty
+                      ? () async {
+                          final router = context.router;
+                          final artistId = await ChooserDialog.chooseArtist(
+                              context, s.artists.toList());
+                          if (artistId == null) return;
+                          router.push(ArtistRoute(artistId: artistId));
+                        }
+                      : null,
                   onTap: () {
                     viewModel.play(i);
                   },

@@ -89,13 +89,16 @@ class HomeAlbumList extends StatelessWidget {
                           onTap: () {
                             context.router.push(AlbumRoute(albumId: a.id));
                           },
-                          onGoToArtist: () async {
-                            final router = context.router;
-                            final artistId = await ChooserDialog.chooseArtist(
-                                context, a.artists.toList());
-                            if (artistId == null) return;
-                            router.push(ArtistRoute(artistId: artistId));
-                          },
+                          onGoToArtist: a.artists.isNotEmpty
+                              ? () async {
+                                  final router = context.router;
+                                  final artistId =
+                                      await ChooserDialog.chooseArtist(
+                                          context, a.artists.toList());
+                                  if (artistId == null) return;
+                                  router.push(ArtistRoute(artistId: artistId));
+                                }
+                              : null,
                           onPlay: () async {
                             final result = await viewModel.play(a);
                             if (result is Err && context.mounted) {

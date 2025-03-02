@@ -1,10 +1,13 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:crossonic/data/repositories/subsonic/subsonic_repository.dart';
+import 'package:crossonic/routing/router.gr.dart';
 import 'package:crossonic/ui/home/components/album_list.dart';
 import 'package:crossonic/ui/home/components/album_list_viewmodel.dart';
 import 'package:crossonic/ui/home/components/random_songs_datasource.dart';
 import 'package:crossonic/ui/home/components/recent_albums_datasource.dart';
 import 'package:crossonic/ui/home/components/song_list.dart';
 import 'package:crossonic/ui/home/components/song_list_viewmodel.dart';
+import 'package:crossonic/ui/songs/songs_viewmodel.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -22,7 +25,9 @@ class HomePage extends StatelessWidget {
           children: [
             HomeAlbumList(
               title: "Recently added albums",
-              route: null,
+              route: AlbumsRoute(
+                initialSort: AlbumsSortMode.recentlyAdded.name,
+              ),
               viewModel: HomeAlbumListViewModel(
                 dataSource:
                     RecentlyAddedAlbumsDataSource(repository: context.read()),
@@ -32,7 +37,9 @@ class HomePage extends StatelessWidget {
             ),
             HomeSongList(
               title: "Random songs",
-              route: null,
+              route: SongsRoute(
+                initialSort: SongsPageMode.random.name,
+              ),
               viewModel: HomeSongListViewModel(
                 dataSource: RandomSongsDataSource(repository: context.read()),
                 audioHandler: context.read(),

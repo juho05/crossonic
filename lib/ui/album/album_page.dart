@@ -190,13 +190,15 @@ class _AlbumPageState extends State<AlbumPage> {
                   Toast.show(context,
                       "Added '${s.title}' to ${priority ? "priority " : ""}queue");
                 },
-                onGoToArtist: () async {
-                  final router = context.router;
-                  final artistId = await ChooserDialog.chooseArtist(
-                      context, s.artists.toList());
-                  if (artistId == null) return;
-                  router.push(ArtistRoute(artistId: artistId));
-                },
+                onGoToArtist: s.artists.isNotEmpty
+                    ? () async {
+                        final router = context.router;
+                        final artistId = await ChooserDialog.chooseArtist(
+                            context, s.artists.toList());
+                        if (artistId == null) return;
+                        router.push(ArtistRoute(artistId: artistId));
+                      }
+                    : null,
                 onTap: () {
                   _viewModel.play(index);
                 },

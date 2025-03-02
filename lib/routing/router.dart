@@ -23,7 +23,7 @@ class AppRouter extends RootStackRouter {
       restorationId: (match) => match.fullPath,
     ),
     AutoRoute(
-      path: "artist",
+      path: "artist/:id",
       page: ArtistRoute.page,
       title: (context, data) => "Artist",
       restorationId: (match) => match.fullPath,
@@ -32,6 +32,12 @@ class AppRouter extends RootStackRouter {
       path: "albums",
       page: AlbumsRoute.page,
       title: (context, data) => "Albums",
+      restorationId: (match) => match.fullPath,
+    ),
+    AutoRoute(
+      path: "songs",
+      page: SongsRoute.page,
+      title: (context, data) => "Songs",
       restorationId: (match) => match.fullPath,
     )
   ];
