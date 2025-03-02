@@ -1,0 +1,60 @@
+import 'package:auto_route/auto_route.dart';
+import 'package:crossonic/ui/common/dialogs/confirmation.dart';
+import 'package:crossonic/ui/settings/settings_viewmodel.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+@RoutePage()
+class SettingsPage extends StatefulWidget {
+  const SettingsPage({super.key});
+
+  @override
+  State<SettingsPage> createState() => _SettingsPageState();
+}
+
+class _SettingsPageState extends State<SettingsPage> {
+  late final SettingsViewModel _viewModel;
+
+  @override
+  void initState() {
+    super.initState();
+    _viewModel = SettingsViewModel(authRepository: context.read());
+  }
+
+  @override
+  void dispose() {
+    _viewModel.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("Settings"),
+      ),
+      body: ListView(
+        children: [
+          ListenableBuilder(
+            listenable: _viewModel,
+            builder: (context, _) {
+              return ListTile(
+                title: const Text("Logout"),
+                trailing: const Icon(Icons.logout),
+                onTap: !_viewModel.loggingOut
+                    ? () async {
+                        final confirmed =
+                            await ConfirmationDialog.showYesNo(context);
+                        if (confirmed) {
+                          await _viewModel.logout();
+                        }
+                      }
+                    : null,
+              );
+            },
+          )
+        ],
+      ),
+    );
+  }
+}

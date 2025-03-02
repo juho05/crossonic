@@ -26,7 +26,7 @@ class ConfirmationDialog extends StatelessWidget {
     return result ?? false;
   }
 
-  static Future<bool?> showYesNo(BuildContext context,
+  static Future<bool> showYesNo(BuildContext context,
       [String title = "Are you sure?", String? message]) async {
     final result = await showAdaptiveDialog<bool>(
       context: context,
@@ -38,7 +38,7 @@ class ConfirmationDialog extends StatelessWidget {
         );
       },
     );
-    return result;
+    return result ?? false;
   }
 
   Widget _adaptiveAction(

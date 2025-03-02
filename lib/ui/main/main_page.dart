@@ -109,6 +109,14 @@ class _MainPageState extends State<MainPage> {
                           leading: tabsRouter.activeRouterCanPop()
                               ? AutoLeadingButton()
                               : null,
+                          actions: [
+                            IconButton(
+                              icon: const Icon(Icons.settings),
+                              onPressed: () {
+                                context.router.push(SettingsRoute());
+                              },
+                            ),
+                          ],
                         ),
                         body: Padding(
                           padding: const EdgeInsets.only(bottom: 58),
@@ -160,8 +168,13 @@ class _MainPageState extends State<MainPage> {
                           children: [
                             NavigationRail(
                               selectedIndex: tabsRouter.activeIndex,
-                              onDestinationSelected: (index) =>
-                                  tabsRouter.setActiveIndex(index),
+                              onDestinationSelected: (index) {
+                                if (index == 2) {
+                                  context.router.push(SettingsRoute());
+                                  return;
+                                }
+                                tabsRouter.setActiveIndex(index);
+                              },
                               labelType: NavigationRailLabelType.all,
                               destinations: [
                                 NavigationRailDestination(
@@ -173,6 +186,11 @@ class _MainPageState extends State<MainPage> {
                                   icon: Icon(Icons.library_music_outlined),
                                   selectedIcon: Icon(Icons.library_music),
                                   label: Text("Browse"),
+                                ),
+                                NavigationRailDestination(
+                                  icon: Icon(Icons.settings),
+                                  selectedIcon: Icon(Icons.settings),
+                                  label: Text("Settings"),
                                 ),
                               ],
                             ),
