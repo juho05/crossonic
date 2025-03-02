@@ -79,24 +79,13 @@ class _ConnectServerPageState extends State<ConnectServerPage> {
                             requireTld: true,
                           ),
                         ]),
+                        onSubmitted: (_) => _submit(),
                       ),
                     ),
                     ListenableBuilder(
                       listenable: viewModel.connect,
                       builder: (context, _) => ElevatedButton(
-                        onPressed: !viewModel.connect.running
-                            ? () async {
-                                if (_formKey.currentState == null ||
-                                    viewModel.connect.running) {
-                                  return;
-                                }
-                                if (!_formKey.currentState!.saveAndValidate()) {
-                                  return;
-                                }
-                                await viewModel.connect.execute(Uri.parse(
-                                    _formKey.currentState!.value["serverUri"]));
-                              }
-                            : null,
+                        onPressed: !viewModel.connect.running ? _submit : null,
                         style: ButtonStyle(),
                         child: Padding(
                           padding: const EdgeInsets.all(16),
@@ -113,6 +102,17 @@ class _ConnectServerPageState extends State<ConnectServerPage> {
         ),
       ),
     );
+  }
+
+  Future<void> _submit() async {
+    if (_formKey.currentState == null || viewModel.connect.running) {
+      return;
+    }
+    if (!_formKey.currentState!.saveAndValidate()) {
+      return;
+    }
+    await viewModel.connect
+        .execute(Uri.parse(_formKey.currentState!.value["serverUri"]));
   }
 
   void _onResult() {

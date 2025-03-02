@@ -140,6 +140,7 @@ class _LoginPageState extends State<LoginPage> with RestorationMixin {
                               obscureText: true,
                               autofillHints: const [AutofillHints.password],
                               validator: FormBuilderValidators.required(),
+                              onSubmitted: (_) => _submit(),
                             ),
                           if (_authType.value == AuthType.apiKey)
                             FormBuilderTextField(
@@ -152,6 +153,7 @@ class _LoginPageState extends State<LoginPage> with RestorationMixin {
                               ),
                               autofillHints: const [AutofillHints.password],
                               validator: FormBuilderValidators.required(),
+                              onSubmitted: (_) => _submit(),
                             ),
                         ],
                       ),
@@ -159,29 +161,7 @@ class _LoginPageState extends State<LoginPage> with RestorationMixin {
                     ListenableBuilder(
                       listenable: viewModel.login,
                       builder: (context, _) => ElevatedButton(
-                        onPressed: !viewModel.login.running
-                            ? () async {
-                                if (_formKey.currentState == null ||
-                                    viewModel.login.running) {
-                                  return;
-                                }
-                                if (!_formKey.currentState!.saveAndValidate()) {
-                                  return;
-                                }
-                                await viewModel.login.execute(LoginData(
-                                  type: _authType.value,
-                                  username: _authType.value != AuthType.apiKey
-                                      ? _formKey.currentState!.value["username"]
-                                      : null,
-                                  password: _authType.value != AuthType.apiKey
-                                      ? _formKey.currentState!.value["password"]
-                                      : null,
-                                  apiKey: _authType.value == AuthType.apiKey
-                                      ? _formKey.currentState!.value["apiKey"]
-                                      : null,
-                                ));
-                              }
-                            : null,
+                        onPressed: !viewModel.login.running ? _submit : null,
                         style: ButtonStyle(),
                         child: Padding(
                           padding: const EdgeInsets.all(16),
@@ -198,6 +178,27 @@ class _LoginPageState extends State<LoginPage> with RestorationMixin {
         ),
       ),
     );
+  }
+
+  Future<void> _submit() async {
+    if (_formKey.currentState == null || viewModel.login.running) {
+      return;
+    }
+    if (!_formKey.currentState!.saveAndValidate()) {
+      return;
+    }
+    await viewModel.login.execute(LoginData(
+      type: _authType.value,
+      username: _authType.value != AuthType.apiKey
+          ? _formKey.currentState!.value["username"]
+          : null,
+      password: _authType.value != AuthType.apiKey
+          ? _formKey.currentState!.value["password"]
+          : null,
+      apiKey: _authType.value == AuthType.apiKey
+          ? _formKey.currentState!.value["apiKey"]
+          : null,
+    ));
   }
 
   void _onResult() {
