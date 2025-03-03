@@ -32,7 +32,6 @@ enum AlbumListType {
   byYear,
   byGenre,
 }
-
 class SubsonicService {
   static const String _clientName = "crossonic";
   static const String _protocolVersion = "1.16.1";

@@ -4,11 +4,13 @@ import 'package:audio_service/audio_service.dart';
 import 'package:audio_session/audio_session.dart';
 import 'package:crossonic/data/repositories/audio/audio_handler.dart' as ah;
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
+import 'package:crossonic/data/repositories/keyvalue/key_value_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/favorites_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/subsonic_repository.dart';
 import 'package:crossonic/data/services/audio_players/audioplayers.dart';
 import 'package:crossonic/data/services/audio_players/gstreamer.dart';
 import 'package:crossonic/data/services/audio_players/player.dart';
+import 'package:crossonic/data/services/database/database.dart';
 import 'package:crossonic/data/services/media_integration/media_integration.dart';
 import 'package:crossonic/data/services/opensubsonic/subsonic_service.dart';
 import 'package:flutter/foundation.dart';
@@ -17,10 +19,16 @@ import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
 
 Future<List<SingleChildWidget>> get providers async {
+  final database = Database();
+
   final subsonicService = SubsonicService();
+
+  final keyValueRepository = KeyValueRepository(database: database);
 
   final authRepository = AuthRepository(
     openSubsonicService: subsonicService,
+    keyValueRepository: keyValueRepository,
+    database: database,
   );
   await authRepository.loadState();
 
@@ -65,6 +73,9 @@ Future<List<SingleChildWidget>> get providers async {
   await audioSession.configure(const AudioSessionConfiguration.music());
 
   return [
+    Provider.value(
+      value: database,
+    ),
     Provider.value(
       value: subsonicService,
     ),

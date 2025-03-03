@@ -1,8 +1,8 @@
-import 'dart:convert';
-
 import 'package:crossonic/data/repositories/auth/auth_state.dart';
 import 'package:crossonic/data/repositories/auth/exceptions.dart';
 import 'package:crossonic/data/repositories/auth/models/server_features.dart';
+import 'package:crossonic/data/repositories/keyvalue/key_value_repository.dart';
+import 'package:crossonic/data/services/database/database.dart';
 import 'package:crossonic/data/services/opensubsonic/auth.dart';
 import 'package:crossonic/data/services/opensubsonic/exceptions.dart';
 import 'package:crossonic/data/services/opensubsonic/models/opensubsonic_extension_model.dart';
@@ -12,12 +12,12 @@ import 'package:crossonic/utils/exceptions.dart';
 import 'package:crossonic/utils/result.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthRepository extends ChangeNotifier {
   final FlutterSecureStorage _secureStorage;
-  final SharedPreferencesAsync _sharedPreferences;
   final SubsonicService _openSubsonicService;
+  final KeyValueRepository _keyValue;
+  final Database _database;
 
   Uri? _serverUri;
   AuthState? _state;
@@ -33,23 +33,26 @@ class AuthRepository extends ChangeNotifier {
 
   AuthRepository({
     required SubsonicService openSubsonicService,
+    required KeyValueRepository keyValueRepository,
+    required Database database,
   })  : _secureStorage = FlutterSecureStorage(),
-        _sharedPreferences = SharedPreferencesAsync(),
+        _keyValue = keyValueRepository,
+        _database = database,
         _openSubsonicService = openSubsonicService;
 
   static const _serverUriKey = "server_uri";
   static const _serverFeaturesKey = "server_features";
 
   Future<void> loadState() async {
-    final uri = await _sharedPreferences.getString(_serverUriKey);
+    final uri = await _keyValue.loadString(_serverUriKey);
     final serverFeatures =
-        await _sharedPreferences.getString(_serverFeaturesKey);
+        await _keyValue.loadObject(_serverFeaturesKey, ServerFeatures.fromJson);
     if (uri == null || serverFeatures == null) {
       await logout(false);
       return;
     }
     _serverUri = Uri.parse(uri);
-    _serverFeatures = ServerFeatures.fromJson(jsonDecode(serverFeatures));
+    _serverFeatures = serverFeatures;
     _state = await AuthState.load(_secureStorage);
 
     notifyListeners();
@@ -170,6 +173,7 @@ class AuthRepository extends ChangeNotifier {
   }
 
   Future<void> logout(bool keepServerUri) async {
+    await _database.clearAll();
     _state = null;
     if (!keepServerUri) {
       _serverUri = null;
@@ -222,12 +226,11 @@ class AuthRepository extends ChangeNotifier {
 
   Future<void> _persistState() async {
     if (_serverUri != null) {
-      await _sharedPreferences.setString(
-          _serverFeaturesKey, jsonEncode(_serverFeatures.toJson()));
-      await _sharedPreferences.setString(_serverUriKey, _serverUri.toString());
+      await _keyValue.store(_serverFeaturesKey, _serverFeatures);
+      await _keyValue.store(_serverUriKey, _serverUri.toString());
     } else {
-      await _sharedPreferences.remove(_serverUriKey);
-      await _sharedPreferences.remove(_serverFeaturesKey);
+      await _keyValue.remove(_serverUriKey);
+      await _keyValue.remove(_serverFeaturesKey);
     }
     if (_state != null) {
       await _state!.persist(_secureStorage);

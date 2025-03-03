@@ -16,3 +16,7 @@ targets:
           create_to_json: true
           checked: true
           include_if_null: false
+      drift_dev:
+        options:
+          databases:
+            db: lib/data/services/database/database.dart
