@@ -37,6 +37,11 @@ class _SettingsPageState extends State<SettingsPage> {
       body: ListView(
         children: [
           ListTile(
+            title: const Text("Replay Gain"),
+            trailing: const Icon(Icons.arrow_forward_ios),
+            onTap: () => context.router.push(ReplayGainRoute()),
+          ),
+          ListTile(
             title: const Text("Scan"),
             trailing: const Icon(Icons.arrow_forward_ios),
             onTap: () => context.router.push(ScanRoute()),

@@ -1,10 +1,13 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:crossonic/data/repositories/audio/queue/changable_queue.dart';
 import 'package:crossonic/data/repositories/audio/queue/local_queue.dart';
 import 'package:crossonic/data/repositories/audio/queue/media_queue.dart';
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
+import 'package:crossonic/data/repositories/settings/replay_gain.dart';
+import 'package:crossonic/data/repositories/settings/settings_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
 import 'package:crossonic/data/services/audio_players/player.dart';
 import 'package:crossonic/data/services/media_integration/media_integration.dart';
@@ -22,6 +25,7 @@ enum PlaybackStatus {
 class AudioHandler {
   final AuthRepository _auth;
   final SubsonicService _subsonic;
+  final SettingsRepository _settings;
 
   final AudioPlayer _player;
   StreamSubscription? _playerEventSubscription;
@@ -54,10 +58,12 @@ class AudioHandler {
     required MediaIntegration integration,
     required AuthRepository authRepository,
     required SubsonicService subsonicService,
+    required SettingsRepository settingsRepository,
   })  : _player = player,
         _integration = integration,
         _auth = authRepository,
-        _subsonic = subsonicService {
+        _subsonic = subsonicService,
+        _settings = settingsRepository {
     _auth.addListener(_authChanged);
 
     _queueCurrentSubscription = _queue.current.listen(_onCurrentChanged);
@@ -75,6 +81,8 @@ class AudioHandler {
     _integration.updateMedia(null, null);
 
     _playerEventSubscription = _player.eventStream.listen(_playerEvent);
+
+    _settings.replayGain.addListener(_onReplayGainChanged);
   }
 
   // ================ playback controls ================
@@ -186,6 +194,8 @@ class AudioHandler {
 
     await _ensurePlayerLoaded(false);
 
+    await _applyReplayGain();
+
     if (!event.fromAdvance) {
       await _player.setCurrent(_getStreamUri(event.song!));
       if (playAfterChange) {
@@ -209,11 +219,64 @@ class AudioHandler {
     }
   }
 
+  Future<void> _onReplayGainChanged() async {
+    await _applyReplayGain();
+  }
+
   // ================ helpers ================
+
+  Future<void> _applyReplayGain() async {
+    if (!_player.initialized) return;
+    ReplayGainMode mode = _settings.replayGain.mode;
+    if (mode == ReplayGainMode.disabled) {
+      if (_player.volume < 1) {
+        print("replay gain disabled, settings volume to 1");
+        _player.setVolume(1);
+      }
+      return;
+    }
+    final media = _queue.current.value.song;
+    if (media == null) return;
+
+    double gain = _settings.replayGain.fallbackGain;
+
+    if (mode == ReplayGainMode.auto) {
+      mode = ReplayGainMode.track;
+
+      if (media.album != null) {
+        bool previousIsSameAlbum = true;
+        if (_queue.currentIndex > 0) {
+          final previous = _queue.regular.skip(_queue.currentIndex - 1).first;
+          previousIsSameAlbum = previous.album?.id == media.album!.id;
+        }
+
+        final next = _queue.next.value;
+        bool nextIsSameAlbum =
+            next == null || next.album?.id == media.album!.id;
+
+        if (previousIsSameAlbum && nextIsSameAlbum && _queue.length > 1) {
+          mode = ReplayGainMode.album;
+        }
+      }
+    }
+
+    if ((mode == ReplayGainMode.track && media.trackGain != null) ||
+        media.albumGain == null) {
+      gain = media.trackGain!;
+    } else if (media.albumGain != null) {
+      gain = media.albumGain!;
+    } else if (_settings.replayGain.preferServerFallbackGain) {
+      gain = media.fallbackGain ?? gain;
+    }
+
+    double volume = pow(10, gain / 20) as double;
+    await _player.setVolume(volume);
+  }
 
   Future<void> _ensurePlayerLoaded([bool restorePlayerState = true]) async {
     if (_player.initialized) return;
     _player.init();
+    await _applyReplayGain();
     if (restorePlayerState) {
       await _restorePlayerState();
     }
@@ -245,6 +308,7 @@ class AudioHandler {
         _playbackStatus.value == PlaybackStatus.loading) {
       return;
     }
+    _player.setVolume(1);
     await _player.dispose();
   }
 
@@ -330,6 +394,7 @@ class AudioHandler {
     await _playerEventSubscription?.cancel();
     await _player.dispose();
 
+    _settings.replayGain.removeListener(_onReplayGainChanged);
     _auth.removeListener(_authChanged);
   }
 }

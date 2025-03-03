@@ -110,6 +110,12 @@ class AppRouter extends RootStackRouter {
           restorationId: (match) => match.fullPath,
         ),
         AutoRoute(
+          path: "/settings/replayGain",
+          page: ReplayGainRoute.page,
+          title: (context, data) => "Replay Gain",
+          restorationId: (match) => match.fullPath,
+        ),
+        AutoRoute(
           path: "/settings/scan",
           page: ScanRoute.page,
           title: (context, data) => "Scan",

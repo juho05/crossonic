@@ -12,6 +12,9 @@ class Song {
   final int? year;
   final int? trackNr;
   final int? discNr;
+  final double? trackGain;
+  final double? albumGain;
+  final double? fallbackGain;
 
   Song({
     required this.id,
@@ -25,6 +28,9 @@ class Song {
     required this.year,
     required this.trackNr,
     required this.discNr,
+    required this.trackGain,
+    required this.albumGain,
+    required this.fallbackGain,
   });
 
   factory Song.fromChildModel(ChildModel child) {
@@ -55,6 +61,9 @@ class Song {
       year: child.year,
       trackNr: child.track,
       discNr: child.discNumber,
+      trackGain: child.replayGain?.trackGain,
+      albumGain: child.replayGain?.albumGain,
+      fallbackGain: child.replayGain?.fallbackGain,
     );
   }
 }

@@ -6,6 +6,7 @@ import 'package:crossonic/data/repositories/audio/audio_handler.dart' as ah;
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
 import 'package:crossonic/data/repositories/cover/cover_repository.dart';
 import 'package:crossonic/data/repositories/keyvalue/key_value_repository.dart';
+import 'package:crossonic/data/repositories/settings/settings_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/favorites_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/subsonic_repository.dart';
 import 'package:crossonic/data/services/audio_players/audioplayers.dart';
@@ -78,10 +79,18 @@ Future<List<SingleChildWidget>> get providers async {
       value: database,
     ),
     Provider.value(
+      value: keyValueRepository,
+    ),
+    Provider.value(
       value: subsonicService,
     ),
     ChangeNotifierProvider.value(
       value: authRepository,
+    ),
+    Provider(
+      create: (context) =>
+          SettingsRepository(keyValueRepository: context.read())..load(),
+      dispose: (context, value) => value.dispose(),
     ),
     Provider(
       create: (context) => CoverRepository(
@@ -107,8 +116,9 @@ Future<List<SingleChildWidget>> get providers async {
       create: (context) => ah.AudioHandler(
         player: audioPlayer,
         integration: mediaIntegration,
-        authRepository: authRepository,
-        subsonicService: subsonicService,
+        authRepository: context.read(),
+        subsonicService: context.read(),
+        settingsRepository: context.read(),
       ),
     )
   ];
