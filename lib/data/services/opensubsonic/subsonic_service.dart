@@ -32,6 +32,7 @@ enum AlbumListType {
   byYear,
   byGenre,
 }
+
 class SubsonicService {
   static const String _clientName = "crossonic";
   static const String _protocolVersion = "1.16.1";
@@ -410,5 +411,13 @@ class SubsonicService {
       ...auth.queryParams
           .map((String key, String value) => MapEntry(key, [value])),
     };
+  }
+
+  Uri getCoverUri(Connection con, String id) {
+    final query = generateQuery({
+      "id": [id],
+    }, con.auth);
+    return Uri.parse(
+        '${con.baseUri}/rest/getCoverArt${Uri(queryParameters: query)}');
   }
 }

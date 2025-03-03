@@ -1,25 +1,48 @@
-import 'package:crossonic/data/repositories/subsonic/subsonic_repository.dart';
+import 'dart:async';
+import 'dart:io';
+import 'package:crossonic/data/repositories/cover/cover_repository.dart';
+import 'package:crossonic/utils/fetch_status.dart';
 import 'package:flutter/widgets.dart';
 
 class CoverArtViewModel extends ChangeNotifier {
-  final SubsonicRepository _subsonicRepository;
+  final CoverRepository _repo;
 
-  Uri? _uri;
-  Uri? get uri => _uri;
+  FetchStatus _status = FetchStatus.initial;
+  FetchStatus get status => _status;
 
-  CoverArtViewModel({required SubsonicRepository subsonicRepository})
-      : _subsonicRepository = subsonicRepository;
+  File? _image;
+  File? get image => _image;
+
+  StreamSubscription? _fileSubscription;
+
+  CoverArtViewModel({required CoverRepository coverRepository})
+      : _repo = coverRepository;
 
   String? _oldId;
-  void updateId(String? id) {
+  Future<void> updateId(String? id) async {
     if (_oldId == id) return;
     _oldId = id;
-
+    await _fileSubscription?.cancel();
+    _fileSubscription = null;
     if (id == null) {
-      _uri == null;
-    } else {
-      _uri = _subsonicRepository.getCoverUri(id);
+      _image = null;
+      _status = FetchStatus.success;
+      notifyListeners();
+      return;
     }
+    _status = FetchStatus.initial;
     notifyListeners();
+    _status = FetchStatus.loading;
+    _fileSubscription = _repo.getFileStream(id).listen((file) {
+      _image = file;
+      _status = FetchStatus.success;
+      notifyListeners();
+    });
+  }
+
+  @override
+  void dispose() {
+    _fileSubscription?.cancel();
+    super.dispose();
   }
 }

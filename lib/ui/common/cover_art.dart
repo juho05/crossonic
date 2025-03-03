@@ -1,9 +1,9 @@
 import 'dart:math';
 
 import 'package:crossonic/ui/common/cover_art_viewmodel.dart';
+import 'package:crossonic/utils/fetch_status.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:transparent_image/transparent_image.dart';
 
 class CoverArt extends StatefulWidget {
   final String? coverId;
@@ -27,7 +27,7 @@ class _CoverArtState extends State<CoverArt> {
   @override
   void initState() {
     super.initState();
-    viewModel = CoverArtViewModel(subsonicRepository: context.read());
+    viewModel = CoverArtViewModel(coverRepository: context.read());
     if (widget.coverId != null) viewModel.updateId(widget.coverId!);
   }
 
@@ -44,31 +44,22 @@ class _CoverArtState extends State<CoverArt> {
             size: size * 0.8,
             opticalSize: size > 0 ? size * 0.8 : null,
           );
-          if (viewModel.uri == null) {
+          if (viewModel.image == null) {
+            if (viewModel.status == FetchStatus.initial) {
+              return Container();
+            }
             return placeholder;
           }
           return AspectRatio(
             aspectRatio: 1,
-            child: Stack(
-              fit: StackFit.loose,
-              alignment: Alignment.center,
-              children: [
-                placeholder,
-                ClipRRect(
-                  borderRadius: widget.borderRadius,
-                  clipBehavior: Clip.antiAlias,
-                  child: FadeInImage.memoryNetwork(
-                      image: viewModel.uri!.toString(),
-                      placeholder: kTransparentImage,
-                      fit: BoxFit.cover,
-                      imageErrorBuilder: (context, error, stackTrace) {
-                        print(viewModel.uri!.toString());
-                        print(error);
-                        print(stackTrace);
-                        return SizedBox.shrink();
-                      }),
-                ),
-              ],
+            child: ClipRRect(
+              borderRadius: widget.borderRadius,
+              clipBehavior: Clip.antiAlias,
+              child: Image.file(
+                viewModel.image!,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => placeholder,
+              ),
             ),
           );
         });

@@ -250,11 +250,7 @@ class SubsonicRepository {
   }
 
   Uri getCoverUri(String id) {
-    final query = _service.generateQuery({
-      "id": [id],
-    }, _auth.con.auth);
-    return Uri.parse(
-        '${_auth.con.baseUri}/rest/getCoverArt${Uri(queryParameters: query)}');
+    return _service.getCoverUri(_auth.con, id);
   }
 
   Future<Result<List<List<Song>>>> getArtistSongs(Artist artist) async {

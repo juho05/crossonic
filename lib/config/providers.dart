@@ -4,6 +4,7 @@ import 'package:audio_service/audio_service.dart';
 import 'package:audio_session/audio_session.dart';
 import 'package:crossonic/data/repositories/audio/audio_handler.dart' as ah;
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
+import 'package:crossonic/data/repositories/cover/cover_repository.dart';
 import 'package:crossonic/data/repositories/keyvalue/key_value_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/favorites_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/subsonic_repository.dart';
@@ -81,6 +82,13 @@ Future<List<SingleChildWidget>> get providers async {
     ),
     ChangeNotifierProvider.value(
       value: authRepository,
+    ),
+    Provider(
+      create: (context) => CoverRepository(
+        authRepository: context.read(),
+        subsonicService: context.read(),
+      ),
+      dispose: (context, value) => value.dispose(),
     ),
     ChangeNotifierProvider(
       create: (context) => FavoritesRepository(
