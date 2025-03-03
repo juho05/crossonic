@@ -209,45 +209,45 @@ class _AlbumPageState extends State<AlbumPage> {
                       songs[index].discNr != songs[index - 1].discNr)) {
                 return Column(
                   children: [
-                    Material(
-                      type: MaterialType.transparency,
-                      child: InkWell(
-                        onTap: () {
-                          _viewModel.playDisc(songs[index].discNr!);
-                        },
-                        child: Padding(
-                          padding: EdgeInsets.only(
-                            top: index == 0 ? 8 : 0,
-                            left: 12,
-                            right: 12,
-                          ),
-                          child: Row(
-                            children: [
-                              const Icon(Icons.album),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: OrientationBuilder(
-                                  builder: (context, orientation) => Text(
-                                    album.discTitles[songs[index].discNr!] ??
-                                        "Disc ${songs[index].discNr}",
-                                    textAlign: TextAlign.center,
-                                    overflow: TextOverflow.ellipsis,
-                                    maxLines: 1,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .titleMedium!
-                                        .copyWith(
-                                          fontWeight: orientation ==
-                                                  Orientation.portrait
-                                              ? FontWeight.w800
-                                              : FontWeight.bold,
-                                        ),
+                    Padding(
+                      padding: EdgeInsets.only(top: index == 0 ? 8 : 0),
+                      child: Material(
+                        type: MaterialType.transparency,
+                        child: InkWell(
+                          onTap: () {
+                            _viewModel.playDisc(songs[index].discNr!);
+                          },
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 8),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.album),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: OrientationBuilder(
+                                    builder: (context, orientation) => Text(
+                                      album.discTitles[songs[index].discNr!] ??
+                                          "Disc ${songs[index].discNr}",
+                                      textAlign: TextAlign.center,
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 1,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleMedium!
+                                          .copyWith(
+                                            fontWeight: orientation ==
+                                                    Orientation.portrait
+                                                ? FontWeight.w800
+                                                : FontWeight.bold,
+                                          ),
+                                    ),
                                   ),
                                 ),
-                              ),
-                              const SizedBox(width: 8),
-                              const Icon(Icons.album),
-                            ],
+                                const SizedBox(width: 8),
+                                const Icon(Icons.album),
+                              ],
+                            ),
                           ),
                         ),
                       ),
