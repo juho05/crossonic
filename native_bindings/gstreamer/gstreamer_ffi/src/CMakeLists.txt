@@ -40,7 +40,7 @@ IF(ANDROID OR __ANDROID__)
   LIST(APPEND GST_PLUGINS coreelements adder app audioconvert audiomixer audiorate audioresample gio volume autodetect opensles ogg vorbis opus opusparse audioparsers flac mpg123 wavparse tcp typefindfunctions insertbin switchbin fallbackswitch threadshare playback soup id3demux)
   LIST(APPEND GIO_MODULES openssl)
 
-  LIST(APPEND LINK_LIBS gstreamer-1.0 gobject-2.0 glib-2.0 gio-2.0 harfbuzz ogg vorbis vorbisenc opus gstpbutils-1.0 gsttag-1.0 gstriff-1.0 FLAC gstvideo-1.0 gstnet-1.0 gstinsertbin-1.0 gstrtp-1.0 soup-2.4 psl mpg123)
+  LIST(APPEND LINK_LIBS gstreamer-1.0 gobject-2.0 glib-2.0 gio-2.0 harfbuzz ogg vorbis opus gstpbutils-1.0 gsttag-1.0 gstriff-1.0 FLAC gstvideo-1.0 gstnet-1.0 gstinsertbin-1.0 gstrtp-1.0 soup-2.4 psl mpg123)
 
   foreach(GST_P ${GST_PLUGINS})
     LIST(APPEND LINK_LIBS "gst${GST_P}")

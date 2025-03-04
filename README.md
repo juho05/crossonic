@@ -44,7 +44,7 @@ While this app can be built for every platform [Flutter](https://flutter.dev) su
 
 **fully supported**
 - Linux
-- Android (*no AAC support*)
+- Android
 - macOS
 - Windows
 

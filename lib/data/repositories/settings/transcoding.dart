@@ -11,8 +11,7 @@ enum TranscodingCodec {
   raw([]),
   mp3([64, 128, 192, 256, 320]),
   opus([32, 64, 128, 192, 256, 320, 512]),
-  vorbis([96, 128, 192, 256, 320, 480]),
-  aac([64, 128, 192, 256, 320, 500]);
+  vorbis([96, 128, 192, 256, 320, 480]);
 
   const TranscodingCodec(this.validBitRates);
 
@@ -30,14 +29,31 @@ class TranscodingSettings extends ChangeNotifier {
   bool get supportsMobile => _supportsMobile;
 
   static const String _codecKey = "transcoding.codec";
-  static const TranscodingCodec _codecDefault = TranscodingCodec.serverDefault;
-  TranscodingCodec _codec = _codecDefault;
+  TranscodingCodec get _codecDefault {
+    if (kIsWeb) {
+      return TranscodingCodec.raw;
+    }
+    if (_availableCodecs.contains(TranscodingCodec.opus)) {
+      return TranscodingCodec.opus;
+    }
+    return TranscodingCodec.serverDefault;
+  }
+
+  TranscodingCodec _codec = TranscodingCodec.serverDefault;
   TranscodingCodec get codec => _codec;
 
   static const String _codecMobileKey = "transcoding.codec_mobile";
-  static const TranscodingCodec _codecMobileDefault =
-      TranscodingCodec.serverDefault;
-  TranscodingCodec _codecMobile = _codecMobileDefault;
+  TranscodingCodec get _codecMobileDefault {
+    if (kIsWeb) {
+      return TranscodingCodec.raw;
+    }
+    if (_availableCodecs.contains(TranscodingCodec.opus)) {
+      return TranscodingCodec.opus;
+    }
+    return TranscodingCodec.serverDefault;
+  }
+
+  TranscodingCodec _codecMobile = TranscodingCodec.serverDefault;
   TranscodingCodec get codecMobile => _codecMobile;
 
   static const String _maxBitRateKey = "transcoding.max_bitrate";
@@ -64,7 +80,6 @@ class TranscodingSettings extends ChangeNotifier {
             TranscodingCodec.mp3,
             TranscodingCodec.opus,
             TranscodingCodec.vorbis,
-            if (kIsWeb || !Platform.isAndroid) TranscodingCodec.aac,
           ]
         : [
             TranscodingCodec.serverDefault,

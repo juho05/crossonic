@@ -61,7 +61,6 @@ class _TranscodingPageState extends State<TranscodingPage> {
                               TranscodingCodec.mp3 => "MP3",
                               TranscodingCodec.opus => "OGG/Opus",
                               TranscodingCodec.vorbis => "OGG/Vorbis",
-                              TranscodingCodec.aac => "AAC",
                             },
                             value: codec,
                           ))
@@ -110,7 +109,6 @@ class _TranscodingPageState extends State<TranscodingPage> {
                                 TranscodingCodec.mp3 => "MP3",
                                 TranscodingCodec.opus => "OGG/Opus",
                                 TranscodingCodec.vorbis => "OGG/Vorbis",
-                                TranscodingCodec.aac => "AAC",
                               },
                               value: codec,
                             ))

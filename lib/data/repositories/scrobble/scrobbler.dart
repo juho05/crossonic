@@ -120,7 +120,8 @@ class Scrobbler {
       if (scrobbles.isNotEmpty) {
         print("Uploading scrobbles:");
         for (var s in scrobbles) {
-          print("  - ${s.startTime}: ${s.songId} (${s.listenDurationMs})");
+          print(
+              "  - ${s.startTime}: ${s.songId} (${Duration(milliseconds: s.listenDurationMs)})");
         }
         final result = await _subsonic.scrobble(
           _auth.con,
