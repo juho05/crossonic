@@ -8,6 +8,7 @@ import 'package:crossonic/data/repositories/audio/queue/media_queue.dart';
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
 import 'package:crossonic/data/repositories/settings/replay_gain.dart';
 import 'package:crossonic/data/repositories/settings/settings_repository.dart';
+import 'package:crossonic/data/repositories/settings/transcoding.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
 import 'package:crossonic/data/services/audio_players/player.dart';
 import 'package:crossonic/data/services/media_integration/media_integration.dart';
@@ -53,6 +54,8 @@ class AudioHandler {
 
   bool _playOnNextMediaChange = false;
 
+  (TranscodingCodec, int?) _transcoding;
+
   AudioHandler({
     required AudioPlayer player,
     required MediaIntegration integration,
@@ -63,7 +66,11 @@ class AudioHandler {
         _integration = integration,
         _auth = authRepository,
         _subsonic = subsonicService,
-        _settings = settingsRepository {
+        _settings = settingsRepository,
+        _transcoding = (
+          settingsRepository.transcoding.codec,
+          settingsRepository.transcoding.maxBitRate
+        ) {
     _auth.addListener(_authChanged);
 
     _queueCurrentSubscription = _queue.current.listen(_onCurrentChanged);
@@ -83,6 +90,8 @@ class AudioHandler {
     _playerEventSubscription = _player.eventStream.listen(_playerEvent);
 
     _settings.replayGain.addListener(_onReplayGainChanged);
+    _settings.transcoding.addListener(_onTranscodingChanged);
+    _onTranscodingChanged();
   }
 
   // ================ playback controls ================
@@ -202,7 +211,8 @@ class AudioHandler {
         await _player.play();
       }
     }
-    _integration.updateMedia(event.song, _getCoverUri(event.song!.coverId));
+    _integration.updateMedia(
+        event.song, _subsonic.getCoverUri(_auth.con, event.song!.coverId));
   }
 
   Future<void> _onNextChanged(Song? song) async {
@@ -221,6 +231,13 @@ class AudioHandler {
 
   Future<void> _onReplayGainChanged() async {
     await _applyReplayGain();
+  }
+
+  Future<void> _onTranscodingChanged() async {
+    _transcoding = await _settings.transcoding.activeTranscoding();
+    if (_queue.next.value != null) {
+      await _onNextChanged(_queue.next.value);
+    }
   }
 
   // ================ helpers ================
@@ -356,21 +373,15 @@ class AudioHandler {
   Uri _getStreamUri(Song song, [Duration? offset]) {
     final query = _subsonic.generateQuery({
       "id": [song.id],
-      "format": [], // TODO
-      "maxBitRate": [], // TODO
+      "format": _transcoding.$1 != TranscodingCodec.serverDefault
+          ? [_transcoding.$1.name]
+          : [], // TODO
+      "maxBitRate":
+          _transcoding.$2 != null ? [_transcoding.$2!.toString()] : [], // TODO
       "timeOffset": offset != null ? [offset.inSeconds.toString()] : [],
     }, _auth.con.auth);
     return Uri.parse(
         '${_auth.con.baseUri}/rest/stream${Uri(queryParameters: query)}');
-  }
-
-  Uri? _getCoverUri(String? coverId) {
-    if (coverId == null) return null;
-    final query = _subsonic.generateQuery({
-      "id": [coverId],
-    }, _auth.con.auth);
-    return Uri.parse(
-        '${_auth.con.baseUri}/rest/getCoverArt${Uri(queryParameters: query)}');
   }
 
   // ================ queue ================
@@ -395,6 +406,7 @@ class AudioHandler {
     await _player.dispose();
 
     _settings.replayGain.removeListener(_onReplayGainChanged);
+    _settings.transcoding.removeListener(_onTranscodingChanged);
     _auth.removeListener(_authChanged);
   }
 }

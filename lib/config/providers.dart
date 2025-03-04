@@ -87,18 +87,6 @@ Future<List<SingleChildWidget>> get providers async {
     ChangeNotifierProvider.value(
       value: authRepository,
     ),
-    Provider(
-      create: (context) =>
-          SettingsRepository(keyValueRepository: context.read())..load(),
-      dispose: (context, value) => value.dispose(),
-    ),
-    Provider(
-      create: (context) => CoverRepository(
-        authRepository: context.read(),
-        subsonicService: context.read(),
-      ),
-      dispose: (context, value) => value.dispose(),
-    ),
     ChangeNotifierProvider(
       create: (context) => FavoritesRepository(
         auth: context.read(),
@@ -111,6 +99,20 @@ Future<List<SingleChildWidget>> get providers async {
         subsonicService: context.read(),
         favoritesRepository: context.read(),
       ),
+    ),
+    Provider(
+      create: (context) => SettingsRepository(
+        keyValueRepository: context.read(),
+        subsonic: context.read(),
+      )..load(),
+      dispose: (context, value) => value.dispose(),
+    ),
+    Provider(
+      create: (context) => CoverRepository(
+        authRepository: context.read(),
+        subsonicService: context.read(),
+      ),
+      dispose: (context, value) => value.dispose(),
     ),
     Provider(
       create: (context) => ah.AudioHandler(

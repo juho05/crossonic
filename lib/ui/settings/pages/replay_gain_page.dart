@@ -110,7 +110,7 @@ class _ReplayGainState extends State<ReplayGainPage> {
                               "A positive replay gain may cause clipping"),
                     ]),
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 4),
                   ElevatedButton.icon(
                     onPressed: () {
                       _viewModel.reset();

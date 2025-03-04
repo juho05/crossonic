@@ -110,6 +110,12 @@ class AppRouter extends RootStackRouter {
           restorationId: (match) => match.fullPath,
         ),
         AutoRoute(
+          path: "/settings/transcoding",
+          page: TranscodingRoute.page,
+          title: (context, data) => "Transcoding",
+          restorationId: (match) => match.fullPath,
+        ),
+        AutoRoute(
           path: "/settings/replayGain",
           page: ReplayGainRoute.page,
           title: (context, data) => "Replay Gain",
