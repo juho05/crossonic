@@ -135,6 +135,9 @@ class _MainPageState extends State<MainPage> {
                   } catch (_) {}
                   body = Scaffold(
                     appBar: AppBar(
+                      // set key to fix app bar color not updating when navigating back
+                      key: ValueKey(
+                          "${tabsRouter.topPage!.routeData.title(context)}:${tabsRouter.activeIndex}:${tabsRouter.stack.length}"),
                       title: Text(tabsRouter.topPage!.routeData.title(context)),
                       leading: tabsRouter.activeRouterCanPop()
                           ? AutoLeadingButton()
