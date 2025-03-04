@@ -28,12 +28,12 @@ class QueueViewModel extends ChangeNotifier {
   }
 
   void clearQueue() {
-    _audioHandler.queue.clear(priorityQueue: false);
+    _audioHandler.queue.clear(
+        priorityQueue: false, fromIndex: _audioHandler.queue.currentIndex + 1);
   }
 
   void clearPriorityQueue() {
-    _audioHandler.queue
-        .clear(queue: false, fromIndex: _audioHandler.queue.currentIndex + 1);
+    _audioHandler.queue.clear(queue: false);
   }
 
   void shuffleQueue() {

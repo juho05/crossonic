@@ -28,6 +28,10 @@ class LocalQueue extends ChangeNotifier implements MediaQueue {
   void setLoop(bool loop) {
     if (_looping.value == loop) return;
     _looping.add(loop);
+    if (_priorityQueue.isEmpty) {
+      _next.add(_queue.elementAtOrNull(_nextIndex));
+    }
+    notifyListeners();
   }
 
   @override
@@ -93,6 +97,8 @@ class LocalQueue extends ChangeNotifier implements MediaQueue {
       } else if (_nextIndex < fromIndex) {
         _incrementCurrentIndex();
         _current.add((song: _queue[_currentIndex], fromAdvance: false));
+      } else if (_current.value.song != null) {
+        _current.add((song: null, fromAdvance: false));
       }
     }
     _next.add(_priorityQueue.isNotEmpty

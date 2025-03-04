@@ -117,6 +117,7 @@ class AudioHandler {
     _integration.updatePosition(Duration.zero);
     _integration.updatePlaybackState(PlaybackStatus.stopped);
     _positionOffset = Duration.zero;
+    _playbackStatus.add(PlaybackStatus.stopped);
     _queue.clear();
     await _disposePlayer();
   }
