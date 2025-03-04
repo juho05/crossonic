@@ -240,7 +240,7 @@ class LocalQueue extends ChangeNotifier implements MediaQueue {
   }
 
   void _advance(bool fromAdvance) {
-    if (!canAdvance || fromAdvance) {
+    if (!canAdvance && !fromAdvance) {
       throw StateError("End of queue already reached");
     }
     if (_priorityQueue.isNotEmpty) {

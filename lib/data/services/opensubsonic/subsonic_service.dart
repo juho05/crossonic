@@ -18,6 +18,7 @@ import 'package:crossonic/data/services/opensubsonic/models/starred2_model.dart'
 import 'package:crossonic/data/services/opensubsonic/models/token_info_model.dart';
 import 'package:crossonic/utils/exceptions.dart';
 import 'package:crossonic/utils/result.dart';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 enum AlbumListType {
@@ -36,6 +37,32 @@ enum AlbumListType {
 class SubsonicService {
   static const String _clientName = "crossonic";
   static const String _protocolVersion = "1.16.1";
+
+  Future<Result<void>> scrobble(
+      Connection con,
+      Iterable<({String songId, DateTime time, Duration listenDuration})>
+          scrobbles,
+      bool submission,
+      bool includeListenDuration) async {
+    if (scrobbles.isEmpty) return Result.ok(null);
+    assert(
+      scrobbles.length == 1 || submission,
+      "cannot set multiple now playing (submission == false) scrobbles",
+    );
+    return await _fetchJson(
+      con,
+      "scrobble",
+      {
+        "id": scrobbles.map((s) => s.songId),
+        "time": scrobbles.map((s) => s.time.millisecondsSinceEpoch.toString()),
+        "submission": [submission.toString()],
+        "duration_ms": includeListenDuration
+            ? scrobbles.map((s) => s.listenDuration.inMilliseconds.toString())
+            : [],
+      },
+      null,
+    );
+  }
 
   Future<Result<ListenBrainzConfigModel>> getListenBrainzConfig(
       Connection con) async {
@@ -385,6 +412,9 @@ class SubsonicService {
       Map<String, Iterable<String>> queryParams, SubsonicAuth auth) async {
     queryParams = generateQuery(queryParams, auth);
     final queryStr = Uri(queryParameters: queryParams).query;
+    if (kDebugMode) {
+      print("$endpointName: $queryStr");
+    }
     try {
       final response = await http.post(Uri.parse('$baseUri/rest/$endpointName'),
           body: queryStr,

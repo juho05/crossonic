@@ -6,6 +6,7 @@ import 'package:crossonic/data/repositories/audio/audio_handler.dart' as ah;
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
 import 'package:crossonic/data/repositories/cover/cover_repository.dart';
 import 'package:crossonic/data/repositories/keyvalue/key_value_repository.dart';
+import 'package:crossonic/data/repositories/scrobble/scrobbler.dart';
 import 'package:crossonic/data/repositories/settings/settings_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/favorites_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/subsonic_repository.dart';
@@ -122,6 +123,15 @@ Future<List<SingleChildWidget>> get providers async {
         subsonicService: context.read(),
         settingsRepository: context.read(),
       ),
-    )
+    ),
+    Provider(
+      create: (context) => Scrobbler.enable(
+          audioHandler: context.read(),
+          authRepository: context.read(),
+          database: context.read(),
+          subsonicService: context.read()),
+      dispose: (context, value) => value.dispose(),
+      lazy: false,
+    ),
   ];
 }
