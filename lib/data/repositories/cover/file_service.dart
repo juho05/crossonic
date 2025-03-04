@@ -19,8 +19,15 @@ class CoverFileService extends FileService {
   @override
   Future<FileServiceResponse> get(String url,
       {Map<String, String>? headers}) async {
-    final u = _subsonic.getCoverUri(_auth.con, url);
-    final req = http.Request('GET', u);
+    final parts = url.split("\t");
+    final u = parts[0];
+    final s = parts.elementAtOrNull(1);
+    final coverUrl = _subsonic.getCoverUri(
+      _auth.con,
+      u,
+      size: s != null ? int.parse(s) : null,
+    );
+    final req = http.Request('GET', coverUrl);
     if (headers != null) {
       req.headers.addAll(headers);
     }

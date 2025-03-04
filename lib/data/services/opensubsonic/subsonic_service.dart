@@ -443,9 +443,10 @@ class SubsonicService {
     };
   }
 
-  Uri getCoverUri(Connection con, String id) {
+  Uri getCoverUri(Connection con, String id, {int? size}) {
     final query = generateQuery({
       "id": [id],
+      "size": size != null ? [size.toString()] : [],
     }, con.auth);
     return Uri.parse(
         '${con.baseUri}/rest/getCoverArt${Uri(queryParameters: query)}');

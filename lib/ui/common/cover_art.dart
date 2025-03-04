@@ -1,7 +1,7 @@
 import 'dart:math';
 
-import 'package:crossonic/ui/common/cover_art_viewmodel.dart';
-import 'package:crossonic/utils/fetch_status.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:crossonic/data/repositories/cover/cover_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -22,48 +22,54 @@ class CoverArt extends StatefulWidget {
 }
 
 class _CoverArtState extends State<CoverArt> {
-  late final CoverArtViewModel viewModel;
-
-  @override
-  void initState() {
-    super.initState();
-    viewModel = CoverArtViewModel(coverRepository: context.read());
-    if (widget.coverId != null) viewModel.updateId(widget.coverId!);
-  }
-
   @override
   Widget build(BuildContext context) {
-    viewModel.updateId(widget.coverId);
-    return ListenableBuilder(
-      listenable: viewModel,
-      builder: (context, child) {
-        return LayoutBuilder(builder: (context, constraints) {
-          final size = min(constraints.maxWidth, constraints.maxHeight);
-          final placeholder = Icon(
-            widget.placeholderIcon,
-            size: size * 0.8,
-            opticalSize: size > 0 ? size * 0.8 : null,
-          );
-          if (viewModel.image == null) {
-            if (viewModel.status == FetchStatus.initial) {
-              return Container();
-            }
-            return placeholder;
-          }
-          return AspectRatio(
-            aspectRatio: 1,
-            child: ClipRRect(
-              borderRadius: widget.borderRadius,
-              clipBehavior: Clip.antiAlias,
-              child: Image.file(
-                viewModel.image!,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => placeholder,
-              ),
-            ),
-          );
-        });
-      },
-    );
+    placeholder(double size) {
+      return Icon(
+        widget.placeholderIcon,
+        size: size * 0.8,
+        opticalSize: size > 0 ? size * 0.8 : null,
+      );
+    }
+
+    int resolution(BuildContext context, double size) {
+      size *= MediaQuery.of(context).devicePixelRatio;
+      if (size > 1024) {
+        return 2048;
+      } else if (size > 512) {
+        return 1024;
+      } else if (size > 256) {
+        return 512;
+      } else if (size > 128) {
+        return 256;
+      } else if (size > 64) {
+        return 128;
+      } else {
+        return 64;
+      }
+    }
+
+    return LayoutBuilder(builder: (context, constraints) {
+      final size = min(constraints.maxWidth, constraints.maxHeight);
+      return AspectRatio(
+        aspectRatio: 1,
+        child: ClipRRect(
+          borderRadius: widget.borderRadius,
+          clipBehavior: Clip.antiAlias,
+          child: widget.coverId != null
+              ? CachedNetworkImage(
+                  imageUrl: "${widget.coverId!}\t${resolution(context, size)}",
+                  fit: BoxFit.cover,
+                  errorWidget: (context, url, error) => placeholder(size),
+                  fadeInDuration: const Duration(milliseconds: 300),
+                  fadeOutDuration: const Duration(milliseconds: 100),
+                  placeholder: (context, url) =>
+                      CircularProgressIndicator.adaptive(),
+                  cacheManager: context.read<CoverRepository>(),
+                )
+              : placeholder(size),
+        ),
+      );
+    });
   }
 }
