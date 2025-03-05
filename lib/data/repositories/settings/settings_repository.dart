@@ -1,3 +1,4 @@
+import 'package:crossonic/data/repositories/auth/auth_repository.dart';
 import 'package:crossonic/data/repositories/keyvalue/key_value_repository.dart';
 import 'package:crossonic/data/repositories/settings/replay_gain.dart';
 import 'package:crossonic/data/repositories/settings/transcoding.dart';
@@ -8,6 +9,7 @@ class SettingsRepository {
   final TranscodingSettings transcoding;
 
   SettingsRepository({
+    required AuthRepository authRepository,
     required KeyValueRepository keyValueRepository,
     required SubsonicRepository subsonic,
   })  : replayGain = ReplayGainSettings(
@@ -16,7 +18,16 @@ class SettingsRepository {
         transcoding = TranscodingSettings(
           keyValueRepository: keyValueRepository,
           subsonicRepository: subsonic,
-        );
+        ) {
+    if (authRepository.isAuthenticated) {
+      load();
+    }
+    authRepository.addListener(() {
+      if (authRepository.isAuthenticated) {
+        load();
+      }
+    });
+  }
 
   Future<void> load() async {
     await Future.wait([

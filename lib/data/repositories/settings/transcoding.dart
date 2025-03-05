@@ -72,7 +72,21 @@ class TranscodingSettings extends ChangeNotifier {
     required KeyValueRepository keyValueRepository,
     required SubsonicRepository subsonicRepository,
   })  : _repo = keyValueRepository,
-        _subsonic = subsonicRepository {
+        _subsonic = subsonicRepository;
+
+  Future<(TranscodingCodec, int?)> activeTranscoding() async {
+    final connectivity = await Connectivity().checkConnectivity();
+    final isMobile = _supportsMobile &&
+        connectivity.contains(ConnectivityResult.mobile) &&
+        !connectivity.contains(ConnectivityResult.wifi) &&
+        !connectivity.contains(ConnectivityResult.ethernet);
+    return (
+      isMobile ? _codecMobile : _codec,
+      isMobile ? _maxBitRateMobile : _maxBitRate
+    );
+  }
+
+  Future<void> load() async {
     _availableCodecs = _subsonic.serverFeatures.isCrossonic
         ? [
             TranscodingCodec.serverDefault,
@@ -93,23 +107,8 @@ class TranscodingSettings extends ChangeNotifier {
           .onConnectivityChanged
           .listen((event) => notifyListeners());
     }
-  }
-
-  Future<(TranscodingCodec, int?)> activeTranscoding() async {
-    final connectivity = await Connectivity().checkConnectivity();
-    final isMobile = _supportsMobile &&
-        connectivity.contains(ConnectivityResult.mobile) &&
-        !connectivity.contains(ConnectivityResult.wifi) &&
-        !connectivity.contains(ConnectivityResult.ethernet);
-    return (
-      isMobile ? _codecMobile : _codec,
-      isMobile ? _maxBitRateMobile : _maxBitRate
-    );
-  }
-
-  Future<void> load() async {
-    final test = await _repo.loadString(_codecKey);
-    _codec = TranscodingCodec.values.byName(test ?? _codecDefault.name);
+    _codec = TranscodingCodec.values
+        .byName((await _repo.loadString(_codecKey)) ?? _codecDefault.name);
     _codecMobile = TranscodingCodec.values.byName(
         (await _repo.loadString(_codecMobileKey)) ?? _codecMobileDefault.name);
 

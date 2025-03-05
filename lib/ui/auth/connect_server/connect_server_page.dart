@@ -46,7 +46,7 @@ class _ConnectServerPageState extends State<ConnectServerPage> {
       ),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(8.0),
+          padding: const EdgeInsets.all(16),
           child: FormBuilder(
             key: _formKey,
             autovalidateMode: AutovalidateMode.onUserInteraction,
@@ -59,10 +59,12 @@ class _ConnectServerPageState extends State<ConnectServerPage> {
                   children: [
                     const SizedBox(height: 60),
                     Expanded(
+                      flex: 2,
                       child: Text("Welcome!",
                           style: Theme.of(context).textTheme.displayMedium),
                     ),
                     Expanded(
+                      flex: 3,
                       child: FormBuilderTextField(
                         name: "serverUri",
                         restorationId: "connect_server_page_serverUri",

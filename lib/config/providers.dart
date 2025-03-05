@@ -103,9 +103,10 @@ Future<List<SingleChildWidget>> get providers async {
     ),
     Provider(
       create: (context) => SettingsRepository(
+        authRepository: context.read(),
         keyValueRepository: context.read(),
         subsonic: context.read(),
-      )..load(),
+      ),
       dispose: (context, value) => value.dispose(),
     ),
     Provider(

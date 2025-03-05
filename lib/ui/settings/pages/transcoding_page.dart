@@ -121,7 +121,7 @@ class _TranscodingPageState extends State<TranscodingPage> {
                       _viewModel.updateBitRateMobile(value);
                     },
                     expandedInsets: EdgeInsets.zero,
-                    initialSelection: _viewModel.maxBitRate,
+                    initialSelection: _viewModel.maxBitRateMobile,
                     requestFocusOnTap: false,
                     enableSearch: false,
                     label: const Text("Bitrate (mobile)"),

@@ -53,125 +53,132 @@ class _AlbumsPageState extends State<AlbumsPage> {
       child: ListenableBuilder(
           listenable: _viewModel,
           builder: (context, _) {
-            return CustomScrollView(
-              controller: _controller,
-              slivers: [
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: DropdownButton<AlbumsSortMode>(
-                        value: _viewModel.mode,
-                        items: [
-                          DropdownMenuItem(
-                            value: AlbumsSortMode.alphabetical,
-                            child: Text("Alphabetical"),
-                          ),
-                          DropdownMenuItem(
-                            value: AlbumsSortMode.starred,
-                            child: Text("Favorites"),
-                          ),
-                          DropdownMenuItem(
-                            value: AlbumsSortMode.random,
-                            child: Text("Random"),
-                          ),
-                          DropdownMenuItem(
-                            value: AlbumsSortMode.recentlyAdded,
-                            child: Text("Recently added"),
-                          ),
-                          DropdownMenuItem(
-                            value: AlbumsSortMode.recentlyPlayed,
-                            child: Text("Recently played"),
-                          ),
-                          DropdownMenuItem(
-                            value: AlbumsSortMode.frequentlyPlayed,
-                            child: Text("Frequently played"),
-                          ),
-                        ],
-                        onChanged: (AlbumsSortMode? sortMode) {
-                          if (sortMode == null) return;
-                          _viewModel.mode = sortMode;
-                        },
+            return OrientationBuilder(builder: (context, orientation) {
+              return CustomScrollView(
+                controller: _controller,
+                slivers: [
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: DropdownMenu<AlbumsSortMode>(
+                          initialSelection: _viewModel.mode,
+                          requestFocusOnTap: false,
+                          expandedInsets: orientation == Orientation.portrait
+                              ? EdgeInsets.zero
+                              : null,
+                          enableSearch: false,
+                          dropdownMenuEntries: [
+                            DropdownMenuEntry(
+                              value: AlbumsSortMode.alphabetical,
+                              label: "Alphabetical",
+                            ),
+                            DropdownMenuEntry(
+                              value: AlbumsSortMode.starred,
+                              label: "Favorites",
+                            ),
+                            DropdownMenuEntry(
+                              value: AlbumsSortMode.random,
+                              label: "Random",
+                            ),
+                            DropdownMenuEntry(
+                              value: AlbumsSortMode.recentlyAdded,
+                              label: "Recently added",
+                            ),
+                            DropdownMenuEntry(
+                              value: AlbumsSortMode.recentlyPlayed,
+                              label: "Recently played",
+                            ),
+                            DropdownMenuEntry(
+                              value: AlbumsSortMode.frequentlyPlayed,
+                              label: "Frequently played",
+                            ),
+                          ],
+                          onSelected: (AlbumsSortMode? sortMode) {
+                            if (sortMode == null) return;
+                            _viewModel.mode = sortMode;
+                          },
+                        ),
                       ),
                     ),
                   ),
-                ),
-                if (_viewModel.status == FetchStatus.success &&
-                    _viewModel.albums.isEmpty)
-                  SliverToBoxAdapter(child: Text("No albums available")),
-                SliverGrid(
-                  gridDelegate: AlbumsGridDelegate(),
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      if (index > _viewModel.albums.length) {
-                        return null;
-                      }
-                      if (index == _viewModel.albums.length) {
-                        return switch (_viewModel.status) {
-                          FetchStatus.success => null,
-                          FetchStatus.failure => const Center(
-                              child: Icon(Icons.wifi_off),
-                            ),
-                          _ => const Center(
-                              child: CircularProgressIndicator.adaptive(),
-                            ),
-                        };
-                      }
-                      final a = _viewModel.albums[index];
-                      return AlbumGridCell(
-                        id: a.id,
-                        extraInfo: [
-                          a.displayArtist,
-                          a.year?.toString() ?? "Unknown year",
-                        ],
-                        coverId: a.coverId,
-                        name: a.name,
-                        onTap: () {
-                          context.router.push(AlbumRoute(albumId: a.id));
-                        },
-                        onPlay: () async {
-                          final result = await _viewModel.play(a);
-                          if (!context.mounted) return;
-                          toastResult(context, result);
-                        },
-                        onShuffle: () async {
-                          final result =
-                              await _viewModel.play(a, shuffle: true);
-                          if (!context.mounted) return;
-                          toastResult(context, result);
-                        },
-                        onAddToQueue: (priority) async {
-                          final result =
-                              await _viewModel.addToQueue(a, priority);
-                          if (!context.mounted) return;
-                          toastResult(context, result,
-                              "Added '${a.name}' to ${priority ? "priority " : ""}queue");
-                        },
-                        onGoToArtist: a.artists.isNotEmpty
-                            ? () async {
-                                final artistId =
-                                    await ChooserDialog.chooseArtist(
-                                        context, a.artists.toList());
-                                if (artistId == null || !context.mounted) {
-                                  return;
+                  if (_viewModel.status == FetchStatus.success &&
+                      _viewModel.albums.isEmpty)
+                    SliverToBoxAdapter(child: Text("No albums available")),
+                  SliverGrid(
+                    gridDelegate: AlbumsGridDelegate(),
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        if (index > _viewModel.albums.length) {
+                          return null;
+                        }
+                        if (index == _viewModel.albums.length) {
+                          return switch (_viewModel.status) {
+                            FetchStatus.success => null,
+                            FetchStatus.failure => const Center(
+                                child: Icon(Icons.wifi_off),
+                              ),
+                            _ => const Center(
+                                child: CircularProgressIndicator.adaptive(),
+                              ),
+                          };
+                        }
+                        final a = _viewModel.albums[index];
+                        return AlbumGridCell(
+                          id: a.id,
+                          extraInfo: [
+                            a.displayArtist,
+                            a.year?.toString() ?? "Unknown year",
+                          ],
+                          coverId: a.coverId,
+                          name: a.name,
+                          onTap: () {
+                            context.router.push(AlbumRoute(albumId: a.id));
+                          },
+                          onPlay: () async {
+                            final result = await _viewModel.play(a);
+                            if (!context.mounted) return;
+                            toastResult(context, result);
+                          },
+                          onShuffle: () async {
+                            final result =
+                                await _viewModel.play(a, shuffle: true);
+                            if (!context.mounted) return;
+                            toastResult(context, result);
+                          },
+                          onAddToQueue: (priority) async {
+                            final result =
+                                await _viewModel.addToQueue(a, priority);
+                            if (!context.mounted) return;
+                            toastResult(context, result,
+                                "Added '${a.name}' to ${priority ? "priority " : ""}queue");
+                          },
+                          onGoToArtist: a.artists.isNotEmpty
+                              ? () async {
+                                  final artistId =
+                                      await ChooserDialog.chooseArtist(
+                                          context, a.artists.toList());
+                                  if (artistId == null || !context.mounted) {
+                                    return;
+                                  }
+                                  context.router
+                                      .push(ArtistRoute(artistId: artistId));
                                 }
-                                context.router
-                                    .push(ArtistRoute(artistId: artistId));
-                              }
-                            : null,
-                        onAddToPlaylist: () {
-                          // TODO
-                        },
-                      );
-                    },
-                    childCount:
-                        (_viewModel.status == FetchStatus.success ? 0 : 1) +
-                            _viewModel.albums.length,
+                              : null,
+                          onAddToPlaylist: () {
+                            // TODO
+                          },
+                        );
+                      },
+                      childCount:
+                          (_viewModel.status == FetchStatus.success ? 0 : 1) +
+                              _viewModel.albums.length,
+                    ),
                   ),
-                ),
-              ],
-            );
+                ],
+              );
+            });
           }),
     );
   }

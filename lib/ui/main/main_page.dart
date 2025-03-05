@@ -58,6 +58,8 @@ class _MainPageState extends State<MainPage> {
                       _slidingUpPanelController.close();
                     } catch (_) {}
                   }
+                  final bottomPadding =
+                      MediaQuery.of(context).viewPadding.bottom;
                   body = LayoutBuilder(
                     builder: (context, constraints) => SlidingUpPanel(
                       minHeight: stopped ? 0 : 53,
@@ -109,6 +111,7 @@ class _MainPageState extends State<MainPage> {
                           leading: tabsRouter.activeRouterCanPop()
                               ? AutoLeadingButton()
                               : null,
+                          forceMaterialTransparency: true,
                           actions: [
                             IconButton(
                               icon: const Icon(Icons.settings),
@@ -119,7 +122,8 @@ class _MainPageState extends State<MainPage> {
                           ],
                         ),
                         body: Padding(
-                          padding: const EdgeInsets.only(bottom: 58),
+                          padding: EdgeInsets.only(
+                              bottom: (stopped ? 58 : 111) + bottomPadding),
                           child: SafeArea(
                             child: child,
                           ),
@@ -135,10 +139,8 @@ class _MainPageState extends State<MainPage> {
                   } catch (_) {}
                   body = Scaffold(
                     appBar: AppBar(
-                      // set key to fix app bar color not updating when navigating back
-                      key: ValueKey(
-                          "${tabsRouter.topPage!.routeData.title(context)}:${tabsRouter.activeIndex}:${tabsRouter.stack.length}"),
                       title: Text(tabsRouter.topPage!.routeData.title(context)),
+                      forceMaterialTransparency: true,
                       leading: tabsRouter.activeRouterCanPop()
                           ? AutoLeadingButton()
                           : null,
@@ -171,9 +173,18 @@ class _MainPageState extends State<MainPage> {
                           children: [
                             NavigationRail(
                               selectedIndex: tabsRouter.activeIndex,
-                              onDestinationSelected: (index) {
+                              onDestinationSelected: (index) async {
                                 if (index == 2) {
                                   context.router.push(SettingsRoute());
+                                  return;
+                                }
+                                if (index == tabsRouter.activeIndex) {
+                                  context.router.popUntilRoot();
+                                  while (tabsRouter.childControllers[index]
+                                      .canPop()) {
+                                    await tabsRouter.childControllers[index]
+                                        .maybePop();
+                                  }
                                   return;
                                 }
                                 tabsRouter.setActiveIndex(index);
@@ -208,10 +219,19 @@ class _MainPageState extends State<MainPage> {
                             ? BottomNavigationBar(
                                 useLegacyColorScheme: false,
                                 currentIndex: tabsRouter.activeIndex,
-                                onTap: (index) {
+                                onTap: (index) async {
                                   try {
                                     _slidingUpPanelController.close();
                                   } catch (_) {}
+                                  if (index == tabsRouter.activeIndex) {
+                                    context.router.popUntilRoot();
+                                    while (tabsRouter.childControllers[index]
+                                        .canPop()) {
+                                      await tabsRouter.childControllers[index]
+                                          .maybePop();
+                                    }
+                                    return;
+                                  }
                                   tabsRouter.setActiveIndex(index);
                                 },
                                 items: [

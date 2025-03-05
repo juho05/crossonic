@@ -99,6 +99,7 @@ class Scrobbler {
   }
 
   Future<void> _submitScrobbles() async {
+    if (!_auth.isAuthenticated) return;
     if (_submitting) return;
     _submitting = true;
     try {
@@ -186,7 +187,10 @@ class Scrobbler {
   }
 
   void _onAuthChanged() async {
-    if (_auth.isAuthenticated) return;
+    if (_auth.isAuthenticated) {
+      await _submitScrobbles();
+      return;
+    }
     _current = null;
   }
 

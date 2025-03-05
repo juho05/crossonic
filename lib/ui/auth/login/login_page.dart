@@ -47,7 +47,7 @@ class _LoginPageState extends State<LoginPage> with RestorationMixin {
       ),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(8.0),
+          padding: const EdgeInsets.all(16),
           child: FormBuilder(
             key: _formKey,
             autovalidateMode: AutovalidateMode.disabled,
@@ -65,97 +65,106 @@ class _LoginPageState extends State<LoginPage> with RestorationMixin {
                           style: Theme.of(context).textTheme.displayMedium),
                     ),
                     Expanded(
-                      flex: 2,
-                      child: Column(
-                        spacing: 20,
-                        children: [
-                          Row(
-                            children: [
-                              Text("Server:",
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .labelLarge!
-                                      .copyWith(fontWeight: FontWeight.bold)),
-                              const SizedBox(width: 8),
-                              Text(viewModel.serverURL),
-                              IconButton(
-                                onPressed: () async {
-                                  final router = context.router;
-                                  await viewModel.resetServerUri();
-                                  router.replaceAll([ConnectServerRoute()]);
-                                },
-                                icon: Icon(Icons.edit),
-                              ),
-                            ],
-                          ),
-                          DropdownButtonFormField<AuthType>(
-                            value: _authType.value,
-                            decoration: const InputDecoration(
-                              labelText: "Authentication Method",
-                              border: OutlineInputBorder(),
-                              icon: Icon(Icons.alt_route),
+                      flex: 3,
+                      child: AutofillGroup(
+                        child: Column(
+                          spacing: 20,
+                          children: [
+                            Row(
+                              children: [
+                                Text("Server:",
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .labelLarge!
+                                        .copyWith(fontWeight: FontWeight.bold)),
+                                const SizedBox(width: 8),
+                                Text(viewModel.serverURL),
+                                IconButton(
+                                  onPressed: () async {
+                                    final router = context.router;
+                                    await viewModel.resetServerUri();
+                                    router.replaceAll([ConnectServerRoute()]);
+                                  },
+                                  icon: Icon(Icons.edit),
+                                ),
+                              ],
                             ),
-                            items: List.generate(
-                              viewModel.supportedAuthTypes.length,
-                              (index) {
-                                return DropdownMenuItem(
-                                  value: viewModel.supportedAuthTypes[index],
-                                  child: Text(
-                                    switch (
-                                        viewModel.supportedAuthTypes[index]) {
-                                      AuthType.apiKey => "API Key",
-                                      AuthType.token => "Token",
-                                      AuthType.password => "Password",
-                                    },
+                            Row(
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.only(right: 16),
+                                  child: Icon(Icons.login),
+                                ),
+                                Expanded(
+                                  child: DropdownMenu<AuthType>(
+                                    initialSelection: _authType.value,
+                                    expandedInsets: EdgeInsets.zero,
+                                    requestFocusOnTap: false,
+                                    enableSearch: false,
+                                    dropdownMenuEntries: List.generate(
+                                      viewModel.supportedAuthTypes.length,
+                                      (index) {
+                                        return DropdownMenuEntry(
+                                          value:
+                                              viewModel.supportedAuthTypes[index],
+                                          label: switch (viewModel
+                                              .supportedAuthTypes[index]) {
+                                            AuthType.apiKey => "API Key",
+                                            AuthType.token => "Token",
+                                            AuthType.password => "Password",
+                                          },
+                                        );
+                                      },
+                                    ),
+                                    onSelected: (value) => setState(() {
+                                      _authType.value = value ??
+                                          viewModel.supportedAuthTypes[0];
+                                    }),
                                   ),
-                                );
-                              },
+                                ),
+                              ],
                             ),
-                            onChanged: (value) => setState(() {
-                              _authType.value =
-                                  value ?? viewModel.supportedAuthTypes[0];
-                            }),
-                          ),
-                          if (_authType.value != AuthType.apiKey)
-                            FormBuilderTextField(
-                              name: "username",
-                              restorationId: "login_page_username",
-                              decoration: const InputDecoration(
-                                labelText: "Username",
-                                icon: Icon(Icons.person),
-                                border: OutlineInputBorder(),
+                            if (_authType.value != AuthType.apiKey)
+                              FormBuilderTextField(
+                                name: "username",
+                                restorationId: "login_page_username",
+                                decoration: const InputDecoration(
+                                  labelText: "Username",
+                                  icon: Icon(Icons.person),
+                                  border: OutlineInputBorder(),
+                                ),
+                                autofillHints: const [AutofillHints.username],
+                                validator: FormBuilderValidators.required(),
                               ),
-                              autofillHints: const [AutofillHints.username],
-                              validator: FormBuilderValidators.required(),
-                            ),
-                          if (_authType.value != AuthType.apiKey)
-                            FormBuilderTextField(
-                              name: "password",
-                              restorationId: "login_page_password",
-                              decoration: const InputDecoration(
-                                labelText: "Password",
-                                icon: Icon(Icons.link),
-                                border: OutlineInputBorder(),
+                            if (_authType.value != AuthType.apiKey)
+                              FormBuilderTextField(
+                                name: "password",
+                                restorationId: "login_page_password",
+                                decoration: const InputDecoration(
+                                  labelText: "Password",
+                                  icon: Icon(Icons.link),
+                                  border: OutlineInputBorder(),
+                                ),
+                                obscureText: true,
+                                autofillHints: const [AutofillHints.password],
+                                validator: FormBuilderValidators.required(),
+                                onSubmitted: (_) => _submit(),
                               ),
-                              obscureText: true,
-                              autofillHints: const [AutofillHints.password],
-                              validator: FormBuilderValidators.required(),
-                              onSubmitted: (_) => _submit(),
-                            ),
-                          if (_authType.value == AuthType.apiKey)
-                            FormBuilderTextField(
-                              name: "apiKey",
-                              restorationId: "login_page_apiKey",
-                              decoration: const InputDecoration(
-                                labelText: "API Key",
-                                icon: Icon(Icons.key),
-                                border: OutlineInputBorder(),
+                            if (_authType.value == AuthType.apiKey)
+                              FormBuilderTextField(
+                                name: "apiKey",
+                                restorationId: "login_page_apiKey",
+                                decoration: const InputDecoration(
+                                  labelText: "API Key",
+                                  icon: Icon(Icons.key),
+                                  border: OutlineInputBorder(),
+                                ),
+                                autofillHints: const [AutofillHints.password],
+                                validator: FormBuilderValidators.required(),
+                                onSubmitted: (_) => _submit(),
                               ),
-                              autofillHints: const [AutofillHints.password],
-                              validator: FormBuilderValidators.required(),
-                              onSubmitted: (_) => _submit(),
-                            ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                     ListenableBuilder(
