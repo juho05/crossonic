@@ -9,6 +9,7 @@ enum SongsPageMode {
   all,
   random,
   favorites,
+  genre,
 }
 
 class SongsViewModel extends ChangeNotifier {
@@ -22,6 +23,9 @@ class SongsViewModel extends ChangeNotifier {
   SongsPageMode _mode = SongsPageMode.random;
   SongsPageMode get mode => _mode;
   set mode(SongsPageMode mode) {
+    if (mode == SongsPageMode.genre) {
+      throw Exception("genre mode must be set via constructor");
+    }
     if (!supportsAllMode && mode == SongsPageMode.all) {
       mode = SongsPageMode.random;
     }
@@ -37,13 +41,31 @@ class SongsViewModel extends ChangeNotifier {
   FetchStatus _status = FetchStatus.initial;
   FetchStatus get status => _status;
 
+  final String _genre;
+
   SongsViewModel({
     required SubsonicRepository subsonic,
     required AudioHandler audioHandler,
     required SongsPageMode mode,
   })  : _subsonic = subsonic,
-        _audioHandler = audioHandler {
+        _audioHandler = audioHandler,
+        _genre = "" {
+    if (mode == SongsPageMode.genre) {
+      throw Exception(
+          "cannot set genre page mode via default constructor, use genre constructor instead");
+    }
     this.mode = mode;
+  }
+
+  SongsViewModel.genre({
+    required SubsonicRepository subsonic,
+    required AudioHandler audioHandler,
+    required String genre,
+  })  : _subsonic = subsonic,
+        _audioHandler = audioHandler,
+        _genre = genre {
+    _mode = SongsPageMode.genre;
+    _fetch(0);
   }
 
   Future<void> nextPage() async {
@@ -101,6 +123,9 @@ class SongsViewModel extends ChangeNotifier {
         }
       case SongsPageMode.favorites:
         result = await _subsonic.getStarredSongs();
+      case SongsPageMode.genre:
+        result = await _subsonic.getSongsByGenre(_genre,
+            count: _pageSize, offset: page * _pageSize);
     }
     switch (result) {
       case Err():

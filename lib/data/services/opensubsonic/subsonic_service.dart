@@ -8,12 +8,14 @@ import 'package:crossonic/data/services/opensubsonic/models/albumid3_model.dart'
 import 'package:crossonic/data/services/opensubsonic/models/artist_info2_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/artistid3_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/artists_model.dart';
+import 'package:crossonic/data/services/opensubsonic/models/genres_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/listenbrainz_config_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/opensubsonic_extension_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/random_songs_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/scan_status_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/search_result3_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/server_info.dart';
+import 'package:crossonic/data/services/opensubsonic/models/songs_by_genre_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/starred2_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/token_info_model.dart';
 import 'package:crossonic/utils/exceptions.dart';
@@ -37,6 +39,28 @@ enum AlbumListType {
 class SubsonicService {
   static const String _clientName = "crossonic";
   static const String _protocolVersion = "1.16.1";
+
+  Future<Result<SongsByGenreModel>> getSongsByGenre(
+    Connection con,
+    String genre, {
+    int? count,
+    int? offset,
+  }) async {
+    return await _fetchObject(
+        con,
+        "getSongsByGenre",
+        {
+          "genre": [genre],
+          "count": count != null ? [count.toString()] : [],
+          "offset": offset != null ? [offset.toString()] : [],
+        },
+        SongsByGenreModel.fromJson,
+        "songsByGenre");
+  }
+
+  Future<Result<GenresModel>> getGenres(Connection con) async {
+    return _fetchObject(con, "getGenres", {}, GenresModel.fromJson, "genres");
+  }
 
   Future<Result<void>> scrobble(
       Connection con,

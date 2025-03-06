@@ -32,6 +32,11 @@ class BrowseGrid extends StatelessWidget {
             text: "Songs",
             route: SongsRoute(),
           ),
+          BrowseGridButton(
+            icon: Icons.theater_comedy,
+            text: "Genres",
+            route: GenresRoute(),
+          ),
         ],
       ),
     );

@@ -33,7 +33,7 @@ class HomePage extends StatelessWidget {
               builder: (context, _) => HomeAlbumList(
                 title: "Recently added albums",
                 route: AlbumsRoute(
-                  initialSort: AlbumsSortMode.recentlyAdded.name,
+                  mode: AlbumsSortMode.recentlyAdded.name,
                 ),
                 viewModel: context.read(),
               ),
@@ -46,7 +46,7 @@ class HomePage extends StatelessWidget {
               builder: (context, _) => HomeSongList(
                 title: "Random songs",
                 route: SongsRoute(
-                  initialSort: SongsPageMode.random.name,
+                  mode: SongsPageMode.random.name,
                 ),
                 viewModel: context.read(),
               ),

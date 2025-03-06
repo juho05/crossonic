@@ -5,6 +5,7 @@ import 'package:crossonic/data/repositories/subsonic/models/album.dart';
 import 'package:crossonic/data/repositories/subsonic/models/album_info.dart';
 import 'package:crossonic/data/repositories/subsonic/models/artist.dart';
 import 'package:crossonic/data/repositories/subsonic/models/artist_info.dart';
+import 'package:crossonic/data/repositories/subsonic/models/genre.dart';
 import 'package:crossonic/data/repositories/subsonic/models/listenbrainz_config.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
 import 'package:crossonic/data/services/opensubsonic/models/albumid3_model.dart';
@@ -49,6 +50,53 @@ class SubsonicRepository {
   })  : _auth = authRepository,
         _service = subsonicService,
         _favorites = favoritesRepository;
+
+  Future<Result<Iterable<Album>>> getAlbumsByGenre(String genre, int count,
+      [int offset = 0]) async {
+    final result = await _service.getAlbumList2(
+      _auth.con,
+      AlbumListType.byGenre,
+      genre: genre,
+      size: count,
+      offset: offset,
+    );
+    switch (result) {
+      case Err():
+        return Result.error(result.error);
+      case Ok():
+    }
+    _updateAlbumFavorites(result.value.album);
+    return Result.ok(result.value.album.map((a) => Album.fromAlbumID3Model(a)));
+  }
+
+  Future<Result<List<Song>>> getSongsByGenre(
+    String genre, {
+    int? count,
+    int? offset,
+  }) async {
+    final result = await _service.getSongsByGenre(_auth.con, genre,
+        count: count, offset: offset);
+    switch (result) {
+      case Err():
+        return Result.error(result.error);
+      case Ok():
+    }
+    _updateSongFavorites(result.value.song);
+    return Result.ok(
+        (result.value.song ?? []).map((c) => Song.fromChildModel(c)).toList());
+  }
+
+  Future<Result<List<Genre>>> getGenres() async {
+    final result = await _service.getGenres(_auth.con);
+    switch (result) {
+      case Err():
+        return Result.error(result.error);
+      case Ok():
+    }
+    return Result.ok((result.value.genre ?? [])
+        .map((g) => Genre.fromGenreModel(g))
+        .toList());
+  }
 
   Future<Result<ListenBrainzConfig>> connectListenBrainz(String token) async {
     final result = await _service.connectListenBrainz(_auth.con, token);

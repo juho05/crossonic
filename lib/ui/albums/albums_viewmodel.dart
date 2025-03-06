@@ -5,15 +5,28 @@ import 'package:crossonic/utils/fetch_status.dart';
 import 'package:crossonic/utils/result.dart';
 import 'package:flutter/material.dart';
 
+enum AlbumsPageMode {
+  alphabetical,
+  favorites,
+  random,
+  recentlyAdded,
+  recentlyPlayed,
+  frequentlyPlayed,
+  genre
+}
+
 class AlbumsViewModel extends ChangeNotifier {
   final SubsonicRepository _subsonic;
   final AudioHandler _audioHandler;
 
-  static final int _pageSize = 50;
+  static final int _pageSize = 100;
 
-  AlbumsSortMode _mode;
-  AlbumsSortMode get mode => _mode;
-  set mode(AlbumsSortMode mode) {
+  AlbumsPageMode _mode;
+  AlbumsPageMode get mode => _mode;
+  set mode(AlbumsPageMode mode) {
+    if (mode == AlbumsPageMode.genre) {
+      throw Exception("genre mode can only be set via constructor");
+    }
     _mode = mode;
     _fetch(0);
   }
@@ -26,16 +39,36 @@ class AlbumsViewModel extends ChangeNotifier {
   FetchStatus _status = FetchStatus.initial;
   FetchStatus get status => _status;
 
+  final String _genre;
+
   AlbumsViewModel({
     required SubsonicRepository subsonic,
     required AudioHandler audioHandler,
-    required AlbumsSortMode mode,
+    required AlbumsPageMode mode,
   })  : _subsonic = subsonic,
         _audioHandler = audioHandler,
-        _mode = mode;
+        _mode = mode,
+        _genre = "" {
+    if (mode == AlbumsPageMode.genre) {
+      throw Exception(
+          "cannot set genre mode in default constructor, use genre constructor instead");
+    }
+    this.mode = mode;
+  }
+
+  AlbumsViewModel.genre({
+    required SubsonicRepository subsonic,
+    required AudioHandler audioHandler,
+    required String genre,
+  })  : _subsonic = subsonic,
+        _audioHandler = audioHandler,
+        _mode = AlbumsPageMode.genre,
+        _genre = genre {
+    _fetch(0);
+  }
 
   Future<void> nextPage() async {
-    if (_reachedEnd || _mode == AlbumsSortMode.random) return;
+    if (_reachedEnd || _mode == AlbumsPageMode.random) return;
     return await _fetch(_nextPage);
   }
 
@@ -72,8 +105,26 @@ class AlbumsViewModel extends ChangeNotifier {
       albums.removeRange(page * _pageSize, albums.length);
     }
     notifyListeners();
-    final result = await _subsonic.getAlbums(_mode,
-        _mode == AlbumsSortMode.random ? 300 : _pageSize, page * _pageSize);
+    final Result<Iterable<Album>> result;
+    if (_mode == AlbumsPageMode.genre) {
+      result =
+          await _subsonic.getAlbumsByGenre(_genre, _pageSize, page * _pageSize);
+    } else {
+      result = await _subsonic.getAlbums(
+        switch (_mode) {
+          AlbumsPageMode.alphabetical => AlbumsSortMode.alphabetical,
+          AlbumsPageMode.favorites => AlbumsSortMode.starred,
+          AlbumsPageMode.frequentlyPlayed => AlbumsSortMode.frequentlyPlayed,
+          AlbumsPageMode.random => AlbumsSortMode.random,
+          AlbumsPageMode.recentlyAdded => AlbumsSortMode.recentlyAdded,
+          AlbumsPageMode.recentlyPlayed => AlbumsSortMode.recentlyPlayed,
+          AlbumsPageMode.genre =>
+            AlbumsSortMode.alphabetical, // shouldn't happen
+        },
+        _mode == AlbumsPageMode.random ? 500 : _pageSize,
+        page * _pageSize,
+      );
+    }
     switch (result) {
       case Err():
         _status = FetchStatus.failure;

@@ -1,5 +1,4 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:crossonic/data/repositories/subsonic/subsonic_repository.dart';
 import 'package:crossonic/routing/router.gr.dart';
 import 'package:crossonic/ui/albums/albums_viewmodel.dart';
 import 'package:crossonic/ui/common/album_grid_cell.dart';
@@ -12,10 +11,14 @@ import 'package:provider/provider.dart';
 
 @RoutePage()
 class AlbumsPage extends StatefulWidget {
-  final String initialSort;
+  final String mode;
+  final String? genre;
 
-  const AlbumsPage(
-      {super.key, @QueryParam("sort") this.initialSort = "alphabetical"});
+  const AlbumsPage({
+    super.key,
+    @QueryParam("mode") this.mode = "alphabetical",
+    @QueryParam("genre") this.genre,
+  });
 
   @override
   State<AlbumsPage> createState() => _AlbumsPageState();
@@ -29,14 +32,22 @@ class _AlbumsPageState extends State<AlbumsPage> {
   @override
   void initState() {
     super.initState();
-    _viewModel = AlbumsViewModel(
-      audioHandler: context.read(),
-      subsonic: context.read(),
-      mode: AlbumsSortMode.values.firstWhere(
-        (m) => m.name == widget.initialSort,
-        orElse: () => AlbumsSortMode.alphabetical,
-      ),
-    )..nextPage();
+    if (widget.genre != null) {
+      _viewModel = AlbumsViewModel.genre(
+        audioHandler: context.read(),
+        subsonic: context.read(),
+        genre: widget.genre!,
+      );
+    } else {
+      _viewModel = AlbumsViewModel(
+        audioHandler: context.read(),
+        subsonic: context.read(),
+        mode: AlbumsPageMode.values.firstWhere(
+          (m) => m.name == widget.mode,
+          orElse: () => AlbumsPageMode.alphabetical,
+        ),
+      );
+    }
     _controller.addListener(_onScroll);
   }
 
@@ -58,50 +69,69 @@ class _AlbumsPageState extends State<AlbumsPage> {
                 controller: _controller,
                 slivers: [
                   SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Align(
-                        alignment: Alignment.centerLeft,
-                        child: DropdownMenu<AlbumsSortMode>(
-                          initialSelection: _viewModel.mode,
-                          requestFocusOnTap: false,
-                          expandedInsets: orientation == Orientation.portrait
-                              ? EdgeInsets.zero
-                              : null,
-                          enableSearch: false,
-                          dropdownMenuEntries: [
-                            DropdownMenuEntry(
-                              value: AlbumsSortMode.alphabetical,
-                              label: "Alphabetical",
+                    child: _viewModel.mode != AlbumsPageMode.genre
+                        ? Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Align(
+                              alignment: Alignment.centerLeft,
+                              child: DropdownMenu<AlbumsPageMode>(
+                                initialSelection: _viewModel.mode,
+                                requestFocusOnTap: false,
+                                leadingIcon: Icon(Icons.sort),
+                                expandedInsets:
+                                    orientation == Orientation.portrait
+                                        ? EdgeInsets.zero
+                                        : null,
+                                enableSearch: false,
+                                dropdownMenuEntries: [
+                                  DropdownMenuEntry(
+                                    value: AlbumsPageMode.alphabetical,
+                                    label: "Alphabetical",
+                                  ),
+                                  DropdownMenuEntry(
+                                    value: AlbumsPageMode.favorites,
+                                    label: "Favorites",
+                                  ),
+                                  DropdownMenuEntry(
+                                    value: AlbumsPageMode.random,
+                                    label: "Random",
+                                  ),
+                                  DropdownMenuEntry(
+                                    value: AlbumsPageMode.recentlyAdded,
+                                    label: "Recently added",
+                                  ),
+                                  DropdownMenuEntry(
+                                    value: AlbumsPageMode.recentlyPlayed,
+                                    label: "Recently played",
+                                  ),
+                                  DropdownMenuEntry(
+                                    value: AlbumsPageMode.frequentlyPlayed,
+                                    label: "Frequently played",
+                                  ),
+                                ],
+                                onSelected: (AlbumsPageMode? mode) {
+                                  if (mode == null) return;
+                                  _viewModel.mode = mode;
+                                },
+                              ),
                             ),
-                            DropdownMenuEntry(
-                              value: AlbumsSortMode.starred,
-                              label: "Favorites",
+                          )
+                        : Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 4,
                             ),
-                            DropdownMenuEntry(
-                              value: AlbumsSortMode.random,
-                              label: "Random",
+                            child: Text(
+                              "Genre: ${widget.genre}",
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .labelLarge!
+                                  .copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                  ),
                             ),
-                            DropdownMenuEntry(
-                              value: AlbumsSortMode.recentlyAdded,
-                              label: "Recently added",
-                            ),
-                            DropdownMenuEntry(
-                              value: AlbumsSortMode.recentlyPlayed,
-                              label: "Recently played",
-                            ),
-                            DropdownMenuEntry(
-                              value: AlbumsSortMode.frequentlyPlayed,
-                              label: "Frequently played",
-                            ),
-                          ],
-                          onSelected: (AlbumsSortMode? sortMode) {
-                            if (sortMode == null) return;
-                            _viewModel.mode = sortMode;
-                          },
-                        ),
-                      ),
-                    ),
+                          ),
                   ),
                   if (_viewModel.status == FetchStatus.success &&
                       _viewModel.albums.isEmpty)

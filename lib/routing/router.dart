@@ -45,7 +45,13 @@ class AppRouter extends RootStackRouter {
       page: SongsRoute.page,
       title: (context, data) => "Songs",
       restorationId: (match) => match.fullPath,
-    )
+    ),
+    AutoRoute(
+      path: "genres",
+      page: GenresRoute.page,
+      title: (context, data) => "Genres",
+      restorationId: (match) => match.fullPath,
+    ),
   ];
 
   @override

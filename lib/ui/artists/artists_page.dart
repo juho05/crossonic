@@ -59,6 +59,7 @@ class _ArtistsPageState extends State<ArtistsPage> {
                         child: DropdownMenu<ArtistsPageMode>(
                           initialSelection: _viewModel.mode,
                           requestFocusOnTap: false,
+                          leadingIcon: Icon(Icons.sort),
                           expandedInsets: orientation == Orientation.portrait
                               ? EdgeInsets.zero
                               : null,

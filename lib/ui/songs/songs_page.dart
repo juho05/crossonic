@@ -10,9 +10,14 @@ import 'package:provider/provider.dart';
 
 @RoutePage()
 class SongsPage extends StatefulWidget {
-  final String initialSort;
+  final String mode;
+  final String? genre;
 
-  const SongsPage({super.key, @QueryParam("sort") this.initialSort = "all"});
+  const SongsPage({
+    super.key,
+    @QueryParam("mode") this.mode = "all",
+    @QueryParam("genre") this.genre,
+  });
 
   @override
   State<SongsPage> createState() => _SongsPageState();
@@ -26,14 +31,24 @@ class _SongsPageState extends State<SongsPage> {
   @override
   void initState() {
     super.initState();
-    _viewModel = SongsViewModel(
-      audioHandler: context.read(),
-      subsonic: context.read(),
-      mode: SongsPageMode.values.firstWhere(
-        (m) => m.name == widget.initialSort,
-        orElse: () => SongsPageMode.all,
-      ),
-    )..nextPage();
+    if (widget.genre != null) {
+      _viewModel = SongsViewModel.genre(
+        audioHandler: context.read(),
+        subsonic: context.read(),
+        genre: widget.genre!,
+      )..nextPage();
+    } else {
+      _viewModel = SongsViewModel(
+        audioHandler: context.read(),
+        subsonic: context.read(),
+        mode: SongsPageMode.values
+            .where((m) => m != SongsPageMode.genre)
+            .firstWhere(
+              (m) => m.name == widget.mode,
+              orElse: () => SongsPageMode.all,
+            ),
+      )..nextPage();
+    }
     _controller.addListener(_onScroll);
   }
 
@@ -61,39 +76,57 @@ class _SongsPageState extends State<SongsPage> {
                         : 1),
                 itemBuilder: (context, index) {
                   if (index == 0) {
-                    return Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Align(
-                        alignment: Alignment.centerLeft,
-                        child: DropdownMenu<SongsPageMode>(
-                          initialSelection: _viewModel.mode,
-                          requestFocusOnTap: false,
-                          enableSearch: false,
-                          expandedInsets: orientation == Orientation.portrait
-                              ? EdgeInsets.zero
-                              : null,
-                          dropdownMenuEntries: [
-                            if (_viewModel.supportsAllMode)
-                              DropdownMenuEntry(
-                                value: SongsPageMode.all,
-                                label: "All",
-                              ),
-                            DropdownMenuEntry(
-                              value: SongsPageMode.favorites,
-                              label: "Favorites",
-                            ),
-                            DropdownMenuEntry(
-                              value: SongsPageMode.random,
-                              label: "Random",
-                            ),
-                          ],
-                          onSelected: (SongsPageMode? sortMode) {
-                            if (sortMode == null) return;
-                            _viewModel.mode = sortMode;
-                          },
+                    if (_viewModel.mode == SongsPageMode.genre) {
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 4,
                         ),
-                      ),
-                    );
+                        child: Text(
+                          "Genre: ${widget.genre}",
+                          style:
+                              Theme.of(context).textTheme.labelLarge!.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                  ),
+                        ),
+                      );
+                    } else {
+                      return Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: DropdownMenu<SongsPageMode>(
+                            initialSelection: _viewModel.mode,
+                            requestFocusOnTap: false,
+                            leadingIcon: Icon(Icons.sort),
+                            enableSearch: false,
+                            expandedInsets: orientation == Orientation.portrait
+                                ? EdgeInsets.zero
+                                : null,
+                            dropdownMenuEntries: [
+                              if (_viewModel.supportsAllMode)
+                                DropdownMenuEntry(
+                                  value: SongsPageMode.all,
+                                  label: "All",
+                                ),
+                              DropdownMenuEntry(
+                                value: SongsPageMode.favorites,
+                                label: "Favorites",
+                              ),
+                              DropdownMenuEntry(
+                                value: SongsPageMode.random,
+                                label: "Random",
+                              ),
+                            ],
+                            onSelected: (SongsPageMode? sortMode) {
+                              if (sortMode == null) return;
+                              _viewModel.mode = sortMode;
+                            },
+                          ),
+                        ),
+                      );
+                    }
                   }
                   if (index == 1) {
                     return Padding(
@@ -109,7 +142,7 @@ class _SongsPageState extends State<SongsPage> {
                             label: Text("Play"),
                             icon: Icon(Icons.play_arrow),
                             onPressed: () {
-                              _viewModel.play(index);
+                              _viewModel.play(index - 1);
                             },
                           ),
                           ElevatedButton.icon(
