@@ -27,4 +27,6 @@ class StructuredLyricsModel {
 
   factory StructuredLyricsModel.fromJson(Map<String, dynamic> json) =>
       _$StructuredLyricsModelFromJson(json);
+
+  Map<String, dynamic> toJson() => _$StructuredLyricsModelToJson(this);
 }

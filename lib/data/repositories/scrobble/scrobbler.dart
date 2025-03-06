@@ -103,7 +103,7 @@ class Scrobbler {
     if (_submitting) return;
     _submitting = true;
     try {
-      final scrobbles = await _db.managers.scrobble.filter((f) {
+      final scrobbles = await _db.managers.scrobbleTable.filter((f) {
         if (_auth.serverFeatures.isCrossonic) {
           return (f.songId(_current?.songId) & f.startTime(_current?.time))
                   .not() &
@@ -160,7 +160,7 @@ class Scrobbler {
           }
         }
       }
-      await _db.managers.scrobble
+      await _db.managers.scrobbleTable
           .filter((f) =>
               (f.songId(_current?.songId) & f.startTime(_current?.time)).not())
           .delete();
@@ -175,7 +175,7 @@ class Scrobbler {
       _current!.listenDuration += DateTime.now().difference(_playingSince!);
     }
     _playingSince = _playing ? DateTime.now() : null;
-    await _db.managers.scrobble.create(
+    await _db.managers.scrobbleTable.create(
       (o) => o(
         songId: _current!.songId,
         startTime: _current!.time,

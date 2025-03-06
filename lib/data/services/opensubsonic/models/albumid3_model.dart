@@ -69,4 +69,6 @@ class AlbumID3Model {
 
   factory AlbumID3Model.fromJson(Map<String, dynamic> json) =>
       _$AlbumID3ModelFromJson(json);
+
+  Map<String, dynamic> toJson() => _$AlbumID3ModelToJson(this);
 }

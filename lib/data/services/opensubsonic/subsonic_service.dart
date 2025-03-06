@@ -13,6 +13,8 @@ import 'package:crossonic/data/services/opensubsonic/models/listenbrainz_config_
 import 'package:crossonic/data/services/opensubsonic/models/lyrics_list_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/lyrics_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/opensubsonic_extension_model.dart';
+import 'package:crossonic/data/services/opensubsonic/models/playlist_model.dart';
+import 'package:crossonic/data/services/opensubsonic/models/playlists_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/random_songs_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/scan_status_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/search_result3_model.dart';
@@ -41,6 +43,80 @@ enum AlbumListType {
 class SubsonicService {
   static const String _clientName = "crossonic";
   static const String _protocolVersion = "1.16.1";
+
+  Future<Result<void>> updatePlaylist(
+    Connection con,
+    String playlistId, {
+    String? name,
+    String? comment,
+    Iterable<String> songIdToAdd = const [],
+    Iterable<int> songIndexToRemove = const [],
+  }) async {
+    return await _fetchJson(
+      con,
+      "updatePlaylist",
+      {
+        "playlistId": [playlistId],
+        "name": name != null ? [name] : [],
+        "comment": comment != null ? [comment] : [],
+        "songIdToAdd": songIdToAdd,
+        "songIndexToRemove": songIndexToRemove.map((i) => i.toString()),
+      },
+      null,
+    );
+  }
+
+  Future<Result<PlaylistsModel>> getPlaylists(Connection con) async {
+    return await _fetchObject(
+      con,
+      "getPlaylists",
+      {},
+      PlaylistsModel.fromJson,
+      "playlists",
+    );
+  }
+
+  Future<Result<PlaylistModel>> getPlaylist(Connection con, String id) async {
+    return await _fetchObject(
+      con,
+      "getPlaylist",
+      {
+        "id": [id],
+      },
+      PlaylistModel.fromJson,
+      "playlist",
+    );
+  }
+
+  Future<Result<void>> deletePlaylist(Connection con, String id) async {
+    return _fetchJson(
+      con,
+      "deletePlaylist",
+      {
+        "id": [id],
+      },
+      null,
+    );
+  }
+
+  Future<Result<PlaylistModel>> createPlaylist(
+    Connection con, {
+    String? playlistId,
+    String? playlistName,
+    Iterable<String> songIds = const [],
+  }) async {
+    return await _fetchObject(
+      con,
+      "createPlaylist",
+      {
+        "playlistId": playlistId != null ? [playlistId] : [],
+        "name": playlistName != null ? [playlistName] : [],
+        "songId": songIds,
+      },
+      PlaylistModel.fromJson,
+      "playlist",
+    );
+  }
 
   Future<Result<SongsByGenreModel>> getSongsByGenre(
     Connection con,

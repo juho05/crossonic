@@ -3,13 +3,17 @@ import 'dart:io';
 
 import 'package:audio_service/audio_service.dart' as asv;
 import 'package:crossonic/data/repositories/audio/audio_handler.dart';
+import 'package:crossonic/data/repositories/playlist/playlist_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
 import 'package:crossonic/data/services/media_integration/media_integration.dart';
+import 'package:crossonic/utils/result.dart';
 import 'package:flutter/foundation.dart';
 
 class AudioServiceIntegration extends asv.BaseAudioHandler
     with asv.SeekHandler
     implements MediaIntegration {
+  final PlaylistRepository _playlistRepository;
+
   Future<void> Function()? _onPlay;
   Future<void> Function()? _onPause;
   Future<void> Function(Duration position)? _onSeek;
@@ -19,7 +23,9 @@ class AudioServiceIntegration extends asv.BaseAudioHandler
 
   AudioHandler? _audioHandler;
 
-  AudioServiceIntegration();
+  AudioServiceIntegration({
+    required PlaylistRepository playlistRepository,
+  }) : _playlistRepository = playlistRepository;
 
   @override
   void ensureInitialized({
@@ -64,8 +70,22 @@ class AudioServiceIntegration extends asv.BaseAudioHandler
       ];
     }
     if (parentMediaId == "playlists") {
-      // TODO
-      return [];
+      final result = await _playlistRepository.getPlaylists();
+      switch (result) {
+        case Err():
+          print(result.error);
+          return [];
+        case Ok():
+      }
+      return result.value
+          .map((p) => asv.MediaItem(
+                id: p.id,
+                title: p.name,
+                playable: false,
+                displayDescription: "Songs: ${p.songCount}",
+                artUri: _playlistRepository.getPlaylistCoverUri(p),
+              ))
+          .toList();
     }
     return [
       asv.MediaItem(
@@ -85,8 +105,22 @@ class AudioServiceIntegration extends asv.BaseAudioHandler
   Future<void> playFromMediaId(String mediaId,
       [Map<String, dynamic>? extras]) async {
     if (mediaId.startsWith("playlist;")) {
-      final playlistId = mediaId.split(";")[2];
-      // TODO
+      final parts = mediaId.split(";");
+      final result = await _playlistRepository.getPlaylist(parts[2]);
+      switch (result) {
+        case Err():
+          throw result.error;
+        case Ok():
+      }
+      if (result.value == null) {
+        throw Exception("playlist not found");
+      }
+      final songs = result.value!.tracks;
+      if (parts[1] == "shuffle") {
+        songs.shuffle();
+      }
+      _audioHandler?.playOnNextMediaChange();
+      _audioHandler?.queue.replace(songs);
       return;
     }
   }

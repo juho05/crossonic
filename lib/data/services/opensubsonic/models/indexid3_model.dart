@@ -15,4 +15,6 @@ class IndexID3Model {
 
   factory IndexID3Model.fromJson(Map<String, dynamic> json) =>
       _$IndexID3ModelFromJson(json);
+
+  Map<String, dynamic> toJson() => _$IndexID3ModelToJson(this);
 }

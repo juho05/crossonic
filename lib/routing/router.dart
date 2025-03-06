@@ -29,6 +29,12 @@ class AppRouter extends RootStackRouter {
       restorationId: (match) => match.fullPath,
     ),
     AutoRoute(
+      path: "playlist/:id",
+      page: PlaylistRoute.page,
+      title: (context, data) => "Playlist",
+      restorationId: (match) => match.fullPath,
+    ),
+    AutoRoute(
       path: "artists",
       page: ArtistsRoute.page,
       title: (context, data) => "Artists",
@@ -84,6 +90,20 @@ class AppRouter extends RootStackRouter {
                   page: BrowseRoute.page,
                   path: "",
                   title: (context, data) => "Browse",
+                ),
+                ..._childRoutes,
+              ],
+              restorationId: (match) => match.fullPath,
+            ),
+            AutoRoute(
+              path: "playlists",
+              page: EmptyShellRoute("PlaylistTab"),
+              title: (context, data) => "",
+              children: [
+                AutoRoute(
+                  page: PlaylistsRoute.page,
+                  path: "",
+                  title: (context, data) => "Playlists",
                 ),
                 ..._childRoutes,
               ],

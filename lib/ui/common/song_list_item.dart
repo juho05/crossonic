@@ -15,6 +15,7 @@ class SongListItem extends StatefulWidget {
   final String? album;
   final int? year;
   final int? trackNr;
+  final int? trackDigits;
   final String? coverId;
   final Duration? duration;
   final int? reorderIndex;
@@ -35,6 +36,7 @@ class SongListItem extends StatefulWidget {
     this.album,
     this.year,
     this.trackNr,
+    this.trackDigits,
     this.coverId,
     this.duration,
     this.onTap,
@@ -88,6 +90,7 @@ class _SongListItemState extends State<SongListItem> {
               viewModel: viewModel,
               coverId: widget.coverId,
               trackNr: widget.trackNr,
+              trackDigits: widget.trackDigits,
               reorderIndex: widget.reorderIndex,
             ),
             trailingInfo: widget.duration != null
@@ -151,6 +154,7 @@ class _SongListItemState extends State<SongListItem> {
 
 class SongLeadingWidget extends StatelessWidget {
   final int? trackNr;
+  final int? trackDigits;
   final String? coverId;
   final int? reorderIndex;
 
@@ -159,6 +163,7 @@ class SongLeadingWidget extends StatelessWidget {
   const SongLeadingWidget({
     super.key,
     this.trackNr,
+    this.trackDigits,
     this.coverId,
     this.reorderIndex,
     required this.viewModel,
@@ -172,7 +177,7 @@ class SongLeadingWidget extends StatelessWidget {
       leading = Center(
         child: viewModel.playbackStatus == null
             ? Text(
-                trackNr!.toString().padLeft(2, "0"),
+                trackNr!.toString().padLeft(trackDigits ?? 2, "0"),
                 overflow: TextOverflow.ellipsis,
                 style:
                     textTheme.bodyMedium!.copyWith(fontWeight: FontWeight.w500),

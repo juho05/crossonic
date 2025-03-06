@@ -1,6 +1,8 @@
 import 'package:crossonic/data/services/database/database.steps.dart';
 import 'package:crossonic/data/services/database/log_interceptor.dart';
 import 'package:crossonic/data/services/database/tables/key_value.dart';
+import 'package:crossonic/data/services/database/tables/playlist.dart';
+import 'package:crossonic/data/services/database/tables/playlist_song.dart';
 import 'package:crossonic/data/services/database/tables/scrobble.dart';
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
@@ -9,12 +11,13 @@ import 'package:path_provider/path_provider.dart';
 
 part 'database.g.dart';
 
-@DriftDatabase(tables: [KeyValue, Scrobble])
+@DriftDatabase(
+    tables: [KeyValueTable, ScrobbleTable, PlaylistTable, PlaylistSongTable])
 class Database extends _$Database {
   Database([QueryExecutor? e]) : super(e ?? _openConnection());
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   Future<void> clearAll() async {
     customStatement("PRAGMA foreign_keys = OFF");
@@ -41,6 +44,10 @@ class Database extends _$Database {
               steps: migrationSteps(
                 from1To2: (m, schema) async {
                   await m.createTable(schema.scrobble);
+                },
+                from2To3: (m, schema) async {
+                  await m.createTable(schema.playlist);
+                  await m.createTable(schema.playlistSong);
                 },
               ),
             ),

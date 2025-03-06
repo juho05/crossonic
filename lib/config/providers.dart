@@ -6,6 +6,7 @@ import 'package:crossonic/data/repositories/audio/audio_handler.dart' as ah;
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
 import 'package:crossonic/data/repositories/cover/cover_repository.dart';
 import 'package:crossonic/data/repositories/keyvalue/key_value_repository.dart';
+import 'package:crossonic/data/repositories/playlist/playlist_repository.dart';
 import 'package:crossonic/data/repositories/scrobble/scrobbler.dart';
 import 'package:crossonic/data/repositories/settings/settings_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/favorites_repository.dart';
@@ -35,6 +36,18 @@ Future<List<SingleChildWidget>> get providers async {
   );
   await authRepository.loadState();
 
+  final favoritesRepository = FavoritesRepository(
+        auth: authRepository,
+        subsonic: subsonicService,
+      );
+
+  final playlistRepository = PlaylistRepository(
+        subsonic: subsonicService,
+        favorites: favoritesRepository,
+        auth: authRepository,
+        db: database,
+      );
+
   final MediaIntegration mediaIntegration;
   if (!kIsWeb && Platform.isWindows) {
     mediaIntegration = SMTCIntegration();
@@ -51,7 +64,9 @@ Future<List<SingleChildWidget>> get providers async {
     }
 
     final audioService = await AudioService.init(
-        builder: () => AudioServiceIntegration(),
+        builder: () => AudioServiceIntegration(
+          playlistRepository: playlistRepository
+        ),
         config: AudioServiceConfig(
           androidNotificationChannelId: "de.julianh.crossonic",
           androidNotificationChannelName: "Music playback",
@@ -88,11 +103,8 @@ Future<List<SingleChildWidget>> get providers async {
     ChangeNotifierProvider.value(
       value: authRepository,
     ),
-    ChangeNotifierProvider(
-      create: (context) => FavoritesRepository(
-        auth: context.read(),
-        subsonic: context.read(),
-      ),
+    ChangeNotifierProvider.value(
+      value: favoritesRepository,
     ),
     Provider(
       create: (context) => SubsonicRepository(
@@ -134,5 +146,8 @@ Future<List<SingleChildWidget>> get providers async {
       dispose: (context, value) => value.dispose(),
       lazy: false,
     ),
+    ChangeNotifierProvider.value(
+      value: playlistRepository,
+    )
   ];
 }

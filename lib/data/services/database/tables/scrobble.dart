@@ -1,6 +1,6 @@
 import 'package:drift/drift.dart';
 
-class Scrobble extends Table {
+class ScrobbleTable extends Table {
   late final songId = text()();
   late final startTime = dateTime()();
   late final listenDurationMs = integer()();
@@ -8,4 +8,7 @@ class Scrobble extends Table {
 
   @override
   Set<Column<Object>> get primaryKey => {songId, startTime};
+
+  @override
+  String? get tableName => "scrobble";
 }

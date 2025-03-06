@@ -11,4 +11,6 @@ class RandomSongsModel {
 
   factory RandomSongsModel.fromJson(Map<String, dynamic> json) =>
       _$RandomSongsModelFromJson(json);
+
+  Map<String, dynamic> toJson() => _$RandomSongsModelToJson(this);
 }

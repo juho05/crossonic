@@ -12,4 +12,6 @@ class AlbumList2Model {
 
   factory AlbumList2Model.fromJson(Map<String, dynamic> json) =>
       _$AlbumList2ModelFromJson(json);
+
+  Map<String, dynamic> toJson() => _$AlbumList2ModelToJson(this);
 }

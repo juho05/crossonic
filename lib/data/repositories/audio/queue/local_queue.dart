@@ -85,20 +85,23 @@ class LocalQueue extends ChangeNotifier implements MediaQueue {
   @override
   void clear(
       {bool queue = true, int fromIndex = 0, bool priorityQueue = true}) {
-    if (queue && fromIndex < _queue.length) {
-      _queue.removeRange(fromIndex, _queue.length);
-    }
     if (priorityQueue) {
       _priorityQueue.clear();
     }
-    if (fromIndex <= _currentIndex) {
-      if (_priorityQueue.isNotEmpty) {
-        _current.add((song: _priorityQueue.removeFirst(), fromAdvance: false));
-      } else if (_nextIndex < fromIndex) {
-        _incrementCurrentIndex();
-        _current.add((song: _queue[_currentIndex], fromAdvance: false));
-      } else if (_current.value.song != null) {
-        _current.add((song: null, fromAdvance: false));
+    if (queue) {
+      if (fromIndex < _queue.length) {
+        _queue.removeRange(fromIndex, _queue.length);
+      }
+      if (fromIndex <= _currentIndex) {
+        if (_priorityQueue.isNotEmpty) {
+          _current
+              .add((song: _priorityQueue.removeFirst(), fromAdvance: false));
+        } else if (_nextIndex < fromIndex) {
+          _incrementCurrentIndex();
+          _current.add((song: _queue[_currentIndex], fromAdvance: false));
+        } else if (_current.value.song != null) {
+          _current.add((song: null, fromAdvance: false));
+        }
       }
     }
     _next.add(_priorityQueue.isNotEmpty

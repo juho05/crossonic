@@ -22,4 +22,6 @@ class AlbumInfoModel {
 
   factory AlbumInfoModel.fromJson(Map<String, dynamic> json) =>
       _$AlbumInfoModelFromJson(json);
+
+  Map<String, dynamic> toJson() => _$AlbumInfoModelToJson(this);
 }

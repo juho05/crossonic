@@ -14,4 +14,6 @@ class ScanStatusModel {
 
   factory ScanStatusModel.fromJson(Map<String, dynamic> json) =>
       _$ScanStatusModelFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ScanStatusModelToJson(this);
 }

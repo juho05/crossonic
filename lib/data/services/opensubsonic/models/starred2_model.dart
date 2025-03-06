@@ -19,4 +19,6 @@ class Starred2Model {
 
   factory Starred2Model.fromJson(Map<String, dynamic> json) =>
       _$Starred2ModelFromJson(json);
+
+  Map<String, dynamic> toJson() => _$Starred2ModelToJson(this);
 }

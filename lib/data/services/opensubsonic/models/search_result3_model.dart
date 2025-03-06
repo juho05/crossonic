@@ -19,4 +19,6 @@ class SearchResult3Model {
 
   factory SearchResult3Model.fromJson(Map<String, dynamic> json) =>
       _$SearchResult3ModelFromJson(json);
+
+  Map<String, dynamic> toJson() => _$SearchResult3ModelToJson(this);
 }

@@ -112,4 +112,6 @@ class ChildModel {
 
   factory ChildModel.fromJson(Map<String, dynamic> json) =>
       _$ChildModelFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ChildModelToJson(this);
 }

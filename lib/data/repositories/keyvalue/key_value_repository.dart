@@ -9,14 +9,14 @@ class KeyValueRepository {
   KeyValueRepository({required Database database}) : _db = database;
 
   Future<void> store<T>(String key, T value) async {
-    await _db.managers.keyValue.create(
+    await _db.managers.keyValueTable.create(
       (o) => o(key: key, value: jsonEncode(value)),
       mode: InsertMode.replace,
     );
   }
 
   Future<void> remove(String key) async {
-    await _db.managers.keyValue.filter((kv) => kv.key(key)).delete();
+    await _db.managers.keyValueTable.filter((kv) => kv.key(key)).delete();
   }
 
   Future<String?> loadString(String key) async {
@@ -60,7 +60,7 @@ class KeyValueRepository {
   }
 
   Future<String?> _loadValue(String key) async {
-    return (await _db.managers.keyValue
+    return (await _db.managers.keyValueTable
             .filter((kv) => kv.key(key))
             .getSingleOrNull())
         ?.value;

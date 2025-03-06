@@ -25,4 +25,6 @@ class ArtistInfo2Model {
 
   factory ArtistInfo2Model.fromJson(Map<String, dynamic> json) =>
       _$ArtistInfo2ModelFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ArtistInfo2ModelToJson(this);
 }

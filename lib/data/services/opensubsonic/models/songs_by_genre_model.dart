@@ -11,4 +11,6 @@ class SongsByGenreModel {
 
   factory SongsByGenreModel.fromJson(Map<String, dynamic> json) =>
       _$SongsByGenreModelFromJson(json);
+
+  Map<String, dynamic> toJson() => _$SongsByGenreModelToJson(this);
 }

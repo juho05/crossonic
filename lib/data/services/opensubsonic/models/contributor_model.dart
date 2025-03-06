@@ -16,4 +16,6 @@ class ContributorModel {
 
   factory ContributorModel.fromJson(Map<String, dynamic> json) =>
       _$ContributorModelFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ContributorModelToJson(this);
 }

@@ -16,4 +16,6 @@ class GenreModel {
 
   factory GenreModel.fromJson(Map<String, dynamic> json) =>
       _$GenreModelFromJson(json);
+
+  Map<String, dynamic> toJson() => _$GenreModelToJson(this);
 }

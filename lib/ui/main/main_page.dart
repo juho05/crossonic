@@ -1,5 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:crossonic/data/repositories/audio/audio_handler.dart';
+import 'package:crossonic/data/repositories/playlist/playlist_repository.dart';
 import 'package:crossonic/routing/router.gr.dart';
 import 'package:crossonic/ui/main/now_playing/now_playing_collapsed.dart';
 import 'package:crossonic/ui/main/now_playing/now_playing_desktop.dart';
@@ -40,6 +41,7 @@ class _MainPageState extends State<MainPage> {
       routes: const [
         HomeRoute(),
         BrowseRoute(),
+        PlaylistsRoute(),
       ],
       homeIndex: 0,
       builder: (context, child) {
@@ -174,7 +176,7 @@ class _MainPageState extends State<MainPage> {
                             NavigationRail(
                               selectedIndex: tabsRouter.activeIndex,
                               onDestinationSelected: (index) async {
-                                if (index == 2) {
+                                if (index == 3) {
                                   context.router.push(SettingsRoute());
                                   return;
                                 }
@@ -186,6 +188,9 @@ class _MainPageState extends State<MainPage> {
                                         .maybePop();
                                   }
                                   return;
+                                }
+                                if (index == 2) {
+                                  context.read<PlaylistRepository>().refresh();
                                 }
                                 tabsRouter.setActiveIndex(index);
                               },
@@ -200,6 +205,11 @@ class _MainPageState extends State<MainPage> {
                                   icon: Icon(Icons.library_music_outlined),
                                   selectedIcon: Icon(Icons.library_music),
                                   label: Text("Browse"),
+                                ),
+                                NavigationRailDestination(
+                                  icon: Icon(Icons.queue_music_outlined),
+                                  selectedIcon: Icon(Icons.queue_music),
+                                  label: Text("Playlists"),
                                 ),
                                 NavigationRailDestination(
                                   icon: Icon(Icons.settings),
@@ -232,6 +242,11 @@ class _MainPageState extends State<MainPage> {
                                     }
                                     return;
                                   }
+                                  if (index == 2) {
+                                    context
+                                        .read<PlaylistRepository>()
+                                        .refresh();
+                                  }
                                   tabsRouter.setActiveIndex(index);
                                 },
                                 items: [
@@ -246,6 +261,12 @@ class _MainPageState extends State<MainPage> {
                                         ? Icons.library_music
                                         : Icons.library_music_outlined),
                                     label: "Browse",
+                                  ),
+                                  BottomNavigationBarItem(
+                                    icon: Icon(tabsRouter.activeIndex == 2
+                                        ? Icons.queue_music
+                                        : Icons.queue_music_outlined),
+                                    label: "Playlists",
                                   ),
                                 ],
                               )

@@ -12,4 +12,6 @@ class ListenBrainzConfigModel {
 
   factory ListenBrainzConfigModel.fromJson(Map<String, dynamic> json) =>
       _$ListenBrainzConfigModelFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ListenBrainzConfigModelToJson(this);
 }

@@ -15,4 +15,6 @@ class ArtistsModel {
 
   factory ArtistsModel.fromJson(Map<String, dynamic> json) =>
       _$ArtistsModelFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ArtistsModelToJson(this);
 }

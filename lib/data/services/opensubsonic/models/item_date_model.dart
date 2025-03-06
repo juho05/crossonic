@@ -12,4 +12,6 @@ class ItemDateModel {
 
   factory ItemDateModel.fromJson(Map<String, dynamic> json) =>
       _$ItemDateModelFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ItemDateModelToJson(this);
 }

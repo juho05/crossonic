@@ -13,4 +13,6 @@ class LyricsListModel {
 
   factory LyricsListModel.fromJson(Map<String, dynamic> json) =>
       _$LyricsListModelFromJson(json);
+
+  Map<String, dynamic> toJson() => _$LyricsListModelToJson(this);
 }

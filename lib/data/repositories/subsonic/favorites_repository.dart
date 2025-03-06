@@ -15,7 +15,9 @@ class FavoritesRepository extends ChangeNotifier {
     required AuthRepository auth,
     required SubsonicService subsonic,
   })  : _auth = auth,
-        _subsonic = subsonic;
+        _subsonic = subsonic {
+    // TODO load data from db
+  }
 
   bool isFavorite(FavoriteType type, String id) {
     return _favoriteIDs.contains((type, id));
@@ -58,6 +60,7 @@ class FavoritesRepository extends ChangeNotifier {
     } else {
       _favoriteIDs.remove((type, id));
     }
+    // TODO persist data in DB
     notifyListeners();
   }
 
@@ -72,6 +75,7 @@ class FavoritesRepository extends ChangeNotifier {
       }
     }
     if (changed) {
+      // TODO persist data in DB
       notifyListeners();
     }
   }
