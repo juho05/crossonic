@@ -181,11 +181,17 @@ class _MainPageState extends State<MainPage> {
                                   return;
                                 }
                                 if (index == tabsRouter.activeIndex) {
-                                  context.router.popUntilRoot();
-                                  while (tabsRouter.childControllers[index]
-                                      .canPop()) {
-                                    await tabsRouter.childControllers[index]
-                                        .maybePop();
+                                  final routeName = switch (index) {
+                                    0 => "HomeRoute",
+                                    1 => "BrowseRoute",
+                                    2 => "PlaylistsRoute",
+                                    _ => ""
+                                  };
+                                  final router = tabsRouter.childControllers
+                                      .firstWhere((c) =>
+                                          c.stack.first.name == routeName);
+                                  while (router.canPop()) {
+                                    await router.maybePop();
                                   }
                                   return;
                                 }
@@ -234,11 +240,17 @@ class _MainPageState extends State<MainPage> {
                                     _slidingUpPanelController.close();
                                   } catch (_) {}
                                   if (index == tabsRouter.activeIndex) {
-                                    context.router.popUntilRoot();
-                                    while (tabsRouter.childControllers[index]
-                                        .canPop()) {
-                                      await tabsRouter.childControllers[index]
-                                          .maybePop();
+                                    final routeName = switch (index) {
+                                      0 => "HomeRoute",
+                                      1 => "BrowseRoute",
+                                      2 => "PlaylistsRoute",
+                                      _ => ""
+                                    };
+                                    final router = tabsRouter.childControllers
+                                        .firstWhere((c) =>
+                                            c.stack.first.name == routeName);
+                                    while (router.canPop()) {
+                                      await router.maybePop();
                                     }
                                     return;
                                   }

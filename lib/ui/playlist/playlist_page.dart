@@ -149,8 +149,7 @@ class _PlaylistPageState extends State<PlaylistPage> {
                 title: s.title,
                 artist: s.displayArtist,
                 duration: s.duration,
-                trackNr: index + 1,
-                trackDigits: songs.length.toString().length,
+                coverId: s.coverId,
                 onAddToPlaylist: () {
                   // TODO
                 },
