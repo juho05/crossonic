@@ -138,6 +138,12 @@ class AppRouter extends RootStackRouter {
           page: ListenBrainzRoute.page,
           title: (context, data) => "ListenBrainz",
           restorationId: (match) => match.fullPath,
+        ),
+        AutoRoute(
+          path: "/lyrics",
+          page: LyricsRoute.page,
+          title: (context, data) => "Lyrics",
+          restorationId: (match) => match.fullPath,
         )
       ];
 }

@@ -209,7 +209,7 @@ class NowPlayingDesktop extends StatelessWidget {
                   children: [
                     IconButton(
                       onPressed: () {
-                        // TODO open lyrics page
+                        context.router.push(LyricsRoute());
                       },
                       icon: const Icon(Icons.lyrics_outlined),
                     ),

@@ -123,6 +123,7 @@ class _AlbumsPageState extends State<AlbumsPage> {
                             ),
                             child: Text(
                               "Genre: ${widget.genre}",
+                              overflow: TextOverflow.ellipsis,
                               style: Theme.of(context)
                                   .textTheme
                                   .labelLarge!

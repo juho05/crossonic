@@ -84,6 +84,7 @@ class _SongsPageState extends State<SongsPage> {
                         ),
                         child: Text(
                           "Genre: ${widget.genre}",
+                          overflow: TextOverflow.ellipsis,
                           style:
                               Theme.of(context).textTheme.labelLarge!.copyWith(
                                     fontWeight: FontWeight.bold,

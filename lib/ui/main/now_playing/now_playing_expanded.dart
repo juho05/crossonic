@@ -95,8 +95,9 @@ class NowPlayingExpanded extends StatelessWidget {
                     child: GestureDetector(
                       onTap: () {
                         if (_viewModel.album != null) {
-                          // TODO open album page
                           _panelController.close();
+                          context.router
+                              .push(AlbumRoute(albumId: _viewModel.album!.id));
                         }
                       },
                       child: Text(
@@ -173,7 +174,7 @@ class NowPlayingExpanded extends StatelessWidget {
                     children: [
                       IconButton(
                         onPressed: () {
-                          // TODO open lyrics page
+                          context.router.push(LyricsRoute());
                         },
                         icon: const Icon(Icons.lyrics_outlined),
                       ),

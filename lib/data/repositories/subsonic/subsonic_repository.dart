@@ -8,6 +8,7 @@ import 'package:crossonic/data/repositories/subsonic/models/artist_info.dart';
 import 'package:crossonic/data/repositories/subsonic/models/genre.dart';
 import 'package:crossonic/data/repositories/subsonic/models/listenbrainz_config.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
+import 'package:crossonic/data/services/opensubsonic/exceptions.dart';
 import 'package:crossonic/data/services/opensubsonic/models/albumid3_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/artistid3_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/child_model.dart';
@@ -50,6 +51,34 @@ class SubsonicRepository {
   })  : _auth = authRepository,
         _service = subsonicService,
         _favorites = favoritesRepository;
+
+  Future<Result<List<String>>> getLyricsLines(Song song) async {
+    if (!serverFeatures.songLyrics.contains(1)) {
+      final result =
+          await _service.getLyrics(_auth.con, song.displayArtist, song.title);
+      switch (result) {
+        case Ok():
+          return Result.ok(result.tryValue!.value.split("\n"));
+        case Err():
+      }
+      if (result.error is SubsonicException) {
+        final e = result.error as SubsonicException;
+        if (e.code == SubsonicErrorCode.notFound) {
+          return Result.ok([]);
+        }
+      }
+      return Result.error(result.error);
+    }
+
+    final result = await _service.getLyricsBySongId(_auth.con, song.id);
+    switch (result) {
+      case Err():
+        return Result.error(result.error);
+      case Ok():
+    }
+    final lyrics = result.value.structuredLyrics.firstOrNull?.line ?? [];
+    return Result.ok(lyrics.map((l) => l.value).toList());
+  }
 
   Future<Result<Iterable<Album>>> getAlbumsByGenre(String genre, int count,
       [int offset = 0]) async {

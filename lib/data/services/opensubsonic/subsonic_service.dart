@@ -10,6 +10,8 @@ import 'package:crossonic/data/services/opensubsonic/models/artistid3_model.dart
 import 'package:crossonic/data/services/opensubsonic/models/artists_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/genres_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/listenbrainz_config_model.dart';
+import 'package:crossonic/data/services/opensubsonic/models/lyrics_list_model.dart';
+import 'package:crossonic/data/services/opensubsonic/models/lyrics_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/opensubsonic_extension_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/random_songs_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/scan_status_model.dart';
@@ -56,6 +58,32 @@ class SubsonicService {
         },
         SongsByGenreModel.fromJson,
         "songsByGenre");
+  }
+
+  Future<Result<LyricsModel>> getLyrics(
+      Connection con, String artist, String title) async {
+    return await _fetchObject(
+        con,
+        "getLyrics",
+        {
+          "title": [title],
+          "artist": [artist],
+        },
+        LyricsModel.fromJson,
+        "lyrics");
+  }
+
+  Future<Result<LyricsListModel>> getLyricsBySongId(
+      Connection con, String id) async {
+    return await _fetchObject(
+      con,
+      "getLyricsBySongId",
+      {
+        "id": [id],
+      },
+      LyricsListModel.fromJson,
+      "lyricsList",
+    );
   }
 
   Future<Result<GenresModel>> getGenres(Connection con) async {
