@@ -7,6 +7,8 @@ class SettingsViewModel extends ChangeNotifier {
   bool _loggingOut = false;
   bool get loggingOut => _loggingOut;
 
+  bool get supportsListenBrainz => _authRepository.serverFeatures.isCrossonic;
+
   SettingsViewModel({
     required AuthRepository authRepository,
   }) : _authRepository = authRepository;

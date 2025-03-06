@@ -51,11 +51,12 @@ class _SettingsPageState extends State<SettingsPage> {
             trailing: const Icon(Icons.arrow_forward_ios),
             onTap: () => context.router.push(ScanRoute()),
           ),
-          ListTile(
-            title: const Text("ListenBrainz"),
-            trailing: const Icon(Icons.arrow_forward_ios),
-            onTap: () => context.router.push(ListenBrainzRoute()),
-          ),
+          if (_viewModel.supportsListenBrainz)
+            ListTile(
+              title: const Text("ListenBrainz"),
+              trailing: const Icon(Icons.arrow_forward_ios),
+              onTap: () => context.router.push(ListenBrainzRoute()),
+            ),
           ListenableBuilder(
             listenable: _viewModel,
             builder: (context, _) {
