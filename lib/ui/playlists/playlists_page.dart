@@ -1,8 +1,10 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:crossonic/routing/router.gr.dart';
 import 'package:crossonic/ui/common/albums_grid_delegate.dart';
+import 'package:crossonic/ui/common/dialogs/add_to_playlist.dart';
 import 'package:crossonic/ui/common/playlist_grid_cell.dart';
 import 'package:crossonic/ui/playlists/playlists_viewmodel.dart';
+import 'package:crossonic/utils/result.dart';
 import 'package:crossonic/utils/result_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -127,8 +129,16 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
                             toastResult(context, result,
                                 "Added '${p.name}' to ${priority ? "priority " : ""}queue");
                           },
-                          onAddToPlaylist: () {
-                            // TODO
+                          onAddToPlaylist: () async {
+                            final result = await _viewModel.getTracks(p.id);
+                            if (!context.mounted) return;
+                            switch (result) {
+                              case Err():
+                                toastResult(context, result);
+                              case Ok():
+                                AddToPlaylistDialog.show(
+                                    context, p.name, result.value);
+                            }
                           },
                         );
                       },

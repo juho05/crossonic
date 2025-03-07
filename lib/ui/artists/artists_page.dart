@@ -3,8 +3,10 @@ import 'package:crossonic/routing/router.gr.dart';
 import 'package:crossonic/ui/artists/artists_viewmodel.dart';
 import 'package:crossonic/ui/common/albums_grid_delegate.dart';
 import 'package:crossonic/ui/common/artist_grid_cell.dart';
+import 'package:crossonic/ui/common/dialogs/add_to_playlist.dart';
 import 'package:crossonic/ui/common/dialogs/chooser.dart';
 import 'package:crossonic/utils/fetch_status.dart';
+import 'package:crossonic/utils/result.dart';
 import 'package:crossonic/utils/result_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -141,8 +143,16 @@ class _ArtistsPageState extends State<ArtistsPage> {
                             toastResult(context, result,
                                 "Added '${a.name}' to ${priority ? "priority " : ""}queue");
                           },
-                          onAddToPlaylist: () {
-                            // TODO
+                          onAddToPlaylist: () async {
+                            final result = await _viewModel.getArtistSongs(a);
+                            if (!context.mounted) return;
+                            switch (result) {
+                              case Err():
+                                toastResult(context, result);
+                              case Ok():
+                                AddToPlaylistDialog.show(
+                                    context, a.name, result.value);
+                            }
                           },
                         );
                       },

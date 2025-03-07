@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:crossonic/routing/router.gr.dart';
 import 'package:crossonic/ui/common/album_grid_cell.dart';
+import 'package:crossonic/ui/common/dialogs/add_to_playlist.dart';
 import 'package:crossonic/ui/common/dialogs/chooser.dart';
 import 'package:crossonic/ui/common/toast.dart';
 import 'package:crossonic/ui/home/components/album_list_viewmodel.dart';
@@ -8,6 +9,7 @@ import 'package:crossonic/ui/home/components/home_page_component.dart';
 import 'package:crossonic/utils/exceptions.dart';
 import 'package:crossonic/utils/fetch_status.dart';
 import 'package:crossonic/utils/result.dart';
+import 'package:crossonic/utils/result_toast.dart';
 import 'package:flutter/material.dart';
 
 class HomeAlbumList extends StatelessWidget {
@@ -65,8 +67,16 @@ class HomeAlbumList extends StatelessWidget {
                             if (a.year != null) a.year.toString(),
                           ],
                           coverId: a.coverId,
-                          onAddToPlaylist: () {
-                            // TODO
+                          onAddToPlaylist: () async {
+                            final result = await viewModel.getAlbumSongs(a);
+                            if (!context.mounted) return;
+                            switch (result) {
+                              case Err():
+                                toastResult(context, result);
+                              case Ok():
+                                AddToPlaylistDialog.show(
+                                    context, a.name, result.value);
+                            }
                           },
                           onAddToQueue: (priority) async {
                             final result =

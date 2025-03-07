@@ -4,10 +4,12 @@ import 'package:crossonic/ui/browse/browse_grid.dart';
 import 'package:crossonic/ui/browse/browse_viewmodel.dart';
 import 'package:crossonic/ui/common/album_list_item.dart';
 import 'package:crossonic/ui/common/artist_list_item.dart';
+import 'package:crossonic/ui/common/dialogs/add_to_playlist.dart';
 import 'package:crossonic/ui/common/dialogs/chooser.dart';
 import 'package:crossonic/ui/common/song_list_item.dart';
 import 'package:crossonic/ui/common/toast.dart';
 import 'package:crossonic/utils/fetch_status.dart';
+import 'package:crossonic/utils/result.dart';
 import 'package:crossonic/utils/result_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -143,8 +145,16 @@ class _BrowsePageState extends State<BrowsePage> with RestorationMixin {
                               if (!context.mounted) return;
                               toastResult(context, result);
                             },
-                            onAddToPlaylist: () {
-                              // TODO
+                            onAddToPlaylist: () async {
+                              final result = await _viewModel.getArtistSongs(a);
+                              if (!context.mounted) return;
+                              switch (result) {
+                                case Err():
+                                  toastResult(context, result);
+                                case Ok():
+                                  AddToPlaylistDialog.show(
+                                      context, a.name, result.value);
+                              }
                             },
                             onAddToQueue: (priority) async {
                               final result = await _viewModel.addArtistToQueue(
@@ -186,8 +196,16 @@ class _BrowsePageState extends State<BrowsePage> with RestorationMixin {
                               if (!context.mounted) return;
                               toastResult(context, result);
                             },
-                            onAddToPlaylist: () {
-                              // TODO
+                            onAddToPlaylist: () async {
+                              final result = await _viewModel.getAlbumSongs(a);
+                              if (!context.mounted) return;
+                              switch (result) {
+                                case Err():
+                                  toastResult(context, result);
+                                case Ok():
+                                  AddToPlaylistDialog.show(
+                                      context, a.name, result.value);
+                              }
                             },
                             onAddToQueue: (priority) async {
                               final result =
@@ -230,7 +248,7 @@ class _BrowsePageState extends State<BrowsePage> with RestorationMixin {
                               _viewModel.playSong(index);
                             },
                             onAddToPlaylist: () {
-                              // TODO
+                              AddToPlaylistDialog.show(context, s.title, [s]);
                             },
                             onAddToQueue: (priority) {
                               _viewModel.addSongToQueue(s, priority);

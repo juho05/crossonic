@@ -376,9 +376,9 @@ class AudioHandler {
       "id": [song.id],
       "format": _transcoding.$1 != TranscodingCodec.serverDefault
           ? [_transcoding.$1.name]
-          : [], // TODO
+          : [],
       "maxBitRate":
-          _transcoding.$2 != null ? [_transcoding.$2!.toString()] : [], // TODO
+          _transcoding.$2 != null ? [_transcoding.$2!.toString()] : [],
       "timeOffset": offset != null ? [offset.inSeconds.toString()] : [],
     }, _auth.con.auth);
     return Uri.parse(

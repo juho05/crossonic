@@ -1,5 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:crossonic/routing/router.gr.dart';
+import 'package:crossonic/ui/common/dialogs/add_to_playlist.dart';
 import 'package:crossonic/ui/common/dialogs/chooser.dart';
 import 'package:crossonic/ui/common/song_list_item.dart';
 import 'package:crossonic/ui/common/toast.dart';
@@ -55,7 +56,7 @@ class HomeSongList extends StatelessWidget {
                   duration: s.duration,
                   year: s.year,
                   onAddToPlaylist: () {
-                    // TODO
+                    AddToPlaylistDialog.show(context, s.title, [s]);
                   },
                   onAddToQueue: (prio) {
                     viewModel.addSongToQueue(s, prio);

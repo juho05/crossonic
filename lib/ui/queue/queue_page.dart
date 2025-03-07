@@ -1,4 +1,5 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:crossonic/ui/common/dialogs/add_to_playlist.dart';
 import 'package:crossonic/ui/common/dialogs/confirmation.dart';
 import 'package:crossonic/ui/common/song_list_item.dart';
 import 'package:crossonic/ui/common/toast.dart';
@@ -69,7 +70,10 @@ class _QueuePageState extends State<QueuePage> {
                           "Added '${_viewModel.currentSong!.title}' to ${priority ? "priority " : ""}queue");
                     },
                     onAddToPlaylist: () {
-                      // TODO
+                      AddToPlaylistDialog.show(
+                          context,
+                          _viewModel.currentSong!.title,
+                          [_viewModel.currentSong!]);
                     },
                   ),
                 if (_viewModel.currentSong == null)
@@ -138,7 +142,7 @@ class _QueuePageState extends State<QueuePage> {
                         "Added '${s.title}' to ${priority ? "priority " : ""}queue");
                   },
                   onAddToPlaylist: () {
-                    // TODO
+                    AddToPlaylistDialog.show(context, s.title, [s]);
                   },
                 );
               }),
@@ -207,7 +211,7 @@ class _QueuePageState extends State<QueuePage> {
                           "Added '${s.title}' to ${priority ? "priority " : ""}queue");
                     },
                     onAddToPlaylist: () {
-                      // TODO
+                      AddToPlaylistDialog.show(context, s.title, [s]);
                     },
                   );
                 },

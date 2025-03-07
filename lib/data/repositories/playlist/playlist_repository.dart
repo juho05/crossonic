@@ -93,11 +93,13 @@ class PlaylistRepository extends ChangeNotifier {
     return Result.ok(null);
   }
 
-  Future<Result<void>> addTrack(String id, Song song) async {
-    final result =
-        await _subsonic.updatePlaylist(_auth.con, id, songIdToAdd: [song.id]);
+  Future<Result<void>> addTracks(String id, Iterable<Song> songs) async {
+    final result = await _subsonic.updatePlaylist(_auth.con, id,
+        songIdToAdd: songs.map((s) => s.id));
     if (result is Ok) {
       await refresh(refreshIds: {id});
+    } else {
+      notifyListeners();
     }
     return result;
   }
@@ -107,6 +109,8 @@ class PlaylistRepository extends ChangeNotifier {
         .updatePlaylist(_auth.con, id, songIndexToRemove: [index]);
     if (result is Ok) {
       await refresh(refreshIds: {id});
+    } else {
+      notifyListeners();
     }
     return result;
   }

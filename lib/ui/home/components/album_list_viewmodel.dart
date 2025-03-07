@@ -1,5 +1,6 @@
 import 'package:crossonic/data/repositories/audio/audio_handler.dart';
 import 'package:crossonic/data/repositories/subsonic/models/album.dart';
+import 'package:crossonic/data/repositories/subsonic/models/song.dart';
 import 'package:crossonic/data/repositories/subsonic/subsonic_repository.dart';
 import 'package:crossonic/ui/home/components/data_source.dart';
 import 'package:crossonic/utils/fetch_status.dart';
@@ -67,5 +68,9 @@ class HomeAlbumListViewModel extends ChangeNotifier {
     }
     _audioHandler.queue.addAll(result.value, priority);
     return Result.ok(null);
+  }
+
+  Future<Result<List<Song>>> getAlbumSongs(Album album) async {
+    return await _subsonic.getAlbumSongs(album);
   }
 }

@@ -67,7 +67,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     ? () async {
                         final confirmed =
                             await ConfirmationDialog.showYesNo(context);
-                        if (confirmed) {
+                        if (confirmed ?? false) {
                           await _viewModel.logout();
                         }
                       }

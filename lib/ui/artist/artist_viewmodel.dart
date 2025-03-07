@@ -2,6 +2,7 @@ import 'package:crossonic/data/repositories/audio/audio_handler.dart';
 import 'package:crossonic/data/repositories/subsonic/favorites_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/models/album.dart';
 import 'package:crossonic/data/repositories/subsonic/models/artist.dart';
+import 'package:crossonic/data/repositories/subsonic/models/song.dart';
 import 'package:crossonic/data/repositories/subsonic/subsonic_repository.dart';
 import 'package:crossonic/utils/fetch_status.dart';
 import 'package:crossonic/utils/result.dart';
@@ -144,6 +145,20 @@ class ArtistViewModel extends ChangeNotifier {
       _description = "";
     }
     notifyListeners();
+  }
+
+  Future<Result<List<Song>>> getAlbumSongs(Album album) async {
+    return await _subsonic.getAlbumSongs(album);
+  }
+
+  Future<Result<List<Song>>> getArtistSongs(Artist artist) async {
+    final result = await _subsonic.getArtistSongs(artist);
+    switch (result) {
+      case Err():
+        return Result.error(result.error);
+      case Ok():
+        return Result.ok(result.value.expand((l) => l).toList());
+    }
   }
 
   @override

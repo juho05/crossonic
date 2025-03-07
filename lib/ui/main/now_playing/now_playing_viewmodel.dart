@@ -22,6 +22,7 @@ class NowPlayingViewModel extends ChangeNotifier {
       _position.stream;
 
   Song? _song;
+  Song? get song => _song;
 
   String get songTitle => _song?.title ?? "";
   ({String id, String name})? get album => _song?.album;
@@ -93,6 +94,11 @@ class NowPlayingViewModel extends ChangeNotifier {
 
   Future<void> seek(Duration pos) async {
     await _audioHandler.seek(pos);
+  }
+
+  void addToQueue(bool priority) {
+    if (_song == null) return;
+    _audioHandler.queue.add(_song!, priority);
   }
 
   void _onStatusChanged(PlaybackStatus status) {

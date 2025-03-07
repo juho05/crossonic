@@ -1,5 +1,8 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:crossonic/routing/router.gr.dart';
+import 'package:crossonic/ui/common/dialogs/add_to_playlist.dart';
+import 'package:crossonic/ui/common/dialogs/chooser.dart';
+import 'package:crossonic/ui/common/toast.dart';
 import 'package:crossonic/ui/common/with_context_menu.dart';
 import 'package:crossonic/ui/main/now_playing/now_playing_viewmodel.dart';
 import 'package:flutter/material.dart';
@@ -10,14 +13,17 @@ List<ContextMenuOption> getNowPlayingMenuOptions(
       ContextMenuOption(
         title: "Add to priority queue",
         onSelected: () {
-          // TODO
+          viewModel.addToQueue(true);
+          Toast.show(
+              context, "Added '${viewModel.songTitle}' to priority queue");
         },
         icon: Icons.playlist_play,
       ),
       ContextMenuOption(
         title: "Add to queue",
         onSelected: () {
-          // TODO
+          viewModel.addToQueue(false);
+          Toast.show(context, "Added '${viewModel.songTitle}' to queue");
         },
         icon: Icons.playlist_add,
       ),
@@ -32,7 +38,9 @@ List<ContextMenuOption> getNowPlayingMenuOptions(
       ContextMenuOption(
         title: "Add to playlist",
         onSelected: () {
-          // TODO
+          if (viewModel.song == null) return;
+          AddToPlaylistDialog.show(
+              context, viewModel.songTitle, [viewModel.song!]);
         },
         icon: Icons.playlist_add,
       ),
@@ -47,8 +55,11 @@ List<ContextMenuOption> getNowPlayingMenuOptions(
       if (viewModel.artists.isNotEmpty)
         ContextMenuOption(
           title: "Go to artist",
-          onSelected: () {
-            // TODO
+          onSelected: () async {
+            final artistId = await ChooserDialog.chooseArtist(
+                context, viewModel.artists.toList());
+            if (!context.mounted || artistId == null) return;
+            context.router.push(ArtistRoute(artistId: artistId));
           },
           icon: Icons.person,
         ),

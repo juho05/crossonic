@@ -72,6 +72,12 @@ class PlaylistViewModel extends ChangeNotifier {
     _audioHandler.queue.add(song, priority);
   }
 
+  Future<Result<void>> remove(int index) async {
+    tracks.removeAt(index);
+    notifyListeners();
+    return await _repo.removeTrack(_playlistId, index);
+  }
+
   @override
   void dispose() {
     _repo.removeListener(_load);

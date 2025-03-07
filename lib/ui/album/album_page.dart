@@ -3,6 +3,7 @@ import 'package:crossonic/routing/router.gr.dart';
 import 'package:crossonic/ui/album/album_viewmodel.dart';
 import 'package:crossonic/ui/common/collection_page.dart';
 import 'package:crossonic/ui/common/cover_art_decorated.dart';
+import 'package:crossonic/ui/common/dialogs/add_to_playlist.dart';
 import 'package:crossonic/ui/common/dialogs/chooser.dart';
 import 'package:crossonic/ui/common/song_list_item.dart';
 import 'package:crossonic/ui/common/toast.dart';
@@ -117,7 +118,7 @@ class _AlbumPageState extends State<AlbumPage> {
                   title: "Add to playlist",
                   icon: Icons.playlist_add,
                   onSelected: () {
-                    // TODO
+                    AddToPlaylistDialog.show(context, album.name, songs);
                   },
                 ),
                 ContextMenuOption(
@@ -183,7 +184,7 @@ class _AlbumPageState extends State<AlbumPage> {
                 duration: s.duration,
                 trackNr: s.trackNr ?? index,
                 onAddToPlaylist: () {
-                  // TODO
+                  AddToPlaylistDialog.show(context, s.title, [s]);
                 },
                 onAddToQueue: (priority) {
                   _viewModel.addSongToQueue(s, priority);

@@ -148,6 +148,20 @@ class BrowseViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<Result<List<Song>>> getAlbumSongs(Album album) async {
+    return await _subsonic.getAlbumSongs(album);
+  }
+
+  Future<Result<List<Song>>> getArtistSongs(Artist artist) async {
+    final result = await _subsonic.getArtistSongs(artist);
+    switch (result) {
+      case Err():
+        return Result.error(result.error);
+      case Ok():
+        return Result.ok(result.value.expand((l) => l).toList());
+    }
+  }
+
   @override
   void dispose() {
     _searchDebounce?.cancel();

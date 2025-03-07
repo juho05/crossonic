@@ -7,9 +7,11 @@ import 'package:crossonic/ui/common/album_grid_cell.dart';
 import 'package:crossonic/ui/common/albums_grid_delegate.dart';
 import 'package:crossonic/ui/common/collection_page.dart';
 import 'package:crossonic/ui/common/cover_art_decorated.dart';
+import 'package:crossonic/ui/common/dialogs/add_to_playlist.dart';
 import 'package:crossonic/ui/common/dialogs/chooser.dart';
 import 'package:crossonic/ui/common/with_context_menu.dart';
 import 'package:crossonic/utils/fetch_status.dart';
+import 'package:crossonic/utils/result.dart';
 import 'package:crossonic/utils/result_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -124,8 +126,16 @@ class _ArtistPageState extends State<ArtistPage> {
                 ContextMenuOption(
                   title: "Add to playlist",
                   icon: Icons.playlist_add,
-                  onSelected: () {
-                    // TODO
+                  onSelected: () async {
+                    final result = await _viewModel.getArtistSongs(artist);
+                    if (!context.mounted) return;
+                    switch (result) {
+                      case Err():
+                        toastResult(context, result);
+                      case Ok():
+                        AddToPlaylistDialog.show(
+                            context, artist.name, result.value);
+                    }
                   },
                 ),
               ],
@@ -208,8 +218,16 @@ class _ArtistPageState extends State<ArtistPage> {
                     toastResult(context, result,
                         "Added '${albums[i].name}' to ${priority ? " priority" : ""} queue");
                   },
-                  onAddToPlaylist: () {
-                    // TODO
+                  onAddToPlaylist: () async {
+                    final result = await _viewModel.getAlbumSongs(albums[i]);
+                    if (!context.mounted) return;
+                    switch (result) {
+                      case Err():
+                        toastResult(context, result);
+                      case Ok():
+                        AddToPlaylistDialog.show(
+                            context, albums[i].name, result.value);
+                    }
                   },
                 ),
               ),

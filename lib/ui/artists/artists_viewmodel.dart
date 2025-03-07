@@ -1,5 +1,6 @@
 import 'package:crossonic/data/repositories/audio/audio_handler.dart';
 import 'package:crossonic/data/repositories/subsonic/models/artist.dart';
+import 'package:crossonic/data/repositories/subsonic/models/song.dart';
 import 'package:crossonic/data/repositories/subsonic/subsonic_repository.dart';
 import 'package:crossonic/utils/fetch_status.dart';
 import 'package:crossonic/utils/result.dart';
@@ -98,6 +99,16 @@ class ArtistsViewModel extends ChangeNotifier {
     _sortArtists();
     _status = FetchStatus.success;
     notifyListeners();
+  }
+
+  Future<Result<List<Song>>> getArtistSongs(Artist artist) async {
+    final result = await _subsonic.getArtistSongs(artist);
+    switch (result) {
+      case Err():
+        return Result.error(result.error);
+      case Ok():
+        return Result.ok(result.value.expand((l) => l).toList());
+    }
   }
 
   void _sortArtists() {

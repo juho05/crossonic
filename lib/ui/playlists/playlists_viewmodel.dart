@@ -41,7 +41,7 @@ class PlaylistsViewModel extends ChangeNotifier {
   }
 
   Future<Result<void>> play(Playlist playlist, {bool shuffle = false}) async {
-    final result = await _getTracks(playlist.id);
+    final result = await getTracks(playlist.id);
     switch (result) {
       case Err():
         return Result.error(result.error);
@@ -56,7 +56,7 @@ class PlaylistsViewModel extends ChangeNotifier {
   }
 
   Future<Result<void>> addToQueue(Playlist playlist, bool priority) async {
-    final result = await _getTracks(playlist.id);
+    final result = await getTracks(playlist.id);
     switch (result) {
       case Err():
         return Result.error(result.error);
@@ -66,7 +66,7 @@ class PlaylistsViewModel extends ChangeNotifier {
     return Result.ok(null);
   }
 
-  Future<Result<List<Song>>> _getTracks(String playlistId) async {
+  Future<Result<List<Song>>> getTracks(String playlistId) async {
     final result =
         await _repo.refresh(forceRefresh: true, refreshIds: {playlistId});
     switch (result) {

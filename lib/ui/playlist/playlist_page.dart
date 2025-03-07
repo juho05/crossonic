@@ -2,12 +2,14 @@ import 'package:auto_route/auto_route.dart';
 import 'package:crossonic/routing/router.gr.dart';
 import 'package:crossonic/ui/common/collection_page.dart';
 import 'package:crossonic/ui/common/cover_art_decorated.dart';
+import 'package:crossonic/ui/common/dialogs/add_to_playlist.dart';
 import 'package:crossonic/ui/common/dialogs/chooser.dart';
 import 'package:crossonic/ui/common/song_list_item.dart';
 import 'package:crossonic/ui/common/toast.dart';
 import 'package:crossonic/ui/common/with_context_menu.dart';
 import 'package:crossonic/ui/playlist/playlist_viewmodel.dart';
 import 'package:crossonic/utils/format.dart';
+import 'package:crossonic/utils/result_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -94,7 +96,8 @@ class _PlaylistPageState extends State<PlaylistPage> {
                   title: "Add to playlist",
                   icon: Icons.playlist_add,
                   onSelected: () {
-                    // TODO
+                    AddToPlaylistDialog.show(
+                        context, playlist.name, _viewModel.tracks);
                   },
                 ),
               ],
@@ -151,7 +154,7 @@ class _PlaylistPageState extends State<PlaylistPage> {
                 duration: s.duration,
                 coverId: s.coverId,
                 onAddToPlaylist: () {
-                  // TODO
+                  AddToPlaylistDialog.show(context, s.title, [s]);
                 },
                 onAddToQueue: (priority) {
                   _viewModel.addSongToQueue(s, priority);
@@ -167,6 +170,11 @@ class _PlaylistPageState extends State<PlaylistPage> {
                         router.push(ArtistRoute(artistId: artistId));
                       }
                     : null,
+                onRemove: () async {
+                  final result = await _viewModel.remove(index);
+                  if (!context.mounted) return;
+                  toastResult(context, result);
+                },
                 onTap: () {
                   _viewModel.play(index);
                 },
