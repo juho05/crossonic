@@ -33,6 +33,7 @@ class PlaylistViewModel extends ChangeNotifier {
         _playlistId = playlistId {
     _repo.addListener(_load);
     _load();
+    _repo.refresh(forceRefresh: true, refreshIds: {_playlistId});
   }
 
   Future<void> _load() async {
