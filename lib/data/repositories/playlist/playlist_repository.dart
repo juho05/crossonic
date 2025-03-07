@@ -32,6 +32,10 @@ class PlaylistRepository extends ChangeNotifier {
   }
 
   Future<Result<void>> reorder(String id, int oldIndex, int newIndex) async {
+    final backup = await _db.managers.playlistSongTable
+        .filter((f) => f.playlistId.id.equals(id))
+        .orderBy((o) => o.index.asc())
+        .get();
     try {
       await _db.transaction(() async {
         final song = await _db.managers.playlistSongTable
@@ -85,10 +89,29 @@ class PlaylistRepository extends ChangeNotifier {
           playlistId: id, songIds: dbSongs.map((s) => s.songId));
       switch (result) {
         case Err():
-          return Result.error(result.error);
+          throw result.error;
         case Ok():
       }
     } on Exception catch (e) {
+      try {
+        await _db.transaction(() async {
+          await _db.managers.playlistSongTable
+              .filter((f) => f.playlistId.id.equals(id))
+              .delete();
+          await _db.managers.playlistSongTable.bulkCreate(
+              (o) => backup.map((s) => o(
+                  id: Value(s.id),
+                  index: s.index,
+                  childModelJson: s.childModelJson,
+                  songId: s.songId,
+                  playlistId: s.playlistId)),
+              mode: InsertMode.replace);
+        });
+      } on Exception catch (e) {
+        print("Failed to roll back reorder: $e");
+      } finally {
+        notifyListeners();
+      }
       return Result.error(e);
     } finally {
       refresh(forceRefresh: true, refreshIds: {id});
