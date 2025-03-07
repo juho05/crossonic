@@ -100,6 +100,13 @@ class _PlaylistPageState extends State<PlaylistPage> {
                         context, playlist.name, _viewModel.tracks);
                   },
                 ),
+                ContextMenuOption(
+                  title: _viewModel.reorderEnabled ? "Stop Edit" : "Edit",
+                  icon: _viewModel.reorderEnabled ? Icons.edit_off : Icons.edit,
+                  onSelected: () {
+                    _viewModel.reorderEnabled = !_viewModel.reorderEnabled;
+                  },
+                ),
               ],
             ),
             extraInfo: [
@@ -142,17 +149,32 @@ class _PlaylistPageState extends State<PlaylistPage> {
                   Toast.show(context, "Added '${playlist.name}' to queue");
                 },
               ),
+              CollectionAction(
+                title: _viewModel.reorderEnabled ? "Stop Edit" : "Edit",
+                icon: _viewModel.reorderEnabled ? Icons.edit_off : Icons.edit,
+                onClick: () {
+                  _viewModel.reorderEnabled = !_viewModel.reorderEnabled;
+                },
+              ),
             ],
             contentTitle: "Tracks (${songs.length})",
-            content: Column(
-                children: List<Widget>.generate(songs.length, (index) {
+            reorderableItemCount: songs.length,
+            onReorder: (oldIndex, newIndex) async {
+              final result = await _viewModel.reorder(oldIndex, newIndex);
+              if (!context.mounted) return;
+              toastResult(context, result);
+            },
+            reorderableItemBuilder: (context, index) {
               final s = songs[index];
               return SongListItem(
+                key: ValueKey(index),
                 id: s.id,
                 title: s.title,
+                reorderIndex: _viewModel.reorderEnabled ? index : null,
                 artist: s.displayArtist,
                 duration: s.duration,
                 coverId: s.coverId,
+                year: s.year,
                 onAddToPlaylist: () {
                   AddToPlaylistDialog.show(context, s.title, [s]);
                 },
@@ -161,6 +183,11 @@ class _PlaylistPageState extends State<PlaylistPage> {
                   Toast.show(context,
                       "Added '${s.title}' to ${priority ? "priority " : ""}queue");
                 },
+                onGoToAlbum: s.album != null
+                    ? () {
+                        context.router.push(AlbumRoute(albumId: s.album!.id));
+                      }
+                    : null,
                 onGoToArtist: s.artists.isNotEmpty
                     ? () async {
                         final router = context.router;
@@ -179,7 +206,7 @@ class _PlaylistPageState extends State<PlaylistPage> {
                   _viewModel.play(index);
                 },
               );
-            })),
+            },
           );
         },
       ),

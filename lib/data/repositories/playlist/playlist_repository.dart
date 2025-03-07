@@ -37,10 +37,13 @@ class PlaylistRepository extends ChangeNotifier {
         final song = await _db.managers.playlistSongTable
             .filter((f) => f.playlistId.id.equals(id) & f.index(oldIndex))
             .getSingle();
+        await _db.managers.playlistSongTable
+            .filter((f) => f.playlistId.id.equals(id) & f.index(oldIndex))
+            .delete();
         if (newIndex > oldIndex) {
           newIndex--;
           await _db.customUpdate(
-            "UPDATE playlist_song SET index = index - 1 WHERE playlist_id = ? AND index > ? AND index <= ?",
+            "UPDATE playlist_song SET \"index\" = \"index\" - 1 WHERE playlist_id = ? AND \"index\" > ? AND \"index\" <= ?",
             variables: [
               Variable.withString(id),
               Variable.withInt(oldIndex),
@@ -50,7 +53,7 @@ class PlaylistRepository extends ChangeNotifier {
           );
         } else {
           await _db.customUpdate(
-            "UPDATE playlist_song SET index = index + 1 WHERE playlist_id = ? AND index < ? AND index >= ?",
+            "UPDATE playlist_song SET \"index\" = \"index\" + 1 WHERE playlist_id = ? AND \"index\" < ? AND \"index\" >= ?",
             variables: [
               Variable.withString(id),
               Variable.withInt(oldIndex),
@@ -66,9 +69,10 @@ class PlaylistRepository extends ChangeNotifier {
               childModelJson: song.childModelJson,
             ));
       });
-      notifyListeners();
     } on Exception catch (e) {
       return Result.error(e);
+    } finally {
+      notifyListeners();
     }
 
     try {

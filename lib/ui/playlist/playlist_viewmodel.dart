@@ -17,6 +17,13 @@ class PlaylistViewModel extends ChangeNotifier {
   List<Song> _tracks = [];
   List<Song> get tracks => _tracks;
 
+  bool _reorderEnabled = false;
+  bool get reorderEnabled => _reorderEnabled;
+  set reorderEnabled(bool enable) {
+    _reorderEnabled = enable;
+    notifyListeners();
+  }
+
   PlaylistViewModel({
     required PlaylistRepository playlistRepository,
     required AudioHandler audioHandler,
@@ -76,6 +83,17 @@ class PlaylistViewModel extends ChangeNotifier {
     tracks.removeAt(index);
     notifyListeners();
     return await _repo.removeTrack(_playlistId, index);
+  }
+
+  Future<Result<void>> reorder(int oldIndex, int newIndex) async {
+    final s = tracks.removeAt(oldIndex);
+    if (oldIndex < newIndex) {
+      tracks.insert(newIndex - 1, s);
+    } else {
+      tracks.insert(newIndex, s);
+    }
+    notifyListeners();
+    return await _repo.reorder(_playlistId, oldIndex, newIndex);
   }
 
   @override

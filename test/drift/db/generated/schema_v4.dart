@@ -1053,8 +1053,8 @@ class PlaylistSongCompanion extends UpdateCompanion<PlaylistSongData> {
   }
 }
 
-class DatabaseAtV3 extends GeneratedDatabase {
-  DatabaseAtV3(QueryExecutor e) : super(e);
+class DatabaseAtV4 extends GeneratedDatabase {
+  DatabaseAtV4(QueryExecutor e) : super(e);
   late final KeyValue keyValue = KeyValue(this);
   late final Scrobble scrobble = Scrobble(this);
   late final Playlist playlist = Playlist(this);
@@ -1066,7 +1066,7 @@ class DatabaseAtV3 extends GeneratedDatabase {
   List<DatabaseSchemaEntity> get allSchemaEntities =>
       [keyValue, scrobble, playlist, playlistSong];
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
   @override
   DriftDatabaseOptions get options =>
       const DriftDatabaseOptions(storeDateTimeAsText: true);

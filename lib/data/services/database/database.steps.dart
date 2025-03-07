@@ -153,14 +153,13 @@ final class Schema3 extends i0.VersionedSchema {
         entityName: 'playlist_song',
         withoutRowId: false,
         isStrict: false,
-        tableConstraints: [
-          'PRIMARY KEY(playlist_id, "index")',
-        ],
+        tableConstraints: [],
         columns: [
           _column_15,
           _column_16,
-          _column_2,
           _column_17,
+          _column_2,
+          _column_18,
         ],
         attachedDatabase: database,
       ),
@@ -222,6 +221,8 @@ i1.GeneratedColumn<bool> _column_14(String aliasedName) =>
 
 class Shape3 extends i0.VersionedTable {
   Shape3({required super.source, required super.alias}) : super.aliased();
+  i1.GeneratedColumn<int> get id =>
+      columnsByName['id']! as i1.GeneratedColumn<int>;
   i1.GeneratedColumn<String> get playlistId =>
       columnsByName['playlist_id']! as i1.GeneratedColumn<String>;
   i1.GeneratedColumn<int> get index =>
@@ -232,15 +233,21 @@ class Shape3 extends i0.VersionedTable {
       columnsByName['child_model_json']! as i1.GeneratedColumn<String>;
 }
 
-i1.GeneratedColumn<String> _column_15(String aliasedName) =>
+i1.GeneratedColumn<int> _column_15(String aliasedName) =>
+    i1.GeneratedColumn<int>('id', aliasedName, false,
+        hasAutoIncrement: true,
+        type: i1.DriftSqlType.int,
+        defaultConstraints:
+            i1.GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+i1.GeneratedColumn<String> _column_16(String aliasedName) =>
     i1.GeneratedColumn<String>('playlist_id', aliasedName, false,
         type: i1.DriftSqlType.string,
         defaultConstraints: i1.GeneratedColumn.constraintIsAlways(
             'REFERENCES playlist (id) ON DELETE CASCADE'));
-i1.GeneratedColumn<int> _column_16(String aliasedName) =>
+i1.GeneratedColumn<int> _column_17(String aliasedName) =>
     i1.GeneratedColumn<int>('index', aliasedName, false,
         type: i1.DriftSqlType.int);
-i1.GeneratedColumn<String> _column_17(String aliasedName) =>
+i1.GeneratedColumn<String> _column_18(String aliasedName) =>
     i1.GeneratedColumn<String>('child_model_json', aliasedName, false,
         type: i1.DriftSqlType.string);
 i0.MigrationStepWithVersion migrationSteps({
