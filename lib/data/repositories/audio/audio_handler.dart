@@ -126,7 +126,9 @@ class AudioHandler {
     final song = _queue.current.value.song;
     if (song == null) return;
     await _ensurePlayerLoaded();
-    if (_player.canSeek && _positionOffset == Duration.zero) {
+    if ((!_auth.serverFeatures.transcodeOffset.contains(1) ||
+            _player.canSeek) &&
+        _positionOffset == Duration.zero) {
       await _player.seek(pos);
     } else {
       pos = Duration(seconds: pos.inSeconds);
