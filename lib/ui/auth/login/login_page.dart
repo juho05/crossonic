@@ -35,8 +35,8 @@ class _LoginPageState extends State<LoginPage> with RestorationMixin {
 
   @override
   void dispose() {
-    super.dispose();
     viewModel.login.removeListener(_onResult);
+    super.dispose();
   }
 
   @override
@@ -105,8 +105,8 @@ class _LoginPageState extends State<LoginPage> with RestorationMixin {
                                       viewModel.supportedAuthTypes.length,
                                       (index) {
                                         return DropdownMenuEntry(
-                                          value:
-                                              viewModel.supportedAuthTypes[index],
+                                          value: viewModel
+                                              .supportedAuthTypes[index],
                                           label: switch (viewModel
                                               .supportedAuthTypes[index]) {
                                             AuthType.apiKey => "API Key",

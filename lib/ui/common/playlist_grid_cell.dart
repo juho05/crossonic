@@ -13,6 +13,7 @@ class PlaylistGridCell extends StatefulWidget {
   final void Function()? onShuffle;
   final void Function(bool priority)? onAddToQueue;
   final void Function()? onAddToPlaylist;
+  final void Function()? onDelete;
 
   const PlaylistGridCell({
     super.key,
@@ -24,6 +25,7 @@ class PlaylistGridCell extends StatefulWidget {
     this.onShuffle,
     this.onAddToQueue,
     this.onAddToPlaylist,
+    this.onDelete,
   });
 
   @override
@@ -66,6 +68,12 @@ class _PlaylistGridCellState extends State<PlaylistGridCell> {
           title: "Add to playlist",
           icon: Icons.playlist_add,
           onSelected: widget.onAddToPlaylist,
+        ),
+      if (widget.onDelete != null)
+        ContextMenuOption(
+          title: "Delete",
+          icon: Icons.delete,
+          onSelected: widget.onDelete,
         ),
     ];
     return WithContextMenu(

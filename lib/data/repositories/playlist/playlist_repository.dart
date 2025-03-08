@@ -31,6 +31,53 @@ class PlaylistRepository extends ChangeNotifier {
     _onAuthChanged();
   }
 
+  Future<Result<void>> delete(String id) async {
+    final result = await _subsonic.deletePlaylist(_auth.con, id);
+    switch (result) {
+      case Err():
+        return Result.error(result.error);
+      case Ok():
+    }
+    try {
+      await _db.managers.playlistTable.filter((f) => f.id(id)).delete();
+      notifyListeners();
+      return Result.ok(null);
+    } on Exception catch (e) {
+      await refresh();
+      return Result.error(e);
+    } catch (e) {
+      await refresh();
+      return Result.error(Exception(e.toString()));
+    }
+  }
+
+  Future<Result<String>> create(String name) async {
+    final result =
+        await _subsonic.createPlaylist(_auth.con, playlistName: name);
+    switch (result) {
+      case Err():
+        return Result.error(result.error);
+      case Ok():
+    }
+    try {
+      await _db.managers.playlistTable.create((o) => o(
+            id: result.value.id,
+            changed: result.value.changed,
+            created: result.value.created,
+            durationMs: result.value.duration * 1000,
+            songCount: result.value.songCount,
+            name: result.value.name,
+            comment: Value(result.value.comment),
+            coverArt: Value(result.value.coverArt),
+          ));
+      notifyListeners();
+    } catch (e) {
+      print(e);
+      await refresh(refreshIds: {result.value.id});
+    }
+    return Result.ok(result.value.id);
+  }
+
   Future<Result<void>> reorder(String id, int oldIndex, int newIndex) async {
     final backup = await _db.managers.playlistSongTable
         .filter((f) => f.playlistId.id.equals(id))
@@ -245,13 +292,13 @@ class PlaylistRepository extends ChangeNotifier {
     }
 
     try {
-      final playlists = result.value.playlist
-          .where((p) => refreshIds.isEmpty || refreshIds.contains(p.id));
+      final playlists = result.value.playlist;
 
       final toUpdate = <PlaylistModel>[];
 
       if (forceRefresh) {
-        toUpdate.addAll(playlists);
+        toUpdate.addAll(playlists
+            .where((p) => refreshIds.isEmpty || refreshIds.contains(p.id)));
       } else {
         for (var p in playlists) {
           if (await _db.managers.playlistTable
@@ -260,7 +307,9 @@ class PlaylistRepository extends ChangeNotifier {
               null) {
             continue;
           }
-          toUpdate.add(p);
+          if (refreshIds.isEmpty || refreshIds.contains(p.id)) {
+            toUpdate.add(p);
+          }
         }
       }
 

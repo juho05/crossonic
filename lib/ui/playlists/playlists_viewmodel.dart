@@ -40,6 +40,10 @@ class PlaylistsViewModel extends ChangeNotifier {
     _load();
   }
 
+  Future<Result<void>> delete(Playlist playlist) async {
+    return await _repo.delete(playlist.id);
+  }
+
   Future<Result<void>> play(Playlist playlist, {bool shuffle = false}) async {
     final result = await getTracks(playlist.id);
     switch (result) {

@@ -2,6 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:crossonic/routing/router.gr.dart';
 import 'package:crossonic/ui/common/albums_grid_delegate.dart';
 import 'package:crossonic/ui/common/dialogs/add_to_playlist.dart';
+import 'package:crossonic/ui/common/dialogs/confirmation.dart';
 import 'package:crossonic/ui/common/playlist_grid_cell.dart';
 import 'package:crossonic/ui/playlists/playlists_viewmodel.dart';
 import 'package:crossonic/utils/result.dart';
@@ -37,58 +38,83 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      child: ListenableBuilder(
-          listenable: _viewModel,
-          builder: (context, _) {
-            return OrientationBuilder(builder: (context, orientation) {
+    return OrientationBuilder(builder: (context, orientation) {
+      return Scaffold(
+        floatingActionButton: orientation == Orientation.portrait
+            ? FloatingActionButton(
+                onPressed: () {
+                  context.router.push(CreatePlaylistRoute());
+                },
+                tooltip: "Create Playlist",
+                child: Icon(Icons.add),
+              )
+            : null,
+        body: ListenableBuilder(
+            listenable: _viewModel,
+            builder: (context, _) {
+              final dropdown = DropdownMenu<PlaylistsSort>(
+                initialSelection: _viewModel.sort,
+                requestFocusOnTap: false,
+                leadingIcon: Icon(Icons.sort),
+                expandedInsets: orientation == Orientation.portrait
+                    ? EdgeInsets.zero
+                    : null,
+                enableSearch: false,
+                dropdownMenuEntries: [
+                  DropdownMenuEntry(
+                    value: PlaylistsSort.updated,
+                    label: "Updated",
+                  ),
+                  DropdownMenuEntry(
+                    value: PlaylistsSort.created,
+                    label: "Created",
+                  ),
+                  DropdownMenuEntry(
+                    value: PlaylistsSort.alphabetical,
+                    label: "Alphabetical",
+                  ),
+                  DropdownMenuEntry(
+                    value: PlaylistsSort.songCount,
+                    label: "Song Count",
+                  ),
+                  DropdownMenuEntry(
+                    value: PlaylistsSort.duration,
+                    label: "Duration",
+                  ),
+                  DropdownMenuEntry(
+                    value: PlaylistsSort.random,
+                    label: "Random",
+                  ),
+                ],
+                onSelected: (PlaylistsSort? sort) {
+                  if (sort == null) return;
+                  _viewModel.sort = sort;
+                },
+              );
               return CustomScrollView(
                 slivers: [
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: const EdgeInsets.all(8.0),
-                      child: Align(
-                        alignment: Alignment.centerLeft,
-                        child: DropdownMenu<PlaylistsSort>(
-                          initialSelection: _viewModel.sort,
-                          requestFocusOnTap: false,
-                          leadingIcon: Icon(Icons.sort),
-                          expandedInsets: orientation == Orientation.portrait
-                              ? EdgeInsets.zero
-                              : null,
-                          enableSearch: false,
-                          dropdownMenuEntries: [
-                            DropdownMenuEntry(
-                              value: PlaylistsSort.updated,
-                              label: "Updated",
+                      child: orientation == Orientation.landscape
+                          ? Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              spacing: 8,
+                              children: [
+                                dropdown,
+                                ElevatedButton.icon(
+                                  label: Text("Create"),
+                                  icon: Icon(Icons.add),
+                                  onPressed: () {
+                                    context.router.push(CreatePlaylistRoute());
+                                  },
+                                )
+                              ],
+                            )
+                          : Align(
+                              alignment: Alignment.centerLeft,
+                              child: dropdown,
                             ),
-                            DropdownMenuEntry(
-                              value: PlaylistsSort.created,
-                              label: "Created",
-                            ),
-                            DropdownMenuEntry(
-                              value: PlaylistsSort.alphabetical,
-                              label: "Alphabetical",
-                            ),
-                            DropdownMenuEntry(
-                              value: PlaylistsSort.songCount,
-                              label: "Song Count",
-                            ),
-                            DropdownMenuEntry(
-                              value: PlaylistsSort.duration,
-                              label: "Duration",
-                            ),
-                            DropdownMenuEntry(
-                              value: PlaylistsSort.random,
-                              label: "Random",
-                            ),
-                          ],
-                          onSelected: (PlaylistsSort? sort) {
-                            if (sort == null) return;
-                            _viewModel.sort = sort;
-                          },
-                        ),
-                      ),
                     ),
                   ),
                   if (_viewModel.playlists.isEmpty)
@@ -140,6 +166,17 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
                                     context, p.name, result.value);
                             }
                           },
+                          onDelete: () async {
+                            final confirmed =
+                                await ConfirmationDialog.showYesNo(context);
+                            if (!(confirmed ?? false) || !context.mounted) {
+                              return;
+                            }
+                            final result = await _viewModel.delete(p);
+                            if (!context.mounted) return;
+                            toastResult(context, result,
+                                "Deleted playlist '${p.name}'!");
+                          },
                         );
                       },
                       childCount: _viewModel.playlists.length,
@@ -147,8 +184,8 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
                   ),
                 ],
               );
-            });
-          }),
-    );
+            }),
+      );
+    });
   }
 }

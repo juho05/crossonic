@@ -34,8 +34,8 @@ class _ConnectServerPageState extends State<ConnectServerPage> {
 
   @override
   void dispose() {
-    super.dispose();
     viewModel.connect.removeListener(_onResult);
+    super.dispose();
   }
 
   @override
