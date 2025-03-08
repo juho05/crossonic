@@ -44,34 +44,27 @@ class AudioPlayerAudioPlayers implements AudioPlayer {
         _currentDuration = duration;
       }));
       _playerSubscriptions.add(_players[i].onPlayerComplete.listen((_) async {
-        print("on complete");
         if (i != _currentPlayer) {
           _players[i].pause();
           return;
         }
-        print("next_url: $_nextURL");
         if (_nextURL != null) {
           _currentDuration = null;
           if (_nextPlayerURL == _nextURL) {
-            print("preloaded, switching to new player");
             final oldPlayer = _currentPlayer;
             _currentPlayer = _nextPlayerIndex;
             _players[oldPlayer].release();
             await play();
           } else {
-            print("not preloaded, changing source url");
             await _players[_currentPlayer].setSourceUrl(_nextURL.toString());
             await play();
           }
           _nextPlayerURL = null;
           _nextURL = null;
-          print("setting next url to null 1");
           canSeek = _nextCanSeek;
           _nextCanSeek = false;
-          print("advance");
           _eventStream.add(AudioPlayerEvent.advance);
         } else {
-          print("stopped");
           _eventStream.add(AudioPlayerEvent.stopped);
         }
       }));
@@ -79,7 +72,6 @@ class AudioPlayerAudioPlayers implements AudioPlayer {
         if (i != _currentPlayer) {
           return;
         }
-        print(state);
         if (state == ap.PlayerState.playing) {
           _startPositionTimer();
           _eventStream.add(AudioPlayerEvent.playing);
@@ -123,7 +115,6 @@ class AudioPlayerAudioPlayers implements AudioPlayer {
       if (_currentDuration! - pos < Duration(seconds: 10)) {
         if (_nextURL != null && _nextPlayerURL != _nextURL) {
           _nextPlayerURL = _nextURL;
-          print("preloading next url");
           await _players[_nextPlayerIndex].setSourceUrl(_nextURL!);
         }
       }
@@ -138,7 +129,6 @@ class AudioPlayerAudioPlayers implements AudioPlayer {
 
   @override
   Future<void> play() async {
-    print("play");
     await _players[_currentPlayer].resume();
     _eventStream.add(AudioPlayerEvent.playing);
   }
@@ -154,7 +144,6 @@ class AudioPlayerAudioPlayers implements AudioPlayer {
   Future<void> stop() async {
     _currentDuration = null;
     _nextURL = null;
-    print("setting next url to null 2");
     _nextPlayerURL = null;
     for (var i = 0; i < _players.length; i++) {
       await _players[i].release();
@@ -176,7 +165,6 @@ class AudioPlayerAudioPlayers implements AudioPlayer {
     }
     _nextPlayerURL = null;
     _nextURL = null;
-    print("setting next url to null 3");
     _playerSubscriptions.clear();
   }
 
@@ -209,7 +197,6 @@ class AudioPlayerAudioPlayers implements AudioPlayer {
 
   @override
   Future<void> setNext(Uri? url) async {
-    print("setting next url");
     _nextURL = url.toString();
     if (_nextPlayerURL != _nextURL) {
       _nextPlayerURL = null;

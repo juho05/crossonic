@@ -34,7 +34,7 @@ class _ConnectServerPageState extends State<ConnectServerPage> {
 
   @override
   void dispose() {
-    viewModel.connect.removeListener(_onResult);
+    viewModel.dispose();
     super.dispose();
   }
 
@@ -47,60 +47,67 @@ class _ConnectServerPageState extends State<ConnectServerPage> {
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16),
-          child: FormBuilder(
-            key: _formKey,
-            autovalidateMode: AutovalidateMode.onUserInteraction,
-            child: Center(
-              child: SizedBox(
-                width: 430,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    const SizedBox(height: 60),
-                    Expanded(
-                      flex: 2,
-                      child: Text("Welcome!",
-                          style: Theme.of(context).textTheme.displayMedium),
-                    ),
-                    Expanded(
-                      flex: 3,
-                      child: FormBuilderTextField(
-                        name: "serverUri",
-                        restorationId: "connect_server_page_serverUri",
-                        decoration: const InputDecoration(
-                          labelText: "Server URL",
-                          icon: Icon(Icons.link),
-                          border: OutlineInputBorder(),
-                        ),
-                        validator: FormBuilderValidators.compose([
-                          FormBuilderValidators.required(),
-                          FormBuilderValidators.url(
-                            protocols: ["http", "https"],
-                            requireProtocol: true,
-                            requireTld: true,
+          child: ListenableBuilder(
+              listenable: viewModel,
+              builder: (context, _) {
+                return FormBuilder(
+                  key: _formKey,
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                  child: Center(
+                    child: SizedBox(
+                      width: 430,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          const SizedBox(height: 60),
+                          Expanded(
+                            flex: 2,
+                            child: Text("Welcome!",
+                                style:
+                                    Theme.of(context).textTheme.displayMedium),
                           ),
-                        ]),
-                        onSubmitted: (_) => _submit(),
+                          Expanded(
+                            flex: 3,
+                            child: FormBuilderTextField(
+                              name: "serverUri",
+                              restorationId: "connect_server_page_serverUri",
+                              initialValue: viewModel.serverUrl,
+                              decoration: const InputDecoration(
+                                labelText: "Server URL",
+                                icon: Icon(Icons.link),
+                                border: OutlineInputBorder(),
+                              ),
+                              validator: FormBuilderValidators.compose([
+                                FormBuilderValidators.required(),
+                                FormBuilderValidators.url(
+                                  protocols: ["http", "https"],
+                                  requireProtocol: true,
+                                  requireTld: true,
+                                ),
+                              ]),
+                              onSubmitted: (_) => _submit(),
+                            ),
+                          ),
+                          ListenableBuilder(
+                            listenable: viewModel.connect,
+                            builder: (context, _) => ElevatedButton(
+                              onPressed:
+                                  !viewModel.connect.running ? _submit : null,
+                              style: ButtonStyle(),
+                              child: Padding(
+                                padding: const EdgeInsets.all(16),
+                                child: Text("Connect"),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 100),
+                        ],
                       ),
                     ),
-                    ListenableBuilder(
-                      listenable: viewModel.connect,
-                      builder: (context, _) => ElevatedButton(
-                        onPressed: !viewModel.connect.running ? _submit : null,
-                        style: ButtonStyle(),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Text("Connect"),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 100),
-                  ],
-                ),
-              ),
-            ),
-          ),
+                  ),
+                );
+              }),
         ),
       ),
     );
