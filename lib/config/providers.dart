@@ -40,12 +40,17 @@ Future<List<SingleChildWidget>> get providers async {
         auth: authRepository,
         subsonic: subsonicService,
       );
+  final coverRepository = CoverRepository(
+        authRepository: authRepository,
+        subsonicService: subsonicService,
+      );
 
   final playlistRepository = PlaylistRepository(
         subsonic: subsonicService,
         favorites: favoritesRepository,
         auth: authRepository,
         db: database,
+        coverRepository: coverRepository,
       );
 
   final MediaIntegration mediaIntegration;
@@ -121,12 +126,8 @@ Future<List<SingleChildWidget>> get providers async {
       ),
       dispose: (context, value) => value.dispose(),
     ),
-    Provider(
-      create: (context) => CoverRepository(
-        authRepository: context.read(),
-        subsonicService: context.read(),
-      ),
-      dispose: (context, value) => value.dispose(),
+    Provider.value(
+      value: coverRepository,
     ),
     Provider(
       create: (context) => ah.AudioHandler(

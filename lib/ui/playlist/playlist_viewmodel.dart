@@ -1,9 +1,17 @@
+import 'dart:typed_data';
+
 import 'package:crossonic/data/repositories/audio/audio_handler.dart';
 import 'package:crossonic/data/repositories/playlist/models/playlist.dart';
 import 'package:crossonic/data/repositories/playlist/playlist_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
+import 'package:crossonic/utils/exceptions.dart';
 import 'package:crossonic/utils/result.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+
+class ImageTooLargeException extends AppException {
+  ImageTooLargeException() : super("Image too large");
+}
 
 class PlaylistViewModel extends ChangeNotifier {
   final PlaylistRepository _repo;
@@ -24,6 +32,11 @@ class PlaylistViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  bool get changeCoverSupported => _repo.changeCoverSupported;
+
+  bool _uploadingCover = false;
+  bool get uploadingCover => _uploadingCover;
+
   PlaylistViewModel({
     required PlaylistRepository playlistRepository,
     required AudioHandler audioHandler,
@@ -34,6 +47,36 @@ class PlaylistViewModel extends ChangeNotifier {
     _repo.addListener(_load);
     _load();
     _repo.refresh(forceRefresh: true, refreshIds: {_playlistId});
+  }
+
+  Future<Result<void>> changeCover() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.image,
+      withData: true,
+    );
+    if (result == null || result.files.isEmpty) {
+      return Result.ok(null);
+    }
+    final file = result.files[0];
+    if (file.size > 15e6) {
+      return Result.error(ImageTooLargeException());
+    }
+    _uploadingCover = true;
+    notifyListeners();
+    final r =
+        await _repo.setCover(_playlistId, file.extension ?? "", file.bytes!);
+    _uploadingCover = false;
+    notifyListeners();
+    return r;
+  }
+
+  Future<Result<void>> removeCover() async {
+    _uploadingCover = true;
+    notifyListeners();
+    final result = await _repo.setCover(_playlistId, "", Uint8List(0));
+    _uploadingCover = false;
+    notifyListeners();
+    return result;
   }
 
   Future<void> _load() async {

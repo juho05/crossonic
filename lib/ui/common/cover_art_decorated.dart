@@ -8,6 +8,7 @@ class CoverArtDecorated extends StatefulWidget {
   final String? coverId;
   final IconData placeholderIcon;
   final BorderRadiusGeometry borderRadius;
+  final bool uploading;
 
   final bool isFavorite;
 
@@ -19,6 +20,7 @@ class CoverArtDecorated extends StatefulWidget {
     required this.placeholderIcon,
     required this.borderRadius,
     required this.isFavorite,
+    this.uploading = false,
     this.menuOptions = const [],
   });
 
@@ -37,11 +39,17 @@ class _CoverArtDecoratedState extends State<CoverArtDecorated> {
       fit: StackFit.loose,
       alignment: Alignment.center,
       children: [
-        CoverArt(
-          placeholderIcon: widget.placeholderIcon,
-          borderRadius: widget.borderRadius,
-          coverId: widget.coverId,
-        ),
+        if (!widget.uploading)
+          CoverArt(
+            placeholderIcon: widget.placeholderIcon,
+            borderRadius: widget.borderRadius,
+            coverId: widget.coverId,
+          )
+        else
+          AspectRatio(
+            aspectRatio: 1,
+            child: CircularProgressIndicator.adaptive(),
+          ),
         AspectRatio(
           aspectRatio: 1,
           child: LayoutBuilder(

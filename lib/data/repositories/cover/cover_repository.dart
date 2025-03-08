@@ -13,6 +13,10 @@ class CoverRepository extends BaseCacheManager {
 
   late final CacheManager _cacheManager;
 
+  static String getKey(String id, int resolution) {
+    return "$id\t$resolution";
+  }
+
   CoverRepository(
       {required AuthRepository authRepository,
       required SubsonicService subsonicService})

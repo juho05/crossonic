@@ -58,7 +58,8 @@ class _CoverArtState extends State<CoverArt> {
           clipBehavior: Clip.antiAlias,
           child: widget.coverId != null
               ? CachedNetworkImage(
-                  imageUrl: "${widget.coverId!}\t${resolution(context, size)}",
+                  imageUrl: CoverRepository.getKey(
+                      widget.coverId!, resolution(context, size)),
                   fit: BoxFit.cover,
                   errorWidget: (context, url, error) => placeholder(size),
                   fadeInDuration: const Duration(milliseconds: 300),

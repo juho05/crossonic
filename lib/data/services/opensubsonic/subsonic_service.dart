@@ -66,6 +66,37 @@ class SubsonicService {
     );
   }
 
+  Future<Result<void>> setPlaylistCover(
+      Connection con, String id, String ext, Uint8List cover) async {
+    final queryParams = generateQuery({
+      "id": [id],
+    }, con.auth);
+    final queryStr = Uri(queryParameters: queryParams).query;
+    try {
+      if (ext.startsWith(".")) ext = ext.substring(1);
+      final contentType = switch (ext.toLowerCase()) {
+        "jpg" => "image/jpeg",
+        "jpeg" => "image/jpeg",
+        "png" => "image/png",
+        "gif" => "image/gif",
+        "bmp" => "image/bmp",
+        "tiff" => "image/tiff",
+        "tif" => "image/tiff",
+        _ => "application/octet-stream",
+      };
+      final response = await http.post(
+          Uri.parse('${con.baseUri}/rest/crossonic/setPlaylistCover?$queryStr'),
+          body: cover,
+          headers: {"Content-Type": contentType});
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        return Result.error(ServerException(response.statusCode));
+      }
+    } catch (e) {
+      return Result.error(ConnectionException());
+    }
+    return Result.ok(null);
+  }
+
   Future<Result<PlaylistsModel>> getPlaylists(Connection con) async {
     return await _fetchObject(
       con,

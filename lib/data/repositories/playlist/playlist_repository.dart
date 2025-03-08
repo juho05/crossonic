@@ -1,6 +1,8 @@
 import 'dart:convert';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
+import 'package:crossonic/data/repositories/cover/cover_repository.dart';
 import 'package:crossonic/data/repositories/playlist/models/playlist.dart';
 import 'package:crossonic/data/repositories/subsonic/favorites_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
@@ -16,19 +18,35 @@ class PlaylistRepository extends ChangeNotifier {
   final SubsonicService _subsonic;
   final FavoritesRepository _favorites;
   final AuthRepository _auth;
+  final CoverRepository _coverRepository;
   final Database _db;
+
+  bool get changeCoverSupported => _auth.serverFeatures.isCrossonic;
 
   PlaylistRepository({
     required SubsonicService subsonic,
     required FavoritesRepository favorites,
     required AuthRepository auth,
     required Database db,
+    required CoverRepository coverRepository,
   })  : _subsonic = subsonic,
         _favorites = favorites,
         _auth = auth,
-        _db = db {
+        _db = db,
+        _coverRepository = coverRepository {
     _auth.addListener(_onAuthChanged);
     _onAuthChanged();
+  }
+
+  Future<Result<void>> setCover(String id, String ext, Uint8List cover) async {
+    final result = await _subsonic.setPlaylistCover(_auth.con, id, ext, cover);
+    switch (result) {
+      case Err():
+        return Result.error(result.error);
+      case Ok():
+    }
+    _evictCoverFromCache((await getPlaylist(id)).tryValue?.playlist.coverId);
+    return await refresh(refreshIds: {id});
   }
 
   Future<Result<void>> delete(String id) async {
@@ -335,9 +353,23 @@ class PlaylistRepository extends ChangeNotifier {
         }
       }
 
+      final playlistIds = playlists.map((p) => p.id);
+      final toUpdateIds = toUpdate.map((p) => p.id);
+
+      final oldCoverIds = (await _db.managers.playlistTable
+              .filter((f) => f.id.isIn(toUpdateIds))
+              .get())
+          .asMap()
+          .map((key, value) => MapEntry(value.id, value.coverArt));
+      for (var p in toUpdate) {
+        // TODO properly check if the cover has changed
+        // this only checks whether the status of having/not having a cover has changed
+        if (p.coverArt != oldCoverIds[p.id]) {
+          _evictCoverFromCache(oldCoverIds[p.id]);
+        }
+      }
+
       await _db.transaction(() async {
-        final playlistIds = playlists.map((p) => p.id);
-        final toUpdateIds = toUpdate.map((p) => p.id);
         await _db.managers.playlistTable
             .filter((f) => f.id.isIn(playlistIds).not())
             .delete();
@@ -393,6 +425,25 @@ class PlaylistRepository extends ChangeNotifier {
             (type: FavoriteType.song, id: c.id, favorite: c.starred != null)));
         return Result.ok(result.value.entry ?? []);
     }
+  }
+
+  Future<void> _evictCoverFromCache(String? coverId) async {
+    if (coverId == null) return;
+    Future<void> evict(String id, int resolution) async {
+      await CachedNetworkImage.evictFromCache(
+        CoverRepository.getKey(id, resolution),
+        cacheManager: _coverRepository,
+      );
+    }
+
+    await Future.wait([
+      evict(coverId, 64),
+      evict(coverId, 128),
+      evict(coverId, 256),
+      evict(coverId, 512),
+      evict(coverId, 1024),
+      evict(coverId, 2048),
+    ]);
   }
 
   void _onAuthChanged() {

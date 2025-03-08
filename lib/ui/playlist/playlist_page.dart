@@ -60,6 +60,7 @@ class _PlaylistPageState extends State<PlaylistPage> {
               borderRadius: BorderRadius.circular(10),
               isFavorite: false,
               coverId: playlist.coverId,
+              uploading: _viewModel.uploadingCover,
               menuOptions: [
                 ContextMenuOption(
                   title: "Play",
@@ -107,6 +108,34 @@ class _PlaylistPageState extends State<PlaylistPage> {
                     _viewModel.reorderEnabled = !_viewModel.reorderEnabled;
                   },
                 ),
+                if (_viewModel.changeCoverSupported)
+                  ContextMenuOption(
+                    title: _viewModel.playlist?.coverId != null
+                        ? "Change Cover"
+                        : "Set Cover",
+                    icon: Icons.image_outlined,
+                    onSelected: () async {
+                      final result = await _viewModel.changeCover();
+                      if (!context.mounted) return;
+                      if (result is ImageTooLargeException) {
+                        Toast.show(
+                            context, "Image too large: max 15 MB allowed");
+                      } else {
+                        toastResult(context, result);
+                      }
+                    },
+                  ),
+                if (_viewModel.changeCoverSupported &&
+                    _viewModel.playlist?.coverId != null)
+                  ContextMenuOption(
+                    title: "Remove Cover",
+                    icon: Icons.hide_image_outlined,
+                    onSelected: () async {
+                      final result = await _viewModel.removeCover();
+                      if (!context.mounted) return;
+                      toastResult(context, result);
+                    },
+                  ),
               ],
             ),
             extraInfo: [

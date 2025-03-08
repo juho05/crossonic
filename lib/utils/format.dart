@@ -5,6 +5,7 @@ String formatDuration(Duration d) {
 }
 
 String formatDateTime(DateTime d) {
+  d = d.toLocal();
   DateFormat format = DateFormat("yyyy-MM-dd HH:mm:ss");
   return format.format(d);
 }
