@@ -25,46 +25,61 @@ class AudioPlayerAudioPlayers implements AudioPlayer {
   @override
   bool get initialized => _initialized;
 
+  final List<StreamSubscription> _playerSubscriptions = [];
+
   @override
   void init() {
     _players.clear();
+    for (var s in _playerSubscriptions) {
+      s.cancel();
+    }
+    _playerSubscriptions.clear();
     for (var i = 0; i < 2; i++) {
       _players.add(ap.AudioPlayer());
-      _players[i]
+      _playerSubscriptions.add(_players[i]
           .onDurationChanged
           .debounceTime(Duration(seconds: 5))
           .listen((duration) {
         if (i != _currentPlayer) return;
         _currentDuration = duration;
-      });
-      _players[i].onPlayerComplete.listen((_) async {
+      }));
+      _playerSubscriptions.add(_players[i].onPlayerComplete.listen((_) async {
+        print("on complete");
         if (i != _currentPlayer) {
           _players[i].pause();
           return;
         }
+        print("next_url: $_nextURL");
         if (_nextURL != null) {
           _currentDuration = null;
           if (_nextPlayerURL == _nextURL) {
+            print("preloaded, switching to new player");
             final oldPlayer = _currentPlayer;
             _currentPlayer = _nextPlayerIndex;
             _players[oldPlayer].release();
             await play();
           } else {
+            print("not preloaded, changing source url");
             await _players[_currentPlayer].setSourceUrl(_nextURL.toString());
+            await play();
           }
           _nextPlayerURL = null;
           _nextURL = null;
+          print("setting next url to null 1");
           canSeek = _nextCanSeek;
           _nextCanSeek = false;
+          print("advance");
           _eventStream.add(AudioPlayerEvent.advance);
         } else {
+          print("stopped");
           _eventStream.add(AudioPlayerEvent.stopped);
         }
-      });
-      _players[i].onPlayerStateChanged.listen((state) {
+      }));
+      _playerSubscriptions.add(_players[i].onPlayerStateChanged.listen((state) {
         if (i != _currentPlayer) {
           return;
         }
+        print(state);
         if (state == ap.PlayerState.playing) {
           _startPositionTimer();
           _eventStream.add(AudioPlayerEvent.playing);
@@ -75,7 +90,7 @@ class AudioPlayerAudioPlayers implements AudioPlayer {
             _eventStream.value != AudioPlayerEvent.stopped) {
           _eventStream.add(AudioPlayerEvent.paused);
         }
-      });
+      }));
     }
     _initialized = true;
   }
@@ -108,6 +123,7 @@ class AudioPlayerAudioPlayers implements AudioPlayer {
       if (_currentDuration! - pos < Duration(seconds: 10)) {
         if (_nextURL != null && _nextPlayerURL != _nextURL) {
           _nextPlayerURL = _nextURL;
+          print("preloading next url");
           await _players[_nextPlayerIndex].setSourceUrl(_nextURL!);
         }
       }
@@ -122,6 +138,7 @@ class AudioPlayerAudioPlayers implements AudioPlayer {
 
   @override
   Future<void> play() async {
+    print("play");
     await _players[_currentPlayer].resume();
     _eventStream.add(AudioPlayerEvent.playing);
   }
@@ -137,6 +154,7 @@ class AudioPlayerAudioPlayers implements AudioPlayer {
   Future<void> stop() async {
     _currentDuration = null;
     _nextURL = null;
+    print("setting next url to null 2");
     _nextPlayerURL = null;
     for (var i = 0; i < _players.length; i++) {
       await _players[i].release();
@@ -146,13 +164,20 @@ class AudioPlayerAudioPlayers implements AudioPlayer {
 
   @override
   Future<void> dispose() async {
+    _initialized = false;
     _stopPositionTimer();
     await stop();
     for (var i = 0; i < _players.length; i++) {
       await _players[i].dispose();
     }
     _players.clear();
-    _initialized = false;
+    for (var s in _playerSubscriptions) {
+      await s.cancel();
+    }
+    _nextPlayerURL = null;
+    _nextURL = null;
+    print("setting next url to null 3");
+    _playerSubscriptions.clear();
   }
 
   @override
@@ -169,18 +194,26 @@ class AudioPlayerAudioPlayers implements AudioPlayer {
 
   @override
   Future<void> setCurrent(Uri url) async {
+    final shouldPlay = _eventStream.value == AudioPlayerEvent.playing;
     _eventStream.add(AudioPlayerEvent.loading);
     _currentDuration = null;
-    await _players[_currentPlayer].setSourceUrl(url.toString());
     canSeek = url.queryParameters.containsKey("format") &&
         url.queryParameters["format"] == "raw";
-    _nextURL = null;
-    _nextPlayerURL = null;
+    await _players[_currentPlayer].setSourceUrl(url.toString());
+    if (shouldPlay) {
+      await play();
+    } else {
+      _eventStream.add(AudioPlayerEvent.paused);
+    }
   }
 
   @override
   Future<void> setNext(Uri? url) async {
+    print("setting next url");
     _nextURL = url.toString();
+    if (_nextPlayerURL != _nextURL) {
+      _nextPlayerURL = null;
+    }
     if (url != null) {
       _nextCanSeek = url.queryParameters.containsKey("format") &&
           url.queryParameters["format"] == "raw";

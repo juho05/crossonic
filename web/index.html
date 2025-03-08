@@ -16,32 +16,13 @@
 
   <title>Crossonic</title>
   <link rel="manifest" href="manifest.json">
-
-  <script>
-    // The value below is injected by flutter build, do not touch.
-    const serviceWorkerVersion = null;
-  </script>
-  <script src="flutter.js" defer></script>
 </head>
 <body>
+  <script src="flutter_bootstrap.js" async></script>
   <script>
-    window.addEventListener('load', function(ev) {
-      _flutter.loader.loadEntrypoint({
-        serviceWorker: {
-          serviceWorkerVersion: serviceWorkerVersion,
-        },
-        onEntrypointLoaded: function(engineInitializer) {
-          engineInitializer.initializeEngine({renderer: "canvaskit"}).then(function(appRunner) {
-            appRunner.runApp();
-          });
-        }
-      });
+    document.body.addEventListener('contextmenu', (event) => {
+      event.preventDefault();
     });
   </script>
 </body>
-<script>
-  document.body.addEventListener('contextmenu', (event) => {
-    event.preventDefault();
-  });
-</script>
 </html>

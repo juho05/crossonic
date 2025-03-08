@@ -18,7 +18,7 @@ See [Supported platforms](#supported-platforms) for a status per platform.
 - [x] Browse/search songs, albums, artists
 - [x] Favorite songs/albums/artists
 - [x] Playlists
-  - [x] download for offline listening (*except web*)
+  - [] download for offline listening
 - [x] [ListenBrainz](https://listenbrainz.org) integration
   - [x] scrobble
   - [x] sync favorite songs

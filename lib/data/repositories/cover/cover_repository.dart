@@ -27,7 +27,7 @@ class CoverRepository extends BaseCacheManager {
       fileService: CoverFileService(
           authRepository: _authRepository, subsonicService: _subsonicService),
       fileSystem: kIsWeb ? MemoryCacheSystem() : IOFileSystem(key),
-      repo: JsonCacheInfoRepository(databaseName: key),
+      repo: kIsWeb ? NonStoringObjectProvider() : JsonCacheInfoRepository(databaseName: key),
     ));
     _authRepository.addListener(_onAuthChanged);
     _onAuthChanged();

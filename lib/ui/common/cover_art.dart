@@ -2,6 +2,8 @@ import 'dart:math';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:crossonic/data/repositories/cover/cover_repository.dart';
+import 'package:crossonic/data/repositories/subsonic/subsonic_repository.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -57,17 +59,30 @@ class _CoverArtState extends State<CoverArt> {
           borderRadius: widget.borderRadius,
           clipBehavior: Clip.antiAlias,
           child: widget.coverId != null
-              ? CachedNetworkImage(
-                  imageUrl: CoverRepository.getKey(
-                      widget.coverId!, resolution(context, size)),
-                  fit: BoxFit.cover,
-                  errorWidget: (context, url, error) => placeholder(size),
-                  fadeInDuration: const Duration(milliseconds: 300),
-                  fadeOutDuration: const Duration(milliseconds: 100),
-                  placeholder: (context, url) =>
-                      CircularProgressIndicator.adaptive(),
-                  cacheManager: context.read<CoverRepository>(),
-                )
+              ? (kIsWeb
+                  ? CachedNetworkImage(
+                      imageUrl: context
+                          .read<SubsonicRepository>()
+                          .getCoverUri(widget.coverId!)
+                          .toString(),
+                      fit: BoxFit.cover,
+                      errorWidget: (context, url, error) => placeholder(size),
+                      fadeInDuration: const Duration(milliseconds: 300),
+                      fadeOutDuration: const Duration(milliseconds: 100),
+                      placeholder: (context, url) =>
+                          CircularProgressIndicator.adaptive(),
+                    )
+                  : CachedNetworkImage(
+                      imageUrl: CoverRepository.getKey(
+                          widget.coverId!, resolution(context, size)),
+                      fit: BoxFit.cover,
+                      errorWidget: (context, url, error) => placeholder(size),
+                      fadeInDuration: const Duration(milliseconds: 300),
+                      fadeOutDuration: const Duration(milliseconds: 100),
+                      placeholder: (context, url) =>
+                          CircularProgressIndicator.adaptive(),
+                      cacheManager: context.read<CoverRepository>(),
+                    ))
               : placeholder(size),
         ),
       );

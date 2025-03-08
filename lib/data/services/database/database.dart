@@ -70,11 +70,13 @@ class Database extends _$Database {
 
   static QueryExecutor _openConnection() {
     final db = driftDatabase(
-      name: "crossonic_database",
-      native: const DriftNativeOptions(
-        databaseDirectory: getApplicationSupportDirectory,
-      ),
-    );
+        name: "crossonic_database",
+        native: const DriftNativeOptions(
+          databaseDirectory: getApplicationSupportDirectory,
+        ),
+        web: DriftWebOptions(
+            sqlite3Wasm: Uri.parse("sqlite3.wasm"),
+            driftWorker: Uri.parse("drift_worker.dart.js")));
     if (kDebugMode) {
       return db.interceptWith(LogInterceptor());
     }
