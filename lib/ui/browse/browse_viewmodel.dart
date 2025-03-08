@@ -117,9 +117,13 @@ class BrowseViewModel extends ChangeNotifier {
     return Result.ok(null);
   }
 
-  void playSong(int index) {
+  void playSong(int index, bool single) {
     _audioHandler.playOnNextMediaChange();
-    _audioHandler.queue.replace(songs, index);
+    if (single) {
+      _audioHandler.queue.replace([songs[index]]);
+    } else {
+      _audioHandler.queue.replace(songs, index);
+    }
   }
 
   void addSongToQueue(Song song, bool priority) {

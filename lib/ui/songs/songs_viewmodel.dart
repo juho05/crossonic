@@ -77,9 +77,13 @@ class SongsViewModel extends ChangeNotifier {
     return await _fetch(_nextPage);
   }
 
-  void play(int index) async {
+  void play(int index, bool single) async {
     _audioHandler.playOnNextMediaChange();
-    _audioHandler.queue.replace(songs, index);
+    if (single) {
+      _audioHandler.queue.replace([songs[index]]);
+    } else {
+      _audioHandler.queue.replace(songs, index);
+    }
   }
 
   void shuffle() async {

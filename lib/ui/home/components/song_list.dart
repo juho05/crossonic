@@ -77,8 +77,8 @@ class HomeSongList extends StatelessWidget {
                           router.push(ArtistRoute(artistId: artistId));
                         }
                       : null,
-                  onTap: () {
-                    viewModel.play(i);
+                  onTap: (ctrlPressed) {
+                    viewModel.play(i, ctrlPressed);
                   },
                 );
               },

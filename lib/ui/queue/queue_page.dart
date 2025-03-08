@@ -133,7 +133,7 @@ class _QueuePageState extends State<QueuePage> {
                   onRemove: () {
                     _viewModel.remove(i);
                   },
-                  onTap: () {
+                  onTap: (_) {
                     _viewModel.goto(i);
                   },
                   onAddToQueue: (priority) {
@@ -202,7 +202,7 @@ class _QueuePageState extends State<QueuePage> {
                       _viewModel
                           .remove(i + _viewModel.priorityQueue.length + 1);
                     },
-                    onTap: () {
+                    onTap: (_) {
                       _viewModel.goto(i + _viewModel.priorityQueue.length + 1);
                     },
                     onAddToQueue: (priority) {

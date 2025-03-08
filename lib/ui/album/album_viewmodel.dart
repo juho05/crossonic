@@ -65,13 +65,17 @@ class AlbumViewModel extends ChangeNotifier {
     _loadDescription(albumId);
   }
 
-  void play([int index = 0]) {
+  void play([int index = 0, bool single = false]) {
     if ((album!.songs ?? []).isEmpty) {
       _audioHandler.queue.clear(priorityQueue: false);
       return;
     }
     _audioHandler.playOnNextMediaChange();
-    _audioHandler.queue.replace(album!.songs!, index);
+    if (single) {
+      _audioHandler.queue.replace([album!.songs![index]]);
+    } else {
+      _audioHandler.queue.replace(album!.songs!, index);
+    }
   }
 
   void playDisc(int disc) {

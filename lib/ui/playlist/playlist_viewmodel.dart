@@ -96,13 +96,17 @@ class PlaylistViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void play([int index = 0]) {
+  void play([int index = 0, bool single = false]) {
     if (tracks.isEmpty) {
       _audioHandler.queue.clear(priorityQueue: false);
       return;
     }
     _audioHandler.playOnNextMediaChange();
-    _audioHandler.queue.replace(tracks, index);
+    if (single) {
+      _audioHandler.queue.replace([tracks[index]]);
+    } else {
+      _audioHandler.queue.replace(tracks, index);
+    }
   }
 
   void shuffle() {

@@ -244,8 +244,8 @@ class _BrowsePageState extends State<BrowsePage> with RestorationMixin {
                             artist: s.displayArtist,
                             duration: s.duration,
                             year: s.year,
-                            onTap: () {
-                              _viewModel.playSong(index);
+                            onTap: (ctrlPressed) {
+                              _viewModel.playSong(index, ctrlPressed);
                             },
                             onAddToPlaylist: () {
                               AddToPlaylistDialog.show(context, s.title, [s]);

@@ -231,8 +231,8 @@ class _PlaylistPageState extends State<PlaylistPage> {
                   if (!context.mounted) return;
                   toastResult(context, result);
                 },
-                onTap: () {
-                  _viewModel.play(index);
+                onTap: (ctrlPressed) {
+                  _viewModel.play(index, ctrlPressed);
                 },
               );
             },

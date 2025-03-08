@@ -144,7 +144,7 @@ class _SongsPageState extends State<SongsPage> {
                             label: Text("Play"),
                             icon: Icon(Icons.play_arrow),
                             onPressed: () {
-                              _viewModel.play(index - 1);
+                              _viewModel.play(0, false);
                             },
                           ),
                           ElevatedButton.icon(
@@ -190,8 +190,8 @@ class _SongsPageState extends State<SongsPage> {
                     coverId: s.coverId,
                     duration: s.duration,
                     year: s.year,
-                    onTap: () {
-                      _viewModel.play(index);
+                    onTap: (ctrlPressed) {
+                      _viewModel.play(index, ctrlPressed);
                     },
                     onAddToQueue: (priority) {
                       _viewModel.addToQueue(s, priority);

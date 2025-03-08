@@ -6,6 +6,7 @@ import 'package:crossonic/ui/common/with_context_menu.dart';
 import 'package:crossonic/utils/format.dart';
 import 'package:crossonic/utils/result_toast.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 class SongListItem extends StatefulWidget {
@@ -21,7 +22,7 @@ class SongListItem extends StatefulWidget {
   final int? reorderIndex;
   final bool disablePlaybackStatus;
 
-  final void Function()? onTap;
+  final void Function(bool ctrlPressed)? onTap;
   final void Function(bool priority)? onAddToQueue;
   final void Function()? onAddToPlaylist;
   final void Function()? onGoToAlbum;
@@ -96,7 +97,10 @@ class _SongListItemState extends State<SongListItem> {
             trailingInfo: widget.duration != null
                 ? formatDuration(widget.duration!)
                 : null,
-            onTap: widget.onTap,
+            onTap: widget.onTap != null
+                ? () =>
+                    widget.onTap!(HardwareKeyboard.instance.isControlPressed)
+                : null,
             isFavorite: viewModel.favorite,
             options: [
               if (widget.onAddToQueue != null)

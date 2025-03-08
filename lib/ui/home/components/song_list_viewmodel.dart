@@ -39,10 +39,14 @@ class HomeSongListViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> play(int songIndex) async {
+  Future<void> play(int songIndex, bool single) async {
     if (status != FetchStatus.success) return;
     _audioHandler.playOnNextMediaChange();
-    _audioHandler.queue.replace(songs, songIndex);
+    if (single) {
+      _audioHandler.queue.replace([songs[songIndex]]);
+    } else {
+      _audioHandler.queue.replace(songs, songIndex);
+    }
   }
 
   void addSongToQueue(Song song, bool priority) {

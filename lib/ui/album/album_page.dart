@@ -200,8 +200,8 @@ class _AlbumPageState extends State<AlbumPage> {
                         router.push(ArtistRoute(artistId: artistId));
                       }
                     : null,
-                onTap: () {
-                  _viewModel.play(index);
+                onTap: (ctrlPressed) {
+                  _viewModel.play(index, ctrlPressed);
                 },
               );
               if (showDiscs &&
