@@ -160,6 +160,17 @@ class _ArtistPageState extends State<ArtistPage> {
                 },
               ),
               CollectionAction(
+                title: "Shuffle",
+                icon: Icons.shuffle,
+                onClick: () async {
+                  final option = await ChooserDialog.choose(
+                      context, "Shuffle", ["Albums", "Songs"]);
+                  if (option == null) return;
+                  _viewModel.play(
+                      shuffleAlbums: option == 0, shuffleSongs: option == 1);
+                },
+              ),
+              CollectionAction(
                 title: "Prio. Queue",
                 icon: Icons.playlist_play,
                 onClick: () async {
