@@ -319,10 +319,10 @@ class PlaylistRepository extends ChangeNotifier {
             .where((p) => refreshIds.isEmpty || refreshIds.contains(p.id)));
       } else {
         for (var p in playlists) {
-          if (await _db.managers.playlistTable
-                  .filter((f) => f.id(p.id) & f.changed.isAfterOrOn(p.changed))
-                  .getSingleOrNull() !=
-              null) {
+          final found = await _db.managers.playlistTable
+              .filter((f) => f.id(p.id) & f.changed.isAfterOrOn(p.changed))
+              .getSingleOrNull();
+          if (found != null) {
             continue;
           }
           if (refreshIds.isEmpty || refreshIds.contains(p.id)) {
@@ -331,7 +331,16 @@ class PlaylistRepository extends ChangeNotifier {
         }
       }
 
-      if (toUpdate.isEmpty) return Result.ok(null);
+      final deletedCount = await _db.managers.playlistTable
+          .filter((f) => f.id.isIn(playlists.map((p) => p.id)).not())
+          .delete();
+
+      if (toUpdate.isEmpty) {
+        if (deletedCount > 0) {
+          notifyListeners();
+        }
+        return Result.ok(null);
+      }
 
       Map<String, List<ChildModel>> playlistSongs = {};
 
@@ -353,26 +362,25 @@ class PlaylistRepository extends ChangeNotifier {
         }
       }
 
-      final playlistIds = playlists.map((p) => p.id);
       final toUpdateIds = toUpdate.map((p) => p.id);
 
-      final oldCoverIds = (await _db.managers.playlistTable
-              .filter((f) => f.id.isIn(toUpdateIds))
-              .get())
-          .asMap()
-          .map((key, value) => MapEntry(value.id, value.coverArt));
-      for (var p in toUpdate) {
-        // TODO properly check if the cover has changed
-        // this only checks whether the status of having/not having a cover has changed
-        if (p.coverArt != oldCoverIds[p.id]) {
-          _evictCoverFromCache(oldCoverIds[p.id]);
+      if (toUpdate.isNotEmpty) {
+        final oldCoverIds = (await _db.managers.playlistTable
+                .filter((f) => f.id.isIn(toUpdateIds))
+                .get())
+            .asMap()
+            .map((key, value) => MapEntry(value.id, value.coverArt));
+        for (var p in toUpdate) {
+          // TODO properly check if the cover has changed
+          // this only checks whether the status of having/not having a cover has changed
+          if (p.coverArt != oldCoverIds[p.id]) {
+            _evictCoverFromCache(oldCoverIds[p.id]);
+          }
         }
       }
 
       await _db.transaction(() async {
-        await _db.managers.playlistTable
-            .filter((f) => f.id.isIn(playlistIds).not())
-            .delete();
+        if (toUpdate.isEmpty) return;
         await _db.managers.playlistSongTable
             .filter((f) => f.playlistId.id.isIn(toUpdateIds))
             .delete();
