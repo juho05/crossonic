@@ -1,6 +1,10 @@
+<img src="assets/icon/crossonic-circle.png" alt="Logo" title="Crossonic" align="right" height="60px"/>
+
 # Crossonic
 
-A cross platform music client for [crossonic-server](https://github.com/juho05/crossonic-server).
+A cross platform music client for [crossonic-server](https://github.com/juho05/crossonic-server) and other [(Open)Subsonic](https://opensubsonic.netlify.app/) compatible music servers.
+
+[Screenshots](#screenshots)
 
 ## Status
 
@@ -18,10 +22,13 @@ See [Supported platforms](#supported-platforms) for a status per platform.
 - [x] Browse/search songs, albums, artists
 - [x] Favorite songs/albums/artists
 - [x] Playlists
-  - [] download for offline listening
-- [x] [ListenBrainz](https://listenbrainz.org) integration
-  - [x] scrobble
-  - [x] sync favorite songs
+  - [ ] download for offline listening
+- [x] Configure [ListenBrainz](https://listenbrainz.org) connection (*crossonic-server only*)
+- [x] Full [OpenSubsonic](https://opensubsonic.netlify.app/) support (*gracefully handles missing features on server*)
+  - API Key Authentication
+  - Transcoded seek
+  - Multiple artists/genres/…
+  - etc.
 - [x] Two queue system
   - normal queue
     - automatically populated when listening to an album/artist/playlist
@@ -37,10 +44,18 @@ See [Supported platforms](#supported-platforms) for a status per platform.
 - [ ] Jukebox
 - [ ] Save queues
 - [ ] Remote control other devices running the app
+- [ ] Internet Radio
+- [ ] Pre-cache next x songs for spotty networks
+
+### Out-of-scope
+
+The OpenSubsonic API supports some features that are out-of-scope for this application:
+
+- Video support
+- Podcasts
+- Chat
 
 ## Supported platforms
-
-While this app can be built for every platform [Flutter](https://flutter.dev) supports (although some additional configuration might be necessary), playback can be very buggy on some platforms and might not support all features.
 
 **fully supported**
 - Linux
@@ -49,11 +64,14 @@ While this app can be built for every platform [Flutter](https://flutter.dev) su
 - Windows
 
 **some limitations**
-- Web (*no playlist download*, *no gapless*)
+- Web
+  - no gapless playback (not supported by web APIs)
   - Safari playback randomly stops when streaming transcoded media
+  - no image caching
+  - worse performance than native
 
 **unsupported**
-- iOS
+- iOS (*theoretically possible, requires build configuration (permissions, gstreamer, …)*)
 
 ## Build/run
 
@@ -131,9 +149,10 @@ flutter build macos --release
 
 ### Android
 
-- [Download](https://gstreamer.freedesktop.org/data/pkg/android/1.24.10/gstreamer-1.0-android-universal-1.24.10.tar.xz) GStreamer for Android
+- [Download](https://gstreamer.freedesktop.org/download/#android) GStreamer for Android
 - Extract the file and rename the resulting directory to `gst-android`
 - Move `gst-android` into `./native_bindings/gstreamer/gstreamer_ffi/third-party`
+- Ensure that the correct Android NDK version required by your [downloaded GStreamer version](https://gstreamer.freedesktop.org/download/#android) is installed
 
 In the directory of the repository run:
 ```bash
@@ -151,13 +170,33 @@ flutter build web --release
 
 Now you can serve `./build/web` with a web server like [Caddy](https://caddyserver.com/).
 
+#### Hosting requirements
+
+- Use TLS (`https`) if not on `localhost`
+- Ensure that `/sqlite3.wasm` is served with `Content-Type: application/wasm`
+- Set `Cross-Origin-Opener-Policy` to `same-origin`
+- Set `Cross-Origin-Embedder-Policy` to `require-corp` or `credentialless`
+
 ## Screenshots
 
-![Home (mobile)](screenshots/mobile_home.png)
-![Album (mobile)](screenshots/mobile_album.png)
-![Now Playing (mobile)](screenshots/mobile_now_playing.png)
-![Playlist (mobile)](screenshots/mobile_playlist.png)
-![Album (desktop)](screenshots/desktop_album.png)
+### Desktop
+
+<p align="center">
+  <img width="800" src="screenshots/desktop_home.png" alt="Home page on desktop" title="Home page on desktop">
+  <img width="800" src="screenshots/desktop_album.png" alt="Album page on desktop" title="Album page on desktop">
+</p>
+
+### Mobile
+
+<p align="center">
+  <img height="550" src="screenshots/mobile_home.png" alt="Home page on mobile" title="Home page on mobile">
+  <img height="550" src="screenshots/mobile_now_playing.png" alt="Now playing on mobile" title="Now playing on mobile">
+  <img height="550" src="screenshots/mobile_browse.png" alt="Browse page on mobile" title="Browse page on mobile">
+  <img height="550" src="screenshots/mobile_albums.png" alt="Albums page on mobile" title="Albums page on mobile">
+  <img height="550" src="screenshots/mobile_album_light.png" alt="Album page on mobile with light theme" title="Album page on mobile with light theme">
+  <img height="550" src="screenshots/mobile_transcoding.png" alt="Transcoding settings on mobile" title="Transcoding settings on mobile">
+  <img height="550" src="screenshots/mobile_replay_gain.png" alt="Replay Gain settings on mobile" title="Replay Gain settings on mobile">
+</p>
 
 ## License
 
