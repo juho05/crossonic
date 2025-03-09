@@ -102,13 +102,6 @@ class _PlaylistPageState extends State<PlaylistPage> {
                   },
                 ),
                 ContextMenuOption(
-                  title: _viewModel.reorderEnabled ? "Stop Edit" : "Edit",
-                  icon: _viewModel.reorderEnabled ? Icons.edit_off : Icons.edit,
-                  onSelected: () {
-                    _viewModel.reorderEnabled = !_viewModel.reorderEnabled;
-                  },
-                ),
-                ContextMenuOption(
                   title: "Change name",
                   icon: Icons.edit,
                   onSelected: () {
@@ -150,10 +143,7 @@ class _PlaylistPageState extends State<PlaylistPage> {
             ),
             extraInfo: [
               CollectionExtraInfo(
-                text: "Created: ${formatDateTime(playlist.created)}",
-              ),
-              CollectionExtraInfo(
-                text: "Updated: ${formatDateTime(playlist.changed)}",
+                text: formatDuration(playlist.duration, long: true),
               ),
             ],
             actions: [
