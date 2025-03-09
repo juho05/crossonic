@@ -41,6 +41,12 @@ class AppRouter extends RootStackRouter {
       restorationId: (match) => match.fullPath,
     ),
     AutoRoute(
+      path: "playlist/update/:id",
+      page: UpdatePlaylistRoute.page,
+      title: (context, data) => "Update Playlist",
+      restorationId: (match) => match.fullPath,
+    ),
+    AutoRoute(
       path: "artists",
       page: ArtistsRoute.page,
       title: (context, data) => "Artists",

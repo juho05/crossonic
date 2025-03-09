@@ -108,6 +108,16 @@ class _PlaylistPageState extends State<PlaylistPage> {
                     _viewModel.reorderEnabled = !_viewModel.reorderEnabled;
                   },
                 ),
+                ContextMenuOption(
+                  title: "Change name",
+                  icon: Icons.edit,
+                  onSelected: () {
+                    context.router.push(UpdatePlaylistRoute(
+                      playlistId: playlist.id,
+                      playlistName: playlist.name,
+                    ));
+                  },
+                ),
                 if (_viewModel.changeCoverSupported)
                   ContextMenuOption(
                     title: _viewModel.playlist?.coverId != null
