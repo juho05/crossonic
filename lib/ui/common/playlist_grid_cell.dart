@@ -147,8 +147,11 @@ class _PlaylistGridCellState extends State<PlaylistGridCell> {
                           popupMenuButtonKey: _popupMenuButton,
                           options: menuOptions,
                           padding: const EdgeInsets.all(0),
-                          icon: Icon(Icons.more_vert,
-                              size: largeLayout ? 26 : 20),
+                          icon: Icon(
+                            Icons.more_vert,
+                            size: largeLayout ? 26 : 20,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
                     ),

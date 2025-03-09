@@ -19,10 +19,14 @@ class NowPlayingDesktop extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textStyle = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
     return SizedBox(
       height: 80,
-      child: ColoredBox(
-        color: Theme.of(context).colorScheme.primaryContainer,
+      child: Material(
+        color: colorScheme.brightness == Brightness.dark
+            ? colorScheme.surfaceContainerHigh
+            : colorScheme.surfaceContainerHighest,
+        elevation: 4,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 10),
           child: Row(
@@ -70,9 +74,7 @@ class NowPlayingDesktop extends StatelessWidget {
                           Text(
                             _viewModel.songTitle,
                             style: textStyle.bodyMedium!.copyWith(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onPrimaryContainer,
+                              color: colorScheme.onSurface,
                               fontSize: 16,
                             ),
                             overflow: TextOverflow.ellipsis,
@@ -91,9 +93,8 @@ class NowPlayingDesktop extends StatelessWidget {
                               child: Text(
                                 _viewModel.displayArtist,
                                 style: textStyle.bodySmall!.copyWith(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onPrimaryContainer),
+                                  color: colorScheme.onSurface,
+                                ),
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),

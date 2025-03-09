@@ -108,6 +108,7 @@ class _CoverArtDecoratedState extends State<CoverArtDecorated> {
                                   icon: Icon(
                                     Icons.more_vert,
                                     size: largeLayout ? 26 : 20,
+                                    color: Colors.white,
                                   ),
                                 ),
                               ),

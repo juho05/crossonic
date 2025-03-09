@@ -19,10 +19,13 @@ class NowPlayingCollapsed extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textStyle = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
     return GestureDetector(
       onTap: _panelController.open,
       child: ColoredBox(
-        color: Theme.of(context).colorScheme.primaryContainer,
+        color: colorScheme.brightness == Brightness.dark
+            ? colorScheme.surfaceContainerHigh
+            : colorScheme.surfaceContainerHighest,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 7.5),
           child: Row(
@@ -45,15 +48,15 @@ class NowPlayingCollapsed extends StatelessWidget {
                     Text(
                       _viewModel.songTitle,
                       style: textStyle.bodyMedium!.copyWith(
-                          color:
-                              Theme.of(context).colorScheme.onPrimaryContainer),
+                        color: colorScheme.onSurface,
+                      ),
                       overflow: TextOverflow.ellipsis,
                     ),
                     Text(
                       _viewModel.displayArtist,
                       style: textStyle.bodySmall!.copyWith(
-                          color:
-                              Theme.of(context).colorScheme.onPrimaryContainer),
+                        color: colorScheme.onSurface,
+                      ),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ],
