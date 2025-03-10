@@ -71,7 +71,7 @@ class _ConnectServerPageState extends State<ConnectServerPage> {
                             flex: 3,
                             child: FormBuilderTextField(
                               name: "serverUri",
-                              restorationId: "connect_server_page_serverUri",
+                              //restorationId: "connect_server_page_serverUri", // FIXME causes exception
                               initialValue: viewModel.serverUrl,
                               decoration: const InputDecoration(
                                 labelText: "Server URL",

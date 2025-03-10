@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:cached_network_image/cached_network_image.dart';
@@ -53,6 +54,9 @@ class PlaylistRepository extends ChangeNotifier {
       if (affected > 0) {
         _songDownloader.update(true);
         notifyListeners();
+        if (!download) {
+          Timer(Duration(seconds: 10), () => _songDownloader.update());
+        }
       }
       return Result.ok(null);
     } on Exception catch (e) {

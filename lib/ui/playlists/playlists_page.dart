@@ -191,7 +191,8 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
                             }
                             final result = await _viewModel.toggleDownload(p);
                             if (!context.mounted) return;
-                            toastResult(context, result);
+                            toastResult(context, result,
+                                !p.download ? "Scheduling downloads…" : null);
                           },
                         );
                       },

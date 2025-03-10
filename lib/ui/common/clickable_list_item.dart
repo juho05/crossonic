@@ -1,4 +1,4 @@
-import 'package:crossonic/ui/common/cover_art_decorated.dart';
+import 'package:crossonic/data/repositories/playlist/song_downloader.dart';
 import 'package:flutter/material.dart';
 
 class ClickableListItem extends StatelessWidget {
@@ -59,6 +59,17 @@ class ClickableListItem extends StatelessWidget {
                         if (downloadStatus == DownloadStatus.downloading)
                           Icon(
                             Icons.downloading_outlined,
+                            color: Theme.of(context)
+                                .colorScheme
+                                .surfaceContainerHighest,
+                            size: 15,
+                          ),
+                        if (downloadStatus == DownloadStatus.enqueued)
+                          Icon(
+                            Icons.schedule,
+                            color: Theme.of(context)
+                                .colorScheme
+                                .surfaceContainerHighest,
                             size: 15,
                           ),
                         Expanded(

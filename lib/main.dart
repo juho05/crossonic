@@ -7,7 +7,6 @@ import 'package:provider/provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
   runApp(MultiProvider(
     providers: await providers,
     child: const MainApp(),

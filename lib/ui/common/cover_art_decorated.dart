@@ -1,10 +1,9 @@
+import 'package:crossonic/data/repositories/playlist/song_downloader.dart';
 import 'package:crossonic/ui/common/context_menu_button.dart';
 import 'package:crossonic/ui/common/cover_art.dart';
 import 'package:crossonic/ui/common/with_context_menu.dart';
 import 'package:flutter/material.dart';
 import 'package:icon_decoration/icon_decoration.dart';
-
-enum DownloadStatus { none, downloading, downloaded }
 
 class CoverArtDecorated extends StatefulWidget {
   final String? coverId;

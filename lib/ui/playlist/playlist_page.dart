@@ -1,4 +1,5 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:crossonic/data/repositories/playlist/song_downloader.dart';
 import 'package:crossonic/routing/router.gr.dart';
 import 'package:crossonic/ui/common/collection_page.dart';
 import 'package:crossonic/ui/common/cover_art_decorated.dart';
@@ -155,7 +156,8 @@ class _PlaylistPageState extends State<PlaylistPage> {
                       }
                       final result = await _viewModel.toggleDownload();
                       if (!context.mounted) return;
-                      toastResult(context, result);
+                      toastResult(context, result,
+                          !playlist.download ? "Scheduling downloads…" : null);
                     },
                   ),
               ],

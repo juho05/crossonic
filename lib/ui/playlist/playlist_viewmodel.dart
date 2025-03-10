@@ -6,9 +6,9 @@ import 'package:crossonic/data/repositories/playlist/models/playlist.dart';
 import 'package:crossonic/data/repositories/playlist/playlist_repository.dart';
 import 'package:crossonic/data/repositories/playlist/song_downloader.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
-import 'package:crossonic/ui/common/cover_art_decorated.dart';
 import 'package:crossonic/utils/exceptions.dart';
 import 'package:crossonic/utils/result.dart';
+import 'package:crossonic/utils/throttle.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart' as path;
@@ -63,17 +63,17 @@ class PlaylistViewModel extends ChangeNotifier {
     _repo.refresh(forceRefresh: true, refreshIds: {_playlistId});
   }
 
-  Timer? _onDownloadStatusChangedTimeout;
+  Throttle? _onDownloadStatusChangedThrottle;
+
   void _onDownloadStatusChanged() {
-    if (_playlist == null || !_playlist!.download) return;
-    _onDownloadStatusChangedTimeout?.cancel();
-    _onDownloadStatusChangedTimeout = Timer(Duration(milliseconds: 250), () {
+    void update() {
+      if (_playlist == null || !_playlist!.download) return;
       bool changed = false;
       bool fullDownload = true;
       int downloadedCount = 0;
       for (var i = 0; i < tracks.length; i++) {
         final t = tracks[i];
-        final status = _getDownloadStatus(t.$1.id);
+        final status = _downloader.getStatus(t.$1.id);
         if (status != t.$2) {
           changed = true;
           _tracks[i] = (t.$1, status);
@@ -93,7 +93,14 @@ class PlaylistViewModel extends ChangeNotifier {
       if (changed) {
         notifyListeners();
       }
-    });
+    }
+
+    _onDownloadStatusChangedThrottle ??= Throttle(
+      action: update,
+      delay: Duration(milliseconds: 250),
+      leading: false,
+    );
+    _onDownloadStatusChangedThrottle!.call();
   }
 
   Future<Result<void>> toggleDownload() async {
@@ -162,7 +169,7 @@ class PlaylistViewModel extends ChangeNotifier {
         }
         _playlist = result.value!.playlist;
         _tracks = result.value!.tracks
-            .map((t) => (t, _getDownloadStatus(t.id)))
+            .map((t) => (t, _downloader.getStatus(t.id)))
             .toList();
         _downloadedTracks = 0;
         if (_playlist!.download) {
@@ -183,12 +190,6 @@ class PlaylistViewModel extends ChangeNotifier {
         }
     }
     notifyListeners();
-  }
-
-  DownloadStatus _getDownloadStatus(String songId) {
-    if (_downloader.isDownloaded(songId)) return DownloadStatus.downloaded;
-    if (_downloader.isDownloading(songId)) return DownloadStatus.downloading;
-    return DownloadStatus.none;
   }
 
   void play([int index = 0, bool single = false]) {
@@ -243,7 +244,7 @@ class PlaylistViewModel extends ChangeNotifier {
   void dispose() {
     _repo.removeListener(_load);
     _downloader.removeListener(_onDownloadStatusChanged);
-    _onDownloadStatusChangedTimeout?.cancel();
+    _onDownloadStatusChangedThrottle?.cancel();
     super.dispose();
   }
 }

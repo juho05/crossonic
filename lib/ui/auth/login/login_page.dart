@@ -127,7 +127,7 @@ class _LoginPageState extends State<LoginPage> with RestorationMixin {
                             if (_authType.value != AuthType.apiKey)
                               FormBuilderTextField(
                                 name: "username",
-                                restorationId: "login_page_username",
+                                //restorationId: "login_page_username", // FIXME causes exception
                                 decoration: const InputDecoration(
                                   labelText: "Username",
                                   icon: Icon(Icons.person),
@@ -139,7 +139,7 @@ class _LoginPageState extends State<LoginPage> with RestorationMixin {
                             if (_authType.value != AuthType.apiKey)
                               FormBuilderTextField(
                                 name: "password",
-                                restorationId: "login_page_password",
+                                //restorationId: "login_page_password", // FIXME causes exception
                                 decoration: const InputDecoration(
                                   labelText: "Password",
                                   icon: Icon(Icons.link),

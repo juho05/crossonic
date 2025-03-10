@@ -1,6 +1,6 @@
+import 'package:crossonic/data/repositories/playlist/song_downloader.dart';
 import 'package:crossonic/ui/common/clickable_list_item.dart';
 import 'package:crossonic/ui/common/context_menu_button.dart';
-import 'package:crossonic/ui/common/cover_art_decorated.dart';
 import 'package:crossonic/ui/common/with_context_menu.dart';
 import 'package:flutter/material.dart';
 

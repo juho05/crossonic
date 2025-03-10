@@ -5,9 +5,9 @@ import 'package:crossonic/data/repositories/playlist/models/playlist.dart';
 import 'package:crossonic/data/repositories/playlist/playlist_repository.dart';
 import 'package:crossonic/data/repositories/playlist/song_downloader.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
-import 'package:crossonic/ui/common/cover_art_decorated.dart';
 import 'package:crossonic/utils/exceptions.dart';
 import 'package:crossonic/utils/result.dart';
+import 'package:crossonic/utils/throttle.dart';
 import 'package:flutter/material.dart';
 
 enum PlaylistsSort {
@@ -48,10 +48,9 @@ class PlaylistsViewModel extends ChangeNotifier {
     _load();
   }
 
-  Timer? _onDownloadStatusChangedTimeout;
+  Throttle? _onDownloadStatusChangedThrottle;
   Future<void> _onDownloadStatusChanged() async {
-    _onDownloadStatusChangedTimeout?.cancel();
-    _onDownloadStatusChangedTimeout = Timer(Duration(seconds: 1), () async {
+    Future<void> update() async {
       bool changed = false;
       for (var i = 0; i < _playlists.length; i++) {
         final status = await _getPlaylistDownloadStatus(_playlists[i].$1);
@@ -63,7 +62,12 @@ class PlaylistsViewModel extends ChangeNotifier {
       if (changed) {
         notifyListeners();
       }
-    });
+    }
+
+    _onDownloadStatusChangedThrottle ??= Throttle(
+      action: update,
+      delay: Duration(seconds: 3),
+    );
   }
 
   Future<Result<void>> toggleDownload(Playlist playlist) async {
@@ -194,8 +198,8 @@ class PlaylistsViewModel extends ChangeNotifier {
   @override
   void dispose() {
     _repo.removeListener(_load);
+    _onDownloadStatusChangedThrottle?.cancel();
     _downloader.removeListener(_onDownloadStatusChanged);
-    _onDownloadStatusChangedTimeout?.cancel();
     super.dispose();
   }
 }

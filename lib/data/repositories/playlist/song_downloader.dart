@@ -11,6 +11,8 @@ import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 
+enum DownloadStatus { none, enqueued, downloading, downloaded }
+
 class SongDownloader extends ChangeNotifier {
   static const _taskGroup = "song_download";
 
@@ -18,8 +20,7 @@ class SongDownloader extends ChangeNotifier {
   final AuthRepository _auth;
   final SubsonicService _subsonic;
 
-  final Set<String> _downloadedSongs = {};
-  final Set<String> _downloadingSongs = {};
+  final Map<String, DownloadStatus> _downloadStatus = {};
 
   SongDownloader({
     required db.Database db,
@@ -33,19 +34,27 @@ class SongDownloader extends ChangeNotifier {
 
   Future<void> init() async {
     if (kIsWeb) return;
+    _dir = path.join(
+        (await getApplicationSupportDirectory()).path, "downloaded_songs");
+    await Directory(_dir!).create(recursive: true);
+
     await FileDownloader().trackTasksInGroup(_taskGroup);
+    FileDownloader().configureNotificationForGroup(_taskGroup,
+        running: TaskNotification(
+            "Downloading songs",
+            !kIsWeb && Platform.isIOS
+                ? "Download in progress"
+                : "{numFinished} out of {numTotal} songs downloaded"),
+        groupNotificationId: _taskGroup);
     FileDownloader().registerCallbacks(
       group: _taskGroup,
       taskStatusCallback: _statusCallback,
     );
-    _dir = path.join(
-        (await getApplicationSupportDirectory()).path, "downloaded_songs");
-    await Directory(_dir!).create(recursive: true);
-    _downloadedSongs.addAll(await Directory(_dir!)
+    _downloadStatus.addEntries(await Directory(_dir!)
         .list()
-        .map((f) => path.basename(f.path))
+        .map((f) => MapEntry(path.basename(f.path), DownloadStatus.downloaded))
         .toList());
-    _downloadingSongs.addAll((await _db.managers.downloadTask
+    _downloadStatus.addEntries((await _db.managers.downloadTask
             .filter(
               (f) =>
                   f.group(_taskGroup) &
@@ -56,18 +65,29 @@ class SongDownloader extends ChangeNotifier {
                   ]),
             )
             .get())
-        .map((t) => t.taskId));
+        .map((t) => MapEntry(
+              t.taskId,
+              t.status == TaskStatus.running.name
+                  ? DownloadStatus.downloading
+                  : DownloadStatus.enqueued,
+            )));
     notifyListeners();
   }
 
-  bool isDownloaded(String songId) => _downloadedSongs.contains(songId);
+  bool isDownloaded(String songId) =>
+      _downloadStatus[songId] == DownloadStatus.downloaded;
   bool isDownloading(String songId) =>
-      _downloadingSongs.contains(songId) && !_downloadedSongs.contains(songId);
+      _downloadStatus[songId] == DownloadStatus.downloading;
+  bool isEnqueued(String songId) =>
+      _downloadStatus[songId] == DownloadStatus.enqueued;
+
+  DownloadStatus getStatus(String songId) =>
+      _downloadStatus[songId] ?? DownloadStatus.none;
 
   String? getPath(String songId) {
     if (kIsWeb || _dir == null) return null;
     final p = path.join(_dir!, songId);
-    if (_downloadedSongs.contains(songId)) return p;
+    if (isDownloaded(songId)) return p;
     return null;
   }
 
@@ -82,92 +102,93 @@ class SongDownloader extends ChangeNotifier {
     _updateDebounce = Timer(const Duration(seconds: 5), _update);
   }
 
-  bool _updating = false;
-
   Future<void> _update() async {
-    if (kIsWeb || _updating || _dir == null) return;
-    _updating = true;
-    try {
-      final songIds = (await (_db.select(_db.playlistSongTable).join(
-        [
-          innerJoin(
-            _db.playlistTable,
-            _db.playlistTable.id.equalsExp(_db.playlistSongTable.playlistId),
-          ),
-        ],
-      )..where(_db.playlistTable.download.equals(true)))
-              .map((t) => t.readTable(_db.playlistSongTable).songId)
-              .get())
-          .toSet();
+    if (kIsWeb || _dir == null) return;
+    final songIds = (await (_db.select(_db.playlistSongTable).join(
+      [
+        innerJoin(
+          _db.playlistTable,
+          _db.playlistTable.id.equalsExp(_db.playlistSongTable.playlistId),
+        ),
+      ],
+    )..where(_db.playlistTable.download.equals(true)))
+            .map((t) => t.readTable(_db.playlistSongTable).songId)
+            .get())
+        .toSet();
 
-      final records =
-          await FileDownloader().database.allRecords(group: _taskGroup);
-      for (final r in records) {
-        if (!songIds.contains(r.taskId)) {
-          await FileDownloader().cancel(r.task);
-        }
+    final records =
+        await FileDownloader().database.allRecords(group: _taskGroup);
+    await FileDownloader().cancelAll(
+      tasks:
+          records.where((r) => !songIds.contains(r.taskId)).map((r) => r.task),
+    );
+
+    await Directory(_dir!).list().forEach((f) async {
+      final id = path.basename(f.path);
+      if (songIds.contains(id)) {
+        songIds.remove(id);
+        _downloadStatus[id] = DownloadStatus.downloaded;
+      } else {
+        File(f.path).delete();
+        await FileDownloader().database.deleteRecordWithId(id);
+        _downloadStatus.remove(id);
       }
+    });
 
-      await Directory(_dir!).list().forEach((f) async {
-        final id = path.basename(f.path);
-        if (songIds.contains(id)) {
-          songIds.remove(id);
-          _downloadedSongs.add(id);
-        } else {
-          File(f.path).delete();
+    for (final id in songIds) {
+      final record = await FileDownloader().database.recordForId(id);
+      if (record != null) {
+        if (record.status.isFinalState) {
           await FileDownloader().database.deleteRecordWithId(id);
-          _downloadedSongs.remove(id);
-        }
-      });
-
-      for (final id in songIds) {
-        final record = await FileDownloader().database.recordForId(id);
-        if (record != null) {
-          if (record.status.isFinalState) {
-            await FileDownloader().database.deleteRecordWithId(id);
-            _downloadedSongs.remove(id);
-            _downloadingSongs.remove(id);
-          } else {
-            continue;
-          }
-        }
-        final success = await FileDownloader().enqueue(DownloadTask(
-          group: _taskGroup,
-          url: _downloadUri(id).toString(),
-          httpRequestMethod: "GET",
-          allowPause: true,
-          baseDirectory: BaseDirectory.applicationSupport,
-          directory: "downloaded_songs",
-          filename: id,
-          requiresWiFi: true,
-          taskId: id,
-          updates: Updates.status,
-        ));
-        if (success) {
-          _downloadingSongs.add(id);
+          _downloadStatus.remove(id);
         } else {
-          print("Failed to enqueue download task for $id");
+          continue;
         }
       }
-    } finally {
-      _updating = false;
     }
+
+    final tasks = songIds.map(
+      (id) => DownloadTask(
+        group: _taskGroup,
+        url: _downloadUri(id).toString(),
+        httpRequestMethod: "GET",
+        allowPause: true,
+        baseDirectory: BaseDirectory.applicationSupport,
+        directory: "downloaded_songs",
+        filename: id,
+        requiresWiFi: true,
+        taskId: id,
+        updates: Updates.status,
+      ) as Task,
+    );
+
+    final result = await FileDownloader().enqueueAll(tasks.toList());
+    _downloadStatus.addEntries(songIds.indexed
+        .where((i) => result[i.$1] && !_downloadStatus.containsKey(i.$2))
+        .map((i) => MapEntry(i.$2, DownloadStatus.enqueued)));
   }
 
   void _statusCallback(TaskStatusUpdate status) {
-    bool changed;
+    final previousStatus = _downloadStatus[status.task.taskId];
     switch (status.status) {
-      case TaskStatus.enqueued || TaskStatus.running:
-        changed = _downloadingSongs.add(status.task.taskId);
+      case TaskStatus.enqueued:
+        _downloadStatus[status.task.taskId] = DownloadStatus.enqueued;
+      case TaskStatus.running:
+        _downloadStatus[status.task.taskId] = DownloadStatus.downloading;
       case TaskStatus.complete:
-        changed = _downloadingSongs.remove(status.task.taskId);
-        changed = _downloadedSongs.add(status.task.taskId) || changed;
+        _downloadStatus[status.task.taskId] = DownloadStatus.downloaded;
       case TaskStatus.notFound || TaskStatus.failed || TaskStatus.canceled:
-        changed = _downloadingSongs.remove(status.task.taskId);
+        _downloadStatus.remove(status.task.taskId);
       case TaskStatus.waitingToRetry || TaskStatus.paused:
-        changed = _downloadingSongs.add(status.task.taskId);
+        break;
     }
-    if (changed) {
+    final newStatus = _downloadStatus[status.task.taskId];
+    if (previousStatus != null &&
+        newStatus != null &&
+        previousStatus.index > newStatus.index) {
+      _downloadStatus[status.task.taskId] = previousStatus;
+    }
+    if (previousStatus != _downloadStatus[status.task.taskId]) {
       notifyListeners();
     }
   }
@@ -177,9 +198,10 @@ class SongDownloader extends ChangeNotifier {
     await FileDownloader().cancelAll(group: _taskGroup);
     await FileDownloader().database.deleteAllRecords(group: _taskGroup);
     if (_dir == null) return;
-    await Directory(_dir!).delete(recursive: true);
-    _downloadedSongs.clear();
-    _downloadingSongs.clear();
+    try {
+      await Directory(_dir!).delete(recursive: true);
+    } catch (_) {}
+    _downloadStatus.clear();
     notifyListeners();
   }
 
