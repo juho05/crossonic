@@ -74,6 +74,7 @@ class Database extends _$Database {
         },
         beforeOpen: (details) async {
           await customStatement("PRAGMA foreign_keys = ON");
+          await customStatement("PRAGMA journal_mode = WAL");
         },
       );
 

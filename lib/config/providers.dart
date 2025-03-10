@@ -128,7 +128,7 @@ Future<List<SingleChildWidget>> get providers async {
     ChangeNotifierProvider.value(
       value: favoritesRepository,
     ),
-    Provider.value(
+    ChangeNotifierProvider.value(
       value: songDownloader,
     ),
     Provider(

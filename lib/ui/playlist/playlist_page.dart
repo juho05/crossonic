@@ -11,6 +11,7 @@ import 'package:crossonic/ui/common/with_context_menu.dart';
 import 'package:crossonic/ui/playlist/playlist_viewmodel.dart';
 import 'package:crossonic/utils/format.dart';
 import 'package:crossonic/utils/result_toast.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -34,6 +35,7 @@ class _PlaylistPageState extends State<PlaylistPage> {
       playlistId: widget.playlistId,
       playlistRepository: context.read(),
       audioHandler: context.read(),
+      songDownloader: context.read(),
     );
   }
 
@@ -62,9 +64,7 @@ class _PlaylistPageState extends State<PlaylistPage> {
               isFavorite: false,
               coverId: playlist.coverId,
               uploading: _viewModel.uploadingCover,
-              downloadStatus: playlist.download
-                  ? DownloadStatus.downloaded
-                  : DownloadStatus.none, // TODO use actual downloading status
+              downloadStatus: _viewModel.downloadStatus,
               menuOptions: [
                 ContextMenuOption(
                   title: "Play",
@@ -101,8 +101,8 @@ class _PlaylistPageState extends State<PlaylistPage> {
                   title: "Add to playlist",
                   icon: Icons.playlist_add,
                   onSelected: () {
-                    AddToPlaylistDialog.show(
-                        context, playlist.name, _viewModel.tracks);
+                    AddToPlaylistDialog.show(context, playlist.name,
+                        _viewModel.tracks.map((t) => t.$1).toList());
                   },
                 ),
                 ContextMenuOption(
@@ -141,28 +141,34 @@ class _PlaylistPageState extends State<PlaylistPage> {
                       toastResult(context, result);
                     },
                   ),
-                ContextMenuOption(
-                  title: playlist.download ? "Remove Download" : "Download",
-                  icon: playlist.download ? Icons.delete : Icons.download,
-                  onSelected: () async {
-                    if (playlist.download) {
-                      final confirmation = await ConfirmationDialog.showYesNo(
-                          context,
-                          message:
-                              "You won't be able to play this playlist offline anymore.");
-                      if (!(confirmation ?? false)) return;
-                    }
-                    final result = await _viewModel.toggleDownload();
-                    if (!context.mounted) return;
-                    toastResult(context, result);
-                  },
-                ),
+                if (!kIsWeb)
+                  ContextMenuOption(
+                    title: playlist.download ? "Remove Download" : "Download",
+                    icon: playlist.download ? Icons.delete : Icons.download,
+                    onSelected: () async {
+                      if (playlist.download) {
+                        final confirmation = await ConfirmationDialog.showYesNo(
+                            context,
+                            message:
+                                "You won't be able to play this playlist offline anymore.");
+                        if (!(confirmation ?? false)) return;
+                      }
+                      final result = await _viewModel.toggleDownload();
+                      if (!context.mounted) return;
+                      toastResult(context, result);
+                    },
+                  ),
               ],
             ),
             extraInfo: [
               CollectionExtraInfo(
                 text: formatDuration(playlist.duration, long: true),
               ),
+              if (_viewModel.downloadStatus == DownloadStatus.downloading)
+                CollectionExtraInfo(
+                  text:
+                      "Downloading: ${_viewModel.downloadedTracks}/${playlist.songCount}",
+                ),
             ],
             actions: [
               CollectionAction(
@@ -212,7 +218,8 @@ class _PlaylistPageState extends State<PlaylistPage> {
               toastResult(context, result);
             },
             reorderableItemBuilder: (context, index) {
-              final s = songs[index];
+              final t = songs[index];
+              final s = t.$1;
               return SongListItem(
                 key: ValueKey(index),
                 id: s.id,
@@ -222,6 +229,7 @@ class _PlaylistPageState extends State<PlaylistPage> {
                 duration: s.duration,
                 coverId: s.coverId,
                 year: s.year,
+                downloadStatus: playlist.download ? t.$2 : DownloadStatus.none,
                 onAddToPlaylist: () {
                   AddToPlaylistDialog.show(context, s.title, [s]);
                 },

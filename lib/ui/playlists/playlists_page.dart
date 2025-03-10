@@ -1,7 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:crossonic/routing/router.gr.dart';
 import 'package:crossonic/ui/common/albums_grid_delegate.dart';
-import 'package:crossonic/ui/common/cover_art_decorated.dart';
 import 'package:crossonic/ui/common/dialogs/add_to_playlist.dart';
 import 'package:crossonic/ui/common/dialogs/confirmation.dart';
 import 'package:crossonic/ui/common/playlist_grid_cell.dart';
@@ -28,6 +27,7 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
     _viewModel = PlaylistsViewModel(
       playlistRepository: context.read(),
       audioHandler: context.read(),
+      songDownloader: context.read(),
     );
   }
 
@@ -127,7 +127,8 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
                         if (index >= _viewModel.playlists.length) {
                           return null;
                         }
-                        final p = _viewModel.playlists[index];
+                        final playlist = _viewModel.playlists[index];
+                        final p = _viewModel.playlists[index].$1;
                         return PlaylistGridCell(
                           extraInfo: [
                             "Songs: ${p.songCount}",
@@ -135,10 +136,7 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
                           coverId: p.coverId,
                           name: p.name,
                           download: p.download,
-                          downloadStatus: p.download
-                              ? DownloadStatus.downloaded
-                              : DownloadStatus
-                                  .none, // TODO use actual downloading status
+                          downloadStatus: playlist.$2,
                           onTap: () {
                             context.router
                                 .push(PlaylistRoute(playlistId: p.id));

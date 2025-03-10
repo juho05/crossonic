@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:background_downloader/background_downloader.dart';
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
+import 'package:crossonic/data/repositories/playlist/downloader_storage.dart';
 import 'package:crossonic/data/services/database/database.dart' as db;
 import 'package:crossonic/data/services/opensubsonic/subsonic_service.dart';
 import 'package:drift/drift.dart';
@@ -10,12 +11,15 @@ import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 
-class SongDownloader {
+class SongDownloader extends ChangeNotifier {
   static const _taskGroup = "song_download";
 
   final db.Database _db;
   final AuthRepository _auth;
   final SubsonicService _subsonic;
+
+  final Set<String> _downloadedSongs = {};
+  final Set<String> _downloadingSongs = {};
 
   SongDownloader({
     required db.Database db,
@@ -37,12 +41,33 @@ class SongDownloader {
     _dir = path.join(
         (await getApplicationSupportDirectory()).path, "downloaded_songs");
     await Directory(_dir!).create(recursive: true);
+    _downloadedSongs.addAll(await Directory(_dir!)
+        .list()
+        .map((f) => path.basename(f.path))
+        .toList());
+    _downloadingSongs.addAll((await _db.managers.downloadTask
+            .filter(
+              (f) =>
+                  f.group(_taskGroup) &
+                  f.type(DownloaderStorage.typeRecord) &
+                  f.status.isIn([
+                    TaskStatus.enqueued.name,
+                    TaskStatus.running.name,
+                  ]),
+            )
+            .get())
+        .map((t) => t.taskId));
+    notifyListeners();
   }
 
-  Future<String?> getPath(String songId) async {
+  bool isDownloaded(String songId) => _downloadedSongs.contains(songId);
+  bool isDownloading(String songId) =>
+      _downloadingSongs.contains(songId) && !_downloadedSongs.contains(songId);
+
+  String? getPath(String songId) {
     if (kIsWeb || _dir == null) return null;
     final p = path.join(_dir!, songId);
-    if (await File(p).exists()) return p;
+    if (_downloadedSongs.contains(songId)) return p;
     return null;
   }
 
@@ -87,9 +112,11 @@ class SongDownloader {
         final id = path.basename(f.path);
         if (songIds.contains(id)) {
           songIds.remove(id);
+          _downloadedSongs.add(id);
         } else {
           File(f.path).delete();
           await FileDownloader().database.deleteRecordWithId(id);
+          _downloadedSongs.remove(id);
         }
       });
 
@@ -98,6 +125,8 @@ class SongDownloader {
         if (record != null) {
           if (record.status.isFinalState) {
             await FileDownloader().database.deleteRecordWithId(id);
+            _downloadedSongs.remove(id);
+            _downloadingSongs.remove(id);
           } else {
             continue;
           }
@@ -114,7 +143,9 @@ class SongDownloader {
           taskId: id,
           updates: Updates.status,
         ));
-        if (!success) {
+        if (success) {
+          _downloadingSongs.add(id);
+        } else {
           print("Failed to enqueue download task for $id");
         }
       }
@@ -124,8 +155,21 @@ class SongDownloader {
   }
 
   void _statusCallback(TaskStatusUpdate status) {
-    // TODO
-    print(status);
+    bool changed;
+    switch (status.status) {
+      case TaskStatus.enqueued || TaskStatus.running:
+        changed = _downloadingSongs.add(status.task.taskId);
+      case TaskStatus.complete:
+        changed = _downloadingSongs.remove(status.task.taskId);
+        changed = _downloadedSongs.add(status.task.taskId) || changed;
+      case TaskStatus.notFound || TaskStatus.failed || TaskStatus.canceled:
+        changed = _downloadingSongs.remove(status.task.taskId);
+      case TaskStatus.waitingToRetry || TaskStatus.paused:
+        changed = _downloadingSongs.add(status.task.taskId);
+    }
+    if (changed) {
+      notifyListeners();
+    }
   }
 
   Future<void> clear() async {
@@ -134,6 +178,9 @@ class SongDownloader {
     await FileDownloader().database.deleteAllRecords(group: _taskGroup);
     if (_dir == null) return;
     await Directory(_dir!).delete(recursive: true);
+    _downloadedSongs.clear();
+    _downloadingSongs.clear();
+    notifyListeners();
   }
 
   Uri _downloadUri(String id) {

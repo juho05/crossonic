@@ -137,7 +137,7 @@ class AudioHandler {
       await _player.seek(pos);
     } else {
       pos = Duration(seconds: pos.inSeconds);
-      await _player.setCurrent(await _getStreamUri(song, pos));
+      await _player.setCurrent(_getStreamUri(song, pos));
       _positionOffset = pos;
     }
     _position.add((position: pos, bufferedPosition: pos));
@@ -214,7 +214,7 @@ class AudioHandler {
     await _applyReplayGain();
 
     if (!event.fromAdvance) {
-      await _player.setCurrent(await _getStreamUri(event.song!));
+      await _player.setCurrent(_getStreamUri(event.song!));
       if (playAfterChange) {
         await _player.play();
       }
@@ -227,7 +227,7 @@ class AudioHandler {
     if (!_player.initialized && song != null) {
       await _ensurePlayerLoaded();
     }
-    await _player.setNext(song != null ? await _getStreamUri(song) : null);
+    await _player.setNext(song != null ? _getStreamUri(song) : null);
   }
 
   Future<void> _authChanged() async {
@@ -312,8 +312,7 @@ class AudioHandler {
     final next = _queue.next.value;
     if (current != null) {
       _positionOffset = position.value.position;
-      await _player
-          .setCurrent(await _getStreamUri(current, position.value.position));
+      await _player.setCurrent(_getStreamUri(current, position.value.position));
       if (_playbackStatus.value == PlaybackStatus.playing) {
         await play();
       } else {
@@ -321,7 +320,7 @@ class AudioHandler {
       }
     }
     if (next != null) {
-      await _player.setNext(await _getStreamUri(next));
+      await _player.setNext(_getStreamUri(next));
     }
     if (current == null && next == null) {
       await stop();
@@ -379,9 +378,9 @@ class AudioHandler {
     _positionTimer = null;
   }
 
-  Future<Uri> _getStreamUri(Song song, [Duration? offset]) async {
+  Uri _getStreamUri(Song song, [Duration? offset]) {
     if (offset == null || offset == Duration.zero) {
-      final path = await _downloader.getPath(song.id);
+      final path = _downloader.getPath(song.id);
       if (path != null) return path.toFileUri();
     }
     final query = _subsonic.generateQuery({

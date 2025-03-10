@@ -1,9 +1,12 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:crossonic/data/repositories/audio/audio_handler.dart';
 import 'package:crossonic/data/repositories/playlist/models/playlist.dart';
 import 'package:crossonic/data/repositories/playlist/playlist_repository.dart';
+import 'package:crossonic/data/repositories/playlist/song_downloader.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
+import 'package:crossonic/ui/common/cover_art_decorated.dart';
 import 'package:crossonic/utils/exceptions.dart';
 import 'package:crossonic/utils/result.dart';
 import 'package:flutter/material.dart';
@@ -17,14 +20,21 @@ class ImageTooLargeException extends AppException {
 class PlaylistViewModel extends ChangeNotifier {
   final PlaylistRepository _repo;
   final AudioHandler _audioHandler;
+  final SongDownloader _downloader;
 
   final String _playlistId;
 
   Playlist? _playlist;
   Playlist? get playlist => _playlist;
 
-  List<Song> _tracks = [];
-  List<Song> get tracks => _tracks;
+  List<(Song, DownloadStatus)> _tracks = [];
+  List<(Song, DownloadStatus)> get tracks => _tracks;
+
+  DownloadStatus _downloadStatus = DownloadStatus.none;
+  DownloadStatus get downloadStatus => _downloadStatus;
+
+  int _downloadedTracks = 0;
+  int get downloadedTracks => _downloadedTracks;
 
   bool _reorderEnabled = false;
   bool get reorderEnabled => _reorderEnabled;
@@ -41,17 +51,60 @@ class PlaylistViewModel extends ChangeNotifier {
   PlaylistViewModel({
     required PlaylistRepository playlistRepository,
     required AudioHandler audioHandler,
+    required SongDownloader songDownloader,
     required String playlistId,
   })  : _repo = playlistRepository,
         _audioHandler = audioHandler,
+        _downloader = songDownloader,
         _playlistId = playlistId {
+    _downloader.addListener(_onDownloadStatusChanged);
     _repo.addListener(_load);
     _load();
     _repo.refresh(forceRefresh: true, refreshIds: {_playlistId});
   }
 
+  Timer? _onDownloadStatusChangedTimeout;
+  void _onDownloadStatusChanged() {
+    if (_playlist == null || !_playlist!.download) return;
+    _onDownloadStatusChangedTimeout?.cancel();
+    _onDownloadStatusChangedTimeout = Timer(Duration(milliseconds: 250), () {
+      bool changed = false;
+      bool fullDownload = true;
+      int downloadedCount = 0;
+      for (var i = 0; i < tracks.length; i++) {
+        final t = tracks[i];
+        final status = _getDownloadStatus(t.$1.id);
+        if (status != t.$2) {
+          changed = true;
+          _tracks[i] = (t.$1, status);
+        }
+        if (status != DownloadStatus.downloaded) {
+          fullDownload = false;
+        } else {
+          downloadedCount++;
+        }
+      }
+      _downloadedTracks = downloadedCount;
+      _downloadStatus = !_playlist!.download
+          ? DownloadStatus.none
+          : (fullDownload
+              ? DownloadStatus.downloaded
+              : DownloadStatus.downloading);
+      if (changed) {
+        notifyListeners();
+      }
+    });
+  }
+
   Future<Result<void>> toggleDownload() async {
-    return _repo.setDownload(_playlistId, !_playlist!.download);
+    final newState = !_playlist!.download;
+    final result = await _repo.setDownload(_playlistId, newState);
+    if (result is Ok) {
+      _downloadStatus =
+          newState ? DownloadStatus.downloading : DownloadStatus.none;
+      notifyListeners();
+    }
+    return result;
   }
 
   Future<Result<void>> changeCover() async {
@@ -108,9 +161,34 @@ class PlaylistViewModel extends ChangeNotifier {
           print("playlist does not exist");
         }
         _playlist = result.value!.playlist;
-        _tracks = result.value!.tracks;
+        _tracks = result.value!.tracks
+            .map((t) => (t, _getDownloadStatus(t.id)))
+            .toList();
+        _downloadedTracks = 0;
+        if (_playlist!.download) {
+          _downloadStatus = DownloadStatus.downloaded;
+          bool fullDownload = true;
+          for (final t in _tracks) {
+            if (t.$2 != DownloadStatus.downloaded) {
+              fullDownload = false;
+            } else {
+              _downloadedTracks++;
+            }
+          }
+          _downloadStatus = fullDownload
+              ? DownloadStatus.downloaded
+              : DownloadStatus.downloading;
+        } else {
+          _downloadStatus = DownloadStatus.none;
+        }
     }
     notifyListeners();
+  }
+
+  DownloadStatus _getDownloadStatus(String songId) {
+    if (_downloader.isDownloaded(songId)) return DownloadStatus.downloaded;
+    if (_downloader.isDownloading(songId)) return DownloadStatus.downloading;
+    return DownloadStatus.none;
   }
 
   void play([int index = 0, bool single = false]) {
@@ -120,9 +198,9 @@ class PlaylistViewModel extends ChangeNotifier {
     }
     _audioHandler.playOnNextMediaChange();
     if (single) {
-      _audioHandler.queue.replace([tracks[index]]);
+      _audioHandler.queue.replace([tracks[index].$1]);
     } else {
-      _audioHandler.queue.replace(tracks, index);
+      _audioHandler.queue.replace(tracks.map((t) => t.$1), index);
     }
   }
 
@@ -132,12 +210,12 @@ class PlaylistViewModel extends ChangeNotifier {
       return;
     }
     _audioHandler.playOnNextMediaChange();
-    _audioHandler.queue.replace(List.of(tracks)..shuffle());
+    _audioHandler.queue.replace(List.of(tracks.map((t) => t.$1))..shuffle());
   }
 
   void addToQueue(bool priority) {
     if (tracks.isEmpty) return;
-    _audioHandler.queue.addAll(tracks, priority);
+    _audioHandler.queue.addAll(tracks.map((t) => t.$1), priority);
   }
 
   void addSongToQueue(Song song, bool priority) {
@@ -164,6 +242,8 @@ class PlaylistViewModel extends ChangeNotifier {
   @override
   void dispose() {
     _repo.removeListener(_load);
+    _downloader.removeListener(_onDownloadStatusChanged);
+    _onDownloadStatusChangedTimeout?.cancel();
     super.dispose();
   }
 }

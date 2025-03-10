@@ -1,5 +1,6 @@
 import 'package:crossonic/ui/common/clickable_list_item.dart';
 import 'package:crossonic/ui/common/context_menu_button.dart';
+import 'package:crossonic/ui/common/cover_art_decorated.dart';
 import 'package:crossonic/ui/common/with_context_menu.dart';
 import 'package:flutter/material.dart';
 
@@ -12,6 +13,7 @@ class ClickableListItemWithContextMenu extends StatefulWidget {
   final List<Widget>? extraTrailing;
   final void Function()? onTap;
   final bool isFavorite;
+  final DownloadStatus downloadStatus;
 
   final Iterable<ContextMenuOption> options;
 
@@ -26,6 +28,7 @@ class ClickableListItemWithContextMenu extends StatefulWidget {
     this.options = const [],
     this.extraTrailing = const [],
     this.isFavorite = false,
+    this.downloadStatus = DownloadStatus.none,
   });
 
   @override
@@ -48,6 +51,7 @@ class _ClickableListItemWithContextMenuState
         extraInfo: widget.extraInfo,
         leading: widget.leading,
         isFavorite: widget.isFavorite,
+        downloadStatus: widget.downloadStatus,
         trailing: widget.options.isNotEmpty || widget.extraTrailing != null
             ? Row(
                 mainAxisSize: MainAxisSize.min,

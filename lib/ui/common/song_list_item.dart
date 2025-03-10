@@ -1,6 +1,7 @@
 import 'package:crossonic/data/repositories/audio/audio_handler.dart';
 import 'package:crossonic/ui/common/clickable_list_item_with_context_menu.dart';
 import 'package:crossonic/ui/common/cover_art.dart';
+import 'package:crossonic/ui/common/cover_art_decorated.dart';
 import 'package:crossonic/ui/common/song_list_item_viewmodel.dart';
 import 'package:crossonic/ui/common/with_context_menu.dart';
 import 'package:crossonic/utils/format.dart';
@@ -22,6 +23,7 @@ class SongListItem extends StatefulWidget {
   final int? reorderIndex;
   final bool disablePlaybackStatus;
   final bool removeButton;
+  final DownloadStatus downloadStatus;
 
   final void Function(bool ctrlPressed)? onTap;
   final void Function(bool priority)? onAddToQueue;
@@ -50,6 +52,7 @@ class SongListItem extends StatefulWidget {
     this.reorderIndex,
     this.disablePlaybackStatus = false,
     this.removeButton = false,
+    this.downloadStatus = DownloadStatus.none,
   });
 
   @override
@@ -104,6 +107,7 @@ class _SongListItemState extends State<SongListItem> {
                     widget.onTap!(HardwareKeyboard.instance.isControlPressed)
                 : null,
             isFavorite: viewModel.favorite,
+            downloadStatus: widget.downloadStatus,
             options: [
               if (widget.onAddToQueue != null)
                 ContextMenuOption(

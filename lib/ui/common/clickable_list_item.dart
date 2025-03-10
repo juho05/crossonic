@@ -1,3 +1,4 @@
+import 'package:crossonic/ui/common/cover_art_decorated.dart';
 import 'package:flutter/material.dart';
 
 class ClickableListItem extends StatelessWidget {
@@ -9,6 +10,7 @@ class ClickableListItem extends StatelessWidget {
   final String? trailingInfo;
   final void Function()? onTap;
   final bool isFavorite;
+  final DownloadStatus downloadStatus;
 
   const ClickableListItem({
     super.key,
@@ -20,50 +22,73 @@ class ClickableListItem extends StatelessWidget {
     this.trailingInfo,
     this.onTap,
     this.isFavorite = false,
+    this.downloadStatus = DownloadStatus.none,
   });
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    return ListTile(
-      leading: leading,
-      title: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: textTheme.bodyMedium!.copyWith(
-                    fontSize: 15,
-                    fontWeight: titleBold ? FontWeight.w600 : FontWeight.w400,
-                  ),
-                ),
-                if (extraInfo.isNotEmpty)
+    return LayoutBuilder(builder: (context, constraints) {
+      return ListTile(
+        leading: leading,
+        title: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                   Text(
-                    extraInfo.join(" • "),
-                    style: textTheme.bodySmall!
-                        .copyWith(fontWeight: FontWeight.w300, fontSize: 12),
+                    title,
+                    style: textTheme.bodyMedium!.copyWith(
+                      fontSize: 15,
+                      fontWeight: titleBold ? FontWeight.w600 : FontWeight.w400,
+                    ),
                     overflow: TextOverflow.ellipsis,
                   ),
-              ],
-            ),
-          ),
-          if (isFavorite) const Icon(Icons.favorite, size: 15),
-          if (trailingInfo != null)
-            Padding(
-              padding: const EdgeInsets.only(left: 12),
-              child: Text(
-                trailingInfo!,
-                style: textTheme.bodySmall,
+                  if (extraInfo.isNotEmpty ||
+                      downloadStatus != DownloadStatus.none)
+                    Row(
+                      spacing: 2,
+                      children: [
+                        if (downloadStatus == DownloadStatus.downloaded)
+                          Icon(
+                            Icons.download_for_offline_outlined,
+                            color: Theme.of(context).colorScheme.primary,
+                            size: 15,
+                          ),
+                        if (downloadStatus == DownloadStatus.downloading)
+                          Icon(
+                            Icons.downloading_outlined,
+                            size: 15,
+                          ),
+                        Expanded(
+                          child: Text(
+                            extraInfo.join(" • "),
+                            style: textTheme.bodySmall!.copyWith(
+                                fontWeight: FontWeight.w300, fontSize: 12),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                ],
               ),
             ),
-        ],
-      ),
-      trailing: trailing,
-      onTap: onTap,
-      contentPadding: EdgeInsets.only(left: 4, right: 4),
-    );
+            if (isFavorite) const Icon(Icons.favorite, size: 15),
+            if (trailingInfo != null && constraints.maxWidth > 320)
+              Padding(
+                padding: const EdgeInsets.only(left: 12),
+                child: Text(
+                  trailingInfo!,
+                  style: textTheme.bodySmall,
+                ),
+              ),
+          ],
+        ),
+        trailing: trailing,
+        onTap: onTap,
+        contentPadding: EdgeInsets.only(left: 4, right: 4),
+      );
+    });
   }
 }

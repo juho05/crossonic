@@ -1,6 +1,7 @@
 import 'package:crossonic/ui/common/context_menu_button.dart';
 import 'package:crossonic/ui/common/cover_art_decorated.dart';
 import 'package:crossonic/ui/common/with_context_menu.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class PlaylistGridCell extends StatefulWidget {
@@ -75,7 +76,7 @@ class _PlaylistGridCellState extends State<PlaylistGridCell> {
           icon: Icons.playlist_add,
           onSelected: widget.onAddToPlaylist,
         ),
-      if (widget.onToggleDownload != null)
+      if (widget.onToggleDownload != null && !kIsWeb)
         ContextMenuOption(
           title: widget.download ? "Remove Download" : "Download",
           icon: widget.download ? Icons.delete : Icons.download,
