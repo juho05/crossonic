@@ -17,6 +17,7 @@ enum PlaylistsSort {
   songCount,
   duration,
   random,
+  downloaded,
 }
 
 class PlaylistsViewModel extends ChangeNotifier {
@@ -179,7 +180,7 @@ class PlaylistsViewModel extends ChangeNotifier {
       return;
     }
     switch (sort) {
-      case PlaylistsSort.updated:
+      case PlaylistsSort.updated || PlaylistsSort.downloaded:
         _playlists.sort((a, b) => b.$1.changed.compareTo(a.$1.changed));
       case PlaylistsSort.created:
         _playlists.sort((a, b) => b.$1.created.compareTo(a.$1.created));

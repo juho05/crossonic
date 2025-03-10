@@ -7,6 +7,7 @@ import 'package:crossonic/ui/common/playlist_grid_cell.dart';
 import 'package:crossonic/ui/playlists/playlists_viewmodel.dart';
 import 'package:crossonic/utils/result.dart';
 import 'package:crossonic/utils/result_toast.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -86,12 +87,20 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
                     value: PlaylistsSort.random,
                     label: "Random",
                   ),
+                  if (!kIsWeb)
+                    DropdownMenuEntry(
+                      value: PlaylistsSort.downloaded,
+                      label: "Downloaded",
+                    ),
                 ],
                 onSelected: (PlaylistsSort? sort) {
                   if (sort == null) return;
                   _viewModel.sort = sort;
                 },
               );
+              final playlists = _viewModel.sort == PlaylistsSort.downloaded
+                  ? _viewModel.playlists.where((p) => p.$1.download).toList()
+                  : _viewModel.playlists;
               return CustomScrollView(
                 slivers: [
                   SliverToBoxAdapter(
@@ -118,17 +127,21 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
                             ),
                     ),
                   ),
-                  if (_viewModel.playlists.isEmpty)
-                    SliverToBoxAdapter(child: Text("No playlists available")),
+                  if (playlists.isEmpty)
+                    SliverToBoxAdapter(
+                        child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text("No playlists available"),
+                    )),
                   SliverGrid(
                     gridDelegate: AlbumsGridDelegate(),
                     delegate: SliverChildBuilderDelegate(
                       (context, index) {
-                        if (index >= _viewModel.playlists.length) {
+                        if (index >= playlists.length) {
                           return null;
                         }
-                        final playlist = _viewModel.playlists[index];
-                        final p = _viewModel.playlists[index].$1;
+                        final playlist = playlists[index];
+                        final p = playlists[index].$1;
                         return PlaylistGridCell(
                           extraInfo: [
                             "Songs: ${p.songCount}",
@@ -172,7 +185,8 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
                           },
                           onDelete: () async {
                             final confirmed =
-                                await ConfirmationDialog.showYesNo(context);
+                                await ConfirmationDialog.showYesNo(context,
+                                    message: "Delete '${p.name}'?");
                             if (!(confirmed ?? false) || !context.mounted) {
                               return;
                             }
@@ -196,7 +210,7 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
                           },
                         );
                       },
-                      childCount: _viewModel.playlists.length,
+                      childCount: playlists.length,
                     ),
                   ),
                 ],
