@@ -6,5 +6,6 @@
  -keep class io.flutter.** { *; }
  -keep class io.flutter.plugins.** { *; }
  -keep class com.google.firebase.** { *; }
+ -keep class androidx.lifecycle.DefaultLifecycleObserver
  -dontwarn io.flutter.embedding.**
  -ignorewarnings
