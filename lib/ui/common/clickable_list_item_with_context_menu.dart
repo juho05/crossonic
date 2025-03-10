@@ -9,6 +9,7 @@ class ClickableListItemWithContextMenu extends StatefulWidget {
   final Iterable<String> extraInfo;
   final Widget? leading;
   final String? trailingInfo;
+  final List<Widget>? extraTrailing;
   final void Function()? onTap;
   final bool isFavorite;
 
@@ -23,6 +24,7 @@ class ClickableListItemWithContextMenu extends StatefulWidget {
     this.trailingInfo,
     this.onTap,
     this.options = const [],
+    this.extraTrailing = const [],
     this.isFavorite = false,
   });
 
@@ -46,10 +48,21 @@ class _ClickableListItemWithContextMenuState
         extraInfo: widget.extraInfo,
         leading: widget.leading,
         isFavorite: widget.isFavorite,
-        trailing: widget.options.isNotEmpty
-            ? ContextMenuButton(
-                popupMenuButtonKey: _popupMenuButton,
-                options: widget.options,
+        trailing: widget.options.isNotEmpty || widget.extraTrailing != null
+            ? Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (widget.extraTrailing?.isNotEmpty ?? false)
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: widget.extraTrailing!,
+                    ),
+                  if (widget.options.isNotEmpty)
+                    ContextMenuButton(
+                      popupMenuButtonKey: _popupMenuButton,
+                      options: widget.options,
+                    ),
+                ],
               )
             : null,
         trailingInfo: widget.trailingInfo,

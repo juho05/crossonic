@@ -5,6 +5,7 @@ import 'package:crossonic/data/repositories/auth/auth_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
 import 'package:crossonic/data/services/database/database.dart';
 import 'package:crossonic/data/services/opensubsonic/subsonic_service.dart';
+import 'package:crossonic/utils/exceptions.dart';
 import 'package:crossonic/utils/result.dart';
 import 'package:drift/drift.dart';
 
@@ -135,6 +136,9 @@ class Scrobbler {
           _auth.serverFeatures.isCrossonic,
         );
         if (result is Err) {
+          if (result.error is ConnectionException) {
+            return;
+          }
           bool success = false;
           for (var s in scrobbles) {
             final r = await _subsonic.scrobble(
@@ -156,7 +160,8 @@ class Scrobbler {
             }
           }
           if (!success) {
-            throw result.error;
+            print(result.error);
+            return;
           }
         }
       }

@@ -7,6 +7,8 @@ class PlaylistGridCell extends StatefulWidget {
   final String name;
   final List<String> extraInfo;
   final String? coverId;
+  final bool download;
+  final DownloadStatus downloadStatus;
 
   final void Function()? onTap;
   final void Function()? onPlay;
@@ -14,18 +16,22 @@ class PlaylistGridCell extends StatefulWidget {
   final void Function(bool priority)? onAddToQueue;
   final void Function()? onAddToPlaylist;
   final void Function()? onDelete;
+  final void Function()? onToggleDownload;
 
   const PlaylistGridCell({
     super.key,
     required this.name,
     required this.extraInfo,
+    this.downloadStatus = DownloadStatus.none,
     this.coverId,
+    required this.download,
     this.onTap,
     this.onPlay,
     this.onShuffle,
     this.onAddToQueue,
     this.onAddToPlaylist,
     this.onDelete,
+    this.onToggleDownload,
   });
 
   @override
@@ -69,10 +75,16 @@ class _PlaylistGridCellState extends State<PlaylistGridCell> {
           icon: Icons.playlist_add,
           onSelected: widget.onAddToPlaylist,
         ),
+      if (widget.onToggleDownload != null)
+        ContextMenuOption(
+          title: widget.download ? "Remove Download" : "Download",
+          icon: widget.download ? Icons.delete : Icons.download,
+          onSelected: widget.onToggleDownload,
+        ),
       if (widget.onDelete != null)
         ContextMenuOption(
           title: "Delete",
-          icon: Icons.delete,
+          icon: Icons.delete_forever,
           onSelected: widget.onDelete,
         ),
     ];
@@ -91,6 +103,7 @@ class _PlaylistGridCellState extends State<PlaylistGridCell> {
                     CoverArtDecorated(
                       borderRadius: BorderRadius.circular(7),
                       isFavorite: false,
+                      downloadStatus: widget.downloadStatus,
                       placeholderIcon: Icons.album,
                       coverId: widget.coverId,
                     ),

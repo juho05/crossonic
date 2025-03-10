@@ -1053,18 +1053,310 @@ class PlaylistSongCompanion extends UpdateCompanion<PlaylistSongData> {
   }
 }
 
+class DownloadTask extends Table
+    with TableInfo<DownloadTask, DownloadTaskData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  DownloadTask(this.attachedDatabase, [this._alias]);
+  late final GeneratedColumn<String> taskId = GeneratedColumn<String>(
+      'task_id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  late final GeneratedColumn<String> type = GeneratedColumn<String>(
+      'type', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  late final GeneratedColumn<String> object = GeneratedColumn<String>(
+      'object', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  late final GeneratedColumn<String> group = GeneratedColumn<String>(
+      'group', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+      'status', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  late final GeneratedColumn<DateTime> updated = GeneratedColumn<DateTime>(
+      'updated', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  @override
+  List<GeneratedColumn> get $columns =>
+      [taskId, type, object, group, status, updated];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'download_task';
+  @override
+  Set<GeneratedColumn> get $primaryKey => {taskId, type};
+  @override
+  DownloadTaskData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DownloadTaskData(
+      taskId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}task_id'])!,
+      type: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}type'])!,
+      object: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}object'])!,
+      group: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}group']),
+      status: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}status']),
+      updated: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}updated'])!,
+    );
+  }
+
+  @override
+  DownloadTask createAlias(String alias) {
+    return DownloadTask(attachedDatabase, alias);
+  }
+}
+
+class DownloadTaskData extends DataClass
+    implements Insertable<DownloadTaskData> {
+  final String taskId;
+  final String type;
+  final String object;
+  final String? group;
+  final String? status;
+  final DateTime updated;
+  const DownloadTaskData(
+      {required this.taskId,
+      required this.type,
+      required this.object,
+      this.group,
+      this.status,
+      required this.updated});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['task_id'] = Variable<String>(taskId);
+    map['type'] = Variable<String>(type);
+    map['object'] = Variable<String>(object);
+    if (!nullToAbsent || group != null) {
+      map['group'] = Variable<String>(group);
+    }
+    if (!nullToAbsent || status != null) {
+      map['status'] = Variable<String>(status);
+    }
+    map['updated'] = Variable<DateTime>(updated);
+    return map;
+  }
+
+  DownloadTaskCompanion toCompanion(bool nullToAbsent) {
+    return DownloadTaskCompanion(
+      taskId: Value(taskId),
+      type: Value(type),
+      object: Value(object),
+      group:
+          group == null && nullToAbsent ? const Value.absent() : Value(group),
+      status:
+          status == null && nullToAbsent ? const Value.absent() : Value(status),
+      updated: Value(updated),
+    );
+  }
+
+  factory DownloadTaskData.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DownloadTaskData(
+      taskId: serializer.fromJson<String>(json['taskId']),
+      type: serializer.fromJson<String>(json['type']),
+      object: serializer.fromJson<String>(json['object']),
+      group: serializer.fromJson<String?>(json['group']),
+      status: serializer.fromJson<String?>(json['status']),
+      updated: serializer.fromJson<DateTime>(json['updated']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'taskId': serializer.toJson<String>(taskId),
+      'type': serializer.toJson<String>(type),
+      'object': serializer.toJson<String>(object),
+      'group': serializer.toJson<String?>(group),
+      'status': serializer.toJson<String?>(status),
+      'updated': serializer.toJson<DateTime>(updated),
+    };
+  }
+
+  DownloadTaskData copyWith(
+          {String? taskId,
+          String? type,
+          String? object,
+          Value<String?> group = const Value.absent(),
+          Value<String?> status = const Value.absent(),
+          DateTime? updated}) =>
+      DownloadTaskData(
+        taskId: taskId ?? this.taskId,
+        type: type ?? this.type,
+        object: object ?? this.object,
+        group: group.present ? group.value : this.group,
+        status: status.present ? status.value : this.status,
+        updated: updated ?? this.updated,
+      );
+  DownloadTaskData copyWithCompanion(DownloadTaskCompanion data) {
+    return DownloadTaskData(
+      taskId: data.taskId.present ? data.taskId.value : this.taskId,
+      type: data.type.present ? data.type.value : this.type,
+      object: data.object.present ? data.object.value : this.object,
+      group: data.group.present ? data.group.value : this.group,
+      status: data.status.present ? data.status.value : this.status,
+      updated: data.updated.present ? data.updated.value : this.updated,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DownloadTaskData(')
+          ..write('taskId: $taskId, ')
+          ..write('type: $type, ')
+          ..write('object: $object, ')
+          ..write('group: $group, ')
+          ..write('status: $status, ')
+          ..write('updated: $updated')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(taskId, type, object, group, status, updated);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DownloadTaskData &&
+          other.taskId == this.taskId &&
+          other.type == this.type &&
+          other.object == this.object &&
+          other.group == this.group &&
+          other.status == this.status &&
+          other.updated == this.updated);
+}
+
+class DownloadTaskCompanion extends UpdateCompanion<DownloadTaskData> {
+  final Value<String> taskId;
+  final Value<String> type;
+  final Value<String> object;
+  final Value<String?> group;
+  final Value<String?> status;
+  final Value<DateTime> updated;
+  final Value<int> rowid;
+  const DownloadTaskCompanion({
+    this.taskId = const Value.absent(),
+    this.type = const Value.absent(),
+    this.object = const Value.absent(),
+    this.group = const Value.absent(),
+    this.status = const Value.absent(),
+    this.updated = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  DownloadTaskCompanion.insert({
+    required String taskId,
+    required String type,
+    required String object,
+    this.group = const Value.absent(),
+    this.status = const Value.absent(),
+    required DateTime updated,
+    this.rowid = const Value.absent(),
+  })  : taskId = Value(taskId),
+        type = Value(type),
+        object = Value(object),
+        updated = Value(updated);
+  static Insertable<DownloadTaskData> custom({
+    Expression<String>? taskId,
+    Expression<String>? type,
+    Expression<String>? object,
+    Expression<String>? group,
+    Expression<String>? status,
+    Expression<DateTime>? updated,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (taskId != null) 'task_id': taskId,
+      if (type != null) 'type': type,
+      if (object != null) 'object': object,
+      if (group != null) 'group': group,
+      if (status != null) 'status': status,
+      if (updated != null) 'updated': updated,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  DownloadTaskCompanion copyWith(
+      {Value<String>? taskId,
+      Value<String>? type,
+      Value<String>? object,
+      Value<String?>? group,
+      Value<String?>? status,
+      Value<DateTime>? updated,
+      Value<int>? rowid}) {
+    return DownloadTaskCompanion(
+      taskId: taskId ?? this.taskId,
+      type: type ?? this.type,
+      object: object ?? this.object,
+      group: group ?? this.group,
+      status: status ?? this.status,
+      updated: updated ?? this.updated,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (taskId.present) {
+      map['task_id'] = Variable<String>(taskId.value);
+    }
+    if (type.present) {
+      map['type'] = Variable<String>(type.value);
+    }
+    if (object.present) {
+      map['object'] = Variable<String>(object.value);
+    }
+    if (group.present) {
+      map['group'] = Variable<String>(group.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (updated.present) {
+      map['updated'] = Variable<DateTime>(updated.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DownloadTaskCompanion(')
+          ..write('taskId: $taskId, ')
+          ..write('type: $type, ')
+          ..write('object: $object, ')
+          ..write('group: $group, ')
+          ..write('status: $status, ')
+          ..write('updated: $updated, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class DatabaseAtV4 extends GeneratedDatabase {
   DatabaseAtV4(QueryExecutor e) : super(e);
   late final KeyValue keyValue = KeyValue(this);
   late final Scrobble scrobble = Scrobble(this);
   late final Playlist playlist = Playlist(this);
   late final PlaylistSong playlistSong = PlaylistSong(this);
+  late final DownloadTask downloadTask = DownloadTask(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities =>
-      [keyValue, scrobble, playlist, playlistSong];
+      [keyValue, scrobble, playlist, playlistSong, downloadTask];
   @override
   int get schemaVersion => 4;
   @override

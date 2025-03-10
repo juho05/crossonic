@@ -49,6 +49,10 @@ class PlaylistViewModel extends ChangeNotifier {
     _repo.refresh(forceRefresh: true, refreshIds: {_playlistId});
   }
 
+  Future<Result<void>> toggleDownload() async {
+    return _repo.setDownload(_playlistId, !_playlist!.download);
+  }
+
   Future<Result<void>> changeCover() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.image,

@@ -7,6 +7,7 @@ class Playlist {
   final DateTime created;
   final DateTime changed;
   final String? coverId;
+  final bool download;
 
   Playlist({
     required this.id,
@@ -17,5 +18,6 @@ class Playlist {
     required this.created,
     required this.changed,
     required this.coverId,
+    required this.download,
   });
 }

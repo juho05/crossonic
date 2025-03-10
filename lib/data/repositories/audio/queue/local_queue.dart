@@ -177,6 +177,7 @@ class LocalQueue extends ChangeNotifier implements MediaQueue {
           .getRange(0, index)
           .followedBy(list.getRange(index + 1, list.length)));
     }
+    notifyListeners();
   }
 
   void _insert(int index, Iterable<Song> songs) {

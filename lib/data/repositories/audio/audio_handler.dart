@@ -2,10 +2,12 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 
+import 'package:background_downloader/background_downloader.dart';
 import 'package:crossonic/data/repositories/audio/queue/changable_queue.dart';
 import 'package:crossonic/data/repositories/audio/queue/local_queue.dart';
 import 'package:crossonic/data/repositories/audio/queue/media_queue.dart';
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
+import 'package:crossonic/data/repositories/playlist/song_downloader.dart';
 import 'package:crossonic/data/repositories/settings/replay_gain.dart';
 import 'package:crossonic/data/repositories/settings/settings_repository.dart';
 import 'package:crossonic/data/repositories/settings/transcoding.dart';
@@ -27,6 +29,7 @@ class AudioHandler {
   final AuthRepository _auth;
   final SubsonicService _subsonic;
   final SettingsRepository _settings;
+  final SongDownloader _downloader;
 
   final AudioPlayer _player;
   StreamSubscription? _playerEventSubscription;
@@ -62,11 +65,13 @@ class AudioHandler {
     required AuthRepository authRepository,
     required SubsonicService subsonicService,
     required SettingsRepository settingsRepository,
+    required SongDownloader songDownloader,
   })  : _player = player,
         _integration = integration,
         _auth = authRepository,
         _subsonic = subsonicService,
         _settings = settingsRepository,
+        _downloader = songDownloader,
         _transcoding = (
           settingsRepository.transcoding.codec,
           settingsRepository.transcoding.maxBitRate
@@ -132,7 +137,7 @@ class AudioHandler {
       await _player.seek(pos);
     } else {
       pos = Duration(seconds: pos.inSeconds);
-      await _player.setCurrent(_getStreamUri(song, pos));
+      await _player.setCurrent(await _getStreamUri(song, pos));
       _positionOffset = pos;
     }
     _position.add((position: pos, bufferedPosition: pos));
@@ -209,7 +214,7 @@ class AudioHandler {
     await _applyReplayGain();
 
     if (!event.fromAdvance) {
-      await _player.setCurrent(_getStreamUri(event.song!));
+      await _player.setCurrent(await _getStreamUri(event.song!));
       if (playAfterChange) {
         await _player.play();
       }
@@ -222,7 +227,7 @@ class AudioHandler {
     if (!_player.initialized && song != null) {
       await _ensurePlayerLoaded();
     }
-    await _player.setNext(song != null ? _getStreamUri(song) : null);
+    await _player.setNext(song != null ? await _getStreamUri(song) : null);
   }
 
   Future<void> _authChanged() async {
@@ -307,7 +312,8 @@ class AudioHandler {
     final next = _queue.next.value;
     if (current != null) {
       _positionOffset = position.value.position;
-      await _player.setCurrent(_getStreamUri(current, position.value.position));
+      await _player
+          .setCurrent(await _getStreamUri(current, position.value.position));
       if (_playbackStatus.value == PlaybackStatus.playing) {
         await play();
       } else {
@@ -315,7 +321,7 @@ class AudioHandler {
       }
     }
     if (next != null) {
-      await _player.setNext(_getStreamUri(next));
+      await _player.setNext(await _getStreamUri(next));
     }
     if (current == null && next == null) {
       await stop();
@@ -373,7 +379,11 @@ class AudioHandler {
     _positionTimer = null;
   }
 
-  Uri _getStreamUri(Song song, [Duration? offset]) {
+  Future<Uri> _getStreamUri(Song song, [Duration? offset]) async {
+    if (offset == null || offset == Duration.zero) {
+      final path = await _downloader.getPath(song.id);
+      if (path != null) return path.toFileUri();
+    }
     final query = _subsonic.generateQuery({
       "id": [song.id],
       "format": _transcoding.$1 != TranscodingCodec.serverDefault

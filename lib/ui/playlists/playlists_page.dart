@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:crossonic/routing/router.gr.dart';
 import 'package:crossonic/ui/common/albums_grid_delegate.dart';
+import 'package:crossonic/ui/common/cover_art_decorated.dart';
 import 'package:crossonic/ui/common/dialogs/add_to_playlist.dart';
 import 'package:crossonic/ui/common/dialogs/confirmation.dart';
 import 'package:crossonic/ui/common/playlist_grid_cell.dart';
@@ -133,6 +134,11 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
                           ],
                           coverId: p.coverId,
                           name: p.name,
+                          download: p.download,
+                          downloadStatus: p.download
+                              ? DownloadStatus.downloaded
+                              : DownloadStatus
+                                  .none, // TODO use actual downloading status
                           onTap: () {
                             context.router
                                 .push(PlaylistRoute(playlistId: p.id));
@@ -176,6 +182,18 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
                             if (!context.mounted) return;
                             toastResult(context, result,
                                 "Deleted playlist '${p.name}'!");
+                          },
+                          onToggleDownload: () async {
+                            if (p.download) {
+                              final confirmation =
+                                  await ConfirmationDialog.showYesNo(context,
+                                      message:
+                                          "You won't be able to play this playlist offline anymore.");
+                              if (!(confirmation ?? false)) return;
+                            }
+                            final result = await _viewModel.toggleDownload(p);
+                            if (!context.mounted) return;
+                            toastResult(context, result);
                           },
                         );
                       },

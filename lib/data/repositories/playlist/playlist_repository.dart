@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
 import 'package:crossonic/data/repositories/cover/cover_repository.dart';
 import 'package:crossonic/data/repositories/playlist/models/playlist.dart';
+import 'package:crossonic/data/repositories/playlist/song_downloader.dart';
 import 'package:crossonic/data/repositories/subsonic/favorites_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
 import 'package:crossonic/data/services/database/database.dart';
@@ -20,6 +21,7 @@ class PlaylistRepository extends ChangeNotifier {
   final AuthRepository _auth;
   final CoverRepository _coverRepository;
   final Database _db;
+  final SongDownloader _songDownloader;
 
   bool get changeCoverSupported => _auth.serverFeatures.isCrossonic;
 
@@ -29,13 +31,35 @@ class PlaylistRepository extends ChangeNotifier {
     required AuthRepository auth,
     required Database db,
     required CoverRepository coverRepository,
+    required SongDownloader songDownloader,
   })  : _subsonic = subsonic,
         _favorites = favorites,
         _auth = auth,
         _db = db,
-        _coverRepository = coverRepository {
+        _coverRepository = coverRepository,
+        _songDownloader = songDownloader {
     _auth.addListener(_onAuthChanged);
     _onAuthChanged();
+    if (!kIsWeb) {
+      addListener(() => _songDownloader.update());
+    }
+  }
+
+  Future<Result<void>> setDownload(String id, bool download) async {
+    try {
+      final affected = await _db.managers.playlistTable
+          .filter((f) => f.id(id))
+          .update((o) => o(download: Value(download)));
+      if (affected > 0) {
+        _songDownloader.update(true);
+        notifyListeners();
+      }
+      return Result.ok(null);
+    } on Exception catch (e) {
+      return Result.error(e);
+    } catch (e) {
+      return Result.error(Exception(e.toString()));
+    }
   }
 
   Future<Result<void>> setCover(String id, String ext, Uint8List cover) async {
@@ -252,6 +276,7 @@ class PlaylistRepository extends ChangeNotifier {
                 duration: Duration(milliseconds: p.durationMs),
                 songCount: p.songCount,
                 coverId: p.coverArt,
+                download: p.download,
               ))
           .toList());
     } on Exception catch (e) {
@@ -292,6 +317,7 @@ class PlaylistRepository extends ChangeNotifier {
           duration: duration,
           songCount: songs.length,
           coverId: p.coverArt,
+          download: p.download,
         ),
         tracks: songs
       ));
@@ -399,6 +425,17 @@ class PlaylistRepository extends ChangeNotifier {
             ),
           ),
           mode: InsertMode.replace,
+          onConflict: DoUpdate.withExcluded(
+            (old, excluded) => PlaylistTableCompanion.custom(
+              changed: excluded.changed,
+              created: excluded.created,
+              comment: excluded.comment,
+              coverArt: excluded.coverArt,
+              durationMs: excluded.durationMs,
+              name: excluded.name,
+              songCount: excluded.songCount,
+            ),
+          ),
         );
         await Future.wait(toUpdate.map((p) async {
           final songs = (playlistSongs[p.id] ?? []);
@@ -457,6 +494,8 @@ class PlaylistRepository extends ChangeNotifier {
   void _onAuthChanged() {
     if (_auth.isAuthenticated) {
       refresh(forceRefresh: true);
+    } else {
+      _songDownloader.clear();
     }
   }
 

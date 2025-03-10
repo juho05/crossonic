@@ -22,7 +22,12 @@ See [Supported platforms](#supported-platforms) for a status per platform.
 - [x] Browse/search songs, albums, artists
 - [x] Favorite songs/albums/artists
 - [x] Playlists
-  - [ ] download for offline listening
+  - [x] download for offline listening
+    - [x] original (*uses [download](https://opensubsonic.netlify.app/docs/endpoints/download/) endpoint*)
+    - [ ] transcoded
+  - [x] Add songs/albums/artists
+  - [x] drag&drop reorder
+  - [x] change cover (*crossonic-server only*)
 - [x] Configure [ListenBrainz](https://listenbrainz.org) connection (*crossonic-server only*)
 - [x] Full [OpenSubsonic](https://opensubsonic.netlify.app/) support (*gracefully handles missing features on server*)
   - API Key Authentication

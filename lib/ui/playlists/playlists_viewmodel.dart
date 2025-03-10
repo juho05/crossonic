@@ -40,6 +40,10 @@ class PlaylistsViewModel extends ChangeNotifier {
     _load();
   }
 
+  Future<Result<void>> toggleDownload(Playlist playlist) async {
+    return _repo.setDownload(playlist.id, !playlist.download);
+  }
+
   Future<Result<void>> delete(Playlist playlist) async {
     return await _repo.delete(playlist.id);
   }

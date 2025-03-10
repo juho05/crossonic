@@ -4,6 +4,7 @@ import 'package:crossonic/ui/common/collection_page.dart';
 import 'package:crossonic/ui/common/cover_art_decorated.dart';
 import 'package:crossonic/ui/common/dialogs/add_to_playlist.dart';
 import 'package:crossonic/ui/common/dialogs/chooser.dart';
+import 'package:crossonic/ui/common/dialogs/confirmation.dart';
 import 'package:crossonic/ui/common/song_list_item.dart';
 import 'package:crossonic/ui/common/toast.dart';
 import 'package:crossonic/ui/common/with_context_menu.dart';
@@ -61,6 +62,9 @@ class _PlaylistPageState extends State<PlaylistPage> {
               isFavorite: false,
               coverId: playlist.coverId,
               uploading: _viewModel.uploadingCover,
+              downloadStatus: playlist.download
+                  ? DownloadStatus.downloaded
+                  : DownloadStatus.none, // TODO use actual downloading status
               menuOptions: [
                 ContextMenuOption(
                   title: "Play",
@@ -113,9 +117,8 @@ class _PlaylistPageState extends State<PlaylistPage> {
                 ),
                 if (_viewModel.changeCoverSupported)
                   ContextMenuOption(
-                    title: _viewModel.playlist?.coverId != null
-                        ? "Change Cover"
-                        : "Set Cover",
+                    title:
+                        playlist.coverId != null ? "Change Cover" : "Set Cover",
                     icon: Icons.image_outlined,
                     onSelected: () async {
                       final result = await _viewModel.changeCover();
@@ -128,8 +131,7 @@ class _PlaylistPageState extends State<PlaylistPage> {
                       }
                     },
                   ),
-                if (_viewModel.changeCoverSupported &&
-                    _viewModel.playlist?.coverId != null)
+                if (_viewModel.changeCoverSupported && playlist.coverId != null)
                   ContextMenuOption(
                     title: "Remove Cover",
                     icon: Icons.hide_image_outlined,
@@ -139,6 +141,22 @@ class _PlaylistPageState extends State<PlaylistPage> {
                       toastResult(context, result);
                     },
                   ),
+                ContextMenuOption(
+                  title: playlist.download ? "Remove Download" : "Download",
+                  icon: playlist.download ? Icons.delete : Icons.download,
+                  onSelected: () async {
+                    if (playlist.download) {
+                      final confirmation = await ConfirmationDialog.showYesNo(
+                          context,
+                          message:
+                              "You won't be able to play this playlist offline anymore.");
+                      if (!(confirmation ?? false)) return;
+                    }
+                    final result = await _viewModel.toggleDownload();
+                    if (!context.mounted) return;
+                    toastResult(context, result);
+                  },
+                ),
               ],
             ),
             extraInfo: [
@@ -226,6 +244,7 @@ class _PlaylistPageState extends State<PlaylistPage> {
                         router.push(ArtistRoute(artistId: artistId));
                       }
                     : null,
+                removeButton: _viewModel.reorderEnabled,
                 onRemove: () async {
                   final result = await _viewModel.remove(index);
                   if (!context.mounted) return;

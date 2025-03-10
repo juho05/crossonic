@@ -4,6 +4,8 @@ import 'package:crossonic/ui/common/with_context_menu.dart';
 import 'package:flutter/material.dart';
 import 'package:icon_decoration/icon_decoration.dart';
 
+enum DownloadStatus { none, downloading, downloaded }
+
 class CoverArtDecorated extends StatefulWidget {
   final String? coverId;
   final IconData placeholderIcon;
@@ -11,6 +13,7 @@ class CoverArtDecorated extends StatefulWidget {
   final bool uploading;
 
   final bool isFavorite;
+  final DownloadStatus downloadStatus;
 
   final Iterable<ContextMenuOption> menuOptions;
 
@@ -21,6 +24,7 @@ class CoverArtDecorated extends StatefulWidget {
     required this.borderRadius,
     required this.isFavorite,
     this.uploading = false,
+    this.downloadStatus = DownloadStatus.none,
     this.menuOptions = const [],
   });
 
@@ -82,7 +86,28 @@ class _CoverArtDecoratedState extends State<CoverArtDecorated> {
                             ),
                           ),
                         ),
-                        SizedBox.shrink(),
+                        Visibility(
+                          visible: widget.downloadStatus != DownloadStatus.none,
+                          child: DecoratedIcon(
+                            decoration: IconDecoration(
+                              border: IconBorder(
+                                color: Colors.black87,
+                                width: 1,
+                              ),
+                            ),
+                            icon: Icon(
+                              widget.downloadStatus ==
+                                      DownloadStatus.downloading
+                                  ? Icons.downloading_outlined
+                                  : Icons.download_for_offline_outlined,
+                              shadows: [
+                                Shadow(blurRadius: 3, color: Colors.black87),
+                              ],
+                              size: largeLayout ? 26 : 20,
+                              color: const Color.fromARGB(255, 248, 248, 248),
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                     Row(

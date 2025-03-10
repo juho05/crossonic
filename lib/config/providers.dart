@@ -1,12 +1,16 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:audio_session/audio_session.dart';
+import 'package:background_downloader/background_downloader.dart' as bd;
 import 'package:crossonic/data/repositories/audio/audio_handler.dart' as ah;
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
 import 'package:crossonic/data/repositories/cover/cover_repository.dart';
 import 'package:crossonic/data/repositories/keyvalue/key_value_repository.dart';
+import 'package:crossonic/data/repositories/playlist/downloader_storage.dart';
 import 'package:crossonic/data/repositories/playlist/playlist_repository.dart';
+import 'package:crossonic/data/repositories/playlist/song_downloader.dart';
 import 'package:crossonic/data/repositories/scrobble/scrobbler.dart';
 import 'package:crossonic/data/repositories/settings/settings_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/favorites_repository.dart';
@@ -25,6 +29,8 @@ import 'package:provider/single_child_widget.dart';
 Future<List<SingleChildWidget>> get providers async {
   final database = Database();
 
+  DownloaderStorage.register(database);
+
   final subsonicService = SubsonicService();
 
   final keyValueRepository = KeyValueRepository(database: database);
@@ -36,22 +42,34 @@ Future<List<SingleChildWidget>> get providers async {
   );
   await authRepository.loadState();
 
+  final songDownloader = SongDownloader(
+    db: database,
+    auth: authRepository,
+    subsonic: subsonicService,
+  );
+  await songDownloader.init();
+  await bd.FileDownloader().resumeFromBackground();
+  Timer(Duration(seconds: 5), () {
+    bd.FileDownloader().rescheduleKilledTasks();
+  });
+
   final favoritesRepository = FavoritesRepository(
-        auth: authRepository,
-        subsonic: subsonicService,
-      );
+    auth: authRepository,
+    subsonic: subsonicService,
+  );
   final coverRepository = CoverRepository(
-        authRepository: authRepository,
-        subsonicService: subsonicService,
-      );
+    authRepository: authRepository,
+    subsonicService: subsonicService,
+  );
 
   final playlistRepository = PlaylistRepository(
-        subsonic: subsonicService,
-        favorites: favoritesRepository,
-        auth: authRepository,
-        db: database,
-        coverRepository: coverRepository,
-      );
+    subsonic: subsonicService,
+    favorites: favoritesRepository,
+    auth: authRepository,
+    db: database,
+    coverRepository: coverRepository,
+    songDownloader: songDownloader,
+  );
 
   final MediaIntegration mediaIntegration;
   if (!kIsWeb && Platform.isWindows) {
@@ -69,9 +87,8 @@ Future<List<SingleChildWidget>> get providers async {
     }
 
     final audioService = await AudioService.init(
-        builder: () => AudioServiceIntegration(
-          playlistRepository: playlistRepository
-        ),
+        builder: () =>
+            AudioServiceIntegration(playlistRepository: playlistRepository),
         config: AudioServiceConfig(
           androidNotificationChannelId: "de.julianh.crossonic",
           androidNotificationChannelName: "Music playback",
@@ -111,6 +128,9 @@ Future<List<SingleChildWidget>> get providers async {
     ChangeNotifierProvider.value(
       value: favoritesRepository,
     ),
+    Provider.value(
+      value: songDownloader,
+    ),
     Provider(
       create: (context) => SubsonicRepository(
         authRepository: context.read(),
@@ -136,6 +156,7 @@ Future<List<SingleChildWidget>> get providers async {
         authRepository: context.read(),
         subsonicService: context.read(),
         settingsRepository: context.read(),
+        songDownloader: context.read(),
       ),
     ),
     Provider(

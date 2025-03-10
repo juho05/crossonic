@@ -21,6 +21,7 @@ class SongListItem extends StatefulWidget {
   final Duration? duration;
   final int? reorderIndex;
   final bool disablePlaybackStatus;
+  final bool removeButton;
 
   final void Function(bool ctrlPressed)? onTap;
   final void Function(bool priority)? onAddToQueue;
@@ -48,6 +49,7 @@ class SongListItem extends StatefulWidget {
     this.onRemove,
     this.reorderIndex,
     this.disablePlaybackStatus = false,
+    this.removeButton = false,
   });
 
   @override
@@ -144,12 +146,19 @@ class _SongListItemState extends State<SongListItem> {
                   title: "Go to artist",
                   onSelected: widget.onGoToArtist,
                 ),
-              if (widget.onRemove != null)
+              if (widget.onRemove != null && !widget.removeButton)
                 ContextMenuOption(
                   icon: Icons.playlist_remove,
                   title: "Remove",
                   onSelected: widget.onRemove,
                 ),
+            ],
+            extraTrailing: [
+              if (widget.onRemove != null && widget.removeButton)
+                IconButton(
+                  onPressed: widget.onRemove,
+                  icon: Icon(Icons.delete_outline),
+                )
             ],
           );
         });

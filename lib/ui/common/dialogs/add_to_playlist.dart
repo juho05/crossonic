@@ -51,8 +51,9 @@ class AddToPlaylistDialog {
       try {
         playlistSongs.firstWhere((element) => element.id == s.id);
         if (context.mounted) {
-          final add = await ConfirmationDialog.showYesNo(context, "Add anyway?",
-              "'${playlist.name}' already contains '${s.title}'.");
+          final add = await ConfirmationDialog.showYesNo(context,
+              title: "Add anyway?",
+              message: "'${playlist.name}' already contains '${s.title}'.");
           if (add == null) return;
           if (!add) {
             continue;

@@ -130,6 +130,7 @@ class _QueuePageState extends State<QueuePage> {
                   coverId: s.coverId,
                   artist: s.displayArtist,
                   year: s.year,
+                  removeButton: true,
                   onRemove: () {
                     _viewModel.remove(i);
                   },
@@ -198,6 +199,7 @@ class _QueuePageState extends State<QueuePage> {
                     coverId: s.coverId,
                     duration: s.duration,
                     year: s.year,
+                    removeButton: true,
                     onRemove: () {
                       _viewModel
                           .remove(i + _viewModel.priorityQueue.length + 1);

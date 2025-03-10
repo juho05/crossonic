@@ -191,7 +191,7 @@ class AudioPlayerGstreamer implements AudioPlayer {
   @override
   Future<void> setCurrent(Uri url) async {
     _newStreamStart = true;
-    _buffering = true;
+    _buffering = url.scheme != "file";
     eventStream.add(AudioPlayerEvent.loading);
     gst.setState(gst.State.ready);
     gst.setUrl(url.toString());
