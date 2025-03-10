@@ -6,8 +6,9 @@ import 'package:crossonic/data/repositories/playlist/playlist_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
 import 'package:crossonic/utils/exceptions.dart';
 import 'package:crossonic/utils/result.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path/path.dart' as path;
 
 class ImageTooLargeException extends AppException {
   ImageTooLargeException() : super("Image too large");
@@ -54,21 +55,33 @@ class PlaylistViewModel extends ChangeNotifier {
   }
 
   Future<Result<void>> changeCover() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
-      type: FileType.image,
-      withData: true,
-    );
-    if (result == null || result.files.isEmpty) {
+    final image = await ImagePicker().pickImage(source: ImageSource.gallery);
+    if (image == null) {
       return Result.ok(null);
     }
-    final file = result.files[0];
-    if (file.size > 15e6) {
+    final size = await image.length();
+    if (size > 15e6) {
       return Result.error(ImageTooLargeException());
     }
     _uploadingCover = true;
     notifyListeners();
+
+    var mimeType = image.mimeType ??
+        switch (path.extension(image.path).toLowerCase()) {
+          ".avif" => "image/avif",
+          ".jpg" => "image/jpeg",
+          ".jpeg" => "image/jpeg",
+          ".png" => "image/png",
+          ".gif" => "image/gif",
+          ".bmp" => "image/bmp",
+          ".tif" => "image/tiff",
+          ".tiff" => "image/tiff",
+          ".heif" => "image/heif",
+          ".heic" => "image/heic",
+          _ => "application/octet-stream",
+        };
     final r =
-        await _repo.setCover(_playlistId, file.extension ?? "", file.bytes!);
+        await _repo.setCover(_playlistId, mimeType, await image.readAsBytes());
     _uploadingCover = false;
     notifyListeners();
     return r;

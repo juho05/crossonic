@@ -99,20 +99,17 @@ dart run build_runner build # or watch to automatically run build on file change
 
 - Install [GStreamer](https://gstreamer.freedesktop.org/documentation/installing/on-linux.html?gi-language=c).
 - Install libsecret-1-0 and libjsoncpp1
-- Install `kdialog` on KDE and `zenity` otherwise
 
 ##### Debian
 
 ```bash
 sudo apt install libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev gstreamer1.0-plugins-good gstreamer1.0-plugins-bad libsecret-1-dev libjsoncpp-dev
-sudo apt install zenity # change to kdialog if on KDE
 ```
 
 ##### ArchLinux
 
 ```bash
 sudo pacman -S gstreamer gst-libav gst-plugins-base gst-plugins-goodgstreamer1.0-plugins-bad libsecret jsoncpp
-sudo pacman -S zenity # change to kdialog if on KDE
 ```
 
 #### Build
