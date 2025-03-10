@@ -29,13 +29,16 @@ import 'package:provider/single_child_widget.dart';
 Future<List<SingleChildWidget>> get providers async {
   final database = Database();
 
-  await DownloaderStorage.register(database);
-  bd.FileDownloader().configure(
-    globalConfig: [
-      // limit concurrent downloads per group to 5
-      (bd.Config.holdingQueue, (null, null, 5)),
-    ],
-  );
+  if (!kIsWeb) {
+    await DownloaderStorage.register(database);
+    bd.FileDownloader().configure(
+      globalConfig: [
+        // limit concurrent downloads per group to 5
+        if (Platform.isAndroid || Platform.isIOS)
+          (bd.Config.holdingQueue, (null, null, 5)),
+      ],
+    );
+  }
 
   final subsonicService = SubsonicService();
 
