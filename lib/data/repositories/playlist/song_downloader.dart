@@ -34,9 +34,19 @@ class SongDownloader extends ChangeNotifier {
 
   Future<void> init() async {
     if (kIsWeb) return;
-    _dir = path.join(
-        (await getApplicationSupportDirectory()).path, "downloaded_songs");
-    await Directory(_dir!).create(recursive: true);
+    final applicationSupport = await getApplicationSupportDirectory();
+    _dir = path.join(applicationSupport.path, "downloaded_songs");
+    final dir = await Directory(_dir!).create(recursive: true);
+
+    if (Platform.isAndroid) {
+      applicationSupport.list().forEach((file) {
+        if (path
+            .basename(file.path)
+            .startsWith("com.bbflight.background_downloader")) {
+          file.delete();
+        }
+      });
+    }
 
     await FileDownloader().trackTasksInGroup(_taskGroup);
     FileDownloader().configureNotificationForGroup(_taskGroup,
@@ -50,7 +60,7 @@ class SongDownloader extends ChangeNotifier {
       group: _taskGroup,
       taskStatusCallback: _statusCallback,
     );
-    _downloadStatus.addEntries(await Directory(_dir!)
+    _downloadStatus.addEntries(await dir
         .list()
         .map((f) => MapEntry(path.basename(f.path), DownloadStatus.downloaded))
         .toList());
@@ -123,7 +133,9 @@ class SongDownloader extends ChangeNotifier {
           records.where((r) => !songIds.contains(r.taskId)).map((r) => r.task),
     );
 
-    await Directory(_dir!).list().forEach((f) async {
+    final dir = await Directory(_dir!).create(recursive: true);
+
+    dir.list().forEach((f) async {
       final id = path.basename(f.path);
       if (songIds.contains(id)) {
         songIds.remove(id);
@@ -135,32 +147,31 @@ class SongDownloader extends ChangeNotifier {
       }
     });
 
-    for (final id in songIds) {
+    for (final id in songIds.toList()) {
       final record = await FileDownloader().database.recordForId(id);
       if (record != null) {
         if (record.status.isFinalState) {
           await FileDownloader().database.deleteRecordWithId(id);
           _downloadStatus.remove(id);
         } else {
-          continue;
+          songIds.remove(id);
         }
       }
     }
 
-    final tasks = songIds.map(
-      (id) => DownloadTask(
-        group: _taskGroup,
-        url: _downloadUri(id).toString(),
-        httpRequestMethod: "GET",
-        allowPause: true,
-        baseDirectory: BaseDirectory.applicationSupport,
-        directory: "downloaded_songs",
-        filename: id,
-        requiresWiFi: true,
-        taskId: id,
-        updates: Updates.status,
-      ) as Task,
-    );
+    final tasks = songIds.map((id) => DownloadTask(
+          group: _taskGroup,
+          url: _downloadUri(id).toString(),
+          httpRequestMethod: "GET",
+          allowPause: true,
+          baseDirectory: BaseDirectory.applicationSupport,
+          directory: "downloaded_songs",
+          filename: id,
+          requiresWiFi: true,
+          taskId: id,
+          updates: Updates.status,
+          retries: 5,
+        ));
 
     final result = await FileDownloader().enqueueAll(tasks.toList());
     _downloadStatus.addEntries(songIds.indexed
@@ -180,13 +191,7 @@ class SongDownloader extends ChangeNotifier {
       case TaskStatus.notFound || TaskStatus.failed || TaskStatus.canceled:
         _downloadStatus.remove(status.task.taskId);
       case TaskStatus.waitingToRetry || TaskStatus.paused:
-        break;
-    }
-    final newStatus = _downloadStatus[status.task.taskId];
-    if (previousStatus != null &&
-        newStatus != null &&
-        previousStatus.index > newStatus.index) {
-      _downloadStatus[status.task.taskId] = previousStatus;
+        _downloadStatus[status.task.taskId] = DownloadStatus.enqueued;
     }
     if (previousStatus != _downloadStatus[status.task.taskId]) {
       notifyListeners();
