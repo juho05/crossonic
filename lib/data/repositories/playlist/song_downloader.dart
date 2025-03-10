@@ -112,9 +112,11 @@ class SongDownloader extends ChangeNotifier {
     _updateDebounce = Timer(const Duration(seconds: 5), _update);
   }
 
+  bool _updating = false;
   Future<void> _update() async {
-    if (kIsWeb || _dir == null) return;
-    final songIds = (await (_db.select(_db.playlistSongTable).join(
+    if (kIsWeb || _updating || _dir == null) return;
+    _updating = true;
+    final songIds = (await (_db.select(_db.playlistSongTable, distinct: true).join(
       [
         innerJoin(
           _db.playlistTable,
@@ -135,14 +137,14 @@ class SongDownloader extends ChangeNotifier {
 
     final dir = await Directory(_dir!).create(recursive: true);
 
-    dir.list().forEach((f) async {
+    await dir.list().forEach((f) {
       final id = path.basename(f.path);
       if (songIds.contains(id)) {
         songIds.remove(id);
         _downloadStatus[id] = DownloadStatus.downloaded;
       } else {
         File(f.path).delete();
-        await FileDownloader().database.deleteRecordWithId(id);
+        FileDownloader().database.deleteRecordWithId(id);
         _downloadStatus.remove(id);
       }
     });
@@ -177,6 +179,7 @@ class SongDownloader extends ChangeNotifier {
     _downloadStatus.addEntries(songIds.indexed
         .where((i) => result[i.$1] && !_downloadStatus.containsKey(i.$2))
         .map((i) => MapEntry(i.$2, DownloadStatus.enqueued)));
+    _updating = false;
   }
 
   void _statusCallback(TaskStatusUpdate status) {
@@ -194,6 +197,9 @@ class SongDownloader extends ChangeNotifier {
         _downloadStatus[status.task.taskId] = DownloadStatus.enqueued;
     }
     if (previousStatus != _downloadStatus[status.task.taskId]) {
+      if (previousStatus == DownloadStatus.downloaded) {
+        print(status);
+      }
       notifyListeners();
     }
   }

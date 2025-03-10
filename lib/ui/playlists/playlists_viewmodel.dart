@@ -69,6 +69,7 @@ class PlaylistsViewModel extends ChangeNotifier {
       action: update,
       delay: Duration(seconds: 3),
     );
+    _onDownloadStatusChangedThrottle?.call();
   }
 
   Future<Result<void>> toggleDownload(Playlist playlist) async {

@@ -34,8 +34,7 @@ Future<List<SingleChildWidget>> get providers async {
     bd.FileDownloader().configure(
       globalConfig: [
         // limit concurrent downloads per group to 5
-        if (Platform.isAndroid || Platform.isIOS)
-          (bd.Config.holdingQueue, (null, null, 5)),
+        (bd.Config.holdingQueue, (null, null, 5)),
       ],
     );
   }
