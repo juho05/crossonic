@@ -470,8 +470,8 @@ class PlaylistRepository extends ChangeNotifier {
       case Err():
         return Result.error(result.error);
       case Ok():
-        _favorites.updateAll((result.value.entry ?? []).map((c) =>
-            (type: FavoriteType.song, id: c.id, favorite: c.starred != null)));
+        _favorites.updateAll((result.value.entry ?? []).map(
+            (c) => (type: FavoriteType.song, id: c.id, starred: c.starred)));
         return Result.ok(result.value.entry ?? []);
     }
   }

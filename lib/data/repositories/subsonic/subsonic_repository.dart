@@ -357,19 +357,19 @@ class SubsonicRepository {
   }
 
   void _updateArtistFavorites(Iterable<ArtistID3Model>? artists) {
-    _favorites.updateAll((artists ?? []).map((a) =>
-        (type: FavoriteType.artist, id: a.id, favorite: a.starred != null)));
+    _favorites.updateAll((artists ?? [])
+        .map((a) => (type: FavoriteType.artist, id: a.id, starred: a.starred)));
     _updateAlbumFavorites((artists ?? []).expand((a) => a.album ?? []));
   }
 
   void _updateAlbumFavorites(Iterable<AlbumID3Model>? albums) {
-    _favorites.updateAll((albums ?? []).map((a) =>
-        (type: FavoriteType.album, id: a.id, favorite: a.starred != null)));
+    _favorites.updateAll((albums ?? [])
+        .map((a) => (type: FavoriteType.album, id: a.id, starred: a.starred)));
     _updateSongFavorites((albums ?? []).expand((a) => a.song ?? []));
   }
 
   void _updateSongFavorites(Iterable<ChildModel>? songs) {
-    _favorites.updateAll((songs ?? []).map((c) =>
-        (type: FavoriteType.song, id: c.id, favorite: c.starred != null)));
+    _favorites.updateAll((songs ?? [])
+        .map((c) => (type: FavoriteType.song, id: c.id, starred: c.starred)));
   }
 }

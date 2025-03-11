@@ -1,6 +1,7 @@
 import 'package:crossonic/data/services/database/database.steps.dart';
 import 'package:crossonic/data/services/database/log_interceptor.dart';
 import 'package:crossonic/data/services/database/tables/download_task.dart';
+import 'package:crossonic/data/services/database/tables/favorites_table.dart';
 import 'package:crossonic/data/services/database/tables/key_value.dart';
 import 'package:crossonic/data/services/database/tables/playlist.dart';
 import 'package:crossonic/data/services/database/tables/playlist_song.dart';
@@ -18,12 +19,13 @@ part 'database.g.dart';
   PlaylistTable,
   PlaylistSongTable,
   DownloadTask,
+  FavoritesTable,
 ])
 class Database extends _$Database {
   Database([QueryExecutor? e]) : super(e ?? _openConnection());
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   Future<void> clearAll() async {
     customStatement("PRAGMA foreign_keys = OFF");
@@ -57,6 +59,9 @@ class Database extends _$Database {
                 },
                 from3To4: (m, schema) async {
                   await m.createTable(schema.downloadTask);
+                },
+                from4To5: (m, schema) async {
+                  await m.createTable(schema.favorites);
                 },
               ),
             ),

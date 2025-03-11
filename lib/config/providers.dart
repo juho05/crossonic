@@ -64,6 +64,7 @@ Future<List<SingleChildWidget>> get providers async {
   final favoritesRepository = FavoritesRepository(
     auth: authRepository,
     subsonic: subsonicService,
+    database: database,
   );
   final coverRepository = CoverRepository(
     authRepository: authRepository,
