@@ -267,3 +267,9 @@ FFI_PLUGIN_EXPORT void set_volume(double volume)
 {
   g_object_set(GST_OBJECT(data->playbin), "volume", volume, NULL);
 }
+
+FFI_PLUGIN_EXPORT void waitUntilReady()
+{
+  GstMessage *msg = gst_bus_timed_pop_filtered(data->bus, GST_CLOCK_TIME_NONE, GST_MESSAGE_ASYNC_DONE);
+  gst_message_unref(msg);
+}

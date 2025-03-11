@@ -130,6 +130,14 @@ class GstreamerFFIBindings {
       _lookup<ffi.NativeFunction<ffi.Int Function()>>('get_position_ms');
   late final _get_position_ms =
       _get_position_msPtr.asFunction<int Function()>();
+
+  void waitUntilReady() {
+    return _waitUntilReady();
+  }
+
+  late final _waitUntilReadyPtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function()>>('waitUntilReady');
+  late final _waitUntilReady = _waitUntilReadyPtr.asFunction<void Function()>();
 }
 
 abstract class ErrorType {

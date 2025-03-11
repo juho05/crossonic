@@ -47,3 +47,7 @@ void seek(Duration pos) {
 Duration getPosition() {
   return GstreamerPlatform.instance.getPosition();
 }
+
+void waitUntilReady() {
+  GstreamerPlatform.instance.waitUntilReady();
+}

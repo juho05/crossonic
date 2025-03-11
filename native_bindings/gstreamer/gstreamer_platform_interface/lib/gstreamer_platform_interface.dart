@@ -44,4 +44,7 @@ abstract class GstreamerPlatform extends PlatformInterface {
 
   Duration getPosition() =>
       throw UnimplementedError("getPosition() not implemented");
+
+  void waitUntilReady() =>
+      throw UnimplementedError("waitUntilReady() not implemented");
 }

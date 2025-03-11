@@ -19,7 +19,7 @@ abstract interface class AudioPlayer {
   bool get initialized;
 
   void init();
-  Future<void> setCurrent(Uri url);
+  Future<void> setCurrent(Uri url, [Duration? pos]);
   Future<void> setNext(Uri? url);
   Future<void> play();
   Future<void> pause();

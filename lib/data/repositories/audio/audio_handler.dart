@@ -187,7 +187,7 @@ class AudioHandler {
 
     if (status != PlaybackStatus.playing && status != PlaybackStatus.loading) {
       // web browsers stop media os integration without active player
-      if (!kIsWeb) {
+      if (!kIsWeb && _auth.serverFeatures.transcodeOffset.contains(1)) {
         _disposePlayerTimer ??=
             Timer(const Duration(minutes: 1), _disposePlayer);
       }
@@ -308,8 +308,15 @@ class AudioHandler {
     final current = _queue.current.value.song;
     final next = _queue.next.value;
     if (current != null) {
-      _positionOffset = position.value.position;
-      await _player.setCurrent(_getStreamUri(current, position.value.position));
+      if (_downloader.getPath(current.id) != null) {
+        await _player.setCurrent(
+            _getStreamUri(current), position.value.position);
+        _positionOffset = Duration.zero;
+      } else {
+        _positionOffset = position.value.position;
+        await _player
+            .setCurrent(_getStreamUri(current, position.value.position));
+      }
       if (_playbackStatus.value == PlaybackStatus.playing) {
         await play();
       } else {

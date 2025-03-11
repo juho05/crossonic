@@ -59,3 +59,5 @@ FFI_PLUGIN_EXPORT void set_volume(double volume);
 FFI_PLUGIN_EXPORT ErrorType seek(int milliseconds);
 
 FFI_PLUGIN_EXPORT int get_position_ms();
+
+FFI_PLUGIN_EXPORT void waitUntilReady();

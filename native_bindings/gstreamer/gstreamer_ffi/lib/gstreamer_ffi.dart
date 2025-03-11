@@ -155,4 +155,9 @@ class GstreamerFFI extends GstreamerPlatform {
   Duration getPosition() {
     return Duration(milliseconds: _bindings.get_position_ms());
   }
+
+  @override
+  void waitUntilReady() {
+    _bindings.waitUntilReady();
+  }
 }

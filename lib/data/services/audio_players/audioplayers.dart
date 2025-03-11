@@ -181,13 +181,16 @@ class AudioPlayerAudioPlayers implements AudioPlayer {
   BehaviorSubject<AudioPlayerEvent> get eventStream => _eventStream;
 
   @override
-  Future<void> setCurrent(Uri url) async {
+  Future<void> setCurrent(Uri url, [Duration? pos]) async {
     final shouldPlay = _eventStream.value == AudioPlayerEvent.playing;
     _eventStream.add(AudioPlayerEvent.loading);
     _currentDuration = null;
     canSeek = url.queryParameters.containsKey("format") &&
         url.queryParameters["format"] == "raw";
     await _players[_currentPlayer].setSourceUrl(url.toString());
+    if (pos != null) {
+      _players[_currentPlayer].seek(pos);
+    }
     if (shouldPlay) {
       await play();
     } else {

@@ -179,12 +179,17 @@ class AudioPlayerGstreamer implements AudioPlayer {
   BehaviorSubject<AudioPlayerEvent> get eventStream => _eventStream;
 
   @override
-  Future<void> setCurrent(Uri url) async {
+  Future<void> setCurrent(Uri url, [Duration? pos]) async {
     _newStreamStart = true;
     _buffering = url.scheme != "file";
     eventStream.add(AudioPlayerEvent.loading);
     gst.setState(gst.State.ready);
     gst.setUrl(url.toString());
+    if (pos != null) {
+      gst.setState(gst.State.paused);
+      gst.waitUntilReady();
+      gst.seek(pos);
+    }
     if (_desiredState == AudioPlayerEvent.stopped) {
       _desiredState = AudioPlayerEvent.paused;
     }
