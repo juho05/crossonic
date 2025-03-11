@@ -171,9 +171,6 @@ class AudioHandler {
       AudioPlayerEvent.paused => PlaybackStatus.paused,
       AudioPlayerEvent.advance => throw Exception("should never happen"),
     };
-    if (_queue.length == 0) {
-      status = PlaybackStatus.stopped;
-    }
     if (status == _playbackStatus.value) return;
     if (status == PlaybackStatus.stopped) {
       await stop();

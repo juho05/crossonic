@@ -210,7 +210,11 @@ class LocalQueue extends ChangeNotifier implements MediaQueue {
     }
 
     if (index == 0) {
-      _next.add(_priorityQueue.first);
+      if (current.value.song == null) {
+        _current.add((song: _priorityQueue.removeFirst(), fromAdvance: false));
+        _currentIndex = 0;
+      }
+      _next.add(_priorityQueue.firstOrNull);
     }
 
     notifyListeners();

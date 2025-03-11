@@ -57,7 +57,6 @@ class AudioPlayerGstreamer implements AudioPlayer {
     });
   }
 
-  Timer? _debounce;
   @override
   void init() async {
     gst.init(
@@ -67,24 +66,16 @@ class AudioPlayerGstreamer implements AudioPlayer {
         if (_buffering || _desiredState == AudioPlayerEvent.stopped) return;
 
         if (newState == gst.State.playing) {
-          _debounce?.cancel();
-          _debounce = null;
           eventStream.add(AudioPlayerEvent.playing);
         } else if (newState == gst.State.paused &&
             _desiredState == AudioPlayerEvent.paused) {
-          _debounce?.cancel();
-          _debounce = null;
           eventStream.add(AudioPlayerEvent.paused);
-        } else {
-          if (_debounce?.isActive ?? false) _debounce?.cancel();
-          _debounce = Timer(const Duration(seconds: 5), () {
-            eventStream.add(AudioPlayerEvent.loading);
-          });
         }
       },
       onEOS: () {
         if (_nextURL == null) {
           eventStream.add(AudioPlayerEvent.stopped);
+          _desiredState = AudioPlayerEvent.stopped;
         }
       },
       onStreamStart: () {
@@ -147,7 +138,6 @@ class AudioPlayerGstreamer implements AudioPlayer {
   Future<void> dispose() async {
     gst.freeResources();
     _initialized = false;
-    _debounce?.cancel();
     _gstState = gst.State.initial;
     await _audioSession.setActive(false);
   }
@@ -195,6 +185,9 @@ class AudioPlayerGstreamer implements AudioPlayer {
     eventStream.add(AudioPlayerEvent.loading);
     gst.setState(gst.State.ready);
     gst.setUrl(url.toString());
+    if (_desiredState == AudioPlayerEvent.stopped) {
+      _desiredState = AudioPlayerEvent.paused;
+    }
     await _activateDesiredState();
     canSeek = url.scheme == "file" ||
         (url.queryParameters.containsKey("format") &&
