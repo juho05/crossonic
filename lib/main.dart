@@ -13,7 +13,6 @@ import 'package:window_manager/window_manager.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await windowManager.ensureInitialized();
 
   if (!(await FlutterSingleInstance().isFirstInstance())) {
     print("App is already running");
@@ -25,6 +24,7 @@ void main() async {
   }
 
   if (!kIsWeb && (Platform.isWindows || Platform.isMacOS || Platform.isLinux)) {
+    await windowManager.ensureInitialized();
     WindowOptions windowOptions = WindowOptions(
       size: Size(1300, 850),
       center: true,
