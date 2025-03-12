@@ -284,8 +284,8 @@ class AudioHandler {
       }
     }
 
-    if ((mode == ReplayGainMode.track && media.trackGain != null) ||
-        media.albumGain == null) {
+    if (media.trackGain != null &&
+        (mode == ReplayGainMode.track || media.albumGain == null)) {
       gain = media.trackGain!;
     } else if (media.albumGain != null) {
       gain = media.albumGain!;
