@@ -17,6 +17,7 @@ See [Supported platforms](#supported-platforms) for a status per platform.
 - [x] Desktop and mobile layout
 - [x] Respects light/dark theme and accent color
 - [x] System integration (*Android media API*, *MPRIS*, *SystemMediaTransportControls*, …)
+- [x] Close to tray
 - [x] Stream original or transcoded media
   - [x] configurable transcoding settings for WiFi and mobile
 - [x] Browse/search songs, albums, artists
@@ -98,18 +99,19 @@ dart run build_runner build # or watch to automatically run build on file change
 #### Install dependencies
 
 - Install [GStreamer](https://gstreamer.freedesktop.org/documentation/installing/on-linux.html?gi-language=c).
-- Install libsecret-1-0 and libjsoncpp1
+- Install `libsecret-1-0` and `libjsoncpp1`
+- Install `ayatana-appindicator3-0.1` or `appindicator3-0.1`
 
 ##### Debian
 
 ```bash
-sudo apt install libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev gstreamer1.0-plugins-good gstreamer1.0-plugins-bad libsecret-1-dev libjsoncpp-dev
+sudo apt install libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev gstreamer1.0-plugins-good gstreamer1.0-plugins-bad libsecret-1-dev libjsoncpp-dev libayatana-appindicator3-dev
 ```
 
 ##### ArchLinux
 
 ```bash
-sudo pacman -S gstreamer gst-libav gst-plugins-base gst-plugins-goodgstreamer1.0-plugins-bad libsecret jsoncpp
+sudo pacman -S gstreamer gst-libav gst-plugins-base gst-plugins-goodgstreamer1.0-plugins-bad libsecret jsoncpp libayatana-appindicator
 ```
 
 #### Build

@@ -1,7 +1,11 @@
+import 'dart:io';
+
 import 'package:auto_route/auto_route.dart';
 import 'package:crossonic/routing/router.gr.dart';
 import 'package:crossonic/ui/common/dialogs/confirmation.dart';
 import 'package:crossonic/ui/settings/settings_viewmodel.dart';
+import 'package:crossonic/utils/exit.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -65,8 +69,9 @@ class _SettingsPageState extends State<SettingsPage> {
                 trailing: const Icon(Icons.logout),
                 onTap: !_viewModel.loggingOut
                     ? () async {
-                        final confirmed =
-                            await ConfirmationDialog.showYesNo(context);
+                        final confirmed = await ConfirmationDialog.showYesNo(
+                            context,
+                            title: "Logout?");
                         if (confirmed ?? false) {
                           await _viewModel.logout();
                         }
@@ -74,7 +79,20 @@ class _SettingsPageState extends State<SettingsPage> {
                     : null,
               );
             },
-          )
+          ),
+          if (!kIsWeb &&
+              (Platform.isWindows || Platform.isMacOS || Platform.isLinux))
+            ListTile(
+              title: const Text("Exit"),
+              trailing: const Icon(Icons.close),
+              onTap: () async {
+                final confirmed = await ConfirmationDialog.showYesNo(context,
+                    title: "Exit the app?");
+                if (confirmed ?? false) {
+                  await exitApp();
+                }
+              },
+            ),
         ],
       ),
     );

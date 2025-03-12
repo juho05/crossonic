@@ -43,6 +43,8 @@ dependencies:
   path: ^1.9.0
   image_picker: ^1.1.2
   flutter_single_instance: ^1.2.3
+  window_manager: ^0.4.3
+  tray_manager: ^0.3.2
 
 dependency_overrides:
   flutter_secure_storage_macos:
@@ -52,6 +54,10 @@ dependency_overrides:
       url: https://github.com/hasali19/material-foundation-flutter-packages.git
       ref: "78667e1"
       path: packages/dynamic_color
+  flutter_single_instance:
+    git:
+      url: https://github.com/juho05/flutter_single_instance
+      ref: fd1ff03
   audioplayers_linux:
     path: ./dependency_overrides/stubs/audioplayers_linux
   audioplayers_android:
@@ -72,3 +78,6 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/icon/crossonic-tray.png
+    - assets/icon/crossonic-tray.ico

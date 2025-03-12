@@ -1,5 +1,4 @@
 import 'package:crossonic/data/services/database/database.steps.dart';
-import 'package:crossonic/data/services/database/log_interceptor.dart';
 import 'package:crossonic/data/services/database/tables/download_task.dart';
 import 'package:crossonic/data/services/database/tables/favorites_table.dart';
 import 'package:crossonic/data/services/database/tables/key_value.dart';
@@ -92,9 +91,9 @@ class Database extends _$Database {
         web: DriftWebOptions(
             sqlite3Wasm: Uri.parse("sqlite3.wasm"),
             driftWorker: Uri.parse("drift_worker.dart.js")));
-    if (kDebugMode) {
-      return db.interceptWith(LogInterceptor());
-    }
+    //if (kDebugMode) {
+    //  return db.interceptWith(LogInterceptor());
+    //}
     return db;
   }
 }
