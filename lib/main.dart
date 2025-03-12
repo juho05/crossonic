@@ -1,12 +1,26 @@
+import 'dart:io';
+
 import 'package:crossonic/config/providers.dart';
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
 import 'package:crossonic/routing/router.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_single_instance/flutter_single_instance.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await windowManager.ensureInitialized();
+
+  if (!(await FlutterSingleInstance().isFirstInstance())) {
+    print("App is already running");
+    final err = await FlutterSingleInstance().focus();
+    if (err != null) {
+      print("Error focusing running instance: $err");
+    }
+    exit(0);
+  }
+
   runApp(MultiProvider(
     providers: await providers,
     child: const MainApp(),
