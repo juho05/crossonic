@@ -21,10 +21,11 @@ class FavoritesRepository extends ChangeNotifier {
   })  : _auth = auth,
         _subsonic = subsonic,
         _db = database {
-    _load();
+    _auth.addListener(_load);
   }
 
   Future<void> _load() async {
+    if (!_auth.isAuthenticated) return;
     final favorites = await _db.managers.favoritesTable.get();
     _favoriteIDs.addAll(
         favorites.map((f) => (FavoriteType.values.byName(f.type), f.id)));
@@ -130,5 +131,11 @@ class FavoritesRepository extends ChangeNotifier {
           .delete();
       notifyListeners();
     }
+  }
+
+  @override
+  void dispose() {
+    _auth.removeListener(_load);
+    super.dispose();
   }
 }

@@ -28,7 +28,7 @@ class AudioServiceIntegration extends asv.BaseAudioHandler
   }) : _playlistRepository = playlistRepository;
 
   @override
-  void ensureInitialized({
+  Future<void> ensureInitialized({
     required AudioHandler audioHandler,
     required Future<void> Function() onPlay,
     required Future<void> Function() onPause,
@@ -36,7 +36,7 @@ class AudioServiceIntegration extends asv.BaseAudioHandler
     required Future<void> Function() onPlayNext,
     required Future<void> Function() onPlayPrev,
     required Future<void> Function() onStop,
-  }) {
+  }) async {
     if (_audioHandler != null) return;
     _audioHandler = audioHandler;
     _audioHandler!.queue.looping.listen((loop) {

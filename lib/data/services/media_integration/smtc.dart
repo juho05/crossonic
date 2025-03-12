@@ -8,7 +8,21 @@ class SMTCIntegration implements MediaIntegration {
   bool _initialized = false;
   late final smtc.SMTCWindows _smtc;
 
-  SMTCIntegration() {
+  @override
+  Future<void> ensureInitialized({
+    required AudioHandler audioHandler,
+    required Future<void> Function() onPlay,
+    required Future<void> Function() onPause,
+    required Future<void> Function(Duration position) onSeek,
+    required Future<void> Function() onPlayNext,
+    required Future<void> Function() onPlayPrev,
+    required Future<void> Function() onStop,
+  }) async {
+    if (_initialized) return;
+    _initialized = true;
+
+    await smtc.SMTCWindows.initialize();
+
     _smtc = smtc.SMTCWindows(
         enabled: true,
         config: const smtc.SMTCConfig(
@@ -20,20 +34,7 @@ class SMTCIntegration implements MediaIntegration {
           prevEnabled: true,
           stopEnabled: true,
         ));
-  }
 
-  @override
-  void ensureInitialized({
-    required AudioHandler audioHandler,
-    required Future<void> Function() onPlay,
-    required Future<void> Function() onPause,
-    required Future<void> Function(Duration position) onSeek,
-    required Future<void> Function() onPlayNext,
-    required Future<void> Function() onPlayPrev,
-    required Future<void> Function() onStop,
-  }) {
-    if (_initialized) return;
-    _initialized = true;
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       _smtc.buttonPressStream.listen((event) async {
         switch (event) {

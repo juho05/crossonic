@@ -4,7 +4,7 @@ import 'package:crossonic/data/services/media_integration/media_integration.dart
 
 class SMTCIntegration implements MediaIntegration {
   @override
-  void ensureInitialized({
+  Future<void> ensureInitialized({
     required AudioHandler audioHandler,
     required Future<void> Function() onPlay,
     required Future<void> Function() onPause,
@@ -12,7 +12,7 @@ class SMTCIntegration implements MediaIntegration {
     required Future<void> Function() onPlayNext,
     required Future<void> Function() onPlayPrev,
     required Future<void> Function() onStop,
-  }) {}
+  }) async {}
   @override
   void updateMedia(Song? song, Uri? coverArt) {}
   @override

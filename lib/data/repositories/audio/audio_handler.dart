@@ -76,12 +76,8 @@ class AudioHandler {
           settingsRepository.transcoding.codec,
           settingsRepository.transcoding.maxBitRate
         ) {
-    _auth.addListener(_authChanged);
-
-    _queueCurrentSubscription = _queue.current.listen(_onCurrentChanged);
-    _queueNextSubscription = _queue.next.listen(_onNextChanged);
-
-    _integration.ensureInitialized(
+    _integration
+        .ensureInitialized(
       audioHandler: this,
       onPause: pause,
       onPlay: play,
@@ -89,14 +85,20 @@ class AudioHandler {
       onPlayPrev: playPrev,
       onSeek: seek,
       onStop: stop,
-    );
-    _integration.updateMedia(null, null);
+    )
+        .then((value) {
+      _integration.updateMedia(null, null);
+      _auth.addListener(_authChanged);
 
-    _playerEventSubscription = _player.eventStream.listen(_playerEvent);
+      _queueCurrentSubscription = _queue.current.listen(_onCurrentChanged);
+      _queueNextSubscription = _queue.next.listen(_onNextChanged);
 
-    _settings.replayGain.addListener(_onReplayGainChanged);
-    _settings.transcoding.addListener(_onTranscodingChanged);
-    _onTranscodingChanged();
+      _playerEventSubscription = _player.eventStream.listen(_playerEvent);
+
+      _settings.replayGain.addListener(_onReplayGainChanged);
+      _settings.transcoding.addListener(_onTranscodingChanged);
+      _onTranscodingChanged();
+    });
   }
 
   // ================ playback controls ================

@@ -5,7 +5,7 @@ export 'audioservice.dart';
 export 'smtc_stub.dart' if (dart.library.ffi) 'smtc.dart';
 
 abstract interface class MediaIntegration {
-  void ensureInitialized({
+  Future<void> ensureInitialized({
     required AudioHandler audioHandler,
     required Future<void> Function() onPlay,
     required Future<void> Function() onPause,

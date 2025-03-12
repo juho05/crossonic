@@ -39,7 +39,11 @@ class CrossonicWindowListener with WindowListener, TrayListener {
   Future<void> _initSystemTray() async {
     await trayManager.setIcon(
         "assets/icon/crossonic-tray.${Platform.isWindows ? "ico" : "png"}");
-    await trayManager.setTitle("Crossonic");
+    if (Platform.isLinux) {
+      await trayManager.setTitle("Crossonic");
+    } else {
+      await trayManager.setToolTip("Crossonic");
+    }
     await _updateTrayContextMenu();
   }
 
