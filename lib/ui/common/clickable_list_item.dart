@@ -91,7 +91,9 @@ class ClickableListItem extends StatelessWidget {
                 padding: const EdgeInsets.only(left: 12),
                 child: Text(
                   trailingInfo!,
-                  style: textTheme.bodySmall,
+                  style: textTheme.bodySmall!.copyWith(
+                    fontFeatures: [FontFeature.tabularFigures()],
+                  ),
                 ),
               ),
           ],
