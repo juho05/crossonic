@@ -17,6 +17,8 @@ See [Supported platforms](#supported-platforms) for a status per platform.
 - [x] Desktop and mobile layout
 - [x] Respects light/dark theme and accent color
 - [x] System integration (*Android media API*, *MPRIS*, *SystemMediaTransportControls*, …)
+- [x] Android Auto
+  - currently only playlists
 - [x] Close to tray
 - [x] Stream original or transcoded media
   - [x] configurable transcoding settings for WiFi and mobile
@@ -200,7 +202,9 @@ Now you can serve `./build/web` with a web server like [Caddy](https://caddyserv
   <img height="550" src="screenshots/mobile_now_playing.png" alt="Now playing on mobile" title="Now playing on mobile">
   <img height="550" src="screenshots/mobile_browse.png" alt="Browse page on mobile" title="Browse page on mobile">
   <img height="550" src="screenshots/mobile_albums.png" alt="Albums page on mobile" title="Albums page on mobile">
-  <img height="550" src="screenshots/mobile_album_light.png" alt="Album page on mobile with light theme" title="Album page on mobile with light theme">
+  <img height="550" src="screenshots/mobile_album.png" alt="Album page on mobile" title="Album page on mobile">
+  <img height="550" src="screenshots/mobile_playlists.png" alt="Playlists page on mobile" title="Playlists page on mobile">
+  <img height="550" src="screenshots/mobile_queue.png" alt="Queue page on mobile" title="Queue page on mobile">
   <img height="550" src="screenshots/mobile_transcoding.png" alt="Transcoding settings on mobile" title="Transcoding settings on mobile">
   <img height="550" src="screenshots/mobile_replay_gain.png" alt="Replay Gain settings on mobile" title="Replay Gain settings on mobile">
 </p>
