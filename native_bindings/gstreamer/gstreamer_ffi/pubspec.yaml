@@ -34,3 +34,6 @@ flutter:
       windows:
         ffiPlugin: true
         dartPluginClass: GstreamerFFI
+      ios:
+        ffiPlugin: true
+        dartPluginClass: GstreamerFFI

@@ -14,6 +14,8 @@ flutter:
         default_package: gstreamer_ffi
       windows:
         default_package: gstreamer_ffi
+      ios:
+        default_package: gstreamer_ffi
 
 environment:
   sdk: ">=3.3.4 <4.0.0"

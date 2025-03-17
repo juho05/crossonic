@@ -62,8 +62,8 @@ dependency_overrides:
     path: ./dependency_overrides/stubs/audioplayers_linux
   audioplayers_android:
     path: ./dependency_overrides/stubs/audioplayers_android
-  audioplayers_macos:
-    path: ./dependency_overrides/stubs/audioplayers_macos
+  audioplayers_darwin:
+    path: ./dependency_overrides/stubs/audioplayers_darwin
   audioplayers_windows:
     path: ./dependency_overrides/stubs/audioplayers_windows
 

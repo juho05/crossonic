@@ -70,6 +70,7 @@ The OpenSubsonic API supports some features that are out-of-scope for this appli
 - Android
 - macOS
 - Windows
+- iOS
 
 **some limitations**
 - Web
@@ -77,9 +78,6 @@ The OpenSubsonic API supports some features that are out-of-scope for this appli
   - Safari playback randomly stops when streaming transcoded media
   - no image caching
   - worse performance than native
-
-**unsupported**
-- iOS (*theoretically possible, requires build configuration (permissions, gstreamer, …)*)
 
 ## Build/run
 
@@ -166,6 +164,19 @@ flutter build macos --release
 In the directory of the repository run:
 ```bash
 flutter build apk --release
+```
+
+### iOS
+
+- Install [GStreamer](https://gstreamer.freedesktop.org/download/#ios) for iOS
+- Select your development team in Xcode
+  - Open `./ios/Runner.xcworkspace` in Xcode
+  - Select `Runner` in the project navigator
+  - Select your team in the `Team` dropdown on the `Signing & Capabilities` tab (you'll need to create your team first if you do not already have a team)
+
+In the directory of the repository run:
+```bash
+flutter build ios --release
 ```
 
 ### Web

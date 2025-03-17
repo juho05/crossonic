@@ -207,6 +207,7 @@ class AudioHandler {
       return;
     }
     _positionOffset = Duration.zero;
+    _position.add((position: Duration.zero, bufferedPosition: Duration.zero));
 
     await _ensurePlayerLoaded(false);
 

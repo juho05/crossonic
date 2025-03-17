@@ -5,6 +5,10 @@
 #include <android/log.h>
 #endif
 
+#ifdef IOS
+#include "gst_ios_init.h"
+#endif
+
 typedef struct
 {
   GstElement *playbin;
@@ -179,6 +183,10 @@ FFI_PLUGIN_EXPORT ErrorType init(
   gst_debug_add_log_function(&gstAndroidLog, NULL, NULL);
 #endif
 
+#ifdef IOS
+  gst_ios_init();
+#endif
+
   gst_init(NULL, NULL);
 
   data = calloc(1, sizeof(GstData));
@@ -209,7 +217,9 @@ FFI_PLUGIN_EXPORT ErrorType init(
 
   gst_bus_add_watch(data->bus, (GstBusFunc)cb_message, NULL);
 
+#if defined __ANDROID__ || defined IOS
   g_signal_connect(data->playbin, "source-setup", G_CALLBACK(cb_source_setup), NULL);
+#endif
   if (data->on_about_to_finish)
   {
     g_signal_connect(data->playbin, "about-to-finish", G_CALLBACK(cb_about_to_finish), NULL);

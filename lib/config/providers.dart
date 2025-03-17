@@ -114,7 +114,8 @@ Future<List<SingleChildWidget>> get providers async {
       (Platform.isLinux ||
           Platform.isAndroid ||
           Platform.isMacOS ||
-          Platform.isWindows)) {
+          Platform.isWindows ||
+          Platform.isIOS)) {
     audioPlayer = AudioPlayerGstreamer(audioSession);
   } else {
     audioPlayer = AudioPlayerAudioPlayers();
