@@ -45,6 +45,7 @@ dependencies:
   flutter_single_instance: ^1.2.3
   window_manager: ^0.4.3
   tray_manager: ^0.3.2
+  flutter_svg: ^2.0.17
 
 dependency_overrides:
   flutter_secure_storage_macos:
@@ -81,3 +82,4 @@ flutter:
   assets:
     - assets/icon/crossonic-tray.png
     - assets/icon/crossonic-tray.ico
+    - assets/icon/crossonic-foreground-monochrome.svg

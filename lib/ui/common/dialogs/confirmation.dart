@@ -1,3 +1,4 @@
+import 'package:crossonic/ui/common/adaptive_dialog_action.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -41,36 +42,20 @@ class ConfirmationDialog extends StatelessWidget {
     return result;
   }
 
-  Widget _adaptiveAction(
-      {required BuildContext context,
-      required VoidCallback onPressed,
-      required Widget child}) {
-    final ThemeData theme = Theme.of(context);
-    switch (theme.platform) {
-      case TargetPlatform.iOS:
-      case TargetPlatform.macOS:
-        return CupertinoDialogAction(onPressed: onPressed, child: child);
-      default:
-        return TextButton(onPressed: onPressed, child: child);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return AlertDialog.adaptive(
       title: Text(title),
       content: message != null ? Text(message!) : null,
       actions: [
-        _adaptiveAction(
-          context: context,
+        AdaptiveDialogAction(
           onPressed: () => Navigator.pop(context, false),
           child: Text(noBtnTitle),
         ),
-        _adaptiveAction(
-          context: context,
+        AdaptiveDialogAction(
           onPressed: () => Navigator.pop(context, true),
           child: const Text("Yes"),
-        ),
+        )
       ],
     );
   }
