@@ -253,37 +253,52 @@ class CollectionPageDesktop extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Expanded(
-            flex: 3,
-            child: Column(
-              children: [
-                if (cover != null)
+    return LayoutBuilder(builder: (context, constraints) {
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(
+            flex: constraints.maxWidth < 1200 ? 3 : 0,
+            child: SizedBox(
+              width: constraints.maxWidth >= 1200 ? 450 : null,
+              child: Column(
+                children: [
+                  if (cover != null)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: cover!,
+                    ),
+                  if (cover != null) const SizedBox(height: 10),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: cover!,
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Text(
+                      name,
+                      style: Theme.of(context).textTheme.bodyLarge!.copyWith(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 22,
+                          ),
+                    ),
                   ),
-                if (cover != null) const SizedBox(height: 10),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: Text(
-                    name,
-                    style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 22,
-                        ),
-                  ),
-                ),
-                if (extraInfo != null)
-                  ...extraInfo!.map(
-                    (i) => Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      child: i.onClick != null
-                          ? TextButton(
-                              onPressed: i.onClick,
-                              child: Text(
+                  if (extraInfo != null)
+                    ...extraInfo!.map(
+                      (i) => Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        child: i.onClick != null
+                            ? TextButton(
+                                onPressed: i.onClick,
+                                child: Text(
+                                  i.text,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyLarge!
+                                      .copyWith(
+                                        fontWeight: FontWeight.w400,
+                                        fontSize: 15,
+                                      ),
+                                ),
+                              )
+                            : Text(
                                 i.text,
                                 overflow: TextOverflow.ellipsis,
                                 style: Theme.of(context)
@@ -294,89 +309,81 @@ class CollectionPageDesktop extends StatelessWidget {
                                       fontSize: 15,
                                     ),
                               ),
-                            )
-                          : Text(
-                              i.text,
-                              overflow: TextOverflow.ellipsis,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyLarge!
-                                  .copyWith(
-                                    fontWeight: FontWeight.w400,
-                                    fontSize: 15,
-                                  ),
-                            ),
+                      ),
                     ),
-                  ),
-                if (loadingDescription)
-                  Expanded(
-                    child: Center(child: CircularProgressIndicator.adaptive()),
-                  ),
-                if (description != null)
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: DescriptionTextWidget(text: description!),
+                  if (loadingDescription)
+                    Expanded(
+                      child:
+                          Center(child: CircularProgressIndicator.adaptive()),
                     ),
-                  ),
-              ],
-            )),
-        const VerticalDivider(width: 1, thickness: 1),
-        Expanded(
-          flex: 5,
-          child: ReorderableListView.builder(
-            buildDefaultDragHandles: false,
-            onReorder: onReorder ?? (int oldIndex, int newIndex) {},
-            header: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (contentTitle != null)
-                  Padding(
-                    padding: const EdgeInsets.only(left: 16),
-                    child: Text(
-                      contentTitle!,
-                      style: Theme.of(context)
-                          .textTheme
-                          .headlineSmall!
-                          .copyWith(fontSize: 20),
+                  if (description != null)
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: DescriptionTextWidget(text: description!),
+                      ),
                     ),
-                  ),
-                if (actions != null) const SizedBox(height: 10),
-                if (actions != null)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    child: SizedBox(
-                      child: Wrap(
-                          alignment: WrapAlignment.start,
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: actions!.map((element) {
-                            if (element.icon != null) {
-                              return ElevatedButton.icon(
-                                icon: Icon(element.icon!),
-                                onPressed: element.onClick,
-                                label: Text(element.title),
-                              );
-                            } else {
-                              return ElevatedButton(
-                                onPressed: element.onClick,
-                                child: Text(element.title),
-                              );
-                            }
-                          }).toList()),
-                    ),
-                  ),
-                if (actions != null) const SizedBox(height: 4),
-                if (content != null) content!,
-              ],
+                ],
+              ),
             ),
-            itemBuilder: reorderableItemBuilder ??
-                (BuildContext context, int index) => const SizedBox(),
-            itemCount: reorderableItemCount ?? 0,
           ),
-        ),
-      ],
-    );
+          const VerticalDivider(width: 1, thickness: 1),
+          Expanded(
+            flex: 5,
+            child: ReorderableListView.builder(
+              buildDefaultDragHandles: false,
+              onReorder: onReorder ?? (int oldIndex, int newIndex) {},
+              header: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (contentTitle != null)
+                    Padding(
+                      padding: const EdgeInsets.only(left: 16),
+                      child: Text(
+                        contentTitle!,
+                        style: Theme.of(context)
+                            .textTheme
+                            .headlineSmall!
+                            .copyWith(fontSize: 20),
+                      ),
+                    ),
+                  if (actions != null) const SizedBox(height: 10),
+                  if (actions != null)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: SizedBox(
+                        child: Wrap(
+                            alignment: WrapAlignment.start,
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: actions!.map((element) {
+                              if (element.icon != null) {
+                                return ElevatedButton.icon(
+                                  icon: Icon(element.icon!),
+                                  onPressed: element.onClick,
+                                  label: Text(element.title),
+                                );
+                              } else {
+                                return ElevatedButton(
+                                  onPressed: element.onClick,
+                                  child: Text(element.title),
+                                );
+                              }
+                            }).toList()),
+                      ),
+                    ),
+                  if (actions != null) const SizedBox(height: 4),
+                  if (content != null) content!,
+                ],
+              ),
+              itemBuilder: reorderableItemBuilder ??
+                  (BuildContext context, int index) => const SizedBox(),
+              itemCount: reorderableItemCount ?? 0,
+            ),
+          ),
+        ],
+      );
+    });
   }
 }
 
