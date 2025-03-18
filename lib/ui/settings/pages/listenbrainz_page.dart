@@ -1,4 +1,5 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:crossonic/ui/common/buttons.dart';
 import 'package:crossonic/ui/common/toast.dart';
 import 'package:crossonic/ui/settings/pages/listenbrainz_viewmodel.dart';
 import 'package:crossonic/utils/exceptions.dart';
@@ -68,10 +69,11 @@ class _ListenBrainzPageState extends State<ListenBrainzPage> {
                       name: "apiToken",
                       autocorrect: false,
                       enableSuggestions: false,
+                      keyboardType: TextInputType.visiblePassword,
                       decoration: InputDecoration(
                         labelText: "API Token",
                         border: const OutlineInputBorder(),
-                        icon: const Icon(Icons.key),
+                        prefixIcon: const Icon(Icons.key),
                       ),
                       validator: FormBuilderValidators.required(),
                       onSubmitted: (value) => _submit(context),
@@ -80,17 +82,18 @@ class _ListenBrainzPageState extends State<ListenBrainzPage> {
                   if (_viewModel.username == null)
                     Padding(
                       padding: const EdgeInsets.only(left: 38),
-                      child: ElevatedButton(
+                      child: Button(
                         onPressed: !_viewModel.submitting
                             ? () => _submit(context)
                             : null,
+                        darkTonal: true,
                         child: _viewModel.submitting
                             ? const Text("Connecting…")
                             : const Text("Connect"),
                       ),
                     )
                   else
-                    ElevatedButton(
+                    Button(
                       onPressed: !_viewModel.submitting
                           ? () async {
                               final result = await _viewModel.disconnect();
@@ -98,6 +101,7 @@ class _ListenBrainzPageState extends State<ListenBrainzPage> {
                               toastResult(context, result);
                             }
                           : null,
+                      darkTonal: true,
                       child: _viewModel.submitting
                           ? const Text("Disconnecting…")
                           : const Text("Disconnect"),

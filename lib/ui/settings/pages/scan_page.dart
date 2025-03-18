@@ -1,4 +1,5 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:crossonic/ui/common/buttons.dart';
 import 'package:crossonic/ui/settings/pages/scan_viewmodel.dart';
 import 'package:crossonic/utils/fetch_status.dart';
 import 'package:crossonic/utils/result_toast.dart';
@@ -50,7 +51,7 @@ class _ScanPageState extends State<ScanPage> {
                 const SizedBox(height: 20),
                 Text("Scanned: ${_viewModel.scannedCount ?? "unknown"}"),
                 const SizedBox(height: 15),
-                ElevatedButton(
+                Button(
                   onPressed: !_viewModel.scanning
                       ? () async {
                           final result = await _viewModel.scan();
@@ -58,6 +59,7 @@ class _ScanPageState extends State<ScanPage> {
                           toastResult(context, result);
                         }
                       : null,
+                  darkTonal: true,
                   child: _viewModel.scanning
                       ? const Text("Scanning…")
                       : const Text("Rescan"),

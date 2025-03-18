@@ -151,23 +151,24 @@ class _ArtistPageState extends State<ArtistPage> {
             ],
             actions: [
               CollectionAction(
-                title: "Play",
-                icon: Icons.play_arrow,
-                onClick: () async {
-                  final result = await _viewModel.play();
-                  if (!context.mounted) return;
-                  toastResult(context, result);
-                },
-              ),
-              CollectionAction(
                 title: "Shuffle",
                 icon: Icons.shuffle,
+                highlighted: true,
                 onClick: () async {
                   final option = await ChooserDialog.choose(
                       context, "Shuffle", ["Albums", "Songs"]);
                   if (option == null) return;
                   _viewModel.play(
                       shuffleAlbums: option == 0, shuffleSongs: option == 1);
+                },
+              ),
+              CollectionAction(
+                title: "Play",
+                icon: Icons.play_arrow,
+                onClick: () async {
+                  final result = await _viewModel.play();
+                  if (!context.mounted) return;
+                  toastResult(context, result);
                 },
               ),
               CollectionAction(

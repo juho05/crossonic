@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:crossonic/routing/router.gr.dart';
 import 'package:crossonic/ui/common/albums_grid_delegate.dart';
+import 'package:crossonic/ui/common/buttons.dart';
 import 'package:crossonic/ui/common/dialogs/add_to_playlist.dart';
 import 'package:crossonic/ui/common/dialogs/confirmation.dart';
 import 'package:crossonic/ui/common/playlist_grid_cell.dart';
@@ -112,12 +113,13 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
                               spacing: 8,
                               children: [
                                 dropdown,
-                                ElevatedButton.icon(
-                                  label: Text("Create"),
-                                  icon: Icon(Icons.add),
+                                Button(
+                                  icon: Icons.add,
                                   onPressed: () {
                                     context.router.push(CreatePlaylistRoute());
                                   },
+                                  outlined: true,
+                                  child: Text("Create"),
                                 )
                               ],
                             )

@@ -1,4 +1,5 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:crossonic/ui/common/buttons.dart';
 import 'package:crossonic/ui/playlists/update/update_playlist_viewmodel.dart';
 import 'package:crossonic/utils/result.dart';
 import 'package:crossonic/utils/result_toast.dart';
@@ -83,15 +84,11 @@ class _UpdatePlaylistPageState extends State<UpdatePlaylistPage> {
                             onSubmitted: (_) => _submit(context),
                           ),
                         ),
-                        ElevatedButton(
+                        SubmitButton(
                           onPressed: !_viewModel.loading
                               ? () => _submit(context)
                               : null,
-                          style: ButtonStyle(),
-                          child: Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Text("Save"),
-                          ),
+                          child: Text("Save"),
                         ),
                         const SizedBox(height: 100),
                       ],

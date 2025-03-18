@@ -1,5 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:crossonic/data/repositories/settings/transcoding.dart';
+import 'package:crossonic/ui/common/buttons.dart';
 import 'package:crossonic/ui/settings/pages/transcoding_viewmodel.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -137,12 +138,13 @@ class _TranscodingPageState extends State<TranscodingPage> {
                             ))
                         .toList(),
                   ),
-                ElevatedButton.icon(
+                Button(
                   onPressed: () {
                     _viewModel.reset();
                   },
-                  icon: Icon(Icons.settings_backup_restore),
-                  label: Text("Reset"),
+                  icon: Icons.settings_backup_restore,
+                  outlined: true,
+                  child: Text("Reset"),
                 )
               ],
             ),

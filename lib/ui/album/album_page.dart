@@ -151,6 +151,7 @@ class _AlbumPageState extends State<AlbumPage> {
               CollectionAction(
                 title: "Play",
                 icon: Icons.play_arrow,
+                highlighted: true,
                 onClick: () {
                   _viewModel.play();
                 },

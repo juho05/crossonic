@@ -1,3 +1,4 @@
+import 'package:crossonic/ui/common/buttons.dart';
 import 'package:flutter/material.dart';
 
 class CollectionExtraInfo {
@@ -10,9 +11,14 @@ class CollectionExtraInfo {
 class CollectionAction {
   final String title;
   final IconData? icon;
+  final bool highlighted;
   final void Function() onClick;
 
-  CollectionAction({required this.title, this.icon, required this.onClick});
+  CollectionAction(
+      {required this.title,
+      this.icon,
+      this.highlighted = false,
+      required this.onClick});
 }
 
 class CollectionPage extends StatelessWidget {
@@ -175,18 +181,12 @@ class CollectionPageMobile extends StatelessWidget {
                     spacing: 8,
                     runSpacing: 8,
                     children: actions!.map((element) {
-                      if (element.icon != null) {
-                        return ElevatedButton.icon(
-                          icon: Icon(element.icon!),
-                          onPressed: element.onClick,
-                          label: Text(element.title),
-                        );
-                      } else {
-                        return ElevatedButton(
-                          onPressed: element.onClick,
-                          child: Text(element.title),
-                        );
-                      }
+                      return Button(
+                        icon: element.icon,
+                        onPressed: element.onClick,
+                        outlined: !element.highlighted,
+                        child: Text(element.title),
+                      );
                     }).toList()),
               ),
             const SizedBox(height: 10),
@@ -357,18 +357,12 @@ class CollectionPageDesktop extends StatelessWidget {
                             spacing: 8,
                             runSpacing: 8,
                             children: actions!.map((element) {
-                              if (element.icon != null) {
-                                return ElevatedButton.icon(
-                                  icon: Icon(element.icon!),
-                                  onPressed: element.onClick,
-                                  label: Text(element.title),
-                                );
-                              } else {
-                                return ElevatedButton(
-                                  onPressed: element.onClick,
-                                  child: Text(element.title),
-                                );
-                              }
+                              return Button(
+                                icon: element.icon,
+                                onPressed: element.onClick,
+                                outlined: !element.highlighted,
+                                child: Text(element.title),
+                              );
                             }).toList()),
                       ),
                     ),

@@ -5,7 +5,7 @@ import 'package:crossonic/data/repositories/auth/auth_repository.dart';
 import 'package:crossonic/routing/router.gr.dart';
 import 'package:crossonic/ui/auth/connect_server/connect_server_viewmodel.dart';
 import 'package:crossonic/ui/common/adaptive_dialog_action.dart';
-import 'package:crossonic/ui/common/submit_button.dart';
+import 'package:crossonic/ui/common/buttons.dart';
 import 'package:crossonic/ui/common/toast.dart';
 import 'package:crossonic/utils/result.dart';
 import 'package:flutter/material.dart';

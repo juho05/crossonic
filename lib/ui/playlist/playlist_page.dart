@@ -175,6 +175,7 @@ class _PlaylistPageState extends State<PlaylistPage> {
             actions: [
               CollectionAction(
                 title: "Play",
+                highlighted: true,
                 icon: Icons.play_arrow,
                 onClick: () {
                   _viewModel.play();
@@ -182,6 +183,7 @@ class _PlaylistPageState extends State<PlaylistPage> {
               ),
               CollectionAction(
                 title: "Shuffle",
+                highlighted: true,
                 icon: Icons.shuffle,
                 onClick: () {
                   _viewModel.shuffle();

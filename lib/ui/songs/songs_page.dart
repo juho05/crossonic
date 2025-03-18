@@ -1,5 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:crossonic/routing/router.gr.dart';
+import 'package:crossonic/ui/common/buttons.dart';
 import 'package:crossonic/ui/common/dialogs/add_to_playlist.dart';
 import 'package:crossonic/ui/common/dialogs/chooser.dart';
 import 'package:crossonic/ui/common/song_list_item.dart';
@@ -140,26 +141,35 @@ class _SongsPageState extends State<SongsPage> {
                         spacing: 8,
                         runSpacing: 8,
                         children: [
-                          ElevatedButton.icon(
-                            label: Text("Play"),
-                            icon: Icon(Icons.play_arrow),
+                          Button(
+                            icon: Icons.play_arrow,
                             onPressed: () {
                               _viewModel.play(0, false);
                             },
+                            child: Text("Play"),
                           ),
-                          ElevatedButton.icon(
-                            label: Text("Shuffle"),
-                            icon: Icon(Icons.shuffle),
+                          Button(
+                            icon: Icons.shuffle,
                             onPressed: () {
                               _viewModel.shuffle();
                             },
+                            child: Text("Shuffle"),
                           ),
-                          ElevatedButton.icon(
-                            label: Text("Queue"),
-                            icon: Icon(Icons.playlist_add),
+                          Button(
+                            icon: Icons.playlist_play,
+                            outlined: true,
+                            onPressed: () {
+                              _viewModel.addAllToQueue(true);
+                            },
+                            child: Text("Prio. Queue"),
+                          ),
+                          Button(
+                            icon: Icons.playlist_add,
+                            outlined: true,
                             onPressed: () {
                               _viewModel.addAllToQueue(false);
                             },
+                            child: Text("Queue"),
                           ),
                         ],
                       ),

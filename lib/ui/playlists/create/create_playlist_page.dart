@@ -1,5 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:crossonic/routing/router.gr.dart';
+import 'package:crossonic/ui/common/buttons.dart';
 import 'package:crossonic/ui/playlists/create/create_playlist_viewmodel.dart';
 import 'package:crossonic/utils/result.dart';
 import 'package:crossonic/utils/result_toast.dart';
@@ -73,14 +74,10 @@ class _CreatePlaylistPageState extends State<CreatePlaylistPage> {
                   ),
                   ListenableBuilder(
                     listenable: _viewModel,
-                    builder: (context, _) => ElevatedButton(
+                    builder: (context, _) => SubmitButton(
                       onPressed:
                           !_viewModel.loading ? () => _submit(context) : null,
-                      style: ButtonStyle(),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Text("Create"),
-                      ),
+                      child: Text("Create"),
                     ),
                   ),
                   const SizedBox(height: 100),
