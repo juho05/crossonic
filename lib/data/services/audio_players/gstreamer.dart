@@ -115,6 +115,7 @@ class AudioPlayerGstreamer implements AudioPlayer {
         }
       },
     );
+    gst.setVolume(1);
     _initialized = true;
   }
 
