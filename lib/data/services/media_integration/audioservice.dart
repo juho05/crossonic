@@ -84,7 +84,7 @@ class AudioServiceIntegration extends asv.BaseAudioHandler
                 title: p.name,
                 playable: false,
                 displayDescription: "Songs: ${p.songCount}",
-                artUri: _playlistRepository.getPlaylistCoverUri(p),
+                artUri: _playlistRepository.getPlaylistCoverUri(p, 512),
               ))
           .toList();
     }

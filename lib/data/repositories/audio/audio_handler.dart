@@ -219,8 +219,8 @@ class AudioHandler {
         await _player.play();
       }
     }
-    _integration.updateMedia(
-        event.song, _subsonic.getCoverUri(_auth.con, event.song!.coverId));
+    _integration.updateMedia(event.song,
+        _subsonic.getCoverUri(_auth.con, event.song!.coverId, size: 512));
   }
 
   Future<void> _onNextChanged(Song? song) async {
