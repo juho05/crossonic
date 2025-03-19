@@ -8,7 +8,7 @@ import Foundation
 import audio_service
 import audio_session
 import connectivity_plus
-import dynamic_color
+import dynamic_system_colors
 import file_selector_macos
 import path_provider_foundation
 import screen_retriever_macos

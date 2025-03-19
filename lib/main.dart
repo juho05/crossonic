@@ -4,7 +4,7 @@ import 'package:crossonic/config/providers.dart';
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
 import 'package:crossonic/routing/router.dart';
 import 'package:crossonic/window_listener.dart';
-import 'package:dynamic_color/dynamic_color.dart';
+import 'package:dynamic_system_colors/dynamic_system_colors.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
