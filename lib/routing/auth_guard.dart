@@ -15,9 +15,8 @@ class AuthGuard extends AutoRouteGuard {
       return;
     }
     if (!_authRepository.hasServer) {
-      resolver.redirect(
-        ConnectServerRoute(),
-      );
+      resolver.next(false);
+      router.replaceAll([ConnectServerRoute()]);
       return;
     }
 
@@ -27,9 +26,8 @@ class AuthGuard extends AutoRouteGuard {
     }
 
     if (!_authRepository.isAuthenticated) {
-      resolver.redirect(
-        LoginRoute(),
-      );
+      resolver.next(false);
+      router.replaceAll([LoginRoute()]);
       return;
     }
 

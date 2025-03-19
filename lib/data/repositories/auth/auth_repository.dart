@@ -217,11 +217,11 @@ class AuthRepository extends ChangeNotifier {
         songLyrics: songLyrics,
         apiKeyAuthentication: apiKeyAuthentication,
       );
-      await _persistState();
-      notifyListeners();
     } else {
       print("failed to load OpenSubsonic extensions: ${(result as Err).error}");
     }
+    await _persistState();
+    notifyListeners();
   }
 
   Future<void> _persistState() async {

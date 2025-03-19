@@ -35,10 +35,6 @@ class _ConnectServerPageState extends State<ConnectServerPage> {
     viewModel =
         ConnectServerViewModel(authRepository: context.read<AuthRepository>());
     viewModel.connect.addListener(_onResult);
-    // fix stacked connect pages
-    if (context.router.canPop()) {
-      context.router.replaceAll([ConnectServerRoute()]);
-    }
   }
 
   @override
@@ -66,172 +62,180 @@ class _ConnectServerPageState extends State<ConnectServerPage> {
                   autovalidateMode: AutovalidateMode.onUserInteraction,
                   child: Center(
                     child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: ClipRRect(
-                        borderRadius: cardMode
-                            ? BorderRadius.circular(15)
-                            : BorderRadius.zero,
-                        child: Material(
-                          color: cardMode
-                              ? theme.brightness == Brightness.dark
-                                  ? theme.colorScheme.surfaceContainerLow
-                                  : theme.colorScheme.surfaceContainer
-                              : null,
-                          child: Padding(
-                            padding: cardMode
-                                ? EdgeInsets.symmetric(
-                                    vertical:
-                                        constraints.maxHeight < 625 ? 12 : 32,
-                                    horizontal: 48)
-                                : const EdgeInsets.all(0),
-                            child: SizedBox(
-                              width: 430,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Expanded(
-                                    flex: cardMode ? 0 : 1,
-                                    child: Padding(
-                                      padding:
-                                          EdgeInsets.all(cardMode ? 24 : 32),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.center,
-                                        children: [
-                                          SizedBox(
-                                            width: cardMode ? 220 : 256,
-                                            height: constraints.maxHeight > 700
-                                                ? cardMode
-                                                    ? 220
-                                                    : 256
-                                                : min(
-                                                    max(
-                                                        constraints.maxHeight *
-                                                            0.3,
-                                                        80),
-                                                    cardMode ? 220 : 256),
-                                            child: AspectRatio(
-                                              aspectRatio: 1,
-                                              child: SvgPicture.asset(
-                                                "assets/icon/crossonic-foreground-monochrome.svg",
-                                                alignment: Alignment.topCenter,
-                                                colorFilter: ColorFilter.mode(
-                                                    theme.colorScheme.onSurface,
-                                                    BlendMode.srcIn),
+                      padding: EdgeInsets.all(cardMode ? 8.0 : 0),
+                      child: Padding(
+                        padding: EdgeInsets.only(bottom: cardMode ? 58 : 0),
+                        child: ClipRRect(
+                          borderRadius: cardMode
+                              ? BorderRadius.circular(15)
+                              : BorderRadius.zero,
+                          child: Material(
+                            color: cardMode
+                                ? theme.brightness == Brightness.dark
+                                    ? theme.colorScheme.surfaceContainerLow
+                                    : theme.colorScheme.surfaceContainer
+                                : null,
+                            child: Padding(
+                              padding: cardMode
+                                  ? EdgeInsets.symmetric(
+                                      vertical:
+                                          constraints.maxHeight < 625 ? 12 : 32,
+                                      horizontal: 48)
+                                  : const EdgeInsets.all(0),
+                              child: SizedBox(
+                                width: 430,
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Expanded(
+                                      flex: cardMode ? 0 : 1,
+                                      child: Padding(
+                                        padding:
+                                            EdgeInsets.all(cardMode ? 24 : 32),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.center,
+                                          children: [
+                                            SizedBox(
+                                              width: cardMode ? 220 : 256,
+                                              height: constraints.maxHeight >
+                                                      700
+                                                  ? cardMode
+                                                      ? 220
+                                                      : 256
+                                                  : min(
+                                                      max(
+                                                          constraints
+                                                                  .maxHeight *
+                                                              0.3,
+                                                          80),
+                                                      cardMode ? 220 : 256),
+                                              child: AspectRatio(
+                                                aspectRatio: 1,
+                                                child: SvgPicture.asset(
+                                                  "assets/icon/crossonic-foreground-monochrome.svg",
+                                                  alignment:
+                                                      Alignment.topCenter,
+                                                  colorFilter: ColorFilter.mode(
+                                                      theme.colorScheme
+                                                          .onSurface,
+                                                      BlendMode.srcIn),
+                                                ),
                                               ),
                                             ),
-                                          ),
-                                          SizedBox(
-                                            height: constraints.maxHeight >= 510
-                                                ? 16
-                                                : 4,
-                                          ),
-                                          Text("Crossonic",
-                                              style: theme
-                                                  .textTheme.headlineLarge),
-                                          if (constraints.maxHeight >= 480)
                                             SizedBox(
                                               height:
                                                   constraints.maxHeight >= 510
                                                       ? 16
                                                       : 4,
                                             ),
-                                          if (constraints.maxHeight >= 480)
-                                            Text(
-                                              "Welcome! Crossonic is a cross-platform OpenSubsonic compatible music player.\n\nTo begin, just enter the URL of your server below:",
-                                              textAlign: TextAlign.center,
-                                            )
-                                        ],
+                                            Text("Crossonic",
+                                                style: theme
+                                                    .textTheme.headlineLarge),
+                                            if (constraints.maxHeight >= 480)
+                                              SizedBox(
+                                                height:
+                                                    constraints.maxHeight >= 510
+                                                        ? 16
+                                                        : 4,
+                                              ),
+                                            if (constraints.maxHeight >= 480)
+                                              Text(
+                                                "Welcome! Crossonic is a cross-platform OpenSubsonic compatible music player.\n\nTo begin, just enter the URL of your server below:",
+                                                textAlign: TextAlign.center,
+                                              )
+                                          ],
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                  Material(
-                                    color: cardMode
-                                        ? theme.brightness == Brightness.dark
-                                            ? theme
-                                                .colorScheme.surfaceContainerLow
-                                            : theme.colorScheme.surfaceContainer
-                                        : null,
-                                    child: Padding(
-                                      padding: const EdgeInsets.only(
-                                          bottom: 32,
-                                          top: 8,
-                                          left: 12,
-                                          right: 12),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.stretch,
-                                        children: [
-                                          FormBuilderTextField(
-                                            name: "serverUri",
-                                            //restorationId: "connect_server_page_serverUri", // FIXME causes exception
-                                            initialValue: viewModel.serverUrl,
-                                            autocorrect: false,
-                                            keyboardType: TextInputType.url,
-                                            onTapOutside: (event) {
-                                              FocusManager.instance.primaryFocus
-                                                  ?.unfocus();
-                                            },
-                                            decoration: InputDecoration(
-                                              labelText: "Server URL",
-                                              prefixIcon:
-                                                  const Icon(Icons.link),
-                                              suffixIcon: IconButton(
-                                                onPressed: () {
-                                                  showAdaptiveDialog(
-                                                    context: context,
-                                                    builder: (context) =>
-                                                        AlertDialog.adaptive(
-                                                      title: Text(
-                                                          "What is a server URL?"),
-                                                      content: Text(
-                                                          "This URL tells Crossonic which server it should connect to. It must point to a Subsonic compatible server.\n\nExample: https://music.example.com"),
-                                                      actions: [
-                                                        AdaptiveDialogAction(
-                                                          child: Text("Ok"),
-                                                          onPressed: () =>
-                                                              Navigator.pop(
-                                                                  context),
-                                                        )
-                                                      ],
-                                                    ),
-                                                  );
-                                                },
-                                                icon: const Icon(
-                                                    Icons.info_outline),
+                                    Material(
+                                      color: cardMode
+                                          ? theme.brightness == Brightness.dark
+                                              ? theme.colorScheme
+                                                  .surfaceContainerLow
+                                              : theme
+                                                  .colorScheme.surfaceContainer
+                                          : null,
+                                      child: Padding(
+                                        padding: const EdgeInsets.only(
+                                            bottom: 32,
+                                            top: 8,
+                                            left: 12,
+                                            right: 12),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.stretch,
+                                          children: [
+                                            FormBuilderTextField(
+                                              name: "serverUri",
+                                              restorationId:
+                                                  "connect_server_page_serverUri",
+                                              initialValue: viewModel.serverUrl,
+                                              autocorrect: false,
+                                              keyboardType: TextInputType.url,
+                                              decoration: InputDecoration(
+                                                labelText: "Server URL",
+                                                prefixIcon:
+                                                    const Icon(Icons.link),
+                                                suffixIcon: IconButton(
+                                                  onPressed: () {
+                                                    showAdaptiveDialog(
+                                                      context: context,
+                                                      builder: (context) =>
+                                                          AlertDialog.adaptive(
+                                                        title: Text(
+                                                            "What is a server URL?"),
+                                                        content: Text(
+                                                            "This URL tells Crossonic which server it should connect to. It must point to a Subsonic compatible server.\n\nExample: https://music.example.com"),
+                                                        actions: [
+                                                          AdaptiveDialogAction(
+                                                            child: Text("Ok"),
+                                                            onPressed: () =>
+                                                                Navigator.pop(
+                                                                    context),
+                                                          )
+                                                        ],
+                                                      ),
+                                                    );
+                                                  },
+                                                  icon: const Icon(
+                                                      Icons.info_outline),
+                                                ),
+                                                border: OutlineInputBorder(),
                                               ),
-                                              border: OutlineInputBorder(),
+                                              validator: FormBuilderValidators
+                                                  .compose([
+                                                FormBuilderValidators
+                                                    .required(),
+                                                FormBuilderValidators.url(
+                                                  protocols: ["http", "https"],
+                                                  requireProtocol: true,
+                                                  requireTld: true,
+                                                ),
+                                              ]),
+                                              onSubmitted: (_) => _submit(),
                                             ),
-                                            validator:
-                                                FormBuilderValidators.compose([
-                                              FormBuilderValidators.required(),
-                                              FormBuilderValidators.url(
-                                                protocols: ["http", "https"],
-                                                requireProtocol: true,
-                                                requireTld: true,
+                                            const SizedBox(height: 24),
+                                            ListenableBuilder(
+                                              listenable: viewModel.connect,
+                                              builder: (context, _) =>
+                                                  SubmitButton(
+                                                onPressed:
+                                                    !viewModel.connect.running
+                                                        ? _submit
+                                                        : null,
+                                                child: Text("Connect"),
                                               ),
-                                            ]),
-                                            onSubmitted: (_) => _submit(),
-                                          ),
-                                          const SizedBox(height: 24),
-                                          ListenableBuilder(
-                                            listenable: viewModel.connect,
-                                            builder: (context, _) =>
-                                                SubmitButton(
-                                              onPressed:
-                                                  !viewModel.connect.running
-                                                      ? _submit
-                                                      : null,
-                                              child: Text("Connect"),
                                             ),
-                                          ),
-                                        ],
+                                          ],
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
                             ),
                           ),
