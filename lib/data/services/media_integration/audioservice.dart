@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:audio_service/audio_service.dart' as asv;
 import 'package:crossonic/data/repositories/audio/audio_handler.dart';
+import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/data/repositories/playlist/playlist_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
 import 'package:crossonic/data/services/media_integration/media_integration.dart';
@@ -73,7 +74,7 @@ class AudioServiceIntegration extends asv.BaseAudioHandler
       final result = await _playlistRepository.getPlaylists();
       switch (result) {
         case Err():
-          print(result.error);
+          Log.error("Failed to get playlists", result.error);
           return [];
         case Ok():
       }

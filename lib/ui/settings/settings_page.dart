@@ -61,6 +61,11 @@ class _SettingsPageState extends State<SettingsPage> {
               trailing: const Icon(Icons.arrow_forward_ios),
               onTap: () => context.router.push(ListenBrainzRoute()),
             ),
+          ListTile(
+            title: const Text("Debug"),
+            trailing: const Icon(Icons.bug_report),
+            onTap: () => context.router.push(DebugRoute()),
+          ),
           ListenableBuilder(
             listenable: _viewModel,
             builder: (context, _) {

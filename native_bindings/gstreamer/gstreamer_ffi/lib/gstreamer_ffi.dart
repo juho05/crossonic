@@ -76,6 +76,7 @@ class GstreamerFFI extends GstreamerPlatform {
     if (nOnError != null) _callables.add(nOnError);
 
     void onWarningWrapper(int code, Pointer<Char> message) {
+      if (message.address == 0) return;
       onWarning!(code, message.cast<Utf8>().toDartString());
       malloc.free(message);
     }

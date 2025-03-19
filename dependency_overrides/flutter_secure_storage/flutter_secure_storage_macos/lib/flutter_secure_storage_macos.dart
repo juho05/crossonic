@@ -68,8 +68,8 @@ class FlutterSecureStorageMacOS extends FlutterSecureStoragePlatform {
           .contains("could not be found")) {
         return;
       }
-      print(result.stderr);
-      throw Exception("$execPath exited with status code ${result.exitCode}");
+      throw Exception(
+          "$execPath exited with status code ${result.exitCode}:\n${result.stderr}");
     }
   }
 
@@ -108,8 +108,8 @@ class FlutterSecureStorageMacOS extends FlutterSecureStoragePlatform {
           .contains("could not be found")) {
         return null;
       }
-      print(result.stderr);
-      throw Exception("$execPath exited with status code ${result.exitCode}");
+      throw Exception(
+          "$execPath exited with status code ${result.exitCode}:\n${result.stderr}");
     }
     return _decode((result.stdout as String).trim());
   }
@@ -150,8 +150,8 @@ class FlutterSecureStorageMacOS extends FlutterSecureStoragePlatform {
       stderrEncoding: const Utf8Codec(),
     );
     if (result.exitCode != 0) {
-      print(result.stderr);
-      throw Exception("$execPath exited with status code ${result.exitCode}");
+      throw Exception(
+          "$execPath exited with status code ${result.exitCode}:\n${result.stderr}");
     }
   }
 

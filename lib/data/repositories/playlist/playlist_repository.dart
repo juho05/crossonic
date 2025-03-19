@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
 import 'package:crossonic/data/repositories/cover/cover_repository.dart';
+import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/data/repositories/playlist/models/playlist.dart';
 import 'package:crossonic/data/repositories/playlist/song_downloader.dart';
 import 'package:crossonic/data/repositories/subsonic/favorites_repository.dart';
@@ -117,8 +118,8 @@ class PlaylistRepository extends ChangeNotifier {
             coverArt: Value(result.value.coverArt),
           ));
       notifyListeners();
-    } catch (e) {
-      print(e);
+    } catch (e, st) {
+      Log.error("Failed to create playlist in DB", e, st);
       await refresh(refreshIds: {result.value.id});
     }
     return Result.ok(result.value.id);
@@ -200,8 +201,8 @@ class PlaylistRepository extends ChangeNotifier {
                   playlistId: s.playlistId)),
               mode: InsertMode.replace);
         });
-      } on Exception catch (e) {
-        print("Failed to roll back reorder: $e");
+      } on Exception catch (e, st) {
+        Log.error("Failed to roll-back playlist track reorder", e, st);
       } finally {
         notifyListeners();
       }

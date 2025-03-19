@@ -255,7 +255,6 @@ class AudioHandler {
     ReplayGainMode mode = _settings.replayGain.mode;
     if (mode == ReplayGainMode.disabled) {
       if (_player.volume < 1) {
-        print("replay gain disabled, settings volume to 1");
         _player.setVolume(1);
       }
       return;

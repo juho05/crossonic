@@ -116,7 +116,8 @@ class SongDownloader extends ChangeNotifier {
   Future<void> _update() async {
     if (kIsWeb || _updating || _dir == null) return;
     _updating = true;
-    final songIds = (await (_db.select(_db.playlistSongTable, distinct: true).join(
+    final songIds =
+        (await (_db.select(_db.playlistSongTable, distinct: true).join(
       [
         innerJoin(
           _db.playlistTable,
@@ -124,9 +125,9 @@ class SongDownloader extends ChangeNotifier {
         ),
       ],
     )..where(_db.playlistTable.download.equals(true)))
-            .map((t) => t.readTable(_db.playlistSongTable).songId)
-            .get())
-        .toSet();
+                .map((t) => t.readTable(_db.playlistSongTable).songId)
+                .get())
+            .toSet();
 
     final records =
         await FileDownloader().database.allRecords(group: _taskGroup);
@@ -197,9 +198,6 @@ class SongDownloader extends ChangeNotifier {
         _downloadStatus[status.task.taskId] = DownloadStatus.enqueued;
     }
     if (previousStatus != _downloadStatus[status.task.taskId]) {
-      if (previousStatus == DownloadStatus.downloaded) {
-        print(status);
-      }
       notifyListeners();
     }
   }

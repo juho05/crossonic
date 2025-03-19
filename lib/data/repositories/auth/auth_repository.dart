@@ -2,6 +2,7 @@ import 'package:crossonic/data/repositories/auth/auth_state.dart';
 import 'package:crossonic/data/repositories/auth/exceptions.dart';
 import 'package:crossonic/data/repositories/auth/models/server_features.dart';
 import 'package:crossonic/data/repositories/keyvalue/key_value_repository.dart';
+import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/data/services/database/database.dart';
 import 'package:crossonic/data/services/opensubsonic/auth.dart';
 import 'package:crossonic/data/services/opensubsonic/exceptions.dart';
@@ -218,7 +219,8 @@ class AuthRepository extends ChangeNotifier {
         apiKeyAuthentication: apiKeyAuthentication,
       );
     } else {
-      print("failed to load OpenSubsonic extensions: ${(result as Err).error}");
+      Log.error(
+          "failed to load OpenSubsonic extensions", (result as Err).error);
     }
     await _persistState();
     notifyListeners();

@@ -50,6 +50,24 @@ Future<List<SingleChildWidget>> get providers async {
   );
   await authRepository.loadState();
 
+  final favoritesRepository = FavoritesRepository(
+    auth: authRepository,
+    subsonic: subsonicService,
+    database: database,
+  );
+
+  final subsonicRepository = SubsonicRepository(
+    authRepository: authRepository,
+    subsonicService: subsonicService,
+    favoritesRepository: favoritesRepository,
+  );
+
+  final settings = SettingsRepository(
+    authRepository: authRepository,
+    keyValueRepository: keyValueRepository,
+    subsonic: subsonicRepository,
+  );
+
   final songDownloader = SongDownloader(
     db: database,
     auth: authRepository,
@@ -61,11 +79,6 @@ Future<List<SingleChildWidget>> get providers async {
     bd.FileDownloader().rescheduleKilledTasks();
   });
 
-  final favoritesRepository = FavoritesRepository(
-    auth: authRepository,
-    subsonic: subsonicService,
-    database: database,
-  );
   final coverRepository = CoverRepository(
     authRepository: authRepository,
     subsonicService: subsonicService,
@@ -141,20 +154,11 @@ Future<List<SingleChildWidget>> get providers async {
     ChangeNotifierProvider.value(
       value: songDownloader,
     ),
-    Provider(
-      create: (context) => SubsonicRepository(
-        authRepository: context.read(),
-        subsonicService: context.read(),
-        favoritesRepository: context.read(),
-      ),
+    Provider.value(
+      value: subsonicRepository,
     ),
-    Provider(
-      create: (context) => SettingsRepository(
-        authRepository: context.read(),
-        keyValueRepository: context.read(),
-        subsonic: context.read(),
-      ),
-      dispose: (context, value) => value.dispose(),
+    Provider.value(
+      value: settings,
     ),
     Provider.value(
       value: coverRepository,

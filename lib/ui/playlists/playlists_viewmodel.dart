@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:crossonic/data/repositories/audio/audio_handler.dart';
+import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/data/repositories/playlist/models/playlist.dart';
 import 'package:crossonic/data/repositories/playlist/playlist_repository.dart';
 import 'package:crossonic/data/repositories/playlist/song_downloader.dart';
@@ -121,7 +122,9 @@ class PlaylistsViewModel extends ChangeNotifier {
     switch (result) {
       case Err():
         if (result.error is! ConnectionException) {
-          print(result.error);
+          Log.error(
+              "failed to refresh playlist repository before getting playlist tracks",
+              result.error);
         }
       case Ok():
     }
@@ -141,7 +144,7 @@ class PlaylistsViewModel extends ChangeNotifier {
     final result = await _repo.getPlaylists();
     switch (result) {
       case Err():
-        print(result.error);
+        Log.error("Failed to load playlists", result.error);
         _playlists = [];
         notifyListeners();
         return;
@@ -159,7 +162,7 @@ class PlaylistsViewModel extends ChangeNotifier {
     final result = await _repo.getPlaylist(playlist.id);
     switch (result) {
       case Err():
-        print(result.error);
+        Log.error("Failed to get playlist for download status", result.error);
         return DownloadStatus.downloading;
       case Ok():
     }

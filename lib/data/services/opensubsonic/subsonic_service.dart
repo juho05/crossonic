@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/data/services/opensubsonic/auth.dart';
 import 'package:crossonic/data/services/opensubsonic/exceptions.dart';
 import 'package:crossonic/data/services/opensubsonic/models/album_info_model.dart';
@@ -560,8 +561,22 @@ class SubsonicService {
       Map<String, Iterable<String>> queryParams, SubsonicAuth auth) async {
     queryParams = generateQuery(queryParams, auth);
     final queryStr = Uri(queryParameters: queryParams).query;
-    if (kDebugMode) {
-      print("$endpointName: $queryStr");
+    {
+      final sanitizedQuery = Map<String, Iterable<String>>.from(queryParams);
+      if (sanitizedQuery.containsKey("p")) {
+        sanitizedQuery["p"] = ["xxx"];
+      }
+      if (sanitizedQuery.containsKey("t")) {
+        sanitizedQuery["t"] = ["xxx"];
+      }
+      if (sanitizedQuery.containsKey("s")) {
+        sanitizedQuery["s"] = ["xxx"];
+      }
+      if (sanitizedQuery.containsKey("apiKey")) {
+        sanitizedQuery["apiKey"] = ["xxx"];
+      }
+      Log.debug(
+          "POST $endpointName?${Uri(queryParameters: sanitizedQuery).query}");
     }
     try {
       final response = await http.post(Uri.parse('$baseUri/rest/$endpointName'),
@@ -574,7 +589,8 @@ class SubsonicService {
         throw ServerException(response.statusCode);
       }
       return Result.ok(response);
-    } catch (e) {
+    } catch (e, st) {
+      Log.error("Failed to connect to server", e, st);
       return Result.error(ConnectionException());
     }
   }

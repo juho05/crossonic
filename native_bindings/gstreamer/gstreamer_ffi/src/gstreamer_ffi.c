@@ -1,6 +1,8 @@
 #include "gstreamer_ffi.h"
 
 #include <gst/gst.h>
+#include <stdio.h>
+
 #ifdef __ANDROID__
 #include <android/log.h>
 #endif
@@ -96,16 +98,6 @@ gboolean cb_message(GstBus* bus, GstMessage *msg, void* _)
     g_free(dbg_info);
     break;
   }
-  case GST_MESSAGE_INFO: break;
-  {
-    GError *info = NULL;
-    gchar *dbg_info = NULL;
-    gst_message_parse_info(msg, &info, &dbg_info);
-    g_printerr ("INFO from element %s: %s\n", GST_OBJECT_NAME (msg->src), info->message);
-    g_error_free(info);
-    g_free(dbg_info);
-    break;
-  }
   case GST_MESSAGE_BUFFERING:
   {
     if (!data->on_buffering) break;
@@ -149,23 +141,25 @@ gpointer run_main_loop_thread(gpointer _)
   return NULL;
 }
 
-#ifdef __ANDROID__
-void gstAndroidLog(GstDebugCategory * category,
+void gst_log(GstDebugCategory * category,
                    GstDebugLevel      level,
                    const gchar      * file,
                    const gchar      * function,
                    gint               line,
                    GObject          * object,
                    GstDebugMessage  * message,
-                   gpointer           data)
+                   gpointer           d)
 {
   if (level <= gst_debug_category_get_threshold (category))
   {
+    #ifdef __ANDROID__
     __android_log_print(ANDROID_LOG_ERROR, "flutter", "%s,%s: %s",
                         file, function, gst_debug_message_get(message));
+    #else
+    printf("%s,%s: %s", file, function, gst_debug_message_get(message));
+    #endif
   }
 }
-#endif
 
 FFI_PLUGIN_EXPORT ErrorType init(
   OnEOS on_eos,
@@ -178,10 +172,8 @@ FFI_PLUGIN_EXPORT ErrorType init(
   int run_main_loop
 )
 {
-#ifdef __ANDROID__
-  gst_debug_set_default_threshold(GST_LEVEL_ERROR);
-  gst_debug_add_log_function(&gstAndroidLog, NULL, NULL);
-#endif
+  //gst_debug_set_default_threshold(GST_LEVEL_INFO);
+  //gst_debug_add_log_function(&gst_log, NULL, NULL);
 
 #ifdef IOS
   gst_ios_init();

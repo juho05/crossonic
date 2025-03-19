@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:crossonic/data/repositories/audio/audio_handler.dart';
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
+import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
 import 'package:crossonic/data/services/database/database.dart';
 import 'package:crossonic/data/services/opensubsonic/subsonic_service.dart';
@@ -74,7 +75,7 @@ class Scrobbler {
         false,
         false);
     if (result is Err) {
-      print("Failed to upload now playing: ${result.error}");
+      Log.warn("Failed to upload now playing", result.error);
     }
   }
 
@@ -120,11 +121,6 @@ class Scrobbler {
                         f.songDurationMs.column / Variable(2))));
       }).get();
       if (scrobbles.isNotEmpty) {
-        print("Uploading scrobbles:");
-        for (var s in scrobbles) {
-          print(
-              "  - ${s.startTime}: ${s.songId} (${Duration(milliseconds: s.listenDurationMs)})");
-        }
         final result = await _subsonic.scrobble(
           _auth.con,
           scrobbles.map((s) => (
@@ -156,11 +152,11 @@ class Scrobbler {
             if (r is Ok) {
               success = true;
             } else {
-              print("Failed to upload scrobble: $s");
+              Log.error("Failed to upload scrobble: $s", (r as Err).error);
             }
           }
           if (!success) {
-            print(result.error);
+            Log.error("Scrobble upload unsuccessful, aborting...");
             return;
           }
         }

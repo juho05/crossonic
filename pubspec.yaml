@@ -46,6 +46,7 @@ dependencies:
   tray_manager: ^0.3.2
   flutter_svg: ^2.0.17
   dynamic_system_colors: ^1.8.0
+  talker_flutter: ^4.7.1
 
 dependency_overrides:
   flutter_secure_storage_macos:

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:audio_session/audio_session.dart';
+import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/data/services/audio_players/player.dart';
 import 'package:gstreamer/gstreamer.dart' as gst;
 import 'package:rxdart/rxdart.dart';
@@ -89,10 +90,18 @@ class AudioPlayerGstreamer implements AudioPlayer {
         eventStream.add(AudioPlayerEvent.advance);
       },
       onError: (code, message, debugInfo) {
-        print("ERROR: Gstreamer: $message\n$debugInfo");
+        if (code == -1) {
+          Log.error("GStreamer: $message");
+        } else {
+          Log.error("GStreamer ($code): $message\n$debugInfo");
+        }
       },
       onWarning: (code, message) {
-        print("WARNING: Gstreamer: $message");
+        if (code == -1) {
+          Log.warn("GStreamer: $message");
+        } else {
+          Log.warn("GStreamer ($code): $message");
+        }
       },
       onBuffering: (percent, mode, avgIn, avgOut) {
         if (percent < 100) {

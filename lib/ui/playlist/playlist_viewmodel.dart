@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:crossonic/data/repositories/audio/audio_handler.dart';
+import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/data/repositories/playlist/models/playlist.dart';
 import 'package:crossonic/data/repositories/playlist/playlist_repository.dart';
 import 'package:crossonic/data/repositories/playlist/song_downloader.dart';
@@ -161,11 +162,11 @@ class PlaylistViewModel extends ChangeNotifier {
     switch (result) {
       case Err():
         _playlist = null;
-        print(result.error);
+        Log.error("Failed to get playlist '$_playlistId'", result.error);
       case Ok():
         if (result.value == null) {
           _playlist = null;
-          print("playlist does not exist");
+          Log.error("playlist '$_playlistId' does not exist");
         }
         _playlist = result.value!.playlist;
         _tracks = result.value!.tracks

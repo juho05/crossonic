@@ -62,8 +62,6 @@ class AddToPlaylistDialog {
         songsToAdd.add(s);
       } on StateError {
         songsToAdd.add(s);
-      } catch (e) {
-        print(e);
       }
     }
     if (songsToAdd.isEmpty) return;

@@ -17,6 +17,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "7.3.0"
+  ansicolor:
+    dependency: transitive
+    description:
+      name: ansicolor
+      sha256: "50e982d500bc863e1d703448afdbf9e5a72eb48840a4f766fa361ffd6877055f"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.3"
   args:
     dependency: transitive
     description:
@@ -657,6 +665,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.3.2"
+  group_button:
+    dependency: transitive
+    description:
+      name: group_button
+      sha256: "0610fcf28ed122bfb4b410fce161a390f7f2531d55d1d65c5375982001415940"
+      url: "https://pub.dev"
+    source: hosted
+    version: "5.3.4"
   grpc:
     dependency: transitive
     description:
@@ -1135,6 +1151,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.2.0"
+  share_plus:
+    dependency: transitive
+    description:
+      name: share_plus
+      sha256: fce43200aa03ea87b91ce4c3ac79f0cecd52e2a7a56c7a4185023c271fbfa6da
+      url: "https://pub.dev"
+    source: hosted
+    version: "10.1.4"
+  share_plus_platform_interface:
+    dependency: transitive
+    description:
+      name: share_plus_platform_interface
+      sha256: cc012a23fc2d479854e6c80150696c4a5f5bb62cb89af4de1c505cf78d0a5d0b
+      url: "https://pub.dev"
+    source: hosted
+    version: "5.0.2"
   shelf:
     dependency: transitive
     description:
@@ -1316,6 +1348,30 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.3.1"
+  talker:
+    dependency: transitive
+    description:
+      name: talker
+      sha256: "45abef5b92f9b9bd42c3f20133ad4b20ab12e1da2aa206fc0a40ea874bed7c5d"
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.7.1"
+  talker_flutter:
+    dependency: "direct main"
+    description:
+      name: talker_flutter
+      sha256: "77458ca11638dfefb651e898a26101ee54e60dc0b168ad7481a05b1c97ce2680"
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.7.1"
+  talker_logger:
+    dependency: transitive
+    description:
+      name: talker_logger
+      sha256: ed9b20b8c09efff9f6b7c63fc6630ee2f84aa92661ae09e5ba04e77272bf2ad2
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.7.1"
   term_glyph:
     dependency: transitive
     description:
@@ -1356,6 +1412,38 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.4.0"
+  url_launcher_linux:
+    dependency: transitive
+    description:
+      name: url_launcher_linux
+      sha256: "4e9ba368772369e3e08f231d2301b4ef72b9ff87c31192ef471b380ef29a4935"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.2.1"
+  url_launcher_platform_interface:
+    dependency: transitive
+    description:
+      name: url_launcher_platform_interface
+      sha256: "552f8a1e663569be95a8190206a38187b531910283c3e982193e4f2733f01029"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.3.2"
+  url_launcher_web:
+    dependency: transitive
+    description:
+      name: url_launcher_web
+      sha256: "3ba963161bd0fe395917ba881d320b9c4f6dd3c4a233da62ab18a5025c85f1e9"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.4.0"
+  url_launcher_windows:
+    dependency: transitive
+    description:
+      name: url_launcher_windows
+      sha256: "3284b6d2ac454cf34f114e1d3319866fdd1e19cdc329999057e44ffe936cfa77"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.1.4"
   uuid:
     dependency: transitive
     description:
