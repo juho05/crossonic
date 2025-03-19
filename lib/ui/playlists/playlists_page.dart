@@ -172,7 +172,7 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
                                 await _viewModel.addToQueue(p, priority);
                             if (!context.mounted) return;
                             toastResult(context, result,
-                                "Added '${p.name}' to ${priority ? "priority " : ""}queue");
+                                successMsg: "Added '${p.name}' to ${priority ? "priority " : ""}queue");
                           },
                           onAddToPlaylist: () async {
                             final result = await _viewModel.getTracks(p.id);
@@ -195,7 +195,7 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
                             final result = await _viewModel.delete(p);
                             if (!context.mounted) return;
                             toastResult(context, result,
-                                "Deleted playlist '${p.name}'!");
+                                successMsg: "Deleted playlist '${p.name}'!");
                           },
                           onToggleDownload: () async {
                             if (p.download) {
@@ -208,7 +208,7 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
                             final result = await _viewModel.toggleDownload(p);
                             if (!context.mounted) return;
                             toastResult(context, result,
-                                !p.download ? "Scheduling downloads…" : null);
+                                successMsg: !p.download ? "Scheduling downloads…" : null);
                           },
                         );
                       },

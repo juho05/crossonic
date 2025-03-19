@@ -141,7 +141,7 @@ class _ArtistsPageState extends State<ArtistsPage> {
                                 await _viewModel.addToQueue(a, priority);
                             if (!context.mounted) return;
                             toastResult(context, result,
-                                "Added '${a.name}' to ${priority ? "priority " : ""}queue");
+                                successMsg: "Added '${a.name}' to ${priority ? "priority " : ""}queue");
                           },
                           onAddToPlaylist: () async {
                             final result = await _viewModel.getArtistSongs(a);

@@ -68,7 +68,7 @@ class AddToPlaylistDialog {
     final r2 = await repository.addTracks(playlist.id, songsToAdd);
     if (context.mounted) {
       toastResult(
-          context, r2, "Added '$collectionName' to '${playlists[index].name}'");
+          context, r2, successMsg: "Added '$collectionName' to '${playlists[index].name}'");
     }
   }
 }

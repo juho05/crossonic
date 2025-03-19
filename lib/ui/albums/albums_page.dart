@@ -185,7 +185,8 @@ class _AlbumsPageState extends State<AlbumsPage> {
                                 await _viewModel.addToQueue(a, priority);
                             if (!context.mounted) return;
                             toastResult(context, result,
-                                "Added '${a.name}' to ${priority ? "priority " : ""}queue");
+                                successMsg:
+                                    "Added '${a.name}' to ${priority ? "priority " : ""}queue");
                           },
                           onGoToArtist: a.artists.isNotEmpty
                               ? () async {

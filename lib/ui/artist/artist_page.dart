@@ -98,7 +98,7 @@ class _ArtistPageState extends State<ArtistPage> {
                     final result = await _viewModel.addToQueue(true);
                     if (!context.mounted) return;
                     toastResult(context, result,
-                        "Added '${artist.name} to priority queue");
+                        successMsg: "Added '${artist.name} to priority queue");
                   },
                 ),
                 ContextMenuOption(
@@ -108,7 +108,7 @@ class _ArtistPageState extends State<ArtistPage> {
                     final result = await _viewModel.addToQueue(false);
                     if (!context.mounted) return;
                     toastResult(
-                        context, result, "Added '${artist.name} to queue");
+                        context, result, successMsg: "Added '${artist.name} to queue");
                   },
                 ),
                 ContextMenuOption(
@@ -178,7 +178,7 @@ class _ArtistPageState extends State<ArtistPage> {
                   final result = await _viewModel.addToQueue(true);
                   if (!context.mounted) return;
                   toastResult(context, result,
-                      "Added '${artist.name}' priority to queue");
+                      successMsg: "Added '${artist.name}' priority to queue");
                 },
               ),
               CollectionAction(
@@ -188,7 +188,7 @@ class _ArtistPageState extends State<ArtistPage> {
                   final result = await _viewModel.addToQueue(false);
                   if (!context.mounted) return;
                   toastResult(
-                      context, result, "Added '${artist.name}' to queue");
+                      context, result, successMsg: "Added '${artist.name}' to queue");
                 },
               ),
             ],
@@ -228,7 +228,7 @@ class _ArtistPageState extends State<ArtistPage> {
                         await _viewModel.addAlbumToQueue(albums[i], priority);
                     if (!context.mounted) return;
                     toastResult(context, result,
-                        "Added '${albums[i].name}' to ${priority ? " priority" : ""} queue");
+                        successMsg: "Added '${albums[i].name}' to ${priority ? " priority" : ""} queue");
                   },
                   onAddToPlaylist: () async {
                     final result = await _viewModel.getAlbumSongs(albums[i]);

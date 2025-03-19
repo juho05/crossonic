@@ -157,7 +157,7 @@ class _PlaylistPageState extends State<PlaylistPage> {
                       final result = await _viewModel.toggleDownload();
                       if (!context.mounted) return;
                       toastResult(context, result,
-                          !playlist.download ? "Scheduling downloads…" : null);
+                          successMsg: !playlist.download ? "Scheduling downloads…" : null);
                     },
                   ),
               ],
