@@ -148,7 +148,9 @@ class AudioPlayerGstreamer implements AudioPlayer {
   Future<void> dispose() async {
     gst.freeResources();
     _initialized = false;
+    _buffering = false;
     _gstState = gst.State.initial;
+    _desiredState = AudioPlayerEvent.stopped;
     await _audioSession.setActive(false);
   }
 
