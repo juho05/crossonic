@@ -1,5 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:crossonic/ui/common/buttons.dart';
+import 'package:crossonic/ui/common/form_page_body.dart';
 import 'package:crossonic/ui/playlists/update/update_playlist_viewmodel.dart';
 import 'package:crossonic/utils/result.dart';
 import 'package:crossonic/utils/result_toast.dart';
@@ -46,57 +47,28 @@ class _UpdatePlaylistPageState extends State<UpdatePlaylistPage> {
   @override
   Widget build(BuildContext context) {
     return Material(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: ListenableBuilder(
-            listenable: _viewModel,
-            builder: (context, _) {
-              return FormBuilder(
-                key: _formKey,
-                autovalidateMode: AutovalidateMode.onUserInteraction,
-                initialValue: {
-                  "name": widget.playlistName,
-                },
-                child: Center(
-                  child: SizedBox(
-                    width: 430,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        const SizedBox(height: 60),
-                        Expanded(
-                          flex: 2,
-                          child: Text("Playlist",
-                              style: Theme.of(context).textTheme.displayMedium),
-                        ),
-                        Expanded(
-                          flex: 3,
-                          child: FormBuilderTextField(
-                            name: "name",
-                            restorationId: "update_playlist_name",
-                            decoration: const InputDecoration(
-                              labelText: "Name",
-                              icon: Icon(Icons.title),
-                              border: OutlineInputBorder(),
-                            ),
-                            validator: FormBuilderValidators.required(),
-                            onSubmitted: (_) => _submit(context),
-                          ),
-                        ),
-                        SubmitButton(
-                          onPressed: !_viewModel.loading
-                              ? () => _submit(context)
-                              : null,
-                          child: Text("Save"),
-                        ),
-                        const SizedBox(height: 100),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            }),
+      child: FormPageBody(
+        formKey: _formKey,
+        initialValues: {
+          "name": widget.playlistName,
+        },
+        children: [
+          FormBuilderTextField(
+            name: "name",
+            restorationId: "update_playlist_name",
+            decoration: const InputDecoration(
+              labelText: "Playlist Name",
+              prefixIcon: Icon(Icons.title),
+              border: OutlineInputBorder(),
+            ),
+            validator: FormBuilderValidators.required(),
+            onSubmitted: (_) => _submit(context),
+          ),
+          SubmitButton(
+            onPressed: !_viewModel.loading ? () => _submit(context) : null,
+            child: Text("Update"),
+          ),
+        ],
       ),
     );
   }
