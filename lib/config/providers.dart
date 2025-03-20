@@ -73,11 +73,13 @@ Future<List<SingleChildWidget>> get providers async {
     auth: authRepository,
     subsonic: subsonicService,
   );
-  await songDownloader.init();
-  await bd.FileDownloader().resumeFromBackground();
-  Timer(Duration(seconds: 5), () {
-    bd.FileDownloader().rescheduleKilledTasks();
-  });
+  if (!kIsWeb) {
+    await songDownloader.init();
+    await bd.FileDownloader().resumeFromBackground();
+    Timer(Duration(seconds: 5), () {
+      bd.FileDownloader().rescheduleKilledTasks();
+    });
+  }
 
   final coverRepository = CoverRepository(
     authRepository: authRepository,
