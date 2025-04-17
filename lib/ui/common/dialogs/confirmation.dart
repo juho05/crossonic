@@ -1,5 +1,4 @@
 import 'package:crossonic/ui/common/adaptive_dialog_action.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class ConfirmationDialog extends StatelessWidget {

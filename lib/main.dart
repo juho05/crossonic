@@ -18,6 +18,12 @@ void main() async {
 
   WidgetsFlutterBinding.ensureInitialized();
 
+  FlutterSingleInstance.onFocus = (metadata) async {
+    if (!(await windowManager.isVisible())) {
+      await windowManager.show();
+    }
+  };
+
   if (!(await FlutterSingleInstance().isFirstInstance())) {
     Log.info("App is already running. Trying to focus running instance...");
     final err = await FlutterSingleInstance().focus();

@@ -219,8 +219,9 @@ class _BrowsePageState extends State<BrowsePage> with RestorationMixin {
                                     final artistId =
                                         await ChooserDialog.chooseArtist(
                                             context, a.artists.toList());
-                                    if (artistId == null || !context.mounted)
+                                    if (artistId == null || !context.mounted) {
                                       return;
+                                    }
                                     context.router
                                         .push(ArtistRoute(artistId: artistId));
                                   }
@@ -266,8 +267,9 @@ class _BrowsePageState extends State<BrowsePage> with RestorationMixin {
                                     final artistId =
                                         await ChooserDialog.chooseArtist(
                                             context, s.artists.toList());
-                                    if (artistId == null || !context.mounted)
+                                    if (artistId == null || !context.mounted) {
                                       return;
+                                    }
                                     context.router
                                         .push(ArtistRoute(artistId: artistId));
                                   }

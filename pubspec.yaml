@@ -16,11 +16,11 @@ dependencies:
   flutter_secure_storage: ^9.2.4
   crypto: ^3.0.6
   http: ^1.3.0
-  flutter_form_builder: ^9.7.0
+  flutter_form_builder: ^10.0.1
   form_builder_validators: ^11.1.1
   json_annotation: ^4.9.0
   rxdart: ^0.28.0
-  audio_session: ^0.1.25
+  audio_session: ^0.2.0
   audioplayers: ^6.1.2
   smtc_windows: ^1.0.0
   audio_service: ^0.18.17
@@ -41,9 +41,9 @@ dependencies:
   background_downloader: ^9.1.1
   path: ^1.9.0
   image_picker: ^1.1.2
-  flutter_single_instance: ^1.2.3
+  flutter_single_instance: ^1.5.0
   window_manager: ^0.4.3
-  tray_manager: ^0.3.2
+  tray_manager: ^0.4.0
   flutter_svg: ^2.0.17
   dynamic_system_colors: ^1.8.0
   talker_flutter: ^4.7.1
@@ -51,10 +51,6 @@ dependencies:
 dependency_overrides:
   flutter_secure_storage_macos:
     path: ./dependency_overrides/flutter_secure_storage/flutter_secure_storage_macos
-  flutter_single_instance:
-    git:
-      url: https://github.com/juho05/flutter_single_instance
-      ref: fd1ff03
   audioplayers_linux:
     path: ./dependency_overrides/stubs/audioplayers_linux
   audioplayers_android:

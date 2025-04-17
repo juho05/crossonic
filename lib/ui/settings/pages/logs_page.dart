@@ -1,7 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 
 @RoutePage()
