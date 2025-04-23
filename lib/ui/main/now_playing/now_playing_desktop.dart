@@ -29,205 +29,228 @@ class NowPlayingDesktop extends StatelessWidget {
         elevation: 4,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 10),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              Expanded(
-                flex: 3,
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.max,
-                  children: [
-                    SizedBox(
-                      height: 60,
-                      width: 60,
-                      child: Stack(
-                        children: [
-                          CoverArt(
-                            coverId: _viewModel.coverId,
-                            placeholderIcon: Icons.album,
-                            borderRadius: BorderRadius.circular(5),
-                          ),
-                          if (_viewModel.album != null)
-                            ClipRRect(
+          child: LayoutBuilder(
+            builder: (context, constraints) => Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Expanded(
+                  flex: 3,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.max,
+                    children: [
+                      SizedBox(
+                        height: 60,
+                        width: 60,
+                        child: Stack(
+                          children: [
+                            CoverArt(
+                              coverId: _viewModel.coverId,
+                              placeholderIcon: Icons.album,
                               borderRadius: BorderRadius.circular(5),
-                              child: Material(
-                                type: MaterialType.transparency,
-                                child: InkWell(
-                                  onTap: () {
-                                    context.router.push(AlbumRoute(
-                                        albumId: _viewModel.album!.id));
-                                  },
+                            ),
+                            if (_viewModel.album != null)
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(5),
+                                child: Material(
+                                  type: MaterialType.transparency,
+                                  child: InkWell(
+                                    onTap: () {
+                                      context.router.push(AlbumRoute(
+                                          albumId: _viewModel.album!.id));
+                                    },
+                                  ),
+                                ),
+                              )
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _viewModel.songTitle,
+                              style: textStyle.bodyMedium!.copyWith(
+                                color: colorScheme.onSurface,
+                                fontSize: 16,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            MouseRegion(
+                              cursor: SystemMouseCursors.click,
+                              child: GestureDetector(
+                                onTap: () async {
+                                  final router = context.router;
+                                  final artistId =
+                                      await ChooserDialog.chooseArtist(
+                                          context, _viewModel.artists.toList());
+                                  if (artistId == null) return;
+                                  router.push(ArtistRoute(artistId: artistId));
+                                },
+                                child: Text(
+                                  _viewModel.displayArtist,
+                                  style: textStyle.bodySmall!.copyWith(
+                                    color: colorScheme.onSurface,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
-                            )
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            _viewModel.songTitle,
-                            style: textStyle.bodyMedium!.copyWith(
-                              color: colorScheme.onSurface,
-                              fontSize: 16,
                             ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          MouseRegion(
-                            cursor: SystemMouseCursors.click,
-                            child: GestureDetector(
-                              onTap: () async {
-                                final router = context.router;
-                                final artistId =
-                                    await ChooserDialog.chooseArtist(
-                                        context, _viewModel.artists.toList());
-                                if (artistId == null) return;
-                                router.push(ArtistRoute(artistId: artistId));
-                              },
-                              child: Text(
-                                _viewModel.displayArtist,
-                                style: textStyle.bodySmall!.copyWith(
-                                  color: colorScheme.onSurface,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(width: 15),
-              Expanded(
-                flex: 5,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        IconButton(
-                          icon: _viewModel.favorite
-                              ? const Icon(Icons.favorite)
-                              : const Icon(Icons.favorite_border),
-                          padding: const EdgeInsets.all(0),
-                          onPressed: () async {
-                            final result = await _viewModel.toggleFavorite();
-                            if (!context.mounted) return;
-                            toastResult(context, result);
-                          },
-                        ),
-                        const SizedBox(width: 7),
-                        IconButton(
-                          icon: const Icon(Icons.skip_previous, size: 32),
-                          padding: const EdgeInsets.all(0),
-                          onPressed: () {
-                            _viewModel.playPrev();
-                          },
-                        ),
-                        const SizedBox(width: 5),
-                        if (_viewModel.playbackStatus ==
-                                PlaybackStatus.loading ||
-                            _viewModel.playbackStatus == PlaybackStatus.stopped)
-                          const SizedBox(
-                              width: 40,
-                              height: 40,
-                              child: Padding(
-                                padding: EdgeInsets.all(5.0),
-                                child: CircularProgressIndicator.adaptive(),
-                              )),
-                        if (_viewModel.playbackStatus !=
-                                PlaybackStatus.loading &&
-                            _viewModel.playbackStatus != PlaybackStatus.stopped)
+                const SizedBox(width: 10),
+                Expanded(
+                  flex: 5,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
                           IconButton(
-                            icon: Icon(
-                              _viewModel.playbackStatus ==
-                                      PlaybackStatus.playing
-                                  ? Icons.pause_circle
-                                  : Icons.play_circle,
-                              size: 40,
-                            ),
+                            icon: _viewModel.favorite
+                                ? const Icon(Icons.favorite)
+                                : const Icon(Icons.favorite_border),
                             padding: const EdgeInsets.all(0),
-                            onPressed: () {
-                              _viewModel.playPause();
+                            onPressed: () async {
+                              final result = await _viewModel.toggleFavorite();
+                              if (!context.mounted) return;
+                              toastResult(context, result);
                             },
                           ),
-                        const SizedBox(width: 5),
-                        IconButton(
-                          icon: const Icon(Icons.skip_next, size: 32),
-                          padding: const EdgeInsets.all(0),
-                          onPressed: () {
-                            _viewModel.playNext();
-                          },
-                        ),
-                        const SizedBox(width: 7),
-                        IconButton(
-                          onPressed: () {
-                            _viewModel.toggleLoop();
-                          },
-                          icon: _viewModel.loopEnabled
-                              ? const Icon(Icons.repeat_on)
-                              : const Icon(Icons.repeat),
-                        ),
-                      ],
-                    ),
-                    StreamBuilder(
-                      stream: _viewModel.position,
-                      initialData: _viewModel.position.value,
-                      builder: (context, snapshot) {
-                        final pos = snapshot.data ??
-                            (position: Duration.zero, bufferedPosition: null);
-                        return ProgressBar(
-                          timeLabelLocation: TimeLabelLocation.sides,
-                          progress: pos.position,
-                          buffered: pos.bufferedPosition,
-                          total: _viewModel.duration ?? pos.position,
-                          onSeek: (value) {
-                            _viewModel.seek(value);
-                          },
-                        );
-                      },
-                    ),
-                  ],
+                          const SizedBox(width: 7),
+                          IconButton(
+                            icon: const Icon(Icons.skip_previous, size: 32),
+                            padding: const EdgeInsets.all(0),
+                            onPressed: () {
+                              _viewModel.playPrev();
+                            },
+                          ),
+                          const SizedBox(width: 5),
+                          if (_viewModel.playbackStatus ==
+                                  PlaybackStatus.loading ||
+                              _viewModel.playbackStatus ==
+                                  PlaybackStatus.stopped)
+                            const SizedBox(
+                                width: 40,
+                                height: 40,
+                                child: Padding(
+                                  padding: EdgeInsets.all(5.0),
+                                  child: CircularProgressIndicator.adaptive(),
+                                )),
+                          if (_viewModel.playbackStatus !=
+                                  PlaybackStatus.loading &&
+                              _viewModel.playbackStatus !=
+                                  PlaybackStatus.stopped)
+                            IconButton(
+                              icon: Icon(
+                                _viewModel.playbackStatus ==
+                                        PlaybackStatus.playing
+                                    ? Icons.pause_circle
+                                    : Icons.play_circle,
+                                size: 40,
+                              ),
+                              padding: const EdgeInsets.all(0),
+                              onPressed: () {
+                                _viewModel.playPause();
+                              },
+                            ),
+                          const SizedBox(width: 5),
+                          IconButton(
+                            icon: const Icon(Icons.skip_next, size: 32),
+                            padding: const EdgeInsets.all(0),
+                            onPressed: () {
+                              _viewModel.playNext();
+                            },
+                          ),
+                          const SizedBox(width: 7),
+                          IconButton(
+                            onPressed: () {
+                              _viewModel.toggleLoop();
+                            },
+                            icon: _viewModel.loopEnabled
+                                ? const Icon(Icons.repeat_on)
+                                : const Icon(Icons.repeat),
+                          ),
+                        ],
+                      ),
+                      StreamBuilder(
+                        stream: _viewModel.position,
+                        initialData: _viewModel.position.value,
+                        builder: (context, snapshot) {
+                          final pos = snapshot.data ??
+                              (position: Duration.zero, bufferedPosition: null);
+                          return ProgressBar(
+                            timeLabelLocation: TimeLabelLocation.sides,
+                            progress: pos.position,
+                            buffered: pos.bufferedPosition,
+                            total: _viewModel.duration ?? pos.position,
+                            onSeek: (value) {
+                              _viewModel.seek(value);
+                            },
+                          );
+                        },
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(width: 15),
-              Expanded(
-                flex: 3,
-                child: Row(
-                  mainAxisSize: MainAxisSize.max,
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    IconButton(
-                      onPressed: () {
-                        context.router.push(LyricsRoute());
-                      },
-                      icon: const Icon(Icons.lyrics_outlined),
-                    ),
-                    IconButton(
-                      onPressed: () {
-                        context.router.push(QueueRoute());
-                      },
-                      icon: const Icon(Icons.queue_music),
-                    ),
-                    ContextMenuButton(
-                      options: getNowPlayingMenuOptions(context, _viewModel),
-                    ),
-                    const SizedBox(width: 5),
-                  ],
+                const SizedBox(width: 10),
+                Expanded(
+                  flex: 3,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.max,
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      if (constraints.maxWidth >= 850)
+                        ConstrainedBox(
+                          constraints: BoxConstraints.loose(Size.fromWidth(
+                              constraints.maxWidth > 1050
+                                  ? 150
+                                  : (constraints.maxWidth > 950 ? 125 : 100))),
+                          child: Slider(
+                            value: _viewModel.volume,
+                            onChanged: (double value) {
+                              _viewModel.volume = value;
+                            },
+                            min: 0.025,
+                            max: 1,
+                            inactiveColor: Theme.of(context)
+                                .colorScheme
+                                .primary
+                                .withAlpha(61),
+                          ),
+                        ),
+                      IconButton(
+                        onPressed: () {
+                          context.router.push(LyricsRoute());
+                        },
+                        icon: const Icon(Icons.lyrics_outlined),
+                      ),
+                      IconButton(
+                        onPressed: () {
+                          context.router.push(QueueRoute());
+                        },
+                        icon: const Icon(Icons.queue_music),
+                      ),
+                      ContextMenuButton(
+                        options: getNowPlayingMenuOptions(context, _viewModel),
+                      ),
+                      const SizedBox(width: 5),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

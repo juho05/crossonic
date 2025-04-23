@@ -59,6 +59,14 @@ class AudioHandler {
 
   (TranscodingCodec, int?) _transcoding;
 
+  double _volume = 1;
+
+  double get volume => _volume;
+  set volume(double volume) {
+    _volume = volume;
+    _applyReplayGain();
+  }
+
   AudioHandler({
     required AudioPlayer player,
     required MediaIntegration integration,
@@ -253,14 +261,11 @@ class AudioHandler {
   Future<void> _applyReplayGain() async {
     if (!_player.initialized) return;
     ReplayGainMode mode = _settings.replayGain.mode;
-    if (mode == ReplayGainMode.disabled) {
-      if (_player.volume < 1) {
-        _player.setVolume(1);
-      }
+    final media = _queue.current.value.song;
+    if (mode == ReplayGainMode.disabled || media == null) {
+      await _setPlayerVolume(1);
       return;
     }
-    final media = _queue.current.value.song;
-    if (media == null) return;
 
     double gain = _settings.replayGain.fallbackGain;
 
@@ -294,6 +299,12 @@ class AudioHandler {
     }
 
     double volume = pow(10, gain / 20) as double;
+    await _setPlayerVolume(volume);
+  }
+
+  Future<void> _setPlayerVolume(double volume) async {
+    volume *= _volume;
+    if (_player.volume == volume) return;
     await _player.setVolume(volume);
   }
 

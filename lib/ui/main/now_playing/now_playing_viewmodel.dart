@@ -4,6 +4,7 @@ import 'package:crossonic/data/repositories/audio/audio_handler.dart';
 import 'package:crossonic/data/repositories/subsonic/favorites_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
 import 'package:crossonic/utils/result.dart';
+import 'package:crossonic/utils/throttle.dart';
 import 'package:flutter/material.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -40,11 +41,31 @@ class NowPlayingViewModel extends ChangeNotifier {
   bool _loop = false;
   bool get loopEnabled => _loop;
 
+  double _volume = 1;
+  double get volume => _volume;
+  Throttle1<double>? _volumeThrottle;
+  set volume(double volume) {
+    _volumeThrottle ??= Throttle1(
+      action: (volume) {
+        _audioHandler.volume = volume;
+        _volume = _audioHandler.volume;
+        notifyListeners();
+      },
+      delay: Duration(milliseconds: 250),
+      leading: true,
+      trailing: true,
+    );
+    _volume = volume;
+    _volumeThrottle!.call(volume);
+    notifyListeners();
+  }
+
   NowPlayingViewModel({
     required FavoritesRepository favoritesRepository,
     required AudioHandler audioHandler,
   })  : _favoritesRepository = favoritesRepository,
-        _audioHandler = audioHandler {
+        _audioHandler = audioHandler,
+        _volume = audioHandler.volume {
     _favoritesRepository.addListener(_onFavoriteChanged);
     _currentSongSubscription =
         _audioHandler.queue.current.listen(_onSongChanged);
