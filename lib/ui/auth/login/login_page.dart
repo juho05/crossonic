@@ -95,7 +95,7 @@ class _LoginPageState extends State<LoginPage> with RestorationMixin {
             if (_authType.value != AuthType.apiKey)
               FormBuilderTextField(
                 name: "username",
-                restorationId: "login_page_username",
+                //restorationId: "login_page_username",
                 decoration: const InputDecoration(
                   labelText: "Username",
                   prefixIcon: Icon(Icons.person),
@@ -107,7 +107,7 @@ class _LoginPageState extends State<LoginPage> with RestorationMixin {
             if (_authType.value != AuthType.apiKey)
               FormBuilderTextField(
                 name: "password",
-                restorationId: "login_page_password",
+                //restorationId: "login_page_password",
                 decoration: const InputDecoration(
                   labelText: "Password",
                   prefixIcon: Icon(Icons.link),
@@ -121,7 +121,7 @@ class _LoginPageState extends State<LoginPage> with RestorationMixin {
             if (_authType.value == AuthType.apiKey)
               FormBuilderTextField(
                 name: "apiKey",
-                restorationId: "login_page_apiKey",
+                //restorationId: "login_page_apiKey",
                 decoration: const InputDecoration(
                   labelText: "API Key",
                   prefixIcon: Icon(Icons.key),

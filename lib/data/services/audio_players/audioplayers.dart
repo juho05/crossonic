@@ -28,7 +28,7 @@ class AudioPlayerAudioPlayers implements AudioPlayer {
   final List<StreamSubscription> _playerSubscriptions = [];
 
   @override
-  void init() {
+  Future<void> init() async {
     _players.clear();
     for (var s in _playerSubscriptions) {
       s.cancel();
@@ -178,7 +178,7 @@ class AudioPlayerAudioPlayers implements AudioPlayer {
   final BehaviorSubject<AudioPlayerEvent> _eventStream =
       BehaviorSubject.seeded(AudioPlayerEvent.stopped);
   @override
-  BehaviorSubject<AudioPlayerEvent> get eventStream => _eventStream;
+  ValueStream<AudioPlayerEvent> get eventStream => _eventStream.stream;
 
   @override
   Future<void> setCurrent(Uri url, [Duration? pos]) async {

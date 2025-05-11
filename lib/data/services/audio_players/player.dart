@@ -9,7 +9,7 @@ enum AudioPlayerEvent {
 }
 
 abstract interface class AudioPlayer {
-  BehaviorSubject<AudioPlayerEvent> get eventStream;
+  ValueStream<AudioPlayerEvent> get eventStream;
   Future<Duration> get position;
   Future<Duration> get bufferedPosition;
   bool get supportsFileUri;
@@ -18,7 +18,7 @@ abstract interface class AudioPlayer {
   Future<void> setVolume(double volume);
   bool get initialized;
 
-  void init();
+  Future<void> init();
   Future<void> setCurrent(Uri url, [Duration? pos]);
   Future<void> setNext(Uri? url);
   Future<void> play();

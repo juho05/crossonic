@@ -171,8 +171,8 @@ class _ConnectServerPageState extends State<ConnectServerPage> {
                                           children: [
                                             FormBuilderTextField(
                                               name: "serverUri",
-                                              restorationId:
-                                                  "connect_server_page_serverUri",
+                                              //restorationId:
+                                              //    "connect_server_page_serverUri",
                                               initialValue: viewModel.serverUrl,
                                               autocorrect: false,
                                               keyboardType: TextInputType.url,

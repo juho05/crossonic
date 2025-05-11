@@ -156,12 +156,8 @@ flutter build macos --release
 
 ### Android
 
-- [Download](https://gstreamer.freedesktop.org/download/#android) GStreamer for Android
-- Extract the file and rename the resulting directory to `gst-android`
-- Move `gst-android` into `./native_bindings/gstreamer/gstreamer_ffi/third-party`
-- Ensure that the correct Android NDK version required by your [downloaded GStreamer version](https://gstreamer.freedesktop.org/download/#android) is installed
+No additional dependencies should be required.
 
-In the directory of the repository run:
 ```bash
 flutter build apk --release
 ```

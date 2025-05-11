@@ -22,9 +22,6 @@ flutter:
   plugin:
     implements: gstreamer
     platforms:
-      android:
-        ffiPlugin: true
-        dartPluginClass: GstreamerFFI
       linux:
         ffiPlugin: true
         dartPluginClass: GstreamerFFI

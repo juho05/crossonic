@@ -59,7 +59,7 @@ class AudioPlayerGstreamer implements AudioPlayer {
   }
 
   @override
-  void init() async {
+  Future<void> init() async {
     gst.init(
       onStateChanged: (oldState, newState) async {
         _gstState = newState;
@@ -67,15 +67,15 @@ class AudioPlayerGstreamer implements AudioPlayer {
         if (_buffering || _desiredState == AudioPlayerEvent.stopped) return;
 
         if (newState == gst.State.playing) {
-          eventStream.add(AudioPlayerEvent.playing);
+          _eventStream.add(AudioPlayerEvent.playing);
         } else if (newState == gst.State.paused &&
             _desiredState == AudioPlayerEvent.paused) {
-          eventStream.add(AudioPlayerEvent.paused);
+          _eventStream.add(AudioPlayerEvent.paused);
         }
       },
       onEOS: () {
         if (_nextURL == null) {
-          eventStream.add(AudioPlayerEvent.stopped);
+          _eventStream.add(AudioPlayerEvent.stopped);
           _desiredState = AudioPlayerEvent.stopped;
         }
       },
@@ -87,7 +87,7 @@ class AudioPlayerGstreamer implements AudioPlayer {
         _nextURL = null;
         canSeek = _nextCanSeek;
         _nextCanSeek = false;
-        eventStream.add(AudioPlayerEvent.advance);
+        _eventStream.add(AudioPlayerEvent.advance);
       },
       onError: (code, message, debugInfo) {
         if (code == -1) {
@@ -188,13 +188,13 @@ class AudioPlayerGstreamer implements AudioPlayer {
   final BehaviorSubject<AudioPlayerEvent> _eventStream =
       BehaviorSubject.seeded(AudioPlayerEvent.stopped);
   @override
-  BehaviorSubject<AudioPlayerEvent> get eventStream => _eventStream;
+  ValueStream<AudioPlayerEvent> get eventStream => _eventStream.stream;
 
   @override
   Future<void> setCurrent(Uri url, [Duration? pos]) async {
     _newStreamStart = true;
     _buffering = url.scheme != "file";
-    eventStream.add(AudioPlayerEvent.loading);
+    _eventStream.add(AudioPlayerEvent.loading);
     gst.setState(gst.State.ready);
     gst.setUrl(url.toString());
     if (pos != null) {

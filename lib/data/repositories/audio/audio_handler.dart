@@ -233,7 +233,7 @@ class AudioHandler {
 
   Future<void> _onNextChanged(Song? song) async {
     if (!_player.initialized && song != null) {
-      await _ensurePlayerLoaded();
+      await _ensurePlayerLoaded(false);
     }
     await _player.setNext(song != null ? _getStreamUri(song) : null);
   }
@@ -310,7 +310,7 @@ class AudioHandler {
 
   Future<void> _ensurePlayerLoaded([bool restorePlayerState = true]) async {
     if (_player.initialized) return;
-    _player.init();
+    await _player.init();
     await _applyReplayGain();
     if (restorePlayerState) {
       await _restorePlayerState();

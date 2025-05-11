@@ -17,6 +17,7 @@ import 'package:crossonic/data/repositories/subsonic/favorites_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/subsonic_repository.dart';
 import 'package:crossonic/data/services/audio_players/audioplayers.dart';
 import 'package:crossonic/data/services/audio_players/gstreamer.dart';
+import 'package:crossonic/data/services/audio_players/messagechannel.dart';
 import 'package:crossonic/data/services/audio_players/player.dart';
 import 'package:crossonic/data/services/database/database.dart';
 import 'package:crossonic/data/services/media_integration/media_integration.dart';
@@ -127,11 +128,12 @@ Future<List<SingleChildWidget>> get providers async {
   final audioSession = await AudioSession.instance;
   if (!kIsWeb &&
       (Platform.isLinux ||
-          Platform.isAndroid ||
           Platform.isMacOS ||
           Platform.isWindows ||
           Platform.isIOS)) {
     audioPlayer = AudioPlayerGstreamer(audioSession);
+  } else if (!kIsWeb && Platform.isAndroid) {
+    audioPlayer = AudioPlayerMessageChannel(audioSession);
   } else {
     audioPlayer = AudioPlayerAudioPlayers();
   }
