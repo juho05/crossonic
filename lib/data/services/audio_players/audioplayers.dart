@@ -231,4 +231,7 @@ class AudioPlayerAudioPlayers implements AudioPlayer {
     }
     await futures.wait;
   }
+
+  @override
+  ValueStream<Duration> get restartPlayback => BehaviorSubject();
 }

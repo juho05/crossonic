@@ -7,6 +7,7 @@ import 'package:crossonic/data/repositories/audio/queue/changable_queue.dart';
 import 'package:crossonic/data/repositories/audio/queue/local_queue.dart';
 import 'package:crossonic/data/repositories/audio/queue/media_queue.dart';
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
+import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/data/repositories/playlist/song_downloader.dart';
 import 'package:crossonic/data/repositories/settings/replay_gain.dart';
 import 'package:crossonic/data/repositories/settings/settings_repository.dart';
@@ -33,6 +34,7 @@ class AudioHandler {
 
   final AudioPlayer _player;
   StreamSubscription? _playerEventSubscription;
+  StreamSubscription? _restartPlaybackSubscription;
 
   final MediaIntegration _integration;
 
@@ -102,6 +104,8 @@ class AudioHandler {
       _queueNextSubscription = _queue.next.listen(_onNextChanged);
 
       _playerEventSubscription = _player.eventStream.listen(_playerEvent);
+      _restartPlaybackSubscription =
+          _player.restartPlayback.listen(_onRestartPlayback);
 
       _settings.replayGain.addListener(_onReplayGainChanged);
       _settings.transcoding.addListener(_onTranscodingChanged);
@@ -207,6 +211,21 @@ class AudioHandler {
     }
   }
 
+  Future<void> _onRestartPlayback(Duration pos) async {
+    Log.warn("Restarting playback at position $pos");
+    pos += _positionOffset;
+    if (!_player.canSeek) {
+      pos = Duration(seconds: (pos.inMilliseconds / 1000.0).round());
+      _positionOffset = pos;
+    }
+    _position.add((position: pos, bufferedPosition: pos));
+    await _player.setCurrent(
+        _getStreamUri(
+            _queue.current.value.song!, !_player.canSeek ? pos : null),
+        _player.canSeek ? pos : null);
+    await _player.play();
+  }
+
   Future<void> _onCurrentChanged(({Song? song, bool fromAdvance}) event) async {
     final playAfterChange = _playOnNextMediaChange;
     _playOnNextMediaChange = false;
@@ -226,15 +245,13 @@ class AudioHandler {
       if (playAfterChange) {
         await _player.play();
       }
+      await _onNextChanged(_queue.next.value);
     }
     _integration.updateMedia(event.song,
         _subsonic.getCoverUri(_auth.con, event.song!.coverId, size: 512));
   }
 
   Future<void> _onNextChanged(Song? song) async {
-    if (!_player.initialized && song != null) {
-      await _ensurePlayerLoaded(false);
-    }
     await _player.setNext(song != null ? _getStreamUri(song) : null);
   }
 
@@ -432,6 +449,7 @@ class AudioHandler {
 
     // dispose player
     await _playerEventSubscription?.cancel();
+    await _restartPlaybackSubscription?.cancel();
     await _player.dispose();
 
     _settings.replayGain.removeListener(_onReplayGainChanged);

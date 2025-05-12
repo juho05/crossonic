@@ -89,6 +89,14 @@ class AudioPlayerMessageChannel implements AudioPlayer {
     await _audioSession.setActive(state == AudioPlayerEvent.playing);
   }
 
+  final BehaviorSubject<Duration> _restartPlayback = BehaviorSubject();
+  @override
+  ValueStream<Duration> get restartPlayback => _restartPlayback.stream;
+
+  Future<void> _onRestart(int millis) async {
+    _restartPlayback.add(Duration(milliseconds: millis));
+  }
+
   @override
   Future<void> pause() async {
     await _channel.invokeMethod("pause");
@@ -115,6 +123,7 @@ class AudioPlayerMessageChannel implements AudioPlayer {
 
   @override
   Future<void> setNext(Uri? url) async {
+    if (!initialized) return;
     if (url != null) {
       _nextCanSeek = url.scheme == "file" ||
           (url.queryParameters.containsKey("format") &&
@@ -183,12 +192,14 @@ class AudioPlayerMessageChannel implements AudioPlayer {
 
   Future<void> _onPlatformEvent(dynamic event) async {
     final eventObj = event as Map<Object?, dynamic>;
+    final data = eventObj["data"] as Map<Object?, dynamic>?;
     switch (eventObj["name"]) {
       case "advance":
         await _onAdvance();
       case "state":
-        await _onStateChange(
-            (eventObj["data"] as Map<Object?, dynamic>)["state"] as String);
+        await _onStateChange(data!["state"] as String);
+      case "restart":
+        await _onRestart(data!["pos"] as int);
     }
   }
 

@@ -247,4 +247,7 @@ class AudioPlayerGstreamer implements AudioPlayer {
 
   @override
   double get volume => _targetVolume;
+
+  @override
+  ValueStream<Duration> get restartPlayback => BehaviorSubject();
 }

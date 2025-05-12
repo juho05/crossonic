@@ -46,7 +46,6 @@ public class AudioPlayer implements Player.Listener {
     }
 
     /** @noinspection DataFlowIssue*/
-    @UiThread
     private void onMethodCall(MethodCall call, MethodChannel.Result result) {
         switch (call.method) {
             case "init": init(); break;
@@ -100,18 +99,22 @@ public class AudioPlayer implements Player.Listener {
         if (_player.getMediaItemCount() > _player.getCurrentMediaItemIndex()+1) {
             items.add(_player.getMediaItemAt(_player.getCurrentMediaItemIndex()+1));
         }
+        Log.d("AudioPlayer", "Replace playlist with " + items.size() + " items");
         _player.setMediaItems(items, 0, pos == 0 ? C.TIME_UNSET : pos);
         _player.prepare();
     }
 
     private void setNext(String uri) {
         if (uri == null) {
+            Log.d("AudioPlayer", "Clear next uri");
             _player.removeMediaItem(_player.getCurrentMediaItemIndex()+1);
             return;
         }
         if (_player.getMediaItemCount() > _player.getCurrentMediaItemIndex()+1) {
+            Log.d("AudioPlayer", "Replace next uri");
             _player.replaceMediaItem(_player.getCurrentMediaItemIndex()+1, MediaItem.fromUri(uri));
         } else {
+            Log.d("AudioPlayer", "Add next uri");
             _player.addMediaItem(MediaItem.fromUri(uri));
         }
     }
@@ -191,13 +194,21 @@ public class AudioPlayer implements Player.Listener {
     @Override
     public void onPositionDiscontinuity(@NonNull Player.PositionInfo oldPosition, @NonNull Player.PositionInfo newPosition, int reason) {
         Log.d("AudioPlayer", "Position Discontinuity: " + oldPosition.positionMs + "ms -> " + newPosition.positionMs + "ms, reason: " + reason);
+        if (reason == Player.DISCONTINUITY_REASON_INTERNAL && newPosition.positionMs < oldPosition.positionMs && oldPosition.positionMs - newPosition.positionMs > 1000) {
+            _player.pause();
+            final Map<String, Object> data = new HashMap<>();
+            data.put("pos", (int)oldPosition.positionMs);
+            sendEvent("restart", data);
+        }
     }
 
     private void sendEvent(String name, Map<String, Object> data) {
         if (_events == null) return;
         final Map<String, Object> map = new HashMap<>();
         map.put("name", name);
-        map.put("data", data);
+        if (data != null) {
+            map.put("data", data);
+        }
         _events.success(map);
     }
 

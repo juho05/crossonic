@@ -10,6 +10,7 @@ enum AudioPlayerEvent {
 
 abstract interface class AudioPlayer {
   ValueStream<AudioPlayerEvent> get eventStream;
+  ValueStream<Duration> get restartPlayback;
   Future<Duration> get position;
   Future<Duration> get bufferedPosition;
   bool get supportsFileUri;
