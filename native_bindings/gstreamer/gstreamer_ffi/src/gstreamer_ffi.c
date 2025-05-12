@@ -3,10 +3,6 @@
 #include <gst/gst.h>
 #include <stdio.h>
 
-#ifdef __ANDROID__
-#include <android/log.h>
-#endif
-
 #ifdef IOS
 #include "gst_ios_init.h"
 #endif
@@ -152,12 +148,7 @@ void gst_log(GstDebugCategory * category,
 {
   if (level <= gst_debug_category_get_threshold (category))
   {
-    #ifdef __ANDROID__
-    __android_log_print(ANDROID_LOG_ERROR, "flutter", "%s,%s: %s",
-                        file, function, gst_debug_message_get(message));
-    #else
     printf("%s,%s: %s", file, function, gst_debug_message_get(message));
-    #endif
   }
 }
 
