@@ -4,18 +4,50 @@ import 'package:crossonic/data/services/audio_players/player.dart';
 import 'package:flutter/services.dart';
 import 'package:rxdart/rxdart.dart';
 
-// TODO configure audio session
 class AudioPlayerMessageChannel implements AudioPlayer {
   static const _channel =
       MethodChannel("crossonic.julianh.de/audioplayer/messages");
   static const _events =
       EventChannel("crossonic.julianh.de/audioplayer/events");
 
-  AudioPlayerMessageChannel(AudioSession audioSession) {
+  final AudioSession _audioSession;
+
+  AudioPlayerMessageChannel(AudioSession audioSession)
+      : _audioSession = audioSession {
     _events
         .receiveBroadcastStream()
         .doOnError(_onPlatformError)
         .listen(_onPlatformEvent);
+
+    _audioSession.interruptionEventStream.listen((event) async {
+      if (event.begin) {
+        switch (event.type) {
+          case AudioInterruptionType.duck:
+            _ducking = true;
+            _applyVolume();
+            break;
+          case AudioInterruptionType.pause:
+          case AudioInterruptionType.unknown:
+            await pause();
+            break;
+        }
+      } else {
+        switch (event.type) {
+          case AudioInterruptionType.duck:
+            _ducking = false;
+            _applyVolume();
+            break;
+          case AudioInterruptionType.pause:
+          case AudioInterruptionType.unknown:
+            await play();
+            break;
+        }
+      }
+    });
+
+    _audioSession.becomingNoisyEventStream.listen((_) async {
+      await pause();
+    });
   }
 
   @override
@@ -54,6 +86,7 @@ class AudioPlayerMessageChannel implements AudioPlayer {
       case AudioPlayerEvent.advance:
         break;
     }
+    await _audioSession.setActive(state == AudioPlayerEvent.playing);
   }
 
   @override
@@ -108,16 +141,25 @@ class AudioPlayerMessageChannel implements AudioPlayer {
   @override
   bool get canSeek => _canSeek;
 
-  double _volume = 1;
-
   @override
-  double get volume => _volume;
+  double get volume => _targetVolume;
+
+  double _targetVolume = 1;
+  bool _ducking = false;
 
   @override
   Future<void> setVolume(double volume) async {
     volume = volume.clamp(0, 1);
-    await _channel.invokeMethod("setVolume", {"volume": volume});
-    _volume = volume;
+    _targetVolume = volume;
+    await _applyVolume();
+  }
+
+  Future<void> _applyVolume() async {
+    if (_ducking) {
+      await _channel.invokeMethod("setVolume", {"volume": volume * 0.5});
+    } else {
+      await _channel.invokeMethod("setVolume", {"volume": volume});
+    }
   }
 
   bool _initialized = false;
@@ -136,6 +178,7 @@ class AudioPlayerMessageChannel implements AudioPlayer {
     if (!initialized) return;
     await _channel.invokeMethod("dispose");
     _initialized = false;
+    await _audioSession.setActive(false);
   }
 
   Future<void> _onPlatformEvent(dynamic event) async {

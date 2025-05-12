@@ -79,7 +79,6 @@ public class AudioPlayer implements Player.Listener {
     }
 
     private void play() {
-        Log.d("AudioPlayer", "play");
         _player.play();
     }
 
@@ -92,7 +91,6 @@ public class AudioPlayer implements Player.Listener {
     }
 
     private void setCurrent(String uri, int pos) {
-        Log.d("AudioPlayer", "Current: " + uri);
         if (uri == null) {
             _player.clearMediaItems();
             return;
@@ -103,13 +101,10 @@ public class AudioPlayer implements Player.Listener {
             items.add(_player.getMediaItemAt(_player.getCurrentMediaItemIndex()+1));
         }
         _player.setMediaItems(items, 0, pos == 0 ? C.TIME_UNSET : pos);
-        Log.d("AudioPlayer", "playlist set");
         _player.prepare();
-        Log.d("AudioPlayer", "prepared");
     }
 
     private void setNext(String uri) {
-        Log.d("AudioPlayer", "Next: " + uri);
         if (uri == null) {
             _player.removeMediaItem(_player.getCurrentMediaItemIndex()+1);
             return;
@@ -149,6 +144,7 @@ public class AudioPlayer implements Player.Listener {
     @Override
     public void onPlaybackStateChanged(int playbackState) {
         if (_playbackState == playbackState) return;
+        Log.d("AudioPlayer", "State: " + playbackState);
         _playbackState = playbackState;
         _playing = false;
         sendPlaybackStateEvent();
@@ -187,10 +183,14 @@ public class AudioPlayer implements Player.Listener {
                 // STATE_IDLE should not send a stopped event
                 return;
         }
-        Log.d("AudioPlayer", "state change: " + state);
         final Map<String, Object> data = new HashMap<>();
         data.put("state", state);
         sendEvent("state", data);
+    }
+
+    @Override
+    public void onPositionDiscontinuity(@NonNull Player.PositionInfo oldPosition, @NonNull Player.PositionInfo newPosition, int reason) {
+        Log.d("AudioPlayer", "Position Discontinuity: " + oldPosition.positionMs + "ms -> " + newPosition.positionMs + "ms, reason: " + reason);
     }
 
     private void sendEvent(String name, Map<String, Object> data) {
