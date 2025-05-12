@@ -74,7 +74,7 @@ class FavoritesRepository extends ChangeNotifier {
     }
 
     if (result is Ok) {
-      update(type, id, DateTime.now());
+      update(type, id, favorite ? DateTime.now() : null);
     }
 
     return result;
