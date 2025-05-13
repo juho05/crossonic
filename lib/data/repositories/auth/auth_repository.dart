@@ -27,7 +27,11 @@ class AuthRepository extends ChangeNotifier {
 
   Connection get con {
     if (!isAuthenticated) throw UnauthenticatedException();
-    return Connection(baseUri: _serverUri!, auth: _state!);
+    return Connection(
+      baseUri: _serverUri!,
+      auth: _state!,
+      supportsPost: _serverFeatures.formPost.contains(1),
+    );
   }
 
   Uri? get serverUri => _serverUri;
@@ -79,8 +83,10 @@ class AuthRepository extends ChangeNotifier {
     final info = result.value;
 
     final passwordPingRes = await _openSubsonicService.ping(Connection(
-        baseUri: serverUri,
-        auth: AuthStatePassword(username: "x", password: "x")));
+      baseUri: serverUri,
+      auth: AuthStatePassword(username: "x", password: "x"),
+      supportsPost: false,
+    ));
 
     bool supportsPasswordAuth = true;
     switch (passwordPingRes) {
@@ -94,8 +100,10 @@ class AuthRepository extends ChangeNotifier {
     }
 
     final tokenPingRes = await _openSubsonicService.ping(Connection(
-        baseUri: serverUri,
-        auth: AuthStateToken(username: "x", password: "x")));
+      baseUri: serverUri,
+      auth: AuthStateToken(username: "x", password: "x"),
+      supportsPost: false,
+    ));
 
     bool supportsTokenAuth = true;
     switch (tokenPingRes) {
@@ -131,6 +139,7 @@ class AuthRepository extends ChangeNotifier {
     final connection = Connection(
       baseUri: _serverUri!,
       auth: auth,
+      supportsPost: _serverFeatures.formPost.contains(1),
     );
 
     final result = await _openSubsonicService.ping(connection);
@@ -155,8 +164,10 @@ class AuthRepository extends ChangeNotifier {
 
   Future<Result<void>> loginApiKey(String apiKey) async {
     final connection = Connection(
-        baseUri: _serverUri!,
-        auth: AuthStateApiKey(username: "", apiKey: apiKey));
+      baseUri: _serverUri!,
+      auth: AuthStateApiKey(username: "", apiKey: apiKey),
+      supportsPost: _serverFeatures.formPost.contains(1),
+    );
     final result = await _openSubsonicService.tokenInfo(connection);
     switch (result) {
       case Err():
@@ -189,8 +200,11 @@ class AuthRepository extends ChangeNotifier {
     if (isAuthenticated) {
       result = await _openSubsonicService.getOpenSubsonicExtensions(con);
     } else {
-      result = await _openSubsonicService.getOpenSubsonicExtensions(
-          Connection(baseUri: _serverUri!, auth: EmptyAuth()));
+      result = await _openSubsonicService.getOpenSubsonicExtensions(Connection(
+        baseUri: _serverUri!,
+        auth: EmptyAuth(),
+        supportsPost: false,
+      ));
     }
     if (result is Ok) {
       final extensions =

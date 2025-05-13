@@ -10,6 +10,8 @@ class EmptyAuth extends SubsonicAuth {
 class Connection {
   final Uri baseUri;
   final SubsonicAuth auth;
+  final bool supportsPost;
 
-  const Connection({required this.baseUri, required this.auth});
+  const Connection(
+      {required this.baseUri, required this.auth, required this.supportsPost});
 }

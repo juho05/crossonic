@@ -424,7 +424,7 @@ class SubsonicService {
   }
 
   Future<Result<ServerInfo>> fetchServerInfo(Uri baseUri) async {
-    final result = await _request(baseUri, "ping", {}, EmptyAuth());
+    final result = await _request(baseUri, "ping", {}, EmptyAuth(), false);
     switch (result) {
       case Err():
         return Result.error(result.error);
@@ -505,8 +505,8 @@ class SubsonicService {
     String? responseKey,
   ) async {
     try {
-      final result =
-          await _request(con.baseUri, endpointName, queryParams, con.auth);
+      final result = await _request(
+          con.baseUri, endpointName, queryParams, con.auth, con.supportsPost);
       switch (result) {
         case Err():
           return Result.error(result.error);
@@ -557,8 +557,12 @@ class SubsonicService {
     }
   }
 
-  Future<Result<http.Response>> _request(Uri baseUri, String endpointName,
-      Map<String, Iterable<String>> queryParams, SubsonicAuth auth) async {
+  Future<Result<http.Response>> _request(
+      Uri baseUri,
+      String endpointName,
+      Map<String, Iterable<String>> queryParams,
+      SubsonicAuth auth,
+      bool post) async {
     queryParams = generateQuery(queryParams, auth);
     final queryStr = Uri(queryParameters: queryParams).query;
     {
@@ -576,12 +580,14 @@ class SubsonicService {
         sanitizedQuery["apiKey"] = ["xxx"];
       }
       Log.debug(
-          "POST $endpointName?${Uri(queryParameters: sanitizedQuery).query}");
+          "${post ? "POST" : "GET"} $endpointName?${Uri(queryParameters: sanitizedQuery).query}");
     }
     try {
-      final response = await http.post(Uri.parse('$baseUri/rest/$endpointName'),
-          body: queryStr,
-          headers: {"Content-Type": "application/x-www-form-urlencoded"});
+      final response = post
+          ? await http.post(Uri.parse('$baseUri/rest/$endpointName'),
+              body: queryStr,
+              headers: {"Content-Type": "application/x-www-form-urlencoded"})
+          : await http.get(Uri.parse('$baseUri/rest/$endpointName?$queryStr'));
       if (response.statusCode != 200 && response.statusCode != 201) {
         if (response.statusCode == 401) {
           throw UnauthenticatedException();
