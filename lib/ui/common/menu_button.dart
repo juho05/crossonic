@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:crossonic/ui/common/with_context_menu.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class MenuButton extends StatelessWidget {
@@ -15,6 +18,8 @@ class MenuButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final compact =
+        kIsWeb || Platform.isWindows || Platform.isMacOS || Platform.isLinux;
     return PopupMenuButton<ContextMenuOption>(
       icon: icon,
       padding: padding,
@@ -27,10 +32,10 @@ class MenuButton extends StatelessWidget {
           .map(
             (o) => PopupMenuItem<ContextMenuOption>(
               value: o,
-              height: 40,
+              height: compact ? 40 : kMinInteractiveDimension,
               child: ListTile(
-                minVerticalPadding: 0,
-                minTileHeight: 40,
+                minVerticalPadding: compact ? 0 : null,
+                minTileHeight: compact ? 40 : null,
                 mouseCursor: SystemMouseCursors.click,
                 leading: o.icon != null ? Icon(o.icon) : null,
                 title: Text(o.title),
