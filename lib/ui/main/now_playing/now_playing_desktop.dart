@@ -211,18 +211,21 @@ class NowPlayingDesktop extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.end,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
+                      if (constraints.maxWidth >= 1050)
+                        Text((_viewModel.volume * 100).round().toString()),
                       if (constraints.maxWidth >= 850)
                         ConstrainedBox(
                           constraints: BoxConstraints.loose(Size.fromWidth(
-                              constraints.maxWidth > 1050
+                              constraints.maxWidth >= 1120
                                   ? 150
-                                  : (constraints.maxWidth > 950 ? 125 : 100))),
+                                  : (constraints.maxWidth >= 950 ? 125 : 100))),
                           child: Slider(
+                            padding: const EdgeInsets.only(left: 15, right: 20),
                             value: _viewModel.volume,
                             onChanged: (double value) {
                               _viewModel.volume = value;
                             },
-                            min: 0.025,
+                            min: 0,
                             max: 1,
                             inactiveColor: Theme.of(context)
                                 .colorScheme

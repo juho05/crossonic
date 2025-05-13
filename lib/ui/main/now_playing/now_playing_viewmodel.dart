@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:crossonic/data/repositories/audio/audio_handler.dart';
 import 'package:crossonic/data/repositories/subsonic/favorites_repository.dart';
@@ -47,11 +48,11 @@ class NowPlayingViewModel extends ChangeNotifier {
   set volume(double volume) {
     _volumeThrottle ??= Throttle1(
       action: (volume) {
-        _audioHandler.volume = volume;
-        _volume = _audioHandler.volume;
+        _audioHandler.volume = _volumeFromLinear(volume);
+        _volume = _volumeToLinear(_audioHandler.volume);
         notifyListeners();
       },
-      delay: Duration(milliseconds: 250),
+      delay: Duration(milliseconds: 100),
       leading: true,
       trailing: true,
     );
@@ -158,5 +159,13 @@ class NowPlayingViewModel extends ChangeNotifier {
     await _currentSongSubscription.cancel();
     await _playbackStatusSubscription.cancel();
     super.dispose();
+  }
+
+  double _volumeToLinear(double volume) {
+    return pow(volume, 1.0 / 3) as double;
+  }
+
+  double _volumeFromLinear(double volume) {
+    return pow(volume, 3) as double;
   }
 }
