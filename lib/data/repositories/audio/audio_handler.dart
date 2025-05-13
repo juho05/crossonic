@@ -212,6 +212,7 @@ class AudioHandler {
   }
 
   Future<void> _onRestartPlayback(Duration pos) async {
+    if (_queue.current.value.song == null) return;
     Log.warn("Restarting playback at position $pos");
     pos += _positionOffset;
     if (!_player.canSeek) {
@@ -219,10 +220,15 @@ class AudioHandler {
       _positionOffset = pos;
     }
     _position.add((position: pos, bufferedPosition: pos));
+
+    final canSeek =
+        _downloader.getPath(_queue.current.value.song!.id) != null ||
+            _transcoding.$1.name == "raw";
+
     await _player.setCurrent(
-        _getStreamUri(
-            _queue.current.value.song!, !_player.canSeek ? pos : null),
-        _player.canSeek ? pos : null);
+        _getStreamUri(_queue.current.value.song!, !canSeek ? pos : null),
+        canSeek ? pos : null);
+
     await _player.play();
   }
 
