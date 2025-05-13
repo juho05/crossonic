@@ -5,12 +5,29 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.OptIn;
 import androidx.annotation.UiThread;
 import androidx.media3.common.C;
 import androidx.media3.common.MediaItem;
 import androidx.media3.common.PlaybackException;
 import androidx.media3.common.Player;
+import androidx.media3.common.TrackSelectionParameters;
+import androidx.media3.common.util.UnstableApi;
+import androidx.media3.datasource.cache.CacheDataSource;
+import androidx.media3.datasource.cache.SimpleCache;
 import androidx.media3.exoplayer.ExoPlayer;
+import androidx.media3.exoplayer.Renderer;
+import androidx.media3.exoplayer.RenderersFactory;
+import androidx.media3.exoplayer.audio.MediaCodecAudioRenderer;
+import androidx.media3.exoplayer.mediacodec.MediaCodecSelector;
+import androidx.media3.exoplayer.source.DefaultMediaSourceFactory;
+import androidx.media3.extractor.DefaultExtractorsFactory;
+import androidx.media3.extractor.Extractor;
+import androidx.media3.extractor.ExtractorsFactory;
+import androidx.media3.extractor.mp3.Mp3Extractor;
+import androidx.media3.extractor.mp4.FragmentedMp4Extractor;
+import androidx.media3.extractor.mp4.Mp4Extractor;
+import androidx.media3.extractor.text.SubtitleParser;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -64,9 +81,36 @@ public class AudioPlayer implements Player.Listener {
         result.success(null);
     }
 
+    @OptIn(markerClass = UnstableApi.class)
     private void init() {
         if (_player != null) return;
-        _player = new ExoPlayer.Builder(_context).build();
+
+        // only enable audio renderers to allow unused renderers to be removed by code shrinking
+        RenderersFactory audioOnlyRenderersFactory =
+                (handler, videoListener, audioListener, textOutput, metadataOutput) ->
+                    new Renderer[]{
+                        new MediaCodecAudioRenderer(_context, MediaCodecSelector.DEFAULT, handler, audioListener)
+                    };
+
+        final ExoPlayer.Builder builder = new ExoPlayer.Builder(_context, audioOnlyRenderersFactory);
+        // enable seeking in MP3 files and other files that only support constant bitrate seeking
+        builder.setMediaSourceFactory(new DefaultMediaSourceFactory(_context, new DefaultExtractorsFactory().setConstantBitrateSeekingEnabled(true)));
+        _player = builder.build();
+        // enable audio offload for decreased battery usage
+        _player.setTrackSelectionParameters(
+                _player.getTrackSelectionParameters().buildUpon().
+                        setAudioOffloadPreferences(new TrackSelectionParameters.AudioOffloadPreferences.Builder()
+                                .setAudioOffloadMode(TrackSelectionParameters.AudioOffloadPreferences.AUDIO_OFFLOAD_MODE_ENABLED)
+                                .setIsGaplessSupportRequired(true)
+                                .build())
+                        // disable all track types except for audio and default/unknown tracks
+                        .setTrackTypeDisabled(C.TRACK_TYPE_VIDEO, true)
+                        .setTrackTypeDisabled(C.TRACK_TYPE_IMAGE, true)
+                        .setTrackTypeDisabled(C.TRACK_TYPE_CAMERA_MOTION, true)
+                        .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, true)
+                        .setTrackTypeDisabled(C.TRACK_TYPE_METADATA, true)
+                        .build()
+        );
         _player.addListener(this);
     }
 
