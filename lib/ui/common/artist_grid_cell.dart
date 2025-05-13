@@ -1,5 +1,5 @@
 import 'package:crossonic/ui/common/artist_grid_cell_viewmodel.dart';
-import 'package:crossonic/ui/common/context_menu_button.dart';
+import 'package:crossonic/ui/common/menu_button.dart';
 import 'package:crossonic/ui/common/cover_art_decorated.dart';
 import 'package:crossonic/ui/common/with_context_menu.dart';
 import 'package:crossonic/utils/result_toast.dart';
@@ -37,8 +37,6 @@ class ArtistGridCell extends StatefulWidget {
 
 class _ArtistGridCellState extends State<ArtistGridCell> {
   late final ArtistGridCellViewModel _viewModel;
-
-  final _popupMenuButton = GlobalKey<State>();
 
   @override
   void initState() {
@@ -105,7 +103,6 @@ class _ArtistGridCellState extends State<ArtistGridCell> {
             ),
         ];
         return WithContextMenu(
-          popupMenuButtonKey: _popupMenuButton,
           options: menuOptions,
           child: Stack(
             children: [
@@ -171,8 +168,7 @@ class _ArtistGridCellState extends State<ArtistGridCell> {
                           child: SizedBox(
                             width: largeLayout ? 40 : 30,
                             height: largeLayout ? 40 : 30,
-                            child: ContextMenuButton(
-                              popupMenuButtonKey: _popupMenuButton,
+                            child: MenuButton(
                               options: menuOptions,
                               padding: const EdgeInsets.all(0),
                               icon: Icon(

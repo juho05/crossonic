@@ -1,5 +1,5 @@
 import 'package:crossonic/data/repositories/playlist/song_downloader.dart';
-import 'package:crossonic/ui/common/context_menu_button.dart';
+import 'package:crossonic/ui/common/menu_button.dart';
 import 'package:crossonic/ui/common/cover_art.dart';
 import 'package:crossonic/ui/common/with_context_menu.dart';
 import 'package:flutter/material.dart';
@@ -33,8 +33,6 @@ class CoverArtDecorated extends StatefulWidget {
 
 class _CoverArtDecoratedState extends State<CoverArtDecorated> {
   bool get _showMenu => widget.menuOptions.isNotEmpty;
-
-  final _popupMenuButton = GlobalKey<State>();
 
   @override
   Widget build(BuildContext context) {
@@ -125,8 +123,7 @@ class _CoverArtDecoratedState extends State<CoverArtDecorated> {
                               child: SizedBox(
                                 width: largeLayout ? 40 : 30,
                                 height: largeLayout ? 40 : 30,
-                                child: ContextMenuButton(
-                                  popupMenuButtonKey: _popupMenuButton,
+                                child: MenuButton(
                                   options: widget.menuOptions,
                                   padding: const EdgeInsets.all(0),
                                   icon: Icon(
@@ -152,7 +149,6 @@ class _CoverArtDecoratedState extends State<CoverArtDecorated> {
     if (_showMenu) {
       return WithContextMenu(
         options: widget.menuOptions,
-        popupMenuButtonKey: _popupMenuButton,
         child: child,
       );
     }

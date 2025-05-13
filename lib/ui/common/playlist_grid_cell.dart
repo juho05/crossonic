@@ -1,5 +1,5 @@
 import 'package:crossonic/data/repositories/playlist/song_downloader.dart';
-import 'package:crossonic/ui/common/context_menu_button.dart';
+import 'package:crossonic/ui/common/menu_button.dart';
 import 'package:crossonic/ui/common/cover_art_decorated.dart';
 import 'package:crossonic/ui/common/with_context_menu.dart';
 import 'package:flutter/foundation.dart';
@@ -41,8 +41,6 @@ class PlaylistGridCell extends StatefulWidget {
 }
 
 class _PlaylistGridCellState extends State<PlaylistGridCell> {
-  final _popupMenuButton = GlobalKey<State>();
-
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
@@ -91,7 +89,6 @@ class _PlaylistGridCellState extends State<PlaylistGridCell> {
         ),
     ];
     return WithContextMenu(
-      popupMenuButtonKey: _popupMenuButton,
       options: menuOptions,
       child: Stack(
         children: [
@@ -158,8 +155,7 @@ class _PlaylistGridCellState extends State<PlaylistGridCell> {
                       child: SizedBox(
                         width: largeLayout ? 40 : 30,
                         height: largeLayout ? 40 : 30,
-                        child: ContextMenuButton(
-                          popupMenuButtonKey: _popupMenuButton,
+                        child: MenuButton(
                           options: menuOptions,
                           padding: const EdgeInsets.all(0),
                           icon: Icon(

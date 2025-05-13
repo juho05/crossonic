@@ -2,7 +2,7 @@ import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:crossonic/data/repositories/audio/audio_handler.dart';
 import 'package:crossonic/routing/router.gr.dart';
-import 'package:crossonic/ui/common/context_menu_button.dart';
+import 'package:crossonic/ui/common/menu_button.dart';
 import 'package:crossonic/ui/common/cover_art.dart';
 import 'package:crossonic/ui/common/dialogs/chooser.dart';
 import 'package:crossonic/ui/main/now_playing/now_playing_menu_options.dart';
@@ -242,7 +242,7 @@ class NowPlayingDesktop extends StatelessWidget {
                         },
                         icon: const Icon(Icons.queue_music),
                       ),
-                      ContextMenuButton(
+                      MenuButton(
                         options: getNowPlayingMenuOptions(context, _viewModel),
                       ),
                       const SizedBox(width: 5),

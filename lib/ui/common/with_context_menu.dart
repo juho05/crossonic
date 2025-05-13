@@ -1,6 +1,6 @@
-import 'dart:ui';
-
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class ContextMenuOption {
   final IconData? icon;
@@ -14,66 +14,58 @@ class ContextMenuOption {
   });
 }
 
-class WithContextMenu extends StatelessWidget {
+class WithContextMenu extends StatefulWidget {
   final Widget child;
-  final GlobalKey<State> popupMenuButtonKey;
   final Iterable<ContextMenuOption> options;
 
   const WithContextMenu({
     super.key,
     required this.child,
-    required this.popupMenuButtonKey,
     required this.options,
   });
 
   @override
+  State<WithContextMenu> createState() => _WithContextMenuState();
+}
+
+class _WithContextMenuState extends State<WithContextMenu> {
+  final MenuController _controller = MenuController();
+
+  @override
   Widget build(BuildContext context) {
-    Offset? mouseClickPosition;
     return GestureDetector(
-      onSecondaryTapDown: (details) {
-        if (details.kind != PointerDeviceKind.mouse) return;
-        mouseClickPosition = details.globalPosition;
-      },
-      onSecondaryTap: () async {
-        if (mouseClickPosition == null || options.isEmpty) return;
-        final overlay = Overlay.of(context).context.findRenderObject();
-        if (overlay == null) return;
-        final popupButtonObject =
-            popupMenuButtonKey.currentContext?.findRenderObject();
-        if (popupButtonObject == null) return;
-        final mousePos = mouseClickPosition;
-        final mediaQuery = MediaQuery.of(context);
-        final result = showMenu(
-          context: context,
-          position: RelativeRect.fromRect(
-              Rect.fromLTWH(
-                mousePos!.dx -
-                    (mediaQuery.size.width - overlay.paintBounds.width),
-                mousePos.dy - 56, // app bar: 56px
-                popupButtonObject.paintBounds.width,
-                popupButtonObject.paintBounds.height,
-              ),
-              Rect.fromLTWH(
-                  0, 0, overlay.paintBounds.width, overlay.paintBounds.height)),
-          items: options
-              .map(
-                (o) => PopupMenuItem<ContextMenuOption>(
-                  value: o,
-                  child: ListTile(
-                    leading: o.icon != null ? Icon(o.icon) : null,
-                    title: Text(o.title),
-                  ),
-                ),
-              )
-              .toList(),
-        );
-        mouseClickPosition = null;
-        final option = await result;
-        if (option != null && option.onSelected != null) {
-          option.onSelected!();
-        }
-      },
-      child: child,
+      onTapDown: _handleTapDown,
+      onSecondaryTapDown: _handleSecondaryTapDown,
+      behavior: HitTestBehavior.opaque,
+      child: MenuAnchor(
+        controller: _controller,
+        consumeOutsideTap: true,
+        anchorTapClosesMenu: true,
+        menuChildren: widget.options
+            .map((o) => MenuItemButton(
+                  onPressed: o.onSelected,
+                  leadingIcon: o.icon != null ? Icon(o.icon) : null,
+                  child: Text(o.title),
+                ))
+            .toList(),
+        child: widget.child,
+      ),
     );
+  }
+
+  void _handleSecondaryTapDown(TapDownDetails details) {
+    _controller.open(position: details.localPosition);
+  }
+
+  void _handleTapDown(TapDownDetails details) {
+    if (_controller.isOpen) {
+      return;
+    }
+    if (defaultTargetPlatform == TargetPlatform.iOS ||
+        defaultTargetPlatform == TargetPlatform.macOS) {
+      if (HardwareKeyboard.instance.isControlPressed) {
+        _controller.open(position: details.localPosition);
+      }
+    }
   }
 }

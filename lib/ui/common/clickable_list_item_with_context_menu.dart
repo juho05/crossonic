@@ -1,6 +1,6 @@
 import 'package:crossonic/data/repositories/playlist/song_downloader.dart';
 import 'package:crossonic/ui/common/clickable_list_item.dart';
-import 'package:crossonic/ui/common/context_menu_button.dart';
+import 'package:crossonic/ui/common/menu_button.dart';
 import 'package:crossonic/ui/common/with_context_menu.dart';
 import 'package:flutter/material.dart';
 
@@ -38,13 +38,10 @@ class ClickableListItemWithContextMenu extends StatefulWidget {
 
 class _ClickableListItemWithContextMenuState
     extends State<ClickableListItemWithContextMenu> {
-  final _popupMenuButton = GlobalKey<State>();
-
   @override
   Widget build(BuildContext context) {
     return WithContextMenu(
       options: widget.options,
-      popupMenuButtonKey: _popupMenuButton,
       child: ClickableListItem(
         title: widget.title,
         titleBold: widget.titleBold,
@@ -62,8 +59,7 @@ class _ClickableListItemWithContextMenuState
                       children: widget.extraTrailing!,
                     ),
                   if (widget.options.isNotEmpty)
-                    ContextMenuButton(
-                      popupMenuButtonKey: _popupMenuButton,
+                    MenuButton(
                       options: widget.options,
                     ),
                 ],
