@@ -136,52 +136,55 @@ jobs:
           name: appimage-x86-64-result
           path: ./*.AppImage
 
-  #  build_windows_zip_x86_64:
-  #    needs: build
-  #    runs-on: windows-latest
-  #
-  #    steps:
-  #      - name: Fix long file paths
-  #        run: git config --system core.longpaths true
-  #
-  #      - name: Checkout repository
-  #        uses: actions/checkout@v4
-  #
-  #     # TODO: install GStreamer
-  #
-  #      - uses: subosito/flutter-action@v2
-  #        with:
-  #          flutter-version: ${{ env.FLUTTER_VERSION }}
-  #          channel: "stable"
-  #
-  #      - name: Dependencies
-  #        working-directory: app
-  #        run: flutter pub get
-  #      - name: Build generated files
-  #        working-directory: app
-  #        run: flutter pub run build_runner build
-  #      - name: Compile for Windows
-  #        working-directory: app
-  #        run: flutter build windows --release
-  #
-  #      - name: Zip compiled files
-  #        working-directory: app
-  #        run: Compress-Archive -Path build/windows/x64/runner/Release/* -DestinationPath Crossonic.zip
-  #
-  #      - name: Upload zip
-  #        uses: actions/upload-artifact@v4
-  #        with:
-  #          name: windows-zip-x86-64-result
-  #          path: app/Crossonic.zip
+  build_windows_x86_64:
+    needs: build
+    runs-on: windows-latest
+
+    steps:
+      - name: Fix long file paths
+        run: git config --system core.longpaths true
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup GStreamer
+        uses: marcpabst/setup-gstreamer@3bafa9efb10f967158fceb6b5b34c2fc4399d141 # v1.5.3
+        with:
+          version: "1.26.1"
+          arch: "x86_64"
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: "stable"
+
+      - name: Dependencies
+        working-directory: .
+        run: flutter pub get
+      - name: Build generated files
+        working-directory: .
+        run: flutter pub run build_runner build
+      - name: Compile for Windows
+        working-directory: .
+        run: flutter build windows --release
+
+      - name: Zip compiled files
+        working-directory: .
+        run: Compress-Archive -Path build/windows/x64/runner/Release/* -DestinationPath Crossonic.zip
+
+      - name: Upload zip
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-zip-x86-64-result
+          path: Crossonic.zip
 
   release:
     needs:
       - build
       - build_apk
       - build_linux_x86_64
-    #      - build_windows_zip_x86_64
+      - build_windows_x86_64
     runs-on: ubuntu-22.04
-
     steps:
       - uses: actions/checkout@v4
 
@@ -286,21 +289,21 @@ jobs:
           asset_content_type: application/x-appimage
 
       # WINDOWS ZIP (x86_64)
-#      - name: Download windows zip file
-#        uses: actions/download-artifact@v4
-#        with:
-#          name: windows-zip-x86-64-result
-#          path: windows-zip-x86-64-result
-#
-#      - name: Copy zip file to root
-#        run: cp windows-zip-x86-64-result/*.zip result.zip
-#
-#      - name: Upload Release Asset
-#        uses: actions/upload-release-asset@v1
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#        with:
-#          upload_url: ${{ steps.draft_release.outputs.upload_url }}
-#          asset_path: result.zip
-#          asset_name: Crossonic-${{ needs.build.outputs.version }}-windows-x86-64.zip
-#          asset_content_type: application/zip
+      - name: Download windows zip file
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-zip-x86-64-result
+          path: windows-zip-x86-64-result
+
+      - name: Copy zip file to root
+        run: cp windows-zip-x86-64-result/*.zip result.zip
+
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.draft_release.outputs.upload_url }}
+          asset_path: result.zip
+          asset_name: Crossonic-${{ needs.build.outputs.version }}-windows-x86-64.zip
+          asset_content_type: application/zip

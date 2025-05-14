@@ -6,6 +6,8 @@ A cross platform music client for [crossonic-server](https://github.com/juho05/c
 
 [Screenshots](#screenshots)
 
+[Install](#installation)
+
 ## Status
 
 This app is still in development. Some features are missing and bugs are to be expected.
@@ -32,7 +34,7 @@ See [Supported platforms](#supported-platforms) for a status per platform.
   - [x] drag&drop reorder
   - [x] change cover (*crossonic-server only*)
 - [x] Configure [ListenBrainz](https://listenbrainz.org) connection (*crossonic-server only*)
-- [x] Full [OpenSubsonic](https://opensubsonic.netlify.app/) support (*gracefully handles missing features on server*)
+- [x] Full [OpenSubsonic](https://opensubsonic.netlify.app/) support (*gracefully handles missing features on the server*)
   - API Key Authentication
   - Transcoded seek
   - Multiple artists/genres/…
@@ -78,6 +80,28 @@ The OpenSubsonic API supports some features that are out-of-scope for this appli
   - Safari playback randomly stops when streaming transcoded media
   - no image caching
   - worse performance than native
+
+## Installation
+
+### Android
+
+Download and execute the *APK* file for your architecture from the [Releases](https://github.com/juho05/crossonic/releases) page.
+
+### Linux
+
+Crossonic is available as an *AppImage* on the [Releases](https://github.com/juho05/crossonic/releases) page.
+
+### Windows
+
+- Install [GStreamer](https://gstreamer.freedesktop.org/download/#windows) runtime (*MSVC 64-bit*)
+- Download `Crossonic-x.x.x-windows-x86-64.zip` from the [Releases](https://github.com/juho05/crossonic/releases) page
+- Extract the zip-archive and execute `Crossonic.exe`
+
+### macOS/iOS/web
+
+There are currently no release builds available for these platforms.
+
+See [Build/run](#buildrun) for how to build Crossonic yourself.
 
 ## Build/run
 
