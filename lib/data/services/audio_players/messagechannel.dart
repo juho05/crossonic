@@ -76,7 +76,7 @@ class AudioPlayerMessageChannel implements AudioPlayer {
     if (state == eventStream.value) return;
     switch (state) {
       case AudioPlayerEvent.stopped:
-        await stop();
+        _eventStream.add(AudioPlayerEvent.stopped);
       case AudioPlayerEvent.loading:
         _eventStream.add(AudioPlayerEvent.loading);
       case AudioPlayerEvent.paused:
@@ -139,7 +139,8 @@ class AudioPlayerMessageChannel implements AudioPlayer {
 
   @override
   Future<void> stop() async {
-    await _channel.invokeMethod("play");
+    if (!initialized) return;
+    await _channel.invokeMethod("stop");
   }
 
   @override
