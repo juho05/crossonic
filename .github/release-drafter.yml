@@ -1,6 +1,18 @@
 template: |
-  # What's Changed
+  # v$RESOLVED_VERSION
 
-  TODO
+  ## How to install
 
-  **Full Changelog**: https://github.com/$OWNER/$REPOSITORY/compare/$PREVIOUS_TAG...v$RESOLVED_VERSION
+  See [here](https://github.com/juho05/crossonic#installation) for installation instructions.
+
+  ## What's Changed
+
+  ### New Features
+
+  - TODO
+
+  ### Bug Fixes
+
+  - TODO
+
+  **Full Changelog:** [$PREVIOUS_TAG...v$RESOLVED_VERSION](https://github.com/$OWNER/$REPOSITORY/compare/$PREVIOUS_TAG...v$RESOLVED_VERSION)
