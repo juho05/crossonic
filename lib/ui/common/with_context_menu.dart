@@ -40,6 +40,7 @@ class _WithContextMenuState extends State<WithContextMenu> {
       child: MenuAnchor(
         controller: _controller,
         consumeOutsideTap: true,
+        // ignore: deprecated_member_use
         anchorTapClosesMenu: true,
         menuChildren: widget.options
             .map((o) => MenuItemButton(

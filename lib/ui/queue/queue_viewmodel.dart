@@ -57,6 +57,7 @@ class QueueViewModel extends ChangeNotifier {
   }
 
   void goto(int index) {
+    _audioHandler.playOnNextMediaChange();
     if (_isPriorityQueue(index)) {
       _audioHandler.queue.goToPriority(index);
     } else {
