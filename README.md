@@ -87,6 +87,9 @@ The OpenSubsonic API supports some features that are out-of-scope for this appli
 
 Download and execute the *APK* file for your architecture from the [Releases](https://github.com/juho05/crossonic/releases) page.
 
+**Android Auto:** By default Android Auto does not show apps that were not installed from the Google Play Store.
+To enable side-loaded apps open the *Android Auto* settings on your phone (you might have to click on *Additional settings in the app* first), then scroll down to *Version* and click on it a couple of times to enable *Developer Mode*. Now, use the three-dot menu in the top-right corner to enter *Developer Settings* and enable *Unknown Sources*.
+
 ### Linux
 
 Crossonic is available as an *AppImage* on the [Releases](https://github.com/juho05/crossonic/releases) page.
