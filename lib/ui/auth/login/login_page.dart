@@ -46,6 +46,14 @@ class _LoginPageState extends State<LoginPage> with RestorationMixin {
     return Scaffold(
       appBar: AppBar(
         title: Text("Sign in"),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.bug_report_outlined),
+            onPressed: () {
+              context.router.push(DebugRoute());
+            },
+          )
+        ],
       ),
       body: SafeArea(
         child: FormPageBody(

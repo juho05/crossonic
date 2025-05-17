@@ -49,6 +49,14 @@ class _ConnectServerPageState extends State<ConnectServerPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text("Connect Server"),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.bug_report_outlined),
+            onPressed: () {
+              context.router.push(DebugRoute());
+            },
+          )
+        ],
       ),
       body: SafeArea(
         child: ListenableBuilder(
