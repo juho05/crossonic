@@ -100,9 +100,30 @@ Crossonic is available as an *AppImage* on the [Releases](https://github.com/juh
 - Download `Crossonic-x.x.x-windows-x86-64.zip` from the [Releases](https://github.com/juho05/crossonic/releases) page
 - Extract the zip-archive and execute `Crossonic.exe`
 
-### macOS/iOS/web
+### macOS
 
-There are currently no release builds available for these platforms.
+- Install [GStreamer](https://gstreamer.freedesktop.org/download/#macos) runtime
+- Download and execute `Crossonic-x.x.x-macOS-universal.dmg`
+- Drag `Crossonic.app` to the `Applications` directory
+
+**NOTE:** Currently macOS binaries are not signed. If macOS prevents you from opening the `.dmg` file or starting the app, you will need to
+open *System Settings*, click on *Privacy & Security*, go to *Security*, click *Open* and hit *Open Anyway*. This should only be necessary once.
+
+### Web
+
+- Download and extract `Crossonic-x.x.x-web.zip` from the [Releases](https://github.com/juho05/crossonic/releases)
+- Host the extracted files with a web server like [Caddy](https://caddyserver.com/)
+
+#### Hosting requirements
+
+- Use TLS (`https`) if not on `localhost`
+- Ensure that `/sqlite3.wasm` is served with `Content-Type: application/wasm`
+- Set `Cross-Origin-Opener-Policy` to `same-origin`
+- Set `Cross-Origin-Embedder-Policy` to `require-corp` or `credentialless`
+
+### iOS
+
+There are currently no release builds available for iOS.
 
 See [Build/run](#buildrun) for how to build Crossonic yourself.
 

@@ -86,13 +86,10 @@ jobs:
           channel: "stable"
 
       - name: Dependencies
-        working-directory: .
         run: flutter pub get
       - name: Build generated files
-        working-directory: .
         run: flutter pub run build_runner build
       - name: Compile linux
-        working-directory: .
         run: flutter build linux --release
 
       # tar.gz
@@ -159,24 +156,19 @@ jobs:
           channel: "stable"
 
       - name: Dependencies
-        working-directory: .
         run: flutter pub get
       - name: Build generated files
-        working-directory: .
         run: flutter pub run build_runner build
       - name: Compile for Windows
-        working-directory: .
         run: flutter build windows --release
 
       - name: Add DLL files
-        working-directory: .
         run: |
           Copy-Item scripts/windows/x64/msvcp140.dll build/windows/x64/runner/Release/
           Copy-Item scripts/windows/x64/vcruntime140.dll build/windows/x64/runner/Release/
           Copy-Item scripts/windows/x64/vcruntime140_1.dll build/windows/x64/runner/Release/
 
       - name: Zip compiled files
-        working-directory: .
         run: Compress-Archive -Path build/windows/x64/runner/Release/* -DestinationPath Crossonic.zip
 
       - name: Upload zip
@@ -184,13 +176,81 @@ jobs:
         with:
           name: windows-zip-x86-64-result
           path: Crossonic.zip
+  build_macos_dmg:
+    needs: build
+    runs-on: macos-latest
 
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup GStreamer
+        uses: marcpabst/setup-gstreamer@3bafa9efb10f967158fceb6b5b34c2fc4399d141 # v1.5.3
+        with:
+          version: "1.26.1"
+          arch: "universal"
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: "stable"
+
+      - name: Dependencies
+        run: flutter pub get
+      - name: Build generated files
+        run: flutter pub run build_runner build
+      - name: Compile for macOS
+        run: flutter build macos --release
+
+      - name: Create .dmg file
+        run: |
+          npm install -g appdmg
+          cd scripts/dmg
+          appdmg config.json ../../Crossonic.dmg
+
+      - name: Upload .dmg file
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-dmg-result
+          path: Crossonic.dmg
+  build_web_zip:
+    needs: build
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: "stable"
+
+      - name: Dependencies
+        run: flutter pub get
+      - name: Build generated files
+        run: flutter pub run build_runner build
+      - name: Compile for web
+        run: flutter build web --release
+
+      - name: Create .zip archive
+        run: |
+          cd build/web
+          zip -r ../../crossonic.zip .
+
+      - name: Upload .zip file
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-zip-result
+          path: crossonic.zip
   release:
     needs:
       - build
       - build_apk
       - build_linux_x86_64
       - build_windows_x86_64
+      - build_macos_dmg
+      - build_web_zip
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
@@ -313,4 +373,42 @@ jobs:
           upload_url: ${{ steps.draft_release.outputs.upload_url }}
           asset_path: result.zip
           asset_name: Crossonic-${{ needs.build.outputs.version }}-windows-x86-64.zip
+          asset_content_type: application/zip
+      # macOS .dmg (universal)
+      - name: Download macOS .dmg file
+        uses: actions/download-artifact@v4
+        with:
+          name: macos-dmg-result
+          path: macos-dmg-result
+
+      - name: Copy .dmg file to root
+        run: cp macos-dmg-result/Crossonic.dmg Crossonic.dmg
+
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.draft_release.outputs.upload_url }}
+          asset_path: Crossonic.dmg
+          asset_name: Crossonic-${{ needs.build.outputs.version }}-macOS-universal.dmg
+          asset_content_type: application/x-apple-diskimage
+      # web
+      - name: Download web .zip file
+        uses: actions/download-artifact@v4
+        with:
+          name: web-zip-result
+          path: web-zip-result
+
+      - name: Copy .zip file to root
+        run: cp web-zip-result/crossonic.zip crossonic.zip
+
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.draft_release.outputs.upload_url }}
+          asset_path: crossonic.zip
+          asset_name: Crossonic-${{ needs.build.outputs.version }}-web.zip
           asset_content_type: application/zip
