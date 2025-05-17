@@ -149,6 +149,7 @@ public class AudioPlayer implements Player.Listener {
     }
 
     private void setNext(String uri) {
+        if (_player == null) return;
         if (uri == null) {
             Log.d("AudioPlayer", "Clear next uri");
             _player.removeMediaItem(_player.getCurrentMediaItemIndex()+1);
@@ -164,18 +165,22 @@ public class AudioPlayer implements Player.Listener {
     }
 
     private void stop() {
+        if (_player == null) return;
         _player.stop();
     }
 
     private void setVolume(double volume) {
+        if (_player == null) return;
         _player.setVolume((float)volume);
     }
 
     private int getPosition() {
+        if (_player == null) return 0;
         return (int)_player.getCurrentPosition();
     }
 
     private int getBufferedPosition() {
+        if (_player == null) return 0;
         return (int)_player.getBufferedPosition();
     }
 
