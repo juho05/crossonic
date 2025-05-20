@@ -1,4 +1,4 @@
-package de.julianh.crossonic;
+package org.crossonic.audio_player;
 
 import android.content.Context;
 import android.util.Log;
@@ -40,30 +40,34 @@ import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 
 public class AudioPlayer implements Player.Listener {
-    private static final String MESSAGE_CHANNEL = "crossonic.julianh.de/audioplayer/messages";
-    private static final String EVENT_CHANNEL = "crossonic.julianh.de/audioplayer/events";
+    private static Context _context;
 
-    private final Context _context;
+    private static AudioPlayer _instance;
+
+    public static AudioPlayer getInstance(Context context) {
+        _context = context;
+        if (_instance == null) {
+            _instance = new AudioPlayer(_context);
+        }
+        return _instance;
+    }
+
+    private AudioPlayer() {};
+
     private EventChannel.EventSink _events;
 
     private ExoPlayer _player;
 
-    AudioPlayer(Context context, DartExecutor dartExecutor) {
+    AudioPlayer(Context context) {
         _context = context;
-        new MethodChannel(dartExecutor.getBinaryMessenger(), MESSAGE_CHANNEL).setMethodCallHandler(this::onMethodCall);
-        new EventChannel(dartExecutor, EVENT_CHANNEL).setStreamHandler(new EventChannel.StreamHandler() {
-            @Override
-            public void onListen(Object arguments, EventChannel.EventSink events) {
-                _events = events;
-            }
+    }
 
-            @Override
-            public void onCancel(Object arguments) {}
-        });
+    public void updateEventSink(EventChannel.EventSink eventSink) {
+        _events = eventSink;
     }
 
     /** @noinspection DataFlowIssue*/
-    private void onMethodCall(MethodCall call, MethodChannel.Result result) {
+    public void onMethodCall(MethodCall call, MethodChannel.Result result) {
         switch (call.method) {
             case "init": init(); break;
             case "dispose": dispose(); break;
@@ -204,6 +208,7 @@ public class AudioPlayer implements Player.Listener {
 
     @Override
     public void onPlayerError(@NonNull PlaybackException error) {
+        Log.e("AudioPlayer", "Player Error: " + error.toString());
         sendError("PLAYER_ERROR:"+ error.getErrorCodeName(), error.getMessage(), null);
     }
 

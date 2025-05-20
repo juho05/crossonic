@@ -8,7 +8,7 @@
 PRODUCT_NAME = Crossonic
 
 // The application's bundle identifier
-PRODUCT_BUNDLE_IDENTIFIER = de.julianh.crossonic
+PRODUCT_BUNDLE_IDENTIFIER = org.crossonic.app
 
 // The copyright displayed in application information
-PRODUCT_COPYRIGHT = Copyright © 2024 de.julianh. All rights reserved.
+PRODUCT_COPYRIGHT = Copyright © 2024-2025 Julian Hofmann. All rights reserved.

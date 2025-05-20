@@ -3,21 +3,22 @@ import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/data/services/audio_players/player.dart';
 import 'package:flutter/services.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:audio_player/audio_player.dart' as plugin;
 
-class AudioPlayerMessageChannel implements AudioPlayer {
-  static const _channel =
-      MethodChannel("crossonic.julianh.de/audioplayer/messages");
-  static const _events =
-      EventChannel("crossonic.julianh.de/audioplayer/events");
-
+class AudioPlayerPlugin implements AudioPlayer {
   final AudioSession _audioSession;
 
-  AudioPlayerMessageChannel(AudioSession audioSession)
-      : _audioSession = audioSession {
-    _events
-        .receiveBroadcastStream()
-        .doOnError(_onPlatformError)
-        .listen(_onPlatformEvent);
+  final plugin.AudioPlayer _player;
+
+  AudioPlayerPlugin(AudioSession audioSession)
+      : _audioSession = audioSession,
+        _player = plugin.AudioPlayer() {
+    _player.advanceStream.listen((_) => _onAdvance());
+    _player.stateStream.listen((state) => _onStateChange(state));
+    _player.errorStream.listen((err) => _onPlatformError(err.$1, err.$2));
+    _player.restartStream.listen((pos) {
+      _restartPlayback.add(pos);
+    });
 
     _audioSession.interruptionEventStream.listen((event) async {
       if (event.begin) {
@@ -51,13 +52,10 @@ class AudioPlayerMessageChannel implements AudioPlayer {
   }
 
   @override
-  Future<Duration> get position async => Duration(
-      milliseconds: await _channel.invokeMethod<int>("getPosition") ?? 0);
+  Future<Duration> get position async => _player.position;
 
   @override
-  Future<Duration> get bufferedPosition async => Duration(
-      milliseconds:
-          await _channel.invokeMethod<int>("getBufferedPosition") ?? 0);
+  Future<Duration> get bufferedPosition async => _player.bufferedPosition;
 
   final BehaviorSubject<AudioPlayerEvent> _eventStream =
       BehaviorSubject.seeded(AudioPlayerEvent.stopped);
@@ -93,32 +91,21 @@ class AudioPlayerMessageChannel implements AudioPlayer {
   @override
   ValueStream<Duration> get restartPlayback => _restartPlayback.stream;
 
-  Future<void> _onRestart(int millis) async {
-    _restartPlayback.add(Duration(milliseconds: millis));
-  }
+  @override
+  Future<void> pause() => _player.pause();
 
   @override
-  Future<void> pause() async {
-    await _channel.invokeMethod("pause");
-  }
+  Future<void> play() => _player.play();
 
   @override
-  Future<void> play() async {
-    await _channel.invokeMethod("play");
-  }
-
-  @override
-  Future<void> seek(Duration position) async {
-    await _channel.invokeMethod("seek", {"pos": position.inMilliseconds});
-  }
+  Future<void> seek(Duration position) => _player.seek(position);
 
   @override
   Future<void> setCurrent(Uri url, [Duration? pos]) async {
     _canSeek = url.scheme == "file" ||
         (url.queryParameters.containsKey("format") &&
             url.queryParameters["format"] == "raw");
-    await _channel.invokeMethod(
-        "setCurrent", {"uri": url.toString(), "pos": pos?.inMilliseconds ?? 0});
+    await _player.setCurrent(url, pos);
   }
 
   @override
@@ -134,13 +121,13 @@ class AudioPlayerMessageChannel implements AudioPlayer {
     if (!initialized) {
       return;
     }
-    await _channel.invokeMethod("setNext", {"uri": url.toString()});
+    await _player.setNext(url);
   }
 
   @override
   Future<void> stop() async {
     if (!initialized) return;
-    await _channel.invokeMethod("stop");
+    await _player.stop();
   }
 
   @override
@@ -166,9 +153,9 @@ class AudioPlayerMessageChannel implements AudioPlayer {
 
   Future<void> _applyVolume() async {
     if (_ducking) {
-      await _channel.invokeMethod("setVolume", {"volume": volume * 0.5});
+      await _player.setVolume(volume * 0.5);
     } else {
-      await _channel.invokeMethod("setVolume", {"volume": volume});
+      await _player.setVolume(volume);
     }
   }
 
@@ -179,29 +166,16 @@ class AudioPlayerMessageChannel implements AudioPlayer {
   @override
   Future<void> init() async {
     if (initialized) return;
-    await _channel.invokeMethod("init");
+    await _player.init();
     _initialized = true;
   }
 
   @override
   Future<void> dispose() async {
     if (!initialized) return;
-    await _channel.invokeMethod("dispose");
+    await _player.dispose();
     _initialized = false;
     await _audioSession.setActive(false);
-  }
-
-  Future<void> _onPlatformEvent(dynamic event) async {
-    final eventObj = event as Map<Object?, dynamic>;
-    final data = eventObj["data"] as Map<Object?, dynamic>?;
-    switch (eventObj["name"]) {
-      case "advance":
-        await _onAdvance();
-      case "state":
-        await _onStateChange(data!["state"] as String);
-      case "restart":
-        await _onRestart(data!["pos"] as int);
-    }
   }
 
   Future<void> _onPlatformError(Object error, StackTrace stackTrace) async {

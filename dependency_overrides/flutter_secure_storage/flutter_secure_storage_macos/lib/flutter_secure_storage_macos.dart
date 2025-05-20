@@ -5,7 +5,7 @@ import 'package:flutter_secure_storage_platform_interface/flutter_secure_storage
 
 /// macOS implementation of FlutterSecureStorage
 class FlutterSecureStorageMacOS extends FlutterSecureStoragePlatform {
-  static const _service = "de.julianh.crossonic";
+  static const _service = "org.crossonic.app";
   static const _label = "Crossonic";
   static const execPath = "/usr/bin/security";
 
