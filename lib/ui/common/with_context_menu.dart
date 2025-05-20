@@ -1,6 +1,4 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 class ContextMenuOption {
   final IconData? icon;
@@ -62,11 +60,11 @@ class _WithContextMenuState extends State<WithContextMenu> {
     if (_controller.isOpen) {
       return;
     }
-    if (defaultTargetPlatform == TargetPlatform.iOS ||
-        defaultTargetPlatform == TargetPlatform.macOS) {
-      if (HardwareKeyboard.instance.isControlPressed) {
-        _controller.open(position: details.localPosition);
-      }
-    }
+    //if (defaultTargetPlatform == TargetPlatform.iOS ||
+    //    defaultTargetPlatform == TargetPlatform.macOS) {
+    //  if (HardwareKeyboard.instance.isControlPressed) {
+    //    _controller.open(position: details.localPosition);
+    //  }
+    //}
   }
 }
