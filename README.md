@@ -85,19 +85,19 @@ The OpenSubsonic API supports some features that are out-of-scope for this appli
 
 ### Android
 
-Download and execute the *APK* file for your architecture from the [Releases](https://github.com/juho05/crossonic/releases) page.
+Download and execute the *APK* file for your architecture from the [Releases](https://github.com/juho05/crossonic/releases/latest) page.
 
 **Android Auto:** By default Android Auto does not show apps that were not installed from the Google Play Store.
 To enable side-loaded apps open the *Android Auto* settings on your phone (you might have to click on *Additional settings in the app* first), then scroll down to *Version* and click on it a couple of times to enable *Developer Mode*. Now, use the three-dot menu in the top-right corner to enter *Developer Settings* and enable *Unknown Sources*.
 
 ### Linux
 
-Crossonic is available as an *AppImage* on the [Releases](https://github.com/juho05/crossonic/releases) page.
+Crossonic is available as an *AppImage* on the [Releases](https://github.com/juho05/crossonic/releases/latest) page.
 
 ### Windows
 
 - Install [GStreamer](https://gstreamer.freedesktop.org/download/#windows) runtime (*MSVC 64-bit*)
-- Download `Crossonic-x.x.x-windows-x86-64.zip` from the [Releases](https://github.com/juho05/crossonic/releases) page
+- Download `Crossonic-x.x.x-windows-x86-64.zip` from the [Releases](https://github.com/juho05/crossonic/releases/latest) page
 - Extract the zip-archive and execute `Crossonic.exe`
 
 ### macOS
@@ -111,7 +111,7 @@ open *System Settings*, click on *Privacy & Security*, go to *Security*, click *
 
 ### Web
 
-- Download and extract `Crossonic-x.x.x-web.zip` from the [Releases](https://github.com/juho05/crossonic/releases)
+- Download and extract `Crossonic-x.x.x-web.zip` from the [Releases](https://github.com/juho05/crossonic/releases/latest)
 - Host the extracted files with a web server like [Caddy](https://caddyserver.com/)
 
 #### Hosting requirements
