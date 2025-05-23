@@ -39,13 +39,13 @@ jobs:
         working-directory: ${{ env.APK_BUILD_DIR }}
         env:
           ENCODED_STRING: ${{ secrets.ANDROID_KEY_PROPERTIES }}
-        run: echo $ENCODED_STRING | base64 -di > app/android/key.properties
+        run: echo $ENCODED_STRING | base64 -di > android/key.properties
 
       - name: Decode crossonic.jks file
         working-directory: ${{ env.APK_BUILD_DIR }}
         env:
           ENCODED_STRING: ${{ secrets.ANDROID_KEY_STORE }}
-        run: mkdir secrets && echo $ENCODED_STRING | base64 -di > secrets/crossonic.jks
+        run: mkdir android/app/secrets && echo $ENCODED_STRING | base64 -di > android/app/secrets/crossonic.jks
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -173,6 +173,25 @@ jobs:
         run: flutter pub run build_runner build
       - name: Compile for Windows
         run: flutter build windows --release
+
+      - name: Build iss script
+        run: dart run inno_bundle:build --no-app --release --no-installer
+
+      - name: Output config into github output
+        id: envs
+        run: echo $(dart run inno_bundle:build --envs --no-hf) | Out-File -FilePath $Env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+      - name: Build installer
+        uses: Minionguyjpro/Inno-Setup-Action@v1.2.5
+        with:
+          path: ./build/windows/x64/installer/Release/inno-script.iss
+          options: /Fcrossonic-installer
+
+      - name: Upload installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-installer-x86-64-result
+          path: ./build/windows/x64/installer/Release/crossonic-installer.exe
 
       - name: Add DLL files
         run: |
@@ -386,6 +405,26 @@ jobs:
           asset_path: result.zip
           asset_name: Crossonic-${{ needs.build.outputs.version }}-windows-x86-64.zip
           asset_content_type: application/zip
+      # WINDOWS Installer (x86_64)
+      - name: Download windows installer file
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-installer-x86-64-result
+          path: windows-installer-x86-64-result
+
+      - name: Copy installer file to root
+        run: cp windows-installer-x86-64-result/crossonic-installer.exe crossonic-installer.exe
+
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.draft_release.outputs.upload_url }}
+          asset_path: crossonic-installer.exe
+          asset_name: Crossonic-${{ needs.build.outputs.version }}-windows-x86-64.exe
+          asset_content_type: application/vnd.microsoft.portable-executable
+
       # macOS .dmg (universal)
       - name: Download macOS .dmg file
         uses: actions/download-artifact@v4
