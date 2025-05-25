@@ -4,6 +4,7 @@ import 'package:crossonic/config/providers.dart';
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
 import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/routing/router.dart';
+import 'package:crossonic/ui/install_gstreamer/install_gstreamer.dart';
 import 'package:crossonic/window_listener.dart';
 import 'package:dynamic_system_colors/dynamic_system_colors.dart';
 import 'package:flutter/foundation.dart';
@@ -12,6 +13,11 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_single_instance/flutter_single_instance.dart';
 import 'package:window_manager/window_manager.dart';
+
+final defaultLightColorScheme =
+    ColorScheme.fromSeed(seedColor: Colors.blue, brightness: Brightness.light);
+final defaultDarkColorScheme =
+    ColorScheme.fromSeed(seedColor: Colors.blue, brightness: Brightness.dark);
 
 void main() async {
   Log.init();
@@ -51,17 +57,15 @@ void main() async {
     await BrowserContextMenu.disableContextMenu();
   }
 
-  runApp(MultiProvider(
-    providers: await providers,
-    child: const MainApp(),
+  runApp(InstallGStreamer(
+    child: MultiProvider(
+      providers: await providers,
+      child: const MainApp(),
+    ),
   ));
 }
 
 class MainApp extends StatelessWidget {
-  static final _defaultLightColorScheme = ColorScheme.fromSeed(
-      seedColor: Colors.blue, brightness: Brightness.light);
-  static final _defaultDarkColorScheme =
-      ColorScheme.fromSeed(seedColor: Colors.blue, brightness: Brightness.dark);
   const MainApp({super.key});
 
   @override
@@ -74,11 +78,11 @@ class MainApp extends StatelessWidget {
           restorationScopeId: "crossonic_app",
           theme: ThemeData(
             useMaterial3: true,
-            colorScheme: lightDynamic ?? _defaultLightColorScheme,
+            colorScheme: lightDynamic ?? defaultLightColorScheme,
           ),
           darkTheme: ThemeData(
             useMaterial3: true,
-            colorScheme: darkDynamic ?? _defaultDarkColorScheme,
+            colorScheme: darkDynamic ?? defaultDarkColorScheme,
           ),
           debugShowCheckedModeBanner: false,
           routerConfig: AppRouter(authRepository: authRepository).config(

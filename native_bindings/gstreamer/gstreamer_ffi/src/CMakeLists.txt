@@ -14,8 +14,10 @@ IF(WIN32)
   IF(CMAKE_PKGCONFIG_EXECUTABLE)
     # pkg-config.exe gstreamer-1.0 --libs --msvc-syntax
     execute_process(COMMAND ${CMAKE_PKGCONFIG_EXECUTABLE} --libs --msvc-syntax gstreamer-1.0 OUTPUT_VARIABLE GST_LDFLAGS RESULT_VARIABLE result OUTPUT_STRIP_TRAILING_WHITESPACE)
-    # replace spaces with semicolons so that we don't have quotation marks in command line option
-    string(REPLACE " " ";" GST_LDFLAGS ${GST_LDFLAGS})
+    string(REPLACE "\\ " "%%%" GST_LDFLAGS ${GST_LDFLAGS})
+    string(REPLACE " " "$$$" GST_LDFLAGS ${GST_LDFLAGS})
+    string(REPLACE "%%%" " " GST_LDFLAGS ${GST_LDFLAGS})
+    string(REPLACE "$$$" ";" GST_LDFLAGS ${GST_LDFLAGS})
   ENDIF()
 ENDIF()
 
