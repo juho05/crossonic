@@ -147,10 +147,9 @@ class _MainPageState extends State<MainPage> {
                           ? AutoLeadingButton()
                           : null,
                     ),
-                    body: SafeArea(
-                        child: Column(
+                    body: Column(
                       children: [
-                        Expanded(child: child),
+                        Expanded(child: SafeArea(bottom: false, child: child)),
                         ListenableBuilder(
                           listenable: _nowPlayingViewModel,
                           builder: (context, _) {
@@ -164,69 +163,67 @@ class _MainPageState extends State<MainPage> {
                           },
                         ),
                       ],
-                    )),
+                    ),
                   );
                 }
                 return Row(
                   children: [
                     if (orientation == Orientation.landscape)
-                      SafeArea(
-                        child: Row(
-                          children: [
-                            NavigationRail(
-                              selectedIndex: tabsRouter.activeIndex,
-                              onDestinationSelected: (index) async {
-                                if (index == 3) {
-                                  context.router.push(SettingsRoute());
-                                  return;
+                      Row(
+                        children: [
+                          NavigationRail(
+                            selectedIndex: tabsRouter.activeIndex,
+                            onDestinationSelected: (index) async {
+                              if (index == 3) {
+                                context.router.push(SettingsRoute());
+                                return;
+                              }
+                              if (index == tabsRouter.activeIndex) {
+                                final routeName = switch (index) {
+                                  0 => "HomeRoute",
+                                  1 => "BrowseRoute",
+                                  2 => "PlaylistsRoute",
+                                  _ => ""
+                                };
+                                final router = tabsRouter.childControllers
+                                    .firstWhere(
+                                        (c) => c.stack.first.name == routeName);
+                                while (router.canPop()) {
+                                  await router.maybePop();
                                 }
-                                if (index == tabsRouter.activeIndex) {
-                                  final routeName = switch (index) {
-                                    0 => "HomeRoute",
-                                    1 => "BrowseRoute",
-                                    2 => "PlaylistsRoute",
-                                    _ => ""
-                                  };
-                                  final router = tabsRouter.childControllers
-                                      .firstWhere((c) =>
-                                          c.stack.first.name == routeName);
-                                  while (router.canPop()) {
-                                    await router.maybePop();
-                                  }
-                                  return;
-                                }
-                                if (index == 2) {
-                                  context.read<PlaylistRepository>().refresh();
-                                }
-                                tabsRouter.setActiveIndex(index);
-                              },
-                              labelType: NavigationRailLabelType.all,
-                              destinations: [
-                                NavigationRailDestination(
-                                  icon: Icon(Icons.home_outlined),
-                                  selectedIcon: Icon(Icons.home),
-                                  label: Text("Home"),
-                                ),
-                                NavigationRailDestination(
-                                  icon: Icon(Icons.library_music_outlined),
-                                  selectedIcon: Icon(Icons.library_music),
-                                  label: Text("Browse"),
-                                ),
-                                NavigationRailDestination(
-                                  icon: Icon(Icons.queue_music_outlined),
-                                  selectedIcon: Icon(Icons.queue_music),
-                                  label: Text("Playlists"),
-                                ),
-                                NavigationRailDestination(
-                                  icon: Icon(Icons.settings),
-                                  selectedIcon: Icon(Icons.settings),
-                                  label: Text("Settings"),
-                                ),
-                              ],
-                            ),
-                            const VerticalDivider(thickness: 1, width: 1),
-                          ],
-                        ),
+                                return;
+                              }
+                              if (index == 2) {
+                                context.read<PlaylistRepository>().refresh();
+                              }
+                              tabsRouter.setActiveIndex(index);
+                            },
+                            labelType: NavigationRailLabelType.all,
+                            destinations: [
+                              NavigationRailDestination(
+                                icon: Icon(Icons.home_outlined),
+                                selectedIcon: Icon(Icons.home),
+                                label: Text("Home"),
+                              ),
+                              NavigationRailDestination(
+                                icon: Icon(Icons.library_music_outlined),
+                                selectedIcon: Icon(Icons.library_music),
+                                label: Text("Browse"),
+                              ),
+                              NavigationRailDestination(
+                                icon: Icon(Icons.queue_music_outlined),
+                                selectedIcon: Icon(Icons.queue_music),
+                                label: Text("Playlists"),
+                              ),
+                              NavigationRailDestination(
+                                icon: Icon(Icons.settings),
+                                selectedIcon: Icon(Icons.settings),
+                                label: Text("Settings"),
+                              ),
+                            ],
+                          ),
+                          const VerticalDivider(thickness: 1, width: 1),
+                        ],
                       ),
                     Expanded(
                       child: Scaffold(

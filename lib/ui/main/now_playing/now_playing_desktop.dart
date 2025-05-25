@@ -20,15 +20,16 @@ class NowPlayingDesktop extends StatelessWidget {
   Widget build(BuildContext context) {
     final textStyle = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
     return SizedBox(
-      height: 80,
+      height: 80 + bottomPadding,
       child: Material(
         color: colorScheme.brightness == Brightness.dark
             ? colorScheme.surfaceContainerHigh
             : colorScheme.surfaceContainerHighest,
         elevation: 4,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10),
+          padding: EdgeInsets.only(left: 10, right: 10, bottom: bottomPadding),
           child: LayoutBuilder(
             builder: (context, constraints) => Row(
               crossAxisAlignment: CrossAxisAlignment.center,
