@@ -65,9 +65,24 @@ class _ConnectServerPageState extends State<ConnectServerPage> {
               return LayoutBuilder(builder: (context, constraints) {
                 final cardMode =
                     constraints.maxWidth > 800 && constraints.maxHeight > 570;
+                final currentServerUri =
+                    _formKey.currentState?.value["serverUri"];
+                if (_formKey.currentState != null &&
+                    (currentServerUri == null ||
+                        (currentServerUri as String).isEmpty)) {
+                  if (viewModel.serverUrl != null &&
+                      viewModel.serverUrl!.isNotEmpty) {
+                    _formKey.currentState!.patchValue({
+                      "serverUri": viewModel.serverUrl,
+                    });
+                  }
+                }
                 return FormBuilder(
                   key: _formKey,
                   autovalidateMode: AutovalidateMode.onUserInteraction,
+                  initialValue: {
+                    "serverUri": viewModel.serverUrl,
+                  },
                   child: Center(
                     child: Padding(
                       padding: EdgeInsets.all(cardMode ? 8.0 : 0),
@@ -181,7 +196,6 @@ class _ConnectServerPageState extends State<ConnectServerPage> {
                                               name: "serverUri",
                                               //restorationId:
                                               //    "connect_server_page_serverUri",
-                                              initialValue: viewModel.serverUrl,
                                               autocorrect: false,
                                               keyboardType: TextInputType.url,
                                               decoration: InputDecoration(

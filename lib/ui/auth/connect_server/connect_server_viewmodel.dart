@@ -3,6 +3,7 @@ import 'package:crossonic/utils/command.dart';
 import 'package:crossonic/utils/exceptions.dart';
 import 'package:crossonic/utils/result.dart';
 import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
 
 class InvalidServerException extends AppException {
   InvalidServerException(super.message);
@@ -26,7 +27,7 @@ class ConnectServerViewModel extends ChangeNotifier {
   Future<void> tryCurrentUrlOnWeb() async {
     if (!kIsWeb) return;
     final u = Uri.base;
-    _serverUrl = Uri(
+    final uri = Uri(
       scheme: u.scheme,
       userInfo: u.userInfo,
       host: u.host,
@@ -35,7 +36,14 @@ class ConnectServerViewModel extends ChangeNotifier {
           ? u.path.substring(0, u.path.length - 1)
           : u.path,
     ).toString();
-    notifyListeners();
+    try {
+      final response = await http.get(Uri.parse("$uri/rest/ping"));
+      if (response.body.contains("subsonic-response") &&
+          (_serverUrl == null || _serverUrl!.isEmpty)) {
+        _serverUrl = uri;
+        notifyListeners();
+      }
+    } catch (_) {}
   }
 
   Future<Result<void>> _connect(Uri uri) async {
