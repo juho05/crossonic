@@ -602,22 +602,25 @@ class SubsonicService {
   }
 
   Map<String, Iterable<String>> generateQuery(
-      Map<String, Iterable<String>> query, SubsonicAuth auth) {
+      Map<String, Iterable<String>> query, SubsonicAuth auth,
+      {bool constantSalt = false}) {
+    final queryParams =
+        constantSalt ? auth.queryParamsCacheFriendly : auth.queryParams;
     return {
       ...query,
       'c': [_clientName],
       'f': ['json'],
       'v': [_protocolVersion],
-      ...auth.queryParams
-          .map((String key, String value) => MapEntry(key, [value])),
+      ...queryParams.map((String key, String value) => MapEntry(key, [value])),
     };
   }
 
-  Uri getCoverUri(Connection con, String id, {int? size}) {
+  Uri getCoverUri(Connection con, String id,
+      {int? size, bool constantSalt = false}) {
     final query = generateQuery({
       "id": [id],
       "size": size != null ? [size.toString()] : [],
-    }, con.auth);
+    }, con.auth, constantSalt: constantSalt);
     return Uri.parse(
         '${con.baseUri}/rest/getCoverArt${Uri(queryParameters: query)}');
   }

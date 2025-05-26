@@ -63,14 +63,13 @@ class _CoverArtState extends State<CoverArt> {
                   ? CachedNetworkImage(
                       imageUrl: context
                           .read<SubsonicRepository>()
-                          .getCoverUri(widget.coverId!)
+                          .getCoverUri(widget.coverId!, constantSalt: true)
                           .toString(),
                       fit: BoxFit.cover,
                       errorWidget: (context, url, error) => placeholder(size),
                       fadeInDuration: const Duration(milliseconds: 300),
                       fadeOutDuration: const Duration(milliseconds: 100),
-                      placeholder: (context, url) =>
-                          CircularProgressIndicator.adaptive(),
+                      placeholder: (context, url) => placeholder(size),
                     )
                   : CachedNetworkImage(
                       imageUrl: CoverRepository.getKey(

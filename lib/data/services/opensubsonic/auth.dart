@@ -1,5 +1,6 @@
 abstract class SubsonicAuth {
   Map<String, String> get queryParams;
+  Map<String, String> get queryParamsCacheFriendly => queryParams;
 }
 
 class EmptyAuth extends SubsonicAuth {

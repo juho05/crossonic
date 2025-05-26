@@ -122,6 +122,17 @@ class AuthStateToken extends AuthState {
       "s": salt,
     };
   }
+
+  @override
+  Map<String, String> get queryParamsCacheFriendly {
+    final salt = "constantsalt";
+    final hash = md5.convert(utf8.encode(password + salt)).toString();
+    return {
+      "u": username,
+      "t": hash,
+      "s": salt,
+    };
+  }
 }
 
 class AuthStateApiKey extends AuthState {

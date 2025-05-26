@@ -504,9 +504,10 @@ class PlaylistRepository extends ChangeNotifier {
     }
   }
 
-  Uri? getPlaylistCoverUri(Playlist p, [int? size]) {
+  Uri? getPlaylistCoverUri(Playlist p, {int? size, bool constantSalt = false}) {
     if (p.coverId == null) return null;
-    return _subsonic.getCoverUri(_auth.con, p.coverId!, size: size);
+    return _subsonic.getCoverUri(_auth.con, p.coverId!,
+        size: size, constantSalt: constantSalt);
   }
 
   @override
