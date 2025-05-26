@@ -108,8 +108,7 @@ class _MainPageState extends State<MainPage> {
                       },
                       body: Scaffold(
                         appBar: AppBar(
-                          title: Text(
-                              tabsRouter.topPage!.routeData.title(context)),
+                          title: PageTitle(router: tabsRouter),
                           leading: tabsRouter.activeRouterCanPop()
                               ? AutoLeadingButton()
                               : null,
@@ -141,7 +140,7 @@ class _MainPageState extends State<MainPage> {
                   } catch (_) {}
                   body = Scaffold(
                     appBar: AppBar(
-                      title: Text(tabsRouter.topPage!.routeData.title(context)),
+                      title: PageTitle(router: tabsRouter),
                       forceMaterialTransparency: true,
                       leading: tabsRouter.activeRouterCanPop()
                           ? AutoLeadingButton()
@@ -296,5 +295,33 @@ class _MainPageState extends State<MainPage> {
   void dispose() {
     _nowPlayingViewModel.dispose();
     super.dispose();
+  }
+}
+
+class PageTitle extends StatefulWidget {
+  final TabsRouter router;
+  const PageTitle({super.key, required this.router});
+
+  @override
+  State<PageTitle> createState() => _PageTitleState();
+}
+
+class _PageTitleState extends State<PageTitle> {
+  int _retryCounter = 0;
+  @override
+  Widget build(BuildContext context) {
+    final title = widget.router.topPage?.routeData.title(context) ?? "";
+    if (title.isEmpty) {
+      if (_retryCounter < 10) {
+        Future.delayed(const Duration(milliseconds: 10), () {
+          setState(() {
+            _retryCounter++;
+          });
+        });
+      }
+    } else {
+      _retryCounter = 0;
+    }
+    return Text(title);
   }
 }
