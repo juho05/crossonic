@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:crossonic/app_shortcuts.dart';
 import 'package:crossonic/config/providers.dart';
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
 import 'package:crossonic/data/repositories/logger/log.dart';
@@ -60,7 +61,7 @@ void main() async {
   runApp(InstallGStreamer(
     child: MultiProvider(
       providers: await providers,
-      child: const MainApp(),
+      child: const AppShortcuts(child: MainApp()),
     ),
   ));
 }
