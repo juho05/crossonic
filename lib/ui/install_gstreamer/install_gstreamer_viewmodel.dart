@@ -27,8 +27,10 @@ class InstallGStreamerViewModel extends ChangeNotifier {
   double? _downloadProgress;
   double? get downloadProgress => _downloadProgress;
 
+  bool get supportsAutoInstall => !kIsWeb && Platform.isWindows;
+
   InstallGStreamerViewModel() {
-    if (kIsWeb || (!Platform.isWindows /*&& !Platform.isMacOS*/)) {
+    if (kIsWeb || (!Platform.isWindows && !Platform.isMacOS)) {
       _status = GStreamerStatus.installed;
       return;
     }
@@ -44,53 +46,21 @@ class InstallGStreamerViewModel extends ChangeNotifier {
   }
 
   Future<Result<void>> _installWindows() async {
-    final dir = await getApplicationCacheDirectory();
-    final outputFile = File(path.join(dir.path, "gstreamer-$_gstVersion.msi"));
-
     _error = null;
 
-    IOSink? sink;
+    File? installer;
     try {
-      if (!await outputFile.exists()) {
-        try {
-          await outputFile.create(recursive: true);
-          sink = outputFile.openWrite();
-          _downloading = true;
-          notifyListeners();
-          final request = http.Request(
-              "GET",
-              Uri.parse(
-                  "https://gstreamer.freedesktop.org/data/pkg/windows/1.26.1/msvc/gstreamer-1.0-msvc-x86_64-$_gstVersion.msi"));
-          final response = await request.send();
-          int downloadedBytes = 0;
-          await response.stream.forEach(
-            (data) {
-              sink!.add(data);
-              if (response.contentLength != null) {
-                downloadedBytes += data.length;
-                _downloadProgress =
-                    downloadedBytes / response.contentLength!.toDouble();
-                notifyListeners();
-              }
-            },
-          );
-          await sink.flush();
-        } catch (_) {
-          _error =
-              "Failed to download GStreamer.\nPlease check your internet connection.";
-          rethrow;
-        } finally {
-          _downloading = false;
-          await sink?.close();
-        }
-      }
+      installer = await _downloadInstaller(
+          Uri.parse(
+              "https://gstreamer.freedesktop.org/data/pkg/windows/$_gstVersion/msvc/gstreamer-1.0-msvc-x86_64-$_gstVersion.msi"),
+          "gstreamer-$_gstVersion.msi");
 
       try {
         _installing = true;
         notifyListeners();
         final result = await Process.run("powershell.exe", [
           "-Command",
-          "\$process = Start-Process msiexec.exe -Wait -ArgumentList '/i \"${outputFile.path}\" /passive' -PassThru; exit \$process.ExitCode"
+          "\$process = Start-Process msiexec.exe -Wait -ArgumentList '/i \"${installer.path}\" /passive' -PassThru; exit \$process.ExitCode"
         ]);
         if (result.exitCode != 0) {
           throw Exception(
@@ -111,7 +81,7 @@ class InstallGStreamerViewModel extends ChangeNotifier {
     } finally {
       _downloadProgress = null;
       try {
-        await outputFile.delete();
+        await installer?.delete();
       } catch (e) {
         Log.error("Failed to delete GStreamer installer: $e");
       }
@@ -119,12 +89,89 @@ class InstallGStreamerViewModel extends ChangeNotifier {
     }
   }
 
-  // Future<Result<void>> _installMacOS() async {
-  //   final dir = await getApplicationCacheDirectory();
-  //   // https://gstreamer.freedesktop.org/data/pkg/osx/1.26.1/gstreamer-1.0-$_gstVersion-universal.pkg
-  //   // installer -pkg /path/to/gstreamer.pkg -target /
-  //   return Result.ok(null);
-  // }
+  //Future<Result<void>> _installMacOS() async {
+  //  _error = null;
+
+  //  File? installer;
+  //  try {
+  //    installer = await _downloadInstaller(
+  //        Uri.parse(
+  //            "https://gstreamer.freedesktop.org/data/pkg/osx/$_gstVersion/gstreamer-1.0-$_gstVersion-universal.pkg"),
+  //        "gstreamer-$_gstVersion.pkg");
+
+  //    try {
+  //      _installing = true;
+  //      notifyListeners();
+  //      // FIXME broken because installer requires admin privileges
+  //      final result = await Process.run("installer", [
+  //        "-pkg",
+  //        installer.path,
+  //        "-target",
+  //        "/",
+  //      ]);
+  //      if (result.exitCode != 0) {
+  //        throw Exception(
+  //            "installer exited with non-zero exit code: ${result.exitCode}");
+  //      }
+  //    } catch (_) {
+  //      _error =
+  //          "Failed to install GStreamer.\nTry to manually install GStreamer from:\nhttps://gstreamer.freedesktop.org/download/#macos";
+  //      rethrow;
+  //    } finally {
+  //      _installing = false;
+  //    }
+
+  //    await _checkInstalled();
+  //    return Result.ok(null);
+  //  } on Exception catch (e) {
+  //    return Result.error(e);
+  //  } finally {
+  //    _downloadProgress = null;
+  //    try {
+  //      await installer?.delete();
+  //    } catch (e) {
+  //      Log.error("Failed to delete GStreamer installer: $e");
+  //    }
+  //    notifyListeners();
+  //  }
+  //}
+
+  Future<File> _downloadInstaller(Uri uri, String installerName) async {
+    final dir = await getApplicationCacheDirectory();
+    final outputFile = File(path.join(dir.path, installerName));
+    if (!await outputFile.exists()) {
+      IOSink? sink;
+      try {
+        await outputFile.create(recursive: true);
+        sink = outputFile.openWrite();
+        _downloading = true;
+        notifyListeners();
+        final request = http.Request("GET", uri);
+        final response = await request.send();
+        int downloadedBytes = 0;
+        await response.stream.forEach(
+          (data) {
+            sink!.add(data);
+            if (response.contentLength != null) {
+              downloadedBytes += data.length;
+              _downloadProgress =
+                  downloadedBytes / response.contentLength!.toDouble();
+              notifyListeners();
+            }
+          },
+        );
+        await sink.flush();
+      } catch (_) {
+        _error =
+            "Failed to download GStreamer.\nPlease check your internet connection.";
+        rethrow;
+      } finally {
+        _downloading = false;
+        await sink?.close();
+      }
+    }
+    return outputFile;
+  }
 
   Future<void> _checkInstalled() async {
     try {

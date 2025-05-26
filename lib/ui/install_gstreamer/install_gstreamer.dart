@@ -66,11 +66,24 @@ class InstallGStreamer extends StatelessWidget {
                                   textAlign: TextAlign.center,
                                   style: textTheme.bodyLarge,
                                 ),
-                                Text(
-                                  "Please click below to automatically install GStreamer.",
-                                  textAlign: TextAlign.center,
-                                  style: textTheme.bodyLarge,
-                                ),
+                                if (viewModel.supportsAutoInstall)
+                                  Text(
+                                    "Please click below to automatically install GStreamer.",
+                                    textAlign: TextAlign.center,
+                                    style: textTheme.bodyLarge,
+                                  ),
+                                if (!viewModel.supportsAutoInstall)
+                                  LinkifyText(
+                                    "Please install GStreamer and restart Crossonic:\nhttps://gstreamer.freedesktop.org/download",
+                                    onTap: (link) {
+                                      if (link.value == null) return;
+                                      launchUrlString(link.value!);
+                                    },
+                                    textAlign: TextAlign.center,
+                                    textStyle: textTheme.bodyLarge,
+                                    linkStyle: textTheme.bodyLarge!.copyWith(
+                                        decoration: TextDecoration.underline),
+                                  ),
                                 if (viewModel.error != null)
                                   LinkifyText(
                                     viewModel.error!,
@@ -91,43 +104,56 @@ class InstallGStreamer extends StatelessWidget {
                                   ),
                               ],
                             ),
-                            FilledButton.icon(
-                              onPressed: !viewModel.downloading &&
-                                      !viewModel.installing
-                                  ? () async {
-                                      final result = await viewModel.install();
-                                      if (result is Ok &&
-                                          viewModel.status !=
-                                              GStreamerStatus.installed) {
-                                        if (!context.mounted) return;
-                                        if (await InformationDialog.show(
-                                          context,
-                                          "GStreamer installed",
-                                          message: "Please restart Crossonic.",
-                                          btnTitle: "Exit",
-                                        )) {
-                                          exit(0);
+                            if (viewModel.supportsAutoInstall)
+                              FilledButton.icon(
+                                onPressed: !viewModel.downloading &&
+                                        !viewModel.installing
+                                    ? () async {
+                                        final result =
+                                            await viewModel.install();
+                                        if (result is Ok &&
+                                            viewModel.status !=
+                                                GStreamerStatus.installed) {
+                                          if (!context.mounted) return;
+                                          if (await InformationDialog.show(
+                                            context,
+                                            "GStreamer installed",
+                                            message:
+                                                "Please restart Crossonic.",
+                                            btnTitle: "Exit",
+                                          )) {
+                                            exit(0);
+                                          }
                                         }
                                       }
-                                    }
-                                  : null,
-                              icon: viewModel.downloading
-                                  ? CircularProgressIndicator(
-                                      value: viewModel.downloadProgress)
-                                  : viewModel.installing
-                                      ? const CircularProgressIndicator
-                                          .adaptive()
-                                      : const Icon(Icons.install_desktop),
-                              label: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 32, vertical: 14),
-                                child: viewModel.downloading
-                                    ? const Text("Downloading…")
+                                    : null,
+                                icon: viewModel.downloading
+                                    ? CircularProgressIndicator(
+                                        value: viewModel.downloadProgress)
                                     : viewModel.installing
-                                        ? const Text("Installing…")
-                                        : const Text("Install GStreamer"),
+                                        ? const CircularProgressIndicator
+                                            .adaptive()
+                                        : const Icon(Icons.install_desktop),
+                                label: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 32, vertical: 14),
+                                  child: viewModel.downloading
+                                      ? const Text("Downloading…")
+                                      : viewModel.installing
+                                          ? const Text("Installing…")
+                                          : const Text("Install GStreamer"),
+                                ),
                               ),
-                            )
+                            if (!viewModel.supportsAutoInstall)
+                              FilledButton.icon(
+                                onPressed: () => exit(0),
+                                icon: const Icon(Icons.logout),
+                                label: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 32, vertical: 14),
+                                  child: const Text("Exit"),
+                                ),
+                              )
                           ],
                         ),
                       );
