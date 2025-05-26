@@ -237,6 +237,7 @@ class SongLeadingWidget extends StatelessWidget {
                     : (viewModel.playbackStatus == PlaybackStatus.loading
                         ? Icons.hourglass_empty
                         : Icons.play_arrow),
+                color: Colors.white,
               ),
             )
         ],
