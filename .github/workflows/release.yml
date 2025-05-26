@@ -22,7 +22,7 @@ jobs:
           VERSION=$(sed -n 's/^version: \([0-9]*\.[0-9]*\.[0-9]*\).*/\1/p' pubspec.yaml)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
-  build_apk:
+  build_android:
     needs: build
     runs-on: ubuntu-22.04
 
@@ -70,14 +70,19 @@ jobs:
         working-directory: ${{ env.APK_BUILD_DIR }}
         run: flutter build apk --release --split-per-abi
 
-      - name: Upload APK
+      - name: Build App Bundle
+        working-directory: ${{ env.APK_BUILD_DIR }}
+        run: flutter build appbundle --release
+
+      - name: Upload APK and App Bundle
         uses: actions/upload-artifact@v4
         with:
-          name: apk-result
+          name: android-result
           path: |
             ${{ env.APK_BUILD_DIR }}/build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk
             ${{ env.APK_BUILD_DIR }}/build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
             ${{ env.APK_BUILD_DIR }}/build/app/outputs/flutter-apk/app-x86_64-release.apk
+            ${{ env.APK_BUILD_DIR }}/build/app/outputs/bundle/release/app-release.aab
 
   build_linux_x86_64:
     needs: build
@@ -277,7 +282,7 @@ jobs:
   release:
     needs:
       - build
-      - build_apk
+      - build_android
       - build_linux_x86_64
       - build_windows_x86_64
       - build_macos_dmg
@@ -295,15 +300,17 @@ jobs:
           tag: v${{ needs.build.outputs.version }}
           name: v${{ needs.build.outputs.version }}
 
-      # APK
-      - name: Download apk file
+      # Android
+      - name: Download Android files
         uses: actions/download-artifact@v4
         with:
-          name: apk-result
-          path: apk-result
+          name: android-result
+          path: android-result
 
-      - name: Copy apk file to root
-        run: cp apk-result/*.apk .
+      - name: Copy Android files to root
+        run: |
+          cp android-result/*.apk .
+          cp android-result/*.aab .
 
       - name: Upload Release Asset (arm32v7)
         uses: actions/upload-release-asset@v1
@@ -334,6 +341,16 @@ jobs:
           asset_path: app-x86_64-release.apk
           asset_name: Crossonic-${{ needs.build.outputs.version }}-android-x64.apk
           asset_content_type: application/vnd.android.package-archive
+
+      - name: Upload Release Asset (App Bundle)
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.draft_release.outputs.upload_url }}
+          asset_path: app-release.aab
+          asset_name: Crossonic-${{ needs.build.outputs.version }}-android.aab
+          asset_content_type: application/octet-stream
 
       # TAR.GZ (x86_64)
       - name: Download tar.gz file
