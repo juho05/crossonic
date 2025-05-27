@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:crossonic/data/repositories/audio/audio_handler.dart';
@@ -10,6 +11,8 @@ import 'package:crossonic/data/repositories/subsonic/models/song.dart';
 import 'package:crossonic/utils/exceptions.dart';
 import 'package:crossonic/utils/result.dart';
 import 'package:crossonic/utils/throttle.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart' as path;
@@ -116,7 +119,18 @@ class PlaylistViewModel extends ChangeNotifier {
   }
 
   Future<Result<void>> changeCover() async {
-    final image = await ImagePicker().pickImage(source: ImageSource.gallery);
+    XFile? image;
+    if (!kIsWeb && Platform.isLinux) {
+      final result = await FilePicker.platform.pickFiles(
+        allowMultiple: false,
+        withData: false,
+        withReadStream: false,
+        allowedExtensions: ["jpg", "jpeg", "png", "gif", "bmp", "tif", "tiff"],
+      );
+      image = result?.xFiles.firstOrNull;
+    } else {
+      image = await ImagePicker().pickImage(source: ImageSource.gallery);
+    }
     if (image == null) {
       return Result.ok(null);
     }

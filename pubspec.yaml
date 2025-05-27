@@ -51,6 +51,7 @@ dependencies:
   talker_flutter: ^4.7.1
   url_launcher: ^6.3.1
   linkfy_text: ^1.1.6
+  file_picker: ^10.1.9
 
 dependency_overrides:
   flutter_secure_storage_macos:
