@@ -8,6 +8,7 @@ import 'package:crossonic/data/repositories/audio/audio_handler.dart' as ah;
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
 import 'package:crossonic/data/repositories/cover/cover_repository.dart';
 import 'package:crossonic/data/repositories/keyvalue/key_value_repository.dart';
+import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/data/repositories/playlist/downloader_storage.dart';
 import 'package:crossonic/data/repositories/playlist/playlist_repository.dart';
 import 'package:crossonic/data/repositories/playlist/song_downloader.dart';
@@ -44,12 +45,18 @@ Future<List<SingleChildWidget>> get providers async {
 
   final keyValueRepository = KeyValueRepository(database: database);
 
-  final authRepository = AuthRepository(
-    openSubsonicService: subsonicService,
-    keyValueRepository: keyValueRepository,
-    database: database,
-  );
-  await authRepository.loadState();
+  AuthRepository authRepository;
+  try {
+    authRepository = AuthRepository(
+      openSubsonicService: subsonicService,
+      keyValueRepository: keyValueRepository,
+      database: database,
+    );
+    authRepository.loadState();
+  } on Exception catch (e, st) {
+    Log.critical("Failed to initialize auth repository", e, st);
+    exit(1);
+  }
 
   final favoritesRepository = FavoritesRepository(
     auth: authRepository,
