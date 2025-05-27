@@ -52,7 +52,7 @@ Future<List<SingleChildWidget>> get providers async {
       keyValueRepository: keyValueRepository,
       database: database,
     );
-    authRepository.loadState();
+    await authRepository.loadState();
   } on Exception catch (e, st) {
     Log.critical("Failed to initialize auth repository", e, st);
     exit(1);

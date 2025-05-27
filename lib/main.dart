@@ -10,7 +10,6 @@ import 'package:crossonic/window_listener.dart';
 import 'package:dynamic_system_colors/dynamic_system_colors.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_single_instance/flutter_single_instance.dart';
 import 'package:window_manager/window_manager.dart';
