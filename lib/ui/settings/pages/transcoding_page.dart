@@ -2,6 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:crossonic/data/repositories/settings/transcoding.dart';
 import 'package:crossonic/ui/common/buttons.dart';
 import 'package:crossonic/ui/settings/pages/transcoding_viewmodel.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -137,6 +138,44 @@ class _TranscodingPageState extends State<TranscodingPage> {
                                   : "Server Default",
                             ))
                         .toList(),
+                  ),
+                if (kIsWeb &&
+                    (_viewModel.codec != TranscodingCodec.raw ||
+                        _viewModel.codecMobile != TranscodingCodec.raw))
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    spacing: 3,
+                    children: [
+                      Text(
+                        "WARNING: Some browsers (e.g. Safari) don't properly support playback of streamed transcoded media or might not support the chosen codec at all.",
+                        style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                            color: Color.fromARGB(255, 244, 163, 0),
+                            fontSize: 13),
+                      ),
+                      Text(
+                        "If you notice playback bugs like music suddenly stopping or not transitioning properly to the next song, consider changing the format back to 'Original'.",
+                        style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                            color: Color.fromARGB(255, 244, 163, 0),
+                            fontSize: 13),
+                      ),
+                    ],
+                  ),
+                if (!kIsWeb &&
+                    (_viewModel.codec == TranscodingCodec.mp3 ||
+                        _viewModel.codecMobile == TranscodingCodec.mp3))
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    spacing: 3,
+                    children: [
+                      Text(
+                        "WARNING: MP3 does not support gapless playback properly. Consider changing the format to OGG/Opus or OGG/Vorbis.",
+                        style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                            color: Color.fromARGB(255, 244, 163, 0),
+                            fontSize: 14),
+                      ),
+                    ],
                   ),
                 Button(
                   onPressed: () {
