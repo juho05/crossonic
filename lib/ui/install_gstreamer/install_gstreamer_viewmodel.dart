@@ -67,7 +67,7 @@ class InstallGStreamerViewModel extends ChangeNotifier {
         }
       } catch (_) {
         _error =
-            "Failed to install GStreamer.\nTry to manually install GStreamer from:\nhttps://gstreamer.freedesktop.org/download/#windows";
+            "Failed to install GStreamer.\nTry to manually install GStreamer Runtime from:\nhttps://gstreamer.freedesktop.org/download/#windows";
         rethrow;
       } finally {
         _installing = false;

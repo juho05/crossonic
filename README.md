@@ -96,7 +96,6 @@ Crossonic is available as an *AppImage* on the [Releases](https://github.com/juh
 
 ### Windows
 
-- Install [GStreamer](https://gstreamer.freedesktop.org/download/#windows) runtime (*MSVC 64-bit*)
 - Download and execute `Crossonic-x.x.x-windows-x86-64.exe` from the [Releases](https://github.com/juho05/crossonic/releases/latest) page
 
 ### macOS

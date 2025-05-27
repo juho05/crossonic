@@ -74,7 +74,7 @@ class InstallGStreamer extends StatelessWidget {
                                   ),
                                 if (!viewModel.supportsAutoInstall)
                                   LinkifyText(
-                                    "Please install GStreamer and restart Crossonic:\nhttps://gstreamer.freedesktop.org/download",
+                                    "Please install GStreamer Runtime and restart Crossonic:\nhttps://gstreamer.freedesktop.org/download",
                                     onTap: (link) {
                                       if (link.value == null) return;
                                       launchUrlString(link.value!);
