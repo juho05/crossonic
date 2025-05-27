@@ -74,15 +74,23 @@ jobs:
         working-directory: ${{ env.APK_BUILD_DIR }}
         run: flutter build appbundle --release
 
-      - name: Upload APK and App Bundle
+      - name: Upload App Bundle
         uses: actions/upload-artifact@v4
         with:
-          name: android-result
+          name: android-aab-result
+          path: |
+            ${{ env.APK_BUILD_DIR }}/build/app/outputs/bundle/release/app-release.aab
+          retention-days: 90
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk-result
           path: |
             ${{ env.APK_BUILD_DIR }}/build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk
             ${{ env.APK_BUILD_DIR }}/build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
             ${{ env.APK_BUILD_DIR }}/build/app/outputs/flutter-apk/app-x86_64-release.apk
-            ${{ env.APK_BUILD_DIR }}/build/app/outputs/bundle/release/app-release.aab
+          retention-days: 2
 
   build_linux_x86_64:
     needs: build
@@ -149,6 +157,7 @@ jobs:
         with:
           name: appimage-x86-64-result
           path: ./*.AppImage
+          retention-days: 2
 
   build_windows_x86_64:
     needs: build
@@ -212,6 +221,7 @@ jobs:
         with:
           name: windows-zip-x86-64-result
           path: Crossonic.zip
+          retention-days: 2
   build_macos_dmg:
     needs: build
     runs-on: macos-latest
@@ -249,6 +259,7 @@ jobs:
         with:
           name: macos-dmg-result
           path: Crossonic.dmg
+          retention-days: 2
   build_web_zip:
     needs: build
     runs-on: ubuntu-22.04
@@ -279,6 +290,7 @@ jobs:
         with:
           name: web-zip-result
           path: crossonic.zip
+          retention-days: 2
   release:
     needs:
       - build
@@ -304,13 +316,11 @@ jobs:
       - name: Download Android files
         uses: actions/download-artifact@v4
         with:
-          name: android-result
-          path: android-result
+          name: android-apk-result
+          path: android-apk-result
 
-      - name: Copy Android files to root
-        run: |
-          cp android-result/*.apk .
-          cp android-result/*.aab .
+      - name: Copy APKs to root
+        run: cp android-apk-result/*.apk .
 
       - name: Upload Release Asset (arm32v7)
         uses: actions/upload-release-asset@v1
@@ -341,16 +351,6 @@ jobs:
           asset_path: app-x86_64-release.apk
           asset_name: Crossonic-${{ needs.build.outputs.version }}-android-x64.apk
           asset_content_type: application/vnd.android.package-archive
-
-      - name: Upload Release Asset (App Bundle)
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.draft_release.outputs.upload_url }}
-          asset_path: app-release.aab
-          asset_name: Crossonic-${{ needs.build.outputs.version }}-android.aab
-          asset_content_type: application/octet-stream
 
       # TAR.GZ (x86_64)
       - name: Download tar.gz file
