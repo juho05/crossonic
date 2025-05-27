@@ -54,10 +54,6 @@ void main() async {
     });
   }
 
-  if (kIsWeb) {
-    await BrowserContextMenu.disableContextMenu();
-  }
-
   runApp(InstallGStreamer(
     child: MultiProvider(
       providers: await providers,
