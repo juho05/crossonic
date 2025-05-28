@@ -77,7 +77,7 @@ class SubsonicService {
       final response = await http.post(
           Uri.parse('${con.baseUri}/rest/crossonic/setPlaylistCover?$queryStr'),
           body: cover,
-          headers: {"Content-Type": mime});
+          headers: {"Content-Type": mime}).timeout(const Duration(minutes: 2));
       if (response.statusCode != 200 && response.statusCode != 201) {
         return Result.error(ServerException(response.statusCode));
       }
@@ -586,8 +586,12 @@ class SubsonicService {
       final response = post
           ? await http.post(Uri.parse('$baseUri/rest/$endpointName'),
               body: queryStr,
-              headers: {"Content-Type": "application/x-www-form-urlencoded"})
-          : await http.get(Uri.parse('$baseUri/rest/$endpointName?$queryStr'));
+              headers: {
+                  "Content-Type": "application/x-www-form-urlencoded"
+                }).timeout(const Duration(seconds: 10))
+          : await http
+              .get(Uri.parse('$baseUri/rest/$endpointName?$queryStr'))
+              .timeout(const Duration(seconds: 10));
       if (response.statusCode != 200 && response.statusCode != 201) {
         if (response.statusCode == 401) {
           throw UnauthenticatedException();

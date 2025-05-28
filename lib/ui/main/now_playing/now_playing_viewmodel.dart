@@ -87,15 +87,8 @@ class NowPlayingViewModel extends ChangeNotifier {
 
   Future<Result<void>> toggleFavorite() async {
     if (_song == null) return Result.ok(null);
-    _favorite = !favorite;
-    notifyListeners();
-    final result = await _favoritesRepository.setFavorite(
-        FavoriteType.song, _song!.id, favorite);
-    if (result is Err) {
-      _favorite = !favorite;
-      notifyListeners();
-    }
-    return result;
+    return await _favoritesRepository.setFavorite(
+        FavoriteType.song, _song!.id, !favorite);
   }
 
   Future<void> playPause() async {

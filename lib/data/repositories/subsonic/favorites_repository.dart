@@ -54,6 +54,13 @@ class FavoritesRepository extends ChangeNotifier {
       FavoriteType type, String id, bool favorite) async {
     if (_favoriteIDs.contains((type, id)) == favorite) return Result.ok(null);
 
+    if (favorite) {
+      _favoriteIDs.add((type, id));
+    } else {
+      _favoriteIDs.remove((type, id));
+    }
+    notifyListeners();
+
     final Result<void> result;
     if (favorite) {
       result = await _subsonic.star(_auth.con, ids: [
@@ -75,6 +82,13 @@ class FavoritesRepository extends ChangeNotifier {
 
     if (result is Ok) {
       update(type, id, favorite ? DateTime.now() : null);
+    } else {
+      if (favorite) {
+        _favoriteIDs.remove((type, id));
+      } else {
+        _favoriteIDs.add((type, id));
+      }
+      notifyListeners();
     }
 
     return result;
