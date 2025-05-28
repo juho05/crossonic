@@ -158,6 +158,9 @@ class CustomContextMenuController {
           onTap: () {
             removeAny();
           },
+          onSecondaryTap: () {
+            removeAny();
+          },
           child: Focus(
             focusNode: _focusNode,
             onKeyEvent: (node, event) {

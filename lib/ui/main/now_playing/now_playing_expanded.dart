@@ -6,6 +6,7 @@ import 'package:crossonic/data/repositories/audio/audio_handler.dart';
 import 'package:crossonic/routing/router.gr.dart';
 import 'package:crossonic/ui/common/cover_art_decorated.dart';
 import 'package:crossonic/ui/common/dialogs/chooser.dart';
+import 'package:crossonic/ui/common/with_context_menu.dart';
 import 'package:crossonic/ui/main/now_playing/now_playing_menu_options.dart';
 import 'package:crossonic/ui/main/now_playing/now_playing_viewmodel.dart';
 import 'package:flutter/material.dart';
@@ -46,13 +47,16 @@ class NowPlayingExpanded extends StatelessWidget {
                   SizedBox(
                     height: constraints.maxHeight * 0.5,
                     width: constraints.maxWidth - 16,
-                    child: CoverArtDecorated(
-                      coverId: _viewModel.coverId,
-                      borderRadius: BorderRadius.circular(10),
-                      isFavorite: _viewModel.favorite,
-                      placeholderIcon: Icons.album,
-                      menuOptions:
-                          getNowPlayingMenuOptions(context, _viewModel),
+                    child: WithContextMenu(
+                      options: getNowPlayingMenuOptions(context, _viewModel),
+                      child: CoverArtDecorated(
+                        coverId: _viewModel.coverId,
+                        borderRadius: BorderRadius.circular(10),
+                        isFavorite: _viewModel.favorite,
+                        placeholderIcon: Icons.album,
+                        menuOptions:
+                            getNowPlayingMenuOptions(context, _viewModel),
+                      ),
                     ),
                   ),
                   StreamBuilder(
