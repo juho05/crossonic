@@ -41,6 +41,9 @@ class _WithContextMenuState extends State<WithContextMenu> {
       openOnTap: widget.openOnTap,
       contextMenuBuilder: (context, offset) {
         return SafeArea(
+          // don't change the context menu offset
+          left: false,
+          top: false,
           child: DesktopTextSelectionToolbar(
             anchor: offset,
             children: widget.options
