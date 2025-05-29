@@ -78,11 +78,21 @@ class AlbumViewModel extends ChangeNotifier {
     }
   }
 
-  void playDisc(int disc) {
+  void playDisc(int disc, {bool shuffle = false}) {
     final songs =
         (album!.songs ?? []).where((song) => song.discNr == disc).toList();
+    if (shuffle) {
+      songs.shuffle();
+    }
     _audioHandler.playOnNextMediaChange();
     _audioHandler.queue.replace(songs);
+  }
+
+  void addDiscToQueue(int disc, bool priority) {
+    final songs =
+        (album!.songs ?? []).where((song) => song.discNr == disc).toList();
+    if (songs.isEmpty) return;
+    _audioHandler.queue.addAll(songs, priority);
   }
 
   void shuffle() {

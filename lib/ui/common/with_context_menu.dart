@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -17,11 +16,13 @@ class ContextMenuOption {
 class WithContextMenu extends StatefulWidget {
   final Widget child;
   final Iterable<ContextMenuOption> options;
+  final bool openOnTap;
 
   const WithContextMenu({
     super.key,
     required this.child,
     required this.options,
+    this.openOnTap = false,
   });
 
   @override
@@ -32,6 +33,7 @@ class _WithContextMenuState extends State<WithContextMenu> {
   @override
   Widget build(BuildContext context) {
     return ContextMenu(
+      openOnTap: widget.openOnTap,
       contextMenuBuilder: (context, offset) {
         return AdaptiveTextSelectionToolbar(
           anchors: TextSelectionToolbarAnchors(primaryAnchor: offset),
@@ -64,11 +66,16 @@ class ContextMenu extends StatefulWidget {
   /// Builds the context menu.
   final ContextMenuBuilder contextMenuBuilder;
 
+  final bool openOnTap;
+
   /// The child widget that will be listened to for gestures.
   final Widget child;
 
   const ContextMenu(
-      {super.key, required this.child, required this.contextMenuBuilder});
+      {super.key,
+      required this.child,
+      required this.contextMenuBuilder,
+      this.openOnTap = false});
 
   @override
   State<ContextMenu> createState() => _ContextMenuState();
@@ -80,10 +87,6 @@ class _ContextMenuState extends State<ContextMenu> {
 
   void _onSecondaryTapUp(TapUpDetails details) {
     _show(details.globalPosition);
-  }
-
-  void _onTap() {
-    ContextMenuController.removeAny();
   }
 
   void _show(Offset position) {
@@ -107,10 +110,22 @@ class _ContextMenuState extends State<ContextMenu> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.openOnTap) {
+      return Material(
+        type: MaterialType.transparency,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onSecondaryTapUp: _onSecondaryTapUp,
+          child: InkWell(
+            onTapUp: (details) => _show(details.globalPosition),
+            child: widget.child,
+          ),
+        ),
+      );
+    }
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onSecondaryTapUp: _onSecondaryTapUp,
-      onTap: _onTap,
       child: widget.child,
     );
   }

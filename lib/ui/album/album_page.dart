@@ -213,43 +213,72 @@ class _AlbumPageState extends State<AlbumPage> {
                   children: [
                     Padding(
                       padding: EdgeInsets.only(top: index == 0 ? 8 : 0),
-                      child: Material(
-                        type: MaterialType.transparency,
-                        child: InkWell(
-                          onTap: () {
-                            _viewModel.playDisc(songs[index].discNr!);
-                          },
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 8),
-                            child: Row(
-                              children: [
-                                const Icon(Icons.album),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: OrientationBuilder(
-                                    builder: (context, orientation) => Text(
-                                      album.discTitles[songs[index].discNr!] ??
-                                          "Disc ${songs[index].discNr}",
-                                      textAlign: TextAlign.center,
-                                      overflow: TextOverflow.ellipsis,
-                                      maxLines: 1,
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .titleMedium!
-                                          .copyWith(
-                                            fontWeight: orientation ==
-                                                    Orientation.portrait
-                                                ? FontWeight.w800
-                                                : FontWeight.bold,
-                                          ),
-                                    ),
+                      child: WithContextMenu(
+                        openOnTap: true,
+                        options: [
+                          ContextMenuOption(
+                            title: "Play",
+                            icon: Icons.play_arrow,
+                            onSelected: () =>
+                                _viewModel.playDisc(songs[index].discNr!),
+                          ),
+                          ContextMenuOption(
+                            title: "Shuffle",
+                            icon: Icons.shuffle,
+                            onSelected: () => _viewModel
+                                .playDisc(songs[index].discNr!, shuffle: true),
+                          ),
+                          ContextMenuOption(
+                            title: "Add to priority queue",
+                            icon: Icons.playlist_play,
+                            onSelected: () {
+                              _viewModel.addDiscToQueue(
+                                  songs[index].discNr!, true);
+                              Toast.show(context,
+                                  "Added '${album.discTitles[songs[index].discNr!] ?? "Disc ${songs[index].discNr}"}' to priority queue");
+                            },
+                          ),
+                          ContextMenuOption(
+                            title: "Add to queue",
+                            icon: Icons.playlist_add,
+                            onSelected: () {
+                              _viewModel.addDiscToQueue(
+                                  songs[index].discNr!, false);
+                              Toast.show(context,
+                                  "Added '${album.discTitles[songs[index].discNr!] ?? "Disc ${songs[index].discNr}"}' to queue");
+                            },
+                          ),
+                        ],
+                        child: Padding(
+                          padding:
+                              EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.album),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: OrientationBuilder(
+                                  builder: (context, orientation) => Text(
+                                    album.discTitles[songs[index].discNr!] ??
+                                        "Disc ${songs[index].discNr}",
+                                    textAlign: TextAlign.center,
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 1,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium!
+                                        .copyWith(
+                                          fontWeight: orientation ==
+                                                  Orientation.portrait
+                                              ? FontWeight.w800
+                                              : FontWeight.bold,
+                                        ),
                                   ),
                                 ),
-                                const SizedBox(width: 8),
-                                const Icon(Icons.album),
-                              ],
-                            ),
+                              ),
+                              const SizedBox(width: 8),
+                              const Icon(Icons.album),
+                            ],
                           ),
                         ),
                       ),
