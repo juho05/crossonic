@@ -40,23 +40,25 @@ class _WithContextMenuState extends State<WithContextMenu> {
     return ContextMenu(
       openOnTap: widget.openOnTap,
       contextMenuBuilder: (context, offset) {
-        return AdaptiveTextSelectionToolbar(
-          anchors: TextSelectionToolbarAnchors(primaryAnchor: offset),
-          children: widget.options
-              .map((o) => Container(
-                    color: Theme.of(context).colorScheme.surfaceContainer,
-                    child: MenuItemButton(
-                      leadingIcon: o.icon != null ? Icon(o.icon) : null,
-                      onPressed: () {
-                        if (o.onSelected != null) {
-                          o.onSelected!();
-                        }
-                        CustomContextMenuController.removeAny();
-                      },
-                      child: Text(o.title),
-                    ),
-                  ))
-              .toList(),
+        return SafeArea(
+          child: DesktopTextSelectionToolbar(
+            anchor: offset,
+            children: widget.options
+                .map((o) => Container(
+                      color: Theme.of(context).colorScheme.surfaceContainer,
+                      child: MenuItemButton(
+                        leadingIcon: o.icon != null ? Icon(o.icon) : null,
+                        onPressed: () {
+                          if (o.onSelected != null) {
+                            o.onSelected!();
+                          }
+                          CustomContextMenuController.removeAny();
+                        },
+                        child: Text(o.title),
+                      ),
+                    ))
+                .toList(),
+          ),
         );
       },
       child: widget.child,
