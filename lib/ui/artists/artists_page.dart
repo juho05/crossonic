@@ -114,7 +114,8 @@ class _ArtistsPageState extends State<ArtistsPage> {
                           id: a.id,
                           key: ValueKey(a.id),
                           extraInfo: [
-                            if (a.albumCount != null) "Albums: ${a.albumCount}"
+                            if (a.albumCount != null)
+                              "Releases: ${a.albumCount}"
                           ],
                           coverId: a.coverId,
                           name: a.name,
@@ -128,7 +129,7 @@ class _ArtistsPageState extends State<ArtistsPage> {
                           },
                           onShuffle: () async {
                             final option = await ChooserDialog.choose(
-                                context, "Shuffle", ["Albums", "Songs"]);
+                                context, "Shuffle", ["Releases", "Songs"]);
                             if (option == null) return;
                             final result = await _viewModel.play(a,
                                 shuffleAlbums: option == 0,
@@ -141,7 +142,8 @@ class _ArtistsPageState extends State<ArtistsPage> {
                                 await _viewModel.addToQueue(a, priority);
                             if (!context.mounted) return;
                             toastResult(context, result,
-                                successMsg: "Added '${a.name}' to ${priority ? "priority " : ""}queue");
+                                successMsg:
+                                    "Added '${a.name}' to ${priority ? "priority " : ""}queue");
                           },
                           onAddToPlaylist: () async {
                             final result = await _viewModel.getArtistSongs(a);

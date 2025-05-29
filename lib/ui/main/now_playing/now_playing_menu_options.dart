@@ -46,7 +46,7 @@ List<ContextMenuOption> getNowPlayingMenuOptions(
       ),
       if (viewModel.album != null)
         ContextMenuOption(
-          title: "Go to album",
+          title: "Go to release",
           onSelected: () {
             context.router.push(AlbumRoute(albumId: viewModel.album!.id));
           },

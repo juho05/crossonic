@@ -87,7 +87,7 @@ class _ArtistPageState extends State<ArtistPage> {
                   icon: Icons.shuffle,
                   onSelected: () async {
                     final option = await ChooserDialog.choose(
-                        context, "Shuffle", ["Albums", "Songs"]);
+                        context, "Shuffle", ["Releases", "Songs"]);
                     if (option == null) return;
                     _viewModel.play(
                         shuffleAlbums: option == 0, shuffleSongs: option == 1);
@@ -158,7 +158,7 @@ class _ArtistPageState extends State<ArtistPage> {
                 highlighted: true,
                 onClick: () async {
                   final option = await ChooserDialog.choose(
-                      context, "Shuffle", ["Albums", "Songs"]);
+                      context, "Shuffle", ["Releases", "Songs"]);
                   if (option == null) return;
                   _viewModel.play(
                       shuffleAlbums: option == 0, shuffleSongs: option == 1);

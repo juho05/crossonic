@@ -62,7 +62,7 @@ class _ArtistListItemState extends State<ArtistListItem> {
           return ClickableListItemWithContextMenu(
             title: widget.name,
             extraInfo: [
-              if (widget.albumCount != null) "Albums: ${widget.albumCount}",
+              if (widget.albumCount != null) "Releases: ${widget.albumCount}",
             ],
             leading: Padding(
               padding: const EdgeInsets.only(left: 8),
@@ -91,7 +91,7 @@ class _ArtistListItemState extends State<ArtistListItem> {
                   title: "Shuffle",
                   onSelected: () async {
                     final option = await ChooserDialog.choose(
-                        context, "Shuffle", ["Albums", "Songs"]);
+                        context, "Shuffle", ["Releases", "Songs"]);
                     if (option == null) return;
                     widget.onShuffle!(option == 1);
                   },

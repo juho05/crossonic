@@ -79,7 +79,7 @@ class _GenresPageState extends State<GenresPage> {
                             ),
                             DropdownMenuEntry(
                               value: GenresSortMode.albumCount,
-                              label: "Album Count",
+                              label: "Release Count",
                             ),
                             DropdownMenuEntry(
                               value: GenresSortMode.random,
@@ -133,7 +133,7 @@ class _GenresPageState extends State<GenresPage> {
                                   children: [
                                     Icon(Icons.album),
                                     if (orientation == Orientation.landscape)
-                                      Text("Albums: ${g.albumCount}")
+                                      Text("Releases: ${g.albumCount}")
                                     else
                                       Text("${g.albumCount}")
                                   ],

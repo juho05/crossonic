@@ -161,14 +161,15 @@ class _BrowsePageState extends State<BrowsePage> with RestorationMixin {
                                   a, priority);
                               if (!context.mounted) return;
                               toastResult(context, result,
-                                  successMsg: "Added '${a.name}' to ${priority ? "priority " : ""}queue");
+                                  successMsg:
+                                      "Added '${a.name}' to ${priority ? "priority " : ""}queue");
                             },
                           );
                         },
                       ),
                       if (_viewModel.albums.isNotEmpty)
                         BrowseSearchResultSeparator(
-                          title: "Albums",
+                          title: "Releases",
                           icon: Icons.album,
                         ),
                       ...List<Widget>.generate(
@@ -212,7 +213,8 @@ class _BrowsePageState extends State<BrowsePage> with RestorationMixin {
                                   await _viewModel.addAlbumToQueue(a, priority);
                               if (!context.mounted) return;
                               toastResult(context, result,
-                                  successMsg: "Added '${a.name}' to ${priority ? "priority " : ""}queue");
+                                  successMsg:
+                                      "Added '${a.name}' to ${priority ? "priority " : ""}queue");
                             },
                             onGoToArtist: a.artists.isNotEmpty
                                 ? () async {

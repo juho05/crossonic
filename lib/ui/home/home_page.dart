@@ -31,7 +31,7 @@ class HomePage extends StatelessWidget {
                 subsonicRepository: context.read(),
               ),
               builder: (context, _) => HomeAlbumList(
-                title: "Recently added albums",
+                title: "Recently added releases",
                 route: AlbumsRoute(
                   mode: AlbumsSortMode.recentlyAdded.name,
                 ),

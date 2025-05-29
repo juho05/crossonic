@@ -141,7 +141,7 @@ class _SongListItemState extends State<SongListItem> {
               if (widget.onGoToAlbum != null)
                 ContextMenuOption(
                   icon: Icons.album,
-                  title: "Go to album",
+                  title: "Go to release",
                   onSelected: widget.onGoToAlbum,
                 ),
               if (widget.onGoToArtist != null)
