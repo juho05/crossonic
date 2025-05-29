@@ -9,6 +9,26 @@ import 'package:crossonic/utils/result.dart';
 import 'package:flutter/material.dart';
 
 class ArtistViewModel extends ChangeNotifier {
+  static const Map<ReleaseType, int> _releaseTypeOrder = {
+    ReleaseType.album: 0,
+    ReleaseType.ep: 1,
+    ReleaseType.live: 2,
+    ReleaseType.compilation: 3,
+    ReleaseType.single: 4,
+    ReleaseType.remix: 5,
+    ReleaseType.demo: 6,
+  };
+
+  static Map<ReleaseType, String> releaseTypeTitles = {
+    ReleaseType.album: "Albums",
+    ReleaseType.ep: "EPs",
+    ReleaseType.live: "Live",
+    ReleaseType.compilation: "Compilations",
+    ReleaseType.single: "Singles",
+    ReleaseType.remix: "Remixes",
+    ReleaseType.demo: "Demos",
+  };
+
   final SubsonicRepository _subsonic;
   final FavoritesRepository _favorites;
   final AudioHandler _audioHandler;
@@ -57,13 +77,76 @@ class ArtistViewModel extends ChangeNotifier {
     switch (result) {
       case Err():
         _status = FetchStatus.failure;
+        notifyListeners();
+        return;
       case Ok():
-        _artist = result.value;
         _status = FetchStatus.success;
+        _artist = result.value;
     }
+
+    final albums = _artist!.albums;
+    if (albums != null) {
+      albums.sort((a, b) {
+        if (a.releaseType != b.releaseType) {
+          return (_releaseTypeOrder[a.releaseType] ?? 0)
+              .compareTo(_releaseTypeOrder[b.releaseType] ?? 0);
+        }
+        return (b.year ?? 0).compareTo(a.year ?? 0);
+      });
+    }
+
     notifyListeners();
 
     _loadDescription(artistId);
+  }
+
+  Future<Result<void>> playReleases(ReleaseType releaseType,
+      {bool shuffleReleases = false, bool shuffleSongs = false}) async {
+    final result =
+        await _subsonic.getAlbumsSongs(_getAlbumsByReleaseType(releaseType));
+    switch (result) {
+      case Err():
+        return Result.error(result.error);
+      case Ok():
+    }
+    if (shuffleReleases) {
+      result.value.shuffle();
+    }
+    final songs = result.value.expand((l) => l).toList();
+    if (shuffleSongs) {
+      songs.shuffle();
+    }
+    _audioHandler.playOnNextMediaChange();
+    _audioHandler.queue.replace(songs);
+    return Result.ok(null);
+  }
+
+  Future<Result<void>> addReleasesToQueue(
+      ReleaseType releaseType, bool priority) async {
+    final result =
+        await _subsonic.getAlbumsSongs(_getAlbumsByReleaseType(releaseType));
+    switch (result) {
+      case Err():
+        return Result.error(result.error);
+      case Ok():
+    }
+    _audioHandler.queue.addAll(result.value.expand((l) => l), priority);
+    return Result.ok(null);
+  }
+
+  List<Album> _getAlbumsByReleaseType(ReleaseType releaseType) {
+    final albums = <Album>[];
+    for (Album a in _artist?.albums ?? []) {
+      if (a.releaseType == releaseType) {
+        albums.add(a);
+        continue;
+      }
+      // albums is sorted so that albums of the same release type are grouped together
+      if (albums.isNotEmpty) {
+        break;
+      }
+    }
+    return albums;
   }
 
   Future<Result<void>> playAlbum(Album album, {bool shuffle = false}) async {

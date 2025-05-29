@@ -330,9 +330,8 @@ class SubsonicRepository {
     return _service.getCoverUri(_auth.con, id, constantSalt: constantSalt);
   }
 
-  Future<Result<List<List<Song>>>> getArtistSongs(Artist artist) async {
-    final results =
-        await Future.wait((artist.albums ?? []).map((a) => getAlbumSongs(a)));
+  Future<Result<List<List<Song>>>> getAlbumsSongs(List<Album> albums) async {
+    final results = await Future.wait(albums.map((a) => getAlbumSongs(a)));
     final result = <List<Song>>[];
     for (var r in results) {
       switch (r) {
@@ -343,6 +342,10 @@ class SubsonicRepository {
       }
     }
     return Result.ok(result);
+  }
+
+  Future<Result<List<List<Song>>>> getArtistSongs(Artist artist) async {
+    return getAlbumsSongs(artist.albums ?? []);
   }
 
   Future<Result<List<Song>>> getAlbumSongs(Album album) async {

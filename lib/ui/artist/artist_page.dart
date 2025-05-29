@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:auto_route/auto_route.dart';
+import 'package:crossonic/data/repositories/subsonic/models/album.dart';
 import 'package:crossonic/routing/router.gr.dart';
 import 'package:crossonic/ui/artist/artist_viewmodel.dart';
 import 'package:crossonic/ui/common/album_grid_cell.dart';
@@ -9,6 +10,7 @@ import 'package:crossonic/ui/common/collection_page.dart';
 import 'package:crossonic/ui/common/cover_art_decorated.dart';
 import 'package:crossonic/ui/common/dialogs/add_to_playlist.dart';
 import 'package:crossonic/ui/common/dialogs/chooser.dart';
+import 'package:crossonic/ui/common/toast.dart';
 import 'package:crossonic/ui/common/with_context_menu.dart';
 import 'package:crossonic/utils/fetch_status.dart';
 import 'package:crossonic/utils/result.dart';
@@ -107,8 +109,8 @@ class _ArtistPageState extends State<ArtistPage> {
                   onSelected: () async {
                     final result = await _viewModel.addToQueue(false);
                     if (!context.mounted) return;
-                    toastResult(
-                        context, result, successMsg: "Added '${artist.name} to queue");
+                    toastResult(context, result,
+                        successMsg: "Added '${artist.name} to queue");
                   },
                 ),
                 ContextMenuOption(
@@ -187,62 +189,170 @@ class _ArtistPageState extends State<ArtistPage> {
                 onClick: () async {
                   final result = await _viewModel.addToQueue(false);
                   if (!context.mounted) return;
-                  toastResult(
-                      context, result, successMsg: "Added '${artist.name}' to queue");
+                  toastResult(context, result,
+                      successMsg: "Added '${artist.name}' to queue");
                 },
               ),
             ],
-            contentTitle: "Albums (${albums.length})",
             content: Padding(
               padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-              child: GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: AlbumsGridDelegate(),
-                itemCount: albums.length,
-                itemBuilder: (context, i) => AlbumGridCell(
-                  id: albums[i].id,
-                  name: albums[i].name,
-                  coverId: albums[i].coverId,
-                  extraInfo: [
-                    albums[i].year != null
-                        ? "${albums[i].year}"
-                        : "Unknown year"
-                  ],
-                  onTap: () {
-                    context.router.push(AlbumRoute(albumId: albums[i].id));
-                  },
-                  onPlay: () async {
-                    final result = await _viewModel.playAlbum(albums[i]);
-                    if (!context.mounted) return;
-                    toastResult(context, result);
-                  },
-                  onShuffle: () async {
-                    final result =
-                        await _viewModel.playAlbum(albums[i], shuffle: true);
-                    if (!context.mounted) return;
-                    toastResult(context, result);
-                  },
-                  onAddToQueue: (priority) async {
-                    final result =
-                        await _viewModel.addAlbumToQueue(albums[i], priority);
-                    if (!context.mounted) return;
-                    toastResult(context, result,
-                        successMsg: "Added '${albums[i].name}' to ${priority ? " priority" : ""} queue");
-                  },
-                  onAddToPlaylist: () async {
-                    final result = await _viewModel.getAlbumSongs(albums[i]);
-                    if (!context.mounted) return;
-                    switch (result) {
-                      case Err():
+              child: Builder(builder: (context) {
+                final children = <Widget>[];
+                final currentAlbums = <Album>[];
+                Widget createGrid() {
+                  final gridAlbums = List.of(currentAlbums);
+                  return GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate: AlbumsGridDelegate(),
+                    itemCount: gridAlbums.length,
+                    itemBuilder: (context, i) => AlbumGridCell(
+                      id: gridAlbums[i].id,
+                      name: gridAlbums[i].name,
+                      coverId: gridAlbums[i].coverId,
+                      extraInfo: [
+                        gridAlbums[i].year != null
+                            ? "${gridAlbums[i].year}"
+                            : "Unknown year"
+                      ],
+                      onTap: () {
+                        context.router
+                            .push(AlbumRoute(albumId: gridAlbums[i].id));
+                      },
+                      onPlay: () async {
+                        final result =
+                            await _viewModel.playAlbum(gridAlbums[i]);
+                        if (!context.mounted) return;
                         toastResult(context, result);
-                      case Ok():
-                        AddToPlaylistDialog.show(
-                            context, albums[i].name, result.value);
+                      },
+                      onShuffle: () async {
+                        final result = await _viewModel.playAlbum(gridAlbums[i],
+                            shuffle: true);
+                        if (!context.mounted) return;
+                        toastResult(context, result);
+                      },
+                      onAddToQueue: (priority) async {
+                        final result = await _viewModel.addAlbumToQueue(
+                            gridAlbums[i], priority);
+                        if (!context.mounted) return;
+                        toastResult(context, result,
+                            successMsg:
+                                "Added '${gridAlbums[i].name}' to ${priority ? " priority" : ""} queue");
+                      },
+                      onAddToPlaylist: () async {
+                        final result =
+                            await _viewModel.getAlbumSongs(gridAlbums[i]);
+                        if (!context.mounted) return;
+                        switch (result) {
+                          case Err():
+                            toastResult(context, result);
+                          case Ok():
+                            AddToPlaylistDialog.show(
+                                context, gridAlbums[i].name, result.value);
+                        }
+                      },
+                    ),
+                  );
+                }
+
+                ReleaseType? lastReleaseType;
+                for (final album in albums) {
+                  if (album.releaseType != lastReleaseType) {
+                    if (currentAlbums.isNotEmpty) {
+                      children.add(createGrid());
+                      currentAlbums.clear();
                     }
-                  },
-                ),
-              ),
+                    children.add(Padding(
+                      padding: EdgeInsets.only(
+                          top: lastReleaseType != null ? 12 : 4),
+                      child: WithContextMenu(
+                        openOnTap: true,
+                        enabled:
+                            albums.first.releaseType != albums.last.releaseType,
+                        options: [
+                          ContextMenuOption(
+                            title: "Play",
+                            icon: Icons.play_arrow,
+                            onSelected: () =>
+                                _viewModel.playReleases(album.releaseType),
+                          ),
+                          ContextMenuOption(
+                            title: "Shuffle",
+                            icon: Icons.shuffle,
+                            onSelected: () async {
+                              final option = await ChooserDialog.choose(
+                                  context, "Shuffle", [
+                                ArtistViewModel
+                                    .releaseTypeTitles[album.releaseType]!,
+                                "Songs"
+                              ]);
+                              if (option == null) return;
+                              _viewModel.playReleases(album.releaseType,
+                                  shuffleReleases: option == 0,
+                                  shuffleSongs: option == 1);
+                            },
+                          ),
+                          ContextMenuOption(
+                            title: "Add to priority queue",
+                            icon: Icons.playlist_play,
+                            onSelected: () {
+                              _viewModel.addReleasesToQueue(
+                                  album.releaseType, true);
+                              Toast.show(context,
+                                  "Added '${ArtistViewModel.releaseTypeTitles[album.releaseType]}' to priority queue");
+                            },
+                          ),
+                          ContextMenuOption(
+                            title: "Add to queue",
+                            icon: Icons.playlist_add,
+                            onSelected: () {
+                              _viewModel.addReleasesToQueue(
+                                  album.releaseType, false);
+                              Toast.show(context,
+                                  "Added '${ArtistViewModel.releaseTypeTitles[album.releaseType]}' to queue");
+                            },
+                          ),
+                        ],
+                        child: Padding(
+                          padding:
+                              EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: OrientationBuilder(
+                                  builder: (context, orientation) => Text(
+                                    ArtistViewModel
+                                        .releaseTypeTitles[album.releaseType]!,
+                                    textAlign: TextAlign.left,
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 1,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium!
+                                        .copyWith(
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.w500),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ));
+                    lastReleaseType = album.releaseType;
+                  }
+                  currentAlbums.add(album);
+                }
+                if (currentAlbums.isNotEmpty) {
+                  children.add(createGrid());
+                  currentAlbums.clear();
+                }
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: children,
+                );
+              }),
             ),
           );
         },

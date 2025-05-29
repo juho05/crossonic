@@ -17,12 +17,14 @@ class WithContextMenu extends StatefulWidget {
   final Widget child;
   final Iterable<ContextMenuOption> options;
   final bool openOnTap;
+  final bool enabled;
 
   const WithContextMenu({
     super.key,
     required this.child,
     required this.options,
     this.openOnTap = false,
+    this.enabled = true,
   });
 
   @override
@@ -32,6 +34,9 @@ class WithContextMenu extends StatefulWidget {
 class _WithContextMenuState extends State<WithContextMenu> {
   @override
   Widget build(BuildContext context) {
+    if (!widget.enabled) {
+      return widget.child;
+    }
     return ContextMenu(
       openOnTap: widget.openOnTap,
       contextMenuBuilder: (context, offset) {

@@ -25,6 +25,7 @@ See [Supported platforms](#supported-platforms) for a status per platform.
 - [x] Stream original or transcoded media
   - [x] configurable transcoding settings for WiFi and mobile
 - [x] Browse/search songs, albums, artists
+- [x] Release types (albums, EPs, singles, live, compilations, …)
 - [x] Favorite songs/albums/artists
 - [x] Playlists
   - [x] download for offline listening

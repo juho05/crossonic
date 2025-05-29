@@ -17,7 +17,8 @@ class ArtistsViewModel extends ChangeNotifier {
   set mode(ArtistsPageMode mode) {
     final old = _mode;
     _mode = mode;
-    if (_mode == ArtistsPageMode.favorites || old == ArtistsPageMode.favorites) {
+    if (_mode == ArtistsPageMode.favorites ||
+        old == ArtistsPageMode.favorites) {
       _fetch();
     } else {
       _sortArtists();
