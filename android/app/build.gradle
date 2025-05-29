@@ -52,6 +52,7 @@ android {
         targetSdkVersion flutter.targetSdkVersion
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
+        resValue "string", "app_name", "Crossonic"
     }
 
     signingConfigs {
@@ -66,6 +67,10 @@ android {
     buildTypes {
         release {
             signingConfig signingConfigs.release.storeFile ? signingConfigs.release : signingConfigs.debug
+        }
+        debug {
+            applicationIdSuffix "debug"
+            resValue "string", "app_name", "Crossonic (Debug)"
         }
     }
 }
