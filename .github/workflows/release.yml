@@ -278,7 +278,7 @@ jobs:
       - name: Build generated files
         run: flutter pub run build_runner build
       - name: Compile for web
-        run: flutter build web --release
+        run: flutter build web --wasm --release
 
       - name: Create .zip archive
         run: |

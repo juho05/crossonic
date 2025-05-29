@@ -23,6 +23,12 @@ void main() async {
   Log.init();
   Log.info("App started.");
 
+  if (kIsWasm) {
+    Log.info("Running on WebAssembly");
+  } else if (kIsWeb) {
+    Log.info("Running on JavaScript");
+  }
+
   WidgetsFlutterBinding.ensureInitialized();
 
   FlutterSingleInstance.onFocus = (metadata) async {
