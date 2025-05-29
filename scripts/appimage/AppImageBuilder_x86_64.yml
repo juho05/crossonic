@@ -41,6 +41,8 @@ AppDir:
   runtime:
     env:
       XDG_DATA_DIRS: "/usr/local/share/:/usr/share/:${XDG_DATA_DIRS}"
+      GTK_USE_PORTAL: 1
+      CROSSONIC_APPIMAGE: 1
   files:
     include: []
     exclude:
