@@ -84,20 +84,25 @@ The OpenSubsonic API supports some features that are out-of-scope for this appli
 
 ## Installation
 
+*Currently there is no automatic version checking built into the app. Check the [releases](https://github.com/juho05/crossonic/releases) page regularly to
+know when a new version is available.*
+
+*To update an existing installation just repeat the installation instructions again for the new version.*
+
 ### Android
 
-Download and execute the *APK* file for your architecture from the [Releases](https://github.com/juho05/crossonic/releases/latest) page.
+Download and execute the *APK* file for your architecture from the [releases](https://github.com/juho05/crossonic/releases/latest) page.
 
 **Android Auto:** By default Android Auto does not show apps that were not installed from the Google Play Store.
 To enable side-loaded apps open the *Android Auto* settings on your phone (you might have to click on *Additional settings in the app* first), then scroll down to *Version* and click on it a couple of times to enable *Developer Mode*. Now, use the three-dot menu in the top-right corner to enter *Developer Settings* and enable *Unknown Sources*.
 
 ### Linux
 
-Crossonic is available as an *AppImage* on the [Releases](https://github.com/juho05/crossonic/releases/latest) page.
+Crossonic is available as an *AppImage* on the [releases](https://github.com/juho05/crossonic/releases/latest) page.
 
 ### Windows
 
-- Download and execute `Crossonic-x.x.x-windows-x86-64.exe` from the [Releases](https://github.com/juho05/crossonic/releases/latest) page
+- Download and execute `Crossonic-x.x.x-windows-x86-64.exe` from the [releases](https://github.com/juho05/crossonic/releases/latest) page
 
 ### macOS
 
@@ -110,7 +115,7 @@ open *System Settings*, click on *Privacy & Security*, go to *Security*, click *
 
 ### Web
 
-- Download and extract `Crossonic-x.x.x-web.zip` from the [Releases](https://github.com/juho05/crossonic/releases/latest)
+- Download and extract `Crossonic-x.x.x-web.zip` from the [releases](https://github.com/juho05/crossonic/releases/latest)
 - Host the extracted files with a web server like [Caddy](https://caddyserver.com/)
 
 #### Hosting requirements
