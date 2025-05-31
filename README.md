@@ -12,11 +12,19 @@ A cross platform music client for [crossonic-server](https://github.com/juho05/c
 
 This app is still in development. Some features are missing and bugs are to be expected.
 
+The app should support all _Subsonic_ compatible servers ([Navidrome](https://www.navidrome.org/), [gonic](https://github.com/sentriz/gonic), [lms](https://github.com/epoupon/lms), [airsonic-advanced](https://github.com/airsonic-advanced/airsonic-advanced), ...),
+but I only regularly test with [crossonic-server](https://github.com/juho05/crossonic-server). Please [report](https://github.com/juho05/crossonic/issues/new) any
+issues you experience with other servers.
+
+There are pre-release artifacts available on the [releases](https://github.com/juho05/crossonic/releases) page
+but there is currently no auto-update mechanism and the [installation process](#installation) is sub-optimal on many platforms.
+
 See [Supported platforms](#supported-platforms) for a status per platform.
 
 ## Features
 
 - [x] Desktop and mobile layout
+- [ ] Configurable home page
 - [x] Respects light/dark theme and accent color
 - [x] System integration (*Android media API*, *MPRIS*, *SystemMediaTransportControls*, …)
 - [x] Android Auto
@@ -53,10 +61,11 @@ See [Supported platforms](#supported-platforms) for a status per platform.
   - [ ] synced
 - [x] Replay gain
 - [ ] Jukebox
-- [ ] Save queues
+- [ ] Load/save queues
 - [ ] Remote control other devices running the app
 - [ ] Internet Radio
 - [ ] Pre-cache next x songs for spotty networks
+- [ ] End-of-year recap
 
 ### Out-of-scope
 
@@ -68,19 +77,23 @@ The OpenSubsonic API supports some features that are out-of-scope for this appli
 
 ## Supported platforms
 
-**fully supported**
+**regularly tested**
 - Linux
 - Android
+
+**infrequently tested**
 - macOS
 - Windows
+
+**not tested but should work**
 - iOS
 
 **some limitations**
 - Web
   - no gapless playback (not supported by web APIs)
   - Safari playback randomly stops when streaming transcoded media
-  - no image caching
-  - worse performance than native
+  - slow image loading
+  - (significantly) worse performance than native
 
 ## Installation
 
@@ -129,11 +142,11 @@ open *System Settings*, click on *Privacy & Security*, go to *Security*, click *
 
 There are currently no release builds available for iOS.
 
-See [Build/run](#buildrun) for how to build Crossonic yourself.
+See [Build](#build) for how to build Crossonic yourself.
 
-## Build/run
+## Build
 
-Install [Flutter](https://docs.flutter.dev/get-started/install) with all dependencies for your desired target platform.
+Install [Flutter](https://docs.flutter.dev/get-started/install) with all dependencies for your desired target platform (including those required for)
 
 Clone the repository
 ```bash
@@ -171,7 +184,7 @@ sudo pacman -S gstreamer gst-libav gst-plugins-base gst-plugins-goodgstreamer1.0
 In the directory of the repository run:
 
 ```bash
-flutter build linux --release
+flutter build linux
 ```
 
 The built executable is at `./build/linux/x64/release/bundle/Crossonic`.
@@ -191,7 +204,7 @@ choco install gstreamer gstreamer-devel
 In the directory of the repository run:
 
 ```bash
-flutter build windows --release
+flutter build windows
 ```
 
 *NOTE:* The first time starting playback the program might hang for a few seconds and a command prompt window might pop up.
@@ -203,7 +216,7 @@ This is a one-time event. Just wait until the playback starts.
 
 In the directory of the repository run:
 ```bash
-flutter build macos --release
+flutter build macos
 ```
 
 ### Android
@@ -211,7 +224,7 @@ flutter build macos --release
 No additional dependencies should be required.
 
 ```bash
-flutter build apk --release
+flutter build apk
 ```
 
 ### iOS
@@ -224,7 +237,7 @@ flutter build apk --release
 
 In the directory of the repository run:
 ```bash
-flutter build ios --release
+flutter build ios
 ```
 
 ### Web
@@ -233,7 +246,7 @@ No additional dependencies should be required.
 
 In the directory of the repository run:
 ```bash
-flutter build web --release
+flutter build web --wasm
 ```
 
 Now you can serve `./build/web` with a web server like [Caddy](https://caddyserver.com/).
