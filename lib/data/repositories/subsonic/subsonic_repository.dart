@@ -331,9 +331,11 @@ class SubsonicRepository {
   }
 
   Future<Result<List<List<Song>>>> getAlbumsSongs(List<Album> albums) async {
-    final results = await Future.wait(albums.map((a) => getAlbumSongs(a)));
+    // using Future.wait causes long delay (triggers timeout)
+    // for some reason doing the requests sequentially is much faster
     final result = <List<Song>>[];
-    for (var r in results) {
+    for (var a in albums) {
+      final r = await getAlbumSongs(a);
       switch (r) {
         case Err():
           return Result.error(r.error);

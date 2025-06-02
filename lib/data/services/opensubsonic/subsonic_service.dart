@@ -45,6 +45,8 @@ class SubsonicService {
   static const String _clientName = "crossonic";
   static const String _protocolVersion = "1.16.1";
 
+  static final http.Client _httpClient = http.Client();
+
   Future<Result<void>> updatePlaylist(
     Connection con,
     String playlistId, {
@@ -565,33 +567,31 @@ class SubsonicService {
       bool post) async {
     queryParams = generateQuery(queryParams, auth);
     final queryStr = Uri(queryParameters: queryParams).query;
-    {
-      final sanitizedQuery = Map<String, Iterable<String>>.from(queryParams);
-      if (sanitizedQuery.containsKey("p")) {
-        sanitizedQuery["p"] = ["xxx"];
-      }
-      if (sanitizedQuery.containsKey("t")) {
-        sanitizedQuery["t"] = ["xxx"];
-      }
-      if (sanitizedQuery.containsKey("s")) {
-        sanitizedQuery["s"] = ["xxx"];
-      }
-      if (sanitizedQuery.containsKey("apiKey")) {
-        sanitizedQuery["apiKey"] = ["xxx"];
-      }
-      Log.debug(
-          "${post ? "POST" : "GET"} $endpointName?${Uri(queryParameters: sanitizedQuery).query}");
+    final sanitizedQuery = Map<String, Iterable<String>>.from(queryParams);
+    if (sanitizedQuery.containsKey("p")) {
+      sanitizedQuery["p"] = ["xxx"];
     }
+    if (sanitizedQuery.containsKey("t")) {
+      sanitizedQuery["t"] = ["xxx"];
+    }
+    if (sanitizedQuery.containsKey("s")) {
+      sanitizedQuery["s"] = ["xxx"];
+    }
+    if (sanitizedQuery.containsKey("apiKey")) {
+      sanitizedQuery["apiKey"] = ["xxx"];
+    }
+    Log.debug(
+        "${post ? "POST" : "GET"} $endpointName?${Uri(queryParameters: sanitizedQuery).query}");
     try {
       final response = post
-          ? await http.post(Uri.parse('$baseUri/rest/$endpointName'),
+          ? await _httpClient.post(Uri.parse('$baseUri/rest/$endpointName'),
               body: queryStr,
               headers: {
                   "Content-Type": "application/x-www-form-urlencoded"
-                }).timeout(const Duration(seconds: 10))
-          : await http
+                }).timeout(const Duration(seconds: 15))
+          : await _httpClient
               .get(Uri.parse('$baseUri/rest/$endpointName?$queryStr'))
-              .timeout(const Duration(seconds: 10));
+              .timeout(const Duration(seconds: 15));
       if (response.statusCode != 200 && response.statusCode != 201) {
         if (response.statusCode == 401) {
           throw UnauthenticatedException();
@@ -600,7 +600,10 @@ class SubsonicService {
       }
       return Result.ok(response);
     } catch (e, st) {
-      Log.error("Failed to connect to server", e, st);
+      Log.error(
+          "Failed to connect to server: ${post ? "POST" : "GET"} $endpointName?${Uri(queryParameters: sanitizedQuery).query}",
+          e,
+          st);
       return Result.error(ConnectionException());
     }
   }

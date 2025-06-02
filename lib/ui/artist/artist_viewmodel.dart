@@ -1,4 +1,7 @@
+import 'dart:math';
+
 import 'package:crossonic/data/repositories/audio/audio_handler.dart';
+import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/data/repositories/subsonic/favorites_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/models/album.dart';
 import 'package:crossonic/data/repositories/subsonic/models/artist.dart';
@@ -101,37 +104,17 @@ class ArtistViewModel extends ChangeNotifier {
   }
 
   Future<Result<void>> playReleases(ReleaseType releaseType,
-      {bool shuffleReleases = false, bool shuffleSongs = false}) async {
-    final result =
-        await _subsonic.getAlbumsSongs(_getAlbumsByReleaseType(releaseType));
-    switch (result) {
-      case Err():
-        return Result.error(result.error);
-      case Ok():
-    }
-    if (shuffleReleases) {
-      result.value.shuffle();
-    }
-    final songs = result.value.expand((l) => l).toList();
-    if (shuffleSongs) {
-      songs.shuffle();
-    }
-    _audioHandler.playOnNextMediaChange();
-    _audioHandler.queue.replace(songs);
-    return Result.ok(null);
+      {bool shuffleReleases = false, bool shuffleSongs = false}) {
+    return _queueAlbums(_getAlbumsByReleaseType(releaseType),
+        play: true,
+        shuffleReleases: shuffleReleases,
+        shuffleSongs: shuffleSongs);
   }
 
   Future<Result<void>> addReleasesToQueue(
-      ReleaseType releaseType, bool priority) async {
-    final result =
-        await _subsonic.getAlbumsSongs(_getAlbumsByReleaseType(releaseType));
-    switch (result) {
-      case Err():
-        return Result.error(result.error);
-      case Ok():
-    }
-    _audioHandler.queue.addAll(result.value.expand((l) => l), priority);
-    return Result.ok(null);
+      ReleaseType releaseType, bool priority) {
+    return _queueAlbums(_getAlbumsByReleaseType(releaseType),
+        play: false, priorityQueue: priority);
   }
 
   List<Album> _getAlbumsByReleaseType(ReleaseType releaseType) {
@@ -141,7 +124,8 @@ class ArtistViewModel extends ChangeNotifier {
         albums.add(a);
         continue;
       }
-      // albums is sorted so that albums of the same release type are grouped together
+      // albums is sorted so that albums of the same release type are grouped together,
+      // so we can exit early
       if (albums.isNotEmpty) {
         break;
       }
@@ -165,34 +149,16 @@ class ArtistViewModel extends ChangeNotifier {
   }
 
   Future<Result<void>> play(
-      {bool shuffleAlbums = false, bool shuffleSongs = false}) async {
-    final result = await _subsonic.getArtistSongs(artist!);
-    switch (result) {
-      case Err():
-        return Result.error(result.error);
-      case Ok():
-    }
-    if (shuffleAlbums) {
-      result.value.shuffle();
-    }
-    final songs = result.value.expand((l) => l).toList();
-    if (shuffleSongs) {
-      songs.shuffle();
-    }
-    _audioHandler.playOnNextMediaChange();
-    _audioHandler.queue.replace(songs);
-    return Result.ok(null);
+      {bool shuffleReleases = false, bool shuffleSongs = false}) {
+    return _queueAlbums(artist!.albums ?? [],
+        play: true,
+        shuffleReleases: shuffleReleases,
+        shuffleSongs: shuffleSongs);
   }
 
-  Future<Result<void>> addToQueue(bool priority) async {
-    final result = await _subsonic.getArtistSongs(_artist!);
-    switch (result) {
-      case Err():
-        return Result.error(result.error);
-      case Ok():
-    }
-    _audioHandler.queue.addAll(result.value.expand((l) => l), priority);
-    return Result.ok(null);
+  Future<Result<void>> addToQueue(bool priority) {
+    return _queueAlbums(artist!.albums ?? [],
+        play: false, priorityQueue: priority);
   }
 
   Future<Result<void>> addAlbumToQueue(Album album, bool priority) async {
@@ -218,6 +184,66 @@ class ArtistViewModel extends ChangeNotifier {
     return result;
   }
 
+  Future<Result<void>> _queueAlbums(List<Album> albums,
+      {required bool play,
+      bool priorityQueue = false,
+      bool shuffleReleases = false,
+      bool shuffleSongs = false}) async {
+    if (albums.isEmpty) return Result.ok(null);
+    albums = List.of(albums);
+    if (shuffleReleases || shuffleSongs) {
+      albums.shuffle();
+    }
+
+    final firstSongs = await _subsonic.getAlbumSongs(albums.first);
+    switch (firstSongs) {
+      case Err():
+        return Result.error(firstSongs.error);
+      case Ok():
+    }
+    if (play) {
+      _audioHandler.playOnNextMediaChange();
+    }
+
+    final songs = <Song>[];
+    if (firstSongs.value.isNotEmpty) {
+      if (shuffleSongs) {
+        final song = firstSongs.value
+            .removeAt(Random().nextInt(firstSongs.value.length));
+        if (play) {
+          _audioHandler.queue.replace([song]);
+        } else {
+          _audioHandler.queue.add(song, priorityQueue);
+        }
+        songs.addAll(firstSongs.value);
+      } else {
+        if (play) {
+          _audioHandler.queue.replace(firstSongs.value);
+        } else {
+          _audioHandler.queue.addAll(firstSongs.value, priorityQueue);
+        }
+      }
+    }
+
+    if (albums.length > 1) {
+      for (final a in albums.sublist(1)) {
+        final result = await _subsonic.getAlbumSongs(a);
+        switch (result) {
+          case Err():
+            Log.error("Failed to load album songs: ${result.error}");
+            continue;
+          case Ok():
+        }
+        songs.addAll(result.value);
+      }
+    }
+    if (shuffleSongs) {
+      songs.shuffle();
+    }
+    _audioHandler.queue.addAll(songs, priorityQueue);
+    return Result.ok(null);
+  }
+
   Future<void> _loadDescription(String albumId) async {
     _description = null;
     notifyListeners();
@@ -230,8 +256,8 @@ class ArtistViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<Result<List<Song>>> getAlbumSongs(Album album) async {
-    return await _subsonic.getAlbumSongs(album);
+  Future<Result<List<Song>>> getAlbumSongs(Album album) {
+    return _subsonic.getAlbumSongs(album);
   }
 
   Future<Result<List<Song>>> getArtistSongs(Artist artist) async {

@@ -90,7 +90,8 @@ class _ArtistPageState extends State<ArtistPage> {
                         context, "Shuffle", ["Releases", "Songs"]);
                     if (option == null) return;
                     _viewModel.play(
-                        shuffleAlbums: option == 0, shuffleSongs: option == 1);
+                        shuffleReleases: option == 0,
+                        shuffleSongs: option == 1);
                   },
                 ),
                 ContextMenuOption(
@@ -160,8 +161,10 @@ class _ArtistPageState extends State<ArtistPage> {
                   final option = await ChooserDialog.choose(
                       context, "Shuffle", ["Releases", "Songs"]);
                   if (option == null) return;
-                  _viewModel.play(
-                      shuffleAlbums: option == 0, shuffleSongs: option == 1);
+                  final result = await _viewModel.play(
+                      shuffleReleases: option == 0, shuffleSongs: option == 1);
+                  if (!context.mounted) return;
+                  toastResult(context, result);
                 },
               ),
               CollectionAction(
