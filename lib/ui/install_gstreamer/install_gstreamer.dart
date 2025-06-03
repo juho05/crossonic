@@ -82,7 +82,10 @@ class InstallGStreamer extends StatelessWidget {
                                     textAlign: TextAlign.center,
                                     textStyle: textTheme.bodyLarge,
                                     linkStyle: textTheme.bodyLarge!.copyWith(
-                                        decoration: TextDecoration.underline),
+                                      decoration: TextDecoration.underline,
+                                      color:
+                                          Theme.of(context).colorScheme.primary,
+                                    ),
                                   ),
                                 if (viewModel.error != null)
                                   LinkifyText(
