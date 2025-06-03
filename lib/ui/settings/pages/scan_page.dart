@@ -32,7 +32,7 @@ class _ScanPageState extends State<ScanPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Scan"),
+        title: const Text("Scan"),
       ),
       body: ListenableBuilder(
         listenable: _viewModel,

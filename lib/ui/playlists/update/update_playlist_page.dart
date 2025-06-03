@@ -66,7 +66,7 @@ class _UpdatePlaylistPageState extends State<UpdatePlaylistPage> {
           ),
           SubmitButton(
             onPressed: !_viewModel.loading ? () => _submit(context) : null,
-            child: Text("Update"),
+            child: const Text("Update"),
           ),
         ],
       ),

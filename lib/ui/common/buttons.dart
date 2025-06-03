@@ -11,7 +11,7 @@ class SubmitButton extends StatelessWidget {
     return Button(
       onPressed: onPressed,
       style: FilledButton.styleFrom(
-        fixedSize: Size.fromHeight(42),
+        fixedSize: const Size.fromHeight(42),
       ),
       darkTonal: true,
       child: child,

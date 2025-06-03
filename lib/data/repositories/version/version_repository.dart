@@ -28,7 +28,7 @@ class VersionRepository {
       if (lastCheck != null &&
           DateTime.now().difference(lastCheck) < _minCheckInterval) {
         final latest = await _keyValue.loadString(_keyLatestVersion);
-        if (latest == null) return Result.ok(null);
+        if (latest == null) return const Result.ok(null);
         return Result.ok(Version.parse(latest));
       }
     }

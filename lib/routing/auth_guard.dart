@@ -21,7 +21,7 @@ class AuthGuard extends AutoRouteGuard {
     }
     if (!_authRepository.hasServer) {
       resolver.next(false);
-      router.replaceAll([ConnectServerRoute()]);
+      router.replaceAll([const ConnectServerRoute()]);
       return;
     }
 
@@ -32,7 +32,7 @@ class AuthGuard extends AutoRouteGuard {
 
     if (!_authRepository.isAuthenticated) {
       resolver.next(false);
-      router.replaceAll([LoginRoute()]);
+      router.replaceAll([const LoginRoute()]);
       return;
     }
 

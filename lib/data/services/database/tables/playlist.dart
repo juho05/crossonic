@@ -9,7 +9,7 @@ class PlaylistTable extends Table {
   late final created = dateTime()();
   late final changed = dateTime()();
   late final coverArt = text().nullable()();
-  late final download = boolean().withDefault(Variable(false))();
+  late final download = boolean().withDefault(const Variable(false))();
 
   @override
   Set<Column<Object>> get primaryKey => {id};

@@ -79,34 +79,34 @@ class _AlbumsPageState extends State<AlbumsPage> {
                               child: DropdownMenu<AlbumsPageMode>(
                                 initialSelection: _viewModel.mode,
                                 requestFocusOnTap: false,
-                                leadingIcon: Icon(Icons.sort),
+                                leadingIcon: const Icon(Icons.sort),
                                 expandedInsets:
                                     orientation == Orientation.portrait
                                         ? EdgeInsets.zero
                                         : null,
                                 enableSearch: false,
                                 dropdownMenuEntries: [
-                                  DropdownMenuEntry(
+                                  const DropdownMenuEntry(
                                     value: AlbumsPageMode.alphabetical,
                                     label: "Alphabetical",
                                   ),
-                                  DropdownMenuEntry(
+                                  const DropdownMenuEntry(
                                     value: AlbumsPageMode.favorites,
                                     label: "Favorites",
                                   ),
-                                  DropdownMenuEntry(
+                                  const DropdownMenuEntry(
                                     value: AlbumsPageMode.random,
                                     label: "Random",
                                   ),
-                                  DropdownMenuEntry(
+                                  const DropdownMenuEntry(
                                     value: AlbumsPageMode.recentlyAdded,
                                     label: "Recently added",
                                   ),
-                                  DropdownMenuEntry(
+                                  const DropdownMenuEntry(
                                     value: AlbumsPageMode.recentlyPlayed,
                                     label: "Recently played",
                                   ),
-                                  DropdownMenuEntry(
+                                  const DropdownMenuEntry(
                                     value: AlbumsPageMode.frequentlyPlayed,
                                     label: "Frequently played",
                                   ),
@@ -138,7 +138,7 @@ class _AlbumsPageState extends State<AlbumsPage> {
                   ),
                   if (_viewModel.status == FetchStatus.success &&
                       _viewModel.albums.isEmpty)
-                    SliverToBoxAdapter(child: Text("No albums available")),
+                    const SliverToBoxAdapter(child: Text("No albums available")),
                   SliverGrid(
                     gridDelegate: AlbumsGridDelegate(),
                     delegate: SliverChildBuilderDelegate(

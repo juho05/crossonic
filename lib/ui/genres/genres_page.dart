@@ -65,23 +65,23 @@ class _GenresPageState extends State<GenresPage> {
                       children: [
                         DropdownMenu<GenresSortMode>(
                           initialSelection: _viewModel.sortMode,
-                          leadingIcon: Icon(Icons.sort),
+                          leadingIcon: const Icon(Icons.sort),
                           requestFocusOnTap: false,
                           enableSearch: false,
                           dropdownMenuEntries: [
-                            DropdownMenuEntry(
+                            const DropdownMenuEntry(
                               value: GenresSortMode.alphabetical,
                               label: "Alphabetical",
                             ),
-                            DropdownMenuEntry(
+                            const DropdownMenuEntry(
                               value: GenresSortMode.songCount,
                               label: "Song Count",
                             ),
-                            DropdownMenuEntry(
+                            const DropdownMenuEntry(
                               value: GenresSortMode.albumCount,
                               label: "Release Count",
                             ),
-                            DropdownMenuEntry(
+                            const DropdownMenuEntry(
                               value: GenresSortMode.random,
                               label: "Random",
                             ),
@@ -131,7 +131,7 @@ class _GenresPageState extends State<GenresPage> {
                                 child: Row(
                                   spacing: 4,
                                   children: [
-                                    Icon(Icons.album),
+                                    const Icon(Icons.album),
                                     if (orientation == Orientation.landscape)
                                       Text("Releases: ${g.albumCount}")
                                     else
@@ -165,7 +165,7 @@ class _GenresPageState extends State<GenresPage> {
                                   child: Row(
                                     spacing: 4,
                                     children: [
-                                      Icon(Icons.music_note),
+                                      const Icon(Icons.music_note),
                                       if (orientation == Orientation.landscape)
                                         Text("Songs: ${g.songCount}")
                                       else

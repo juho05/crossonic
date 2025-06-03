@@ -33,7 +33,7 @@ class _TranscodingPageState extends State<TranscodingPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Transcoding"),
+        title: const Text("Transcoding"),
       ),
       body: ListenableBuilder(
         listenable: _viewModel,
@@ -150,13 +150,13 @@ class _TranscodingPageState extends State<TranscodingPage> {
                       Text(
                         "WARNING: Some browsers (e.g. Safari) don't properly support playback of streamed transcoded media or might not support the chosen codec at all.",
                         style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                            color: Color.fromARGB(255, 244, 163, 0),
+                            color: const Color.fromARGB(255, 244, 163, 0),
                             fontSize: 13),
                       ),
                       Text(
                         "If you notice playback bugs like music suddenly stopping or not transitioning properly to the next song, consider changing the format back to 'Original'.",
                         style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                            color: Color.fromARGB(255, 244, 163, 0),
+                            color: const Color.fromARGB(255, 244, 163, 0),
                             fontSize: 13),
                       ),
                     ],
@@ -172,7 +172,7 @@ class _TranscodingPageState extends State<TranscodingPage> {
                       Text(
                         "WARNING: MP3 does not support gapless playback properly. Consider changing the format to OGG/Opus or OGG/Vorbis.",
                         style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                            color: Color.fromARGB(255, 244, 163, 0),
+                            color: const Color.fromARGB(255, 244, 163, 0),
                             fontSize: 14),
                       ),
                     ],
@@ -183,7 +183,7 @@ class _TranscodingPageState extends State<TranscodingPage> {
                   },
                   icon: Icons.settings_backup_restore,
                   outlined: true,
-                  child: Text("Reset"),
+                  child: const Text("Reset"),
                 )
               ],
             ),

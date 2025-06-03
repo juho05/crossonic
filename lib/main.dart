@@ -48,7 +48,7 @@ void main() async {
 
   if (!kIsWeb && (Platform.isWindows || Platform.isMacOS || Platform.isLinux)) {
     await windowManager.ensureInitialized();
-    WindowOptions windowOptions = WindowOptions(
+    WindowOptions windowOptions = const WindowOptions(
       size: Size(1300, 850),
       center: true,
       title: "Crossonic",

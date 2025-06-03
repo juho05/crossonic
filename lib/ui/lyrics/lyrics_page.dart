@@ -34,7 +34,7 @@ class _LyricsPageState extends State<LyricsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Lyrics"),
+        title: const Text("Lyrics"),
       ),
       body: ListenableBuilder(
         listenable: _viewModel,

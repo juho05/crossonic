@@ -112,14 +112,14 @@ class _MainPageState extends State<MainPage> {
                           appBar: AppBar(
                             title: PageTitle(router: tabsRouter),
                             leading: tabsRouter.activeRouterCanPop()
-                                ? AutoLeadingButton()
+                                ? const AutoLeadingButton()
                                 : null,
                             forceMaterialTransparency: true,
                             actions: [
                               IconButton(
                                 icon: const Icon(Icons.settings),
                                 onPressed: () {
-                                  context.router.push(SettingsRoute());
+                                  context.router.push(const SettingsRoute());
                                 },
                               ),
                             ],
@@ -145,7 +145,7 @@ class _MainPageState extends State<MainPage> {
                         title: PageTitle(router: tabsRouter),
                         forceMaterialTransparency: true,
                         leading: tabsRouter.activeRouterCanPop()
-                            ? AutoLeadingButton()
+                            ? const AutoLeadingButton()
                             : null,
                       ),
                       body: Column(
@@ -157,7 +157,7 @@ class _MainPageState extends State<MainPage> {
                             builder: (context, _) {
                               if (_nowPlayingViewModel.playbackStatus ==
                                   PlaybackStatus.stopped) {
-                                return SizedBox.shrink();
+                                return const SizedBox.shrink();
                               }
                               return NowPlayingDesktop(
                                 viewModel: _nowPlayingViewModel,
@@ -177,7 +177,7 @@ class _MainPageState extends State<MainPage> {
                               selectedIndex: tabsRouter.activeIndex,
                               onDestinationSelected: (index) async {
                                 if (index == 3) {
-                                  context.router.push(SettingsRoute());
+                                  context.router.push(const SettingsRoute());
                                   return;
                                 }
                                 if (index == tabsRouter.activeIndex) {
@@ -202,22 +202,22 @@ class _MainPageState extends State<MainPage> {
                               },
                               labelType: NavigationRailLabelType.all,
                               destinations: [
-                                NavigationRailDestination(
+                                const NavigationRailDestination(
                                   icon: Icon(Icons.home_outlined),
                                   selectedIcon: Icon(Icons.home),
                                   label: Text("Home"),
                                 ),
-                                NavigationRailDestination(
+                                const NavigationRailDestination(
                                   icon: Icon(Icons.library_music_outlined),
                                   selectedIcon: Icon(Icons.library_music),
                                   label: Text("Browse"),
                                 ),
-                                NavigationRailDestination(
+                                const NavigationRailDestination(
                                   icon: Icon(Icons.queue_music_outlined),
                                   selectedIcon: Icon(Icons.queue_music),
                                   label: Text("Playlists"),
                                 ),
-                                NavigationRailDestination(
+                                const NavigationRailDestination(
                                   icon: Icon(Icons.settings),
                                   selectedIcon: Icon(Icons.settings),
                                   label: Text("Settings"),

@@ -68,10 +68,10 @@ class _BrowsePageState extends State<BrowsePage> with RestorationMixin {
                         focusNode: _focusNode,
                         decoration: InputDecoration(
                           labelText: "Search",
-                          icon: Icon(Icons.search),
+                          icon: const Icon(Icons.search),
                           suffixIcon: !(snapshot.data ?? false)
                               ? IconButton(
-                                  icon: Icon(Icons.clear),
+                                  icon: const Icon(Icons.clear),
                                   onPressed: () {
                                     _controller.value.clear();
                                     _viewModel.updateSearchText("");
@@ -95,18 +95,18 @@ class _BrowsePageState extends State<BrowsePage> with RestorationMixin {
                 listenable: _viewModel,
                 builder: (context, _) {
                   if (!_viewModel.searchMode) {
-                    return BrowseGrid();
+                    return const BrowseGrid();
                   }
                   if (_viewModel.searchStatus == FetchStatus.failure) {
-                    return Padding(
-                      padding: const EdgeInsets.only(top: 12),
-                      child: const Icon(Icons.wifi_off),
+                    return const Padding(
+                      padding: EdgeInsets.only(top: 12),
+                      child: Icon(Icons.wifi_off),
                     );
                   }
                   if (_viewModel.searchStatus != FetchStatus.success) {
-                    return Padding(
-                      padding: const EdgeInsets.only(top: 12),
-                      child: const CircularProgressIndicator.adaptive(),
+                    return const Padding(
+                      padding: EdgeInsets.only(top: 12),
+                      child: CircularProgressIndicator.adaptive(),
                     );
                   }
                   if (_viewModel.artists.isEmpty &&
@@ -117,7 +117,7 @@ class _BrowsePageState extends State<BrowsePage> with RestorationMixin {
                   return Column(
                     children: [
                       if (_viewModel.artists.isNotEmpty)
-                        BrowseSearchResultSeparator(
+                        const BrowseSearchResultSeparator(
                           title: "Artists",
                           icon: Icons.person,
                         ),
@@ -168,7 +168,7 @@ class _BrowsePageState extends State<BrowsePage> with RestorationMixin {
                         },
                       ),
                       if (_viewModel.albums.isNotEmpty)
-                        BrowseSearchResultSeparator(
+                        const BrowseSearchResultSeparator(
                           title: "Releases",
                           icon: Icons.album,
                         ),
@@ -232,7 +232,7 @@ class _BrowsePageState extends State<BrowsePage> with RestorationMixin {
                         },
                       ),
                       if (_viewModel.songs.isNotEmpty)
-                        BrowseSearchResultSeparator(
+                        const BrowseSearchResultSeparator(
                           title: "Songs",
                           icon: Icons.music_note,
                         ),

@@ -64,7 +64,7 @@ class SubsonicRepository {
       if (result.error is SubsonicException) {
         final e = result.error as SubsonicException;
         if (e.code == SubsonicErrorCode.notFound) {
-          return Result.ok([]);
+          return const Result.ok([]);
         }
       }
       return Result.error(result.error);

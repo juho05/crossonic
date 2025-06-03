@@ -32,7 +32,7 @@ class BrowseGrid extends StatelessWidget {
             text: "Songs",
             route: SongsRoute(),
           ),
-          BrowseGridButton(
+          const BrowseGridButton(
             icon: Icons.theater_comedy,
             text: "Genres",
             route: GenresRoute(),

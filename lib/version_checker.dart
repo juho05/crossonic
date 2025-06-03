@@ -28,24 +28,24 @@ class VersionChecker extends StatelessWidget {
                 context: context,
                 builder: (context) {
                   return AlertDialog.adaptive(
-                    title: Text("New version available"),
+                    title: const Text("New version available"),
                     content: Text(
                         "Current: v${viewModel.current}\nLatest: v${viewModel.latest}"),
                     actions: [
                       AdaptiveDialogAction(
                         onPressed: () =>
                             Navigator.pop(context, VersionDialogChoice.ignore),
-                        child: Text("Ignore"),
+                        child: const Text("Ignore"),
                       ),
                       AdaptiveDialogAction(
                         onPressed: () =>
                             Navigator.pop(context, VersionDialogChoice.remind),
-                        child: Text("Remind later"),
+                        child: const Text("Remind later"),
                       ),
                       AdaptiveDialogAction(
                         onPressed: () =>
                             Navigator.pop(context, VersionDialogChoice.view),
-                        child: Text("View"),
+                        child: const Text("View"),
                       )
                     ],
                   );

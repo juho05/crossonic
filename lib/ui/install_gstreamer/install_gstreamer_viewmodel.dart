@@ -38,7 +38,7 @@ class InstallGStreamerViewModel extends ChangeNotifier {
   }
 
   Future<Result<void>> install() async {
-    if (downloading) return Result.ok(null);
+    if (downloading) return const Result.ok(null);
     if (Platform.isWindows) return _installWindows();
     throw UnsupportedError(
         "Installing GStreamer is not supported on this platform");
@@ -74,7 +74,7 @@ class InstallGStreamerViewModel extends ChangeNotifier {
       }
 
       await _checkInstalled();
-      return Result.ok(null);
+      return const Result.ok(null);
     } on Exception catch (e) {
       return Result.error(e);
     } finally {

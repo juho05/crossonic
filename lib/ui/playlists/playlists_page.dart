@@ -46,10 +46,10 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
         floatingActionButton: orientation == Orientation.portrait
             ? FloatingActionButton(
                 onPressed: () {
-                  context.router.push(CreatePlaylistRoute());
+                  context.router.push(const CreatePlaylistRoute());
                 },
                 tooltip: "Create Playlist",
-                child: Icon(Icons.add),
+                child: const Icon(Icons.add),
               )
             : null,
         body: ListenableBuilder(
@@ -58,38 +58,38 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
               final dropdown = DropdownMenu<PlaylistsSort>(
                 initialSelection: _viewModel.sort,
                 requestFocusOnTap: false,
-                leadingIcon: Icon(Icons.sort),
+                leadingIcon: const Icon(Icons.sort),
                 expandedInsets: orientation == Orientation.portrait
                     ? EdgeInsets.zero
                     : null,
                 enableSearch: false,
                 dropdownMenuEntries: [
-                  DropdownMenuEntry(
+                  const DropdownMenuEntry(
                     value: PlaylistsSort.updated,
                     label: "Updated",
                   ),
-                  DropdownMenuEntry(
+                  const DropdownMenuEntry(
                     value: PlaylistsSort.created,
                     label: "Created",
                   ),
-                  DropdownMenuEntry(
+                  const DropdownMenuEntry(
                     value: PlaylistsSort.alphabetical,
                     label: "Alphabetical",
                   ),
-                  DropdownMenuEntry(
+                  const DropdownMenuEntry(
                     value: PlaylistsSort.songCount,
                     label: "Song Count",
                   ),
-                  DropdownMenuEntry(
+                  const DropdownMenuEntry(
                     value: PlaylistsSort.duration,
                     label: "Duration",
                   ),
-                  DropdownMenuEntry(
+                  const DropdownMenuEntry(
                     value: PlaylistsSort.random,
                     label: "Random",
                   ),
                   if (!kIsWeb)
-                    DropdownMenuEntry(
+                    const DropdownMenuEntry(
                       value: PlaylistsSort.downloaded,
                       label: "Downloaded",
                     ),
@@ -116,10 +116,10 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
                                 Button(
                                   icon: Icons.add,
                                   onPressed: () {
-                                    context.router.push(CreatePlaylistRoute());
+                                    context.router.push(const CreatePlaylistRoute());
                                   },
                                   outlined: true,
-                                  child: Text("Create"),
+                                  child: const Text("Create"),
                                 )
                               ],
                             )
@@ -130,9 +130,9 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
                     ),
                   ),
                   if (playlists.isEmpty)
-                    SliverToBoxAdapter(
+                    const SliverToBoxAdapter(
                         child: Padding(
-                      padding: const EdgeInsets.all(8.0),
+                      padding: EdgeInsets.all(8.0),
                       child: Text("No playlists available"),
                     )),
                   SliverGrid(

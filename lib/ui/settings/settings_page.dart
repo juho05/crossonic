@@ -36,35 +36,35 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Settings"),
+        title: const Text("Settings"),
       ),
       body: ListView(
         children: [
           ListTile(
             title: const Text("Transcoding"),
             trailing: const Icon(Icons.arrow_forward_ios),
-            onTap: () => context.router.push(TranscodingRoute()),
+            onTap: () => context.router.push(const TranscodingRoute()),
           ),
           ListTile(
             title: const Text("Replay Gain"),
             trailing: const Icon(Icons.arrow_forward_ios),
-            onTap: () => context.router.push(ReplayGainRoute()),
+            onTap: () => context.router.push(const ReplayGainRoute()),
           ),
           ListTile(
             title: const Text("Scan"),
             trailing: const Icon(Icons.arrow_forward_ios),
-            onTap: () => context.router.push(ScanRoute()),
+            onTap: () => context.router.push(const ScanRoute()),
           ),
           if (_viewModel.supportsListenBrainz)
             ListTile(
               title: const Text("ListenBrainz"),
               trailing: const Icon(Icons.arrow_forward_ios),
-              onTap: () => context.router.push(ListenBrainzRoute()),
+              onTap: () => context.router.push(const ListenBrainzRoute()),
             ),
           ListTile(
             title: const Text("Debug"),
             trailing: const Icon(Icons.arrow_forward_ios),
-            onTap: () => context.router.push(DebugRoute()),
+            onTap: () => context.router.push(const DebugRoute()),
           ),
           ListenableBuilder(
             listenable: _viewModel,

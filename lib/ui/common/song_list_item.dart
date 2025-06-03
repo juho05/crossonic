@@ -161,7 +161,7 @@ class _SongListItemState extends State<SongListItem> {
               if (widget.onRemove != null && widget.removeButton)
                 IconButton(
                   onPressed: widget.onRemove,
-                  icon: Icon(Icons.delete_outline),
+                  icon: const Icon(Icons.delete_outline),
                 )
             ],
           );
@@ -224,7 +224,7 @@ class SongLeadingWidget extends StatelessWidget {
           if (viewModel.playbackStatus != null)
             ClipRRect(
               borderRadius: BorderRadius.circular(5),
-              child: ColoredBox(color: Color.fromARGB(90, 0, 0, 0)),
+              child: const ColoredBox(color: Color.fromARGB(90, 0, 0, 0)),
             ),
           if (viewModel.playbackStatus != null)
             IconButton(
@@ -257,8 +257,8 @@ class SongLeadingWidget extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Padding(
-              padding: const EdgeInsets.only(left: 8),
+            const Padding(
+              padding: EdgeInsets.only(left: 8),
               child: Icon(Icons.drag_handle),
             ),
             leading,

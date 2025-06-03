@@ -85,7 +85,7 @@ class AlbumsViewModel extends ChangeNotifier {
     }
     _audioHandler.playOnNextMediaChange();
     _audioHandler.queue.replace(result.value);
-    return Result.ok(null);
+    return const Result.ok(null);
   }
 
   Future<Result<void>> addToQueue(Album album, bool priority) async {
@@ -96,7 +96,7 @@ class AlbumsViewModel extends ChangeNotifier {
       case Ok():
     }
     _audioHandler.queue.addAll(result.value, priority);
-    return Result.ok(null);
+    return const Result.ok(null);
   }
 
   Future<void> _fetch(int page) async {

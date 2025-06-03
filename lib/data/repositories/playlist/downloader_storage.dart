@@ -13,7 +13,7 @@ class DownloaderStorage implements PersistentStorage {
         await FileDownloader(persistentStorage: DownloaderStorage(db: db))
             .ready;
     if (!ready) {
-      throw AppException("Failed to initialize file downloader");
+      throw const AppException("Failed to initialize file downloader");
     }
   }
 

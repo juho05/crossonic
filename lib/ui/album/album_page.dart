@@ -251,7 +251,7 @@ class _AlbumPageState extends State<AlbumPage> {
                         ],
                         child: Padding(
                           padding:
-                              EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                           child: Row(
                             children: [
                               const Icon(Icons.album),

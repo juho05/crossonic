@@ -38,7 +38,7 @@ class AudioPlayerAudioPlayers implements AudioPlayer {
       _players.add(ap.AudioPlayer());
       _playerSubscriptions.add(_players[i]
           .onDurationChanged
-          .debounceTime(Duration(seconds: 5))
+          .debounceTime(const Duration(seconds: 5))
           .listen((duration) {
         if (i != _currentPlayer) return;
         _currentDuration = duration;
@@ -112,7 +112,7 @@ class AudioPlayerAudioPlayers implements AudioPlayer {
 
   void _updatePosition(Duration pos) async {
     if (_currentDuration != null) {
-      if (_currentDuration! - pos < Duration(seconds: 10)) {
+      if (_currentDuration! - pos < const Duration(seconds: 10)) {
         if (_nextURL != null && _nextPlayerURL != _nextURL) {
           _nextPlayerURL = _nextURL;
           await _players[_nextPlayerIndex].setSourceUrl(_nextURL!);

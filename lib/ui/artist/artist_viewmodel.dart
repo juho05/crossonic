@@ -145,7 +145,7 @@ class ArtistViewModel extends ChangeNotifier {
     }
     _audioHandler.playOnNextMediaChange();
     _audioHandler.queue.replace(result.value);
-    return Result.ok(null);
+    return const Result.ok(null);
   }
 
   Future<Result<void>> play(
@@ -169,7 +169,7 @@ class ArtistViewModel extends ChangeNotifier {
       case Ok():
     }
     _audioHandler.queue.addAll(result.value, priority);
-    return Result.ok(null);
+    return const Result.ok(null);
   }
 
   Future<Result<void>> toggleFavorite() async {
@@ -189,7 +189,7 @@ class ArtistViewModel extends ChangeNotifier {
       bool priorityQueue = false,
       bool shuffleReleases = false,
       bool shuffleSongs = false}) async {
-    if (albums.isEmpty) return Result.ok(null);
+    if (albums.isEmpty) return const Result.ok(null);
     albums = List.of(albums);
     if (shuffleReleases || shuffleSongs) {
       albums.shuffle();
@@ -241,7 +241,7 @@ class ArtistViewModel extends ChangeNotifier {
       songs.shuffle();
     }
     _audioHandler.queue.addAll(songs, priorityQueue);
-    return Result.ok(null);
+    return const Result.ok(null);
   }
 
   Future<void> _loadDescription(String albumId) async {

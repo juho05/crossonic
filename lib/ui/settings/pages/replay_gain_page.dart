@@ -35,7 +35,7 @@ class _ReplayGainState extends State<ReplayGainPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Replay Gain"),
+        title: const Text("Replay Gain"),
       ),
       body: ListenableBuilder(
         listenable: _viewModel,
@@ -81,11 +81,11 @@ class _ReplayGainState extends State<ReplayGainPage> {
                   ),
                   FormBuilderSwitch(
                     name: "preferServerFallback",
-                    title: Text("Prefer server fallback gain"),
+                    title: const Text("Prefer server fallback gain"),
                     validator: FormBuilderValidators.required(),
                     onChanged: (value) => _submit(),
                     initialValue: _viewModel.preferServerFallback,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       border: InputBorder.none,
                     ),
                   ),
@@ -93,9 +93,9 @@ class _ReplayGainState extends State<ReplayGainPage> {
                     name: "fallbackGain",
                     autocorrect: false,
                     enableSuggestions: false,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       labelText: "Fallback Gain (dB)",
-                      border: const OutlineInputBorder(),
+                      border: OutlineInputBorder(),
                     ),
                     onTapOutside: (event) {
                       _submit();
@@ -118,7 +118,7 @@ class _ReplayGainState extends State<ReplayGainPage> {
                     },
                     outlined: true,
                     icon: Icons.settings_backup_restore,
-                    child: Text("Reset"),
+                    child: const Text("Reset"),
                   )
                 ],
               ),

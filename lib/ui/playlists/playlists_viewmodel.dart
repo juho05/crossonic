@@ -68,7 +68,7 @@ class PlaylistsViewModel extends ChangeNotifier {
 
     _onDownloadStatusChangedThrottle ??= Throttle(
       action: update,
-      delay: Duration(seconds: 3),
+      delay: const Duration(seconds: 3),
     );
     _onDownloadStatusChangedThrottle?.call();
   }
@@ -102,7 +102,7 @@ class PlaylistsViewModel extends ChangeNotifier {
     }
     _audioHandler.playOnNextMediaChange();
     _audioHandler.queue.replace(result.value);
-    return Result.ok(null);
+    return const Result.ok(null);
   }
 
   Future<Result<void>> addToQueue(Playlist playlist, bool priority) async {
@@ -113,7 +113,7 @@ class PlaylistsViewModel extends ChangeNotifier {
       case Ok():
     }
     _audioHandler.queue.addAll(result.value, priority);
-    return Result.ok(null);
+    return const Result.ok(null);
   }
 
   Future<Result<List<Song>>> getTracks(String playlistId) async {

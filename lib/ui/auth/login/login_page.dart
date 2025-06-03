@@ -45,12 +45,12 @@ class _LoginPageState extends State<LoginPage> with RestorationMixin {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Sign in"),
+        title: const Text("Sign in"),
         actions: [
           IconButton(
             icon: const Icon(Icons.bug_report_outlined),
             onPressed: () {
-              context.router.push(DebugRoute());
+              context.router.push(const DebugRoute());
             },
           )
         ],
@@ -72,7 +72,7 @@ class _LoginPageState extends State<LoginPage> with RestorationMixin {
                   onPressed: () async {
                     await viewModel.resetServerUri();
                   },
-                  icon: Icon(Icons.edit),
+                  icon: const Icon(Icons.edit),
                 ),
               ],
             ),
@@ -81,7 +81,7 @@ class _LoginPageState extends State<LoginPage> with RestorationMixin {
               expandedInsets: EdgeInsets.zero,
               requestFocusOnTap: false,
               enableSearch: false,
-              leadingIcon: Icon(Icons.login),
+              leadingIcon: const Icon(Icons.login),
               dropdownMenuEntries: List.generate(
                 viewModel.supportedAuthTypes.length,
                 (index) {
@@ -145,7 +145,7 @@ class _LoginPageState extends State<LoginPage> with RestorationMixin {
                 listenable: viewModel.login,
                 builder: (context, _) => SubmitButton(
                   onPressed: !viewModel.login.running ? _submit : null,
-                  child: Text("Sign in"),
+                  child: const Text("Sign in"),
                 ),
               ),
             ),
@@ -178,7 +178,7 @@ class _LoginPageState extends State<LoginPage> with RestorationMixin {
 
   void _onResult() {
     if (viewModel.login.completed) {
-      context.router.replaceAll([MainRoute()]);
+      context.router.replaceAll([const MainRoute()]);
       viewModel.login.clearResult();
       return;
     }

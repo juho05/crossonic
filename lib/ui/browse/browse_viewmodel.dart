@@ -77,7 +77,7 @@ class BrowseViewModel extends ChangeNotifier {
     }
     _audioHandler.playOnNextMediaChange();
     _audioHandler.queue.replace(songs);
-    return Result.ok(null);
+    return const Result.ok(null);
   }
 
   Future<Result<void>> addArtistToQueue(Artist artist, bool priority) async {
@@ -88,7 +88,7 @@ class BrowseViewModel extends ChangeNotifier {
       case Ok():
     }
     _audioHandler.queue.addAll(result.value.expand((e) => e), priority);
-    return Result.ok(null);
+    return const Result.ok(null);
   }
 
   Future<Result<void>> playAlbum(Album album, {bool shuffle = false}) async {
@@ -103,7 +103,7 @@ class BrowseViewModel extends ChangeNotifier {
     }
     _audioHandler.playOnNextMediaChange();
     _audioHandler.queue.replace(result.value);
-    return Result.ok(null);
+    return const Result.ok(null);
   }
 
   Future<Result<void>> addAlbumToQueue(Album album, bool priority) async {
@@ -114,7 +114,7 @@ class BrowseViewModel extends ChangeNotifier {
       case Ok():
     }
     _audioHandler.queue.addAll(result.value, priority);
-    return Result.ok(null);
+    return const Result.ok(null);
   }
 
   void playSong(int index, bool single) {

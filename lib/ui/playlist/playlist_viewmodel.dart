@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:crossonic/data/repositories/audio/audio_handler.dart';
 import 'package:crossonic/data/repositories/logger/log.dart';
@@ -13,7 +12,6 @@ import 'package:crossonic/utils/result.dart';
 import 'package:crossonic/utils/throttle.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart' as path;
 
@@ -101,7 +99,7 @@ class PlaylistViewModel extends ChangeNotifier {
 
     _onDownloadStatusChangedThrottle ??= Throttle(
       action: update,
-      delay: Duration(milliseconds: 250),
+      delay: const Duration(milliseconds: 250),
       leading: false,
     );
     _onDownloadStatusChangedThrottle!.call();
@@ -132,7 +130,7 @@ class PlaylistViewModel extends ChangeNotifier {
       image = await ImagePicker().pickImage(source: ImageSource.gallery);
     }
     if (image == null) {
-      return Result.ok(null);
+      return const Result.ok(null);
     }
     final size = await image.length();
     if (size > 15e6) {

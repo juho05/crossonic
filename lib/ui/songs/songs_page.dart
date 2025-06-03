@@ -102,22 +102,22 @@ class _SongsPageState extends State<SongsPage> {
                           child: DropdownMenu<SongsPageMode>(
                             initialSelection: _viewModel.mode,
                             requestFocusOnTap: false,
-                            leadingIcon: Icon(Icons.sort),
+                            leadingIcon: const Icon(Icons.sort),
                             enableSearch: false,
                             expandedInsets: orientation == Orientation.portrait
                                 ? EdgeInsets.zero
                                 : null,
                             dropdownMenuEntries: [
                               if (_viewModel.supportsAllMode)
-                                DropdownMenuEntry(
+                                const DropdownMenuEntry(
                                   value: SongsPageMode.all,
                                   label: "All",
                                 ),
-                              DropdownMenuEntry(
+                              const DropdownMenuEntry(
                                 value: SongsPageMode.favorites,
                                 label: "Favorites",
                               ),
-                              DropdownMenuEntry(
+                              const DropdownMenuEntry(
                                 value: SongsPageMode.random,
                                 label: "Random",
                               ),
@@ -146,14 +146,14 @@ class _SongsPageState extends State<SongsPage> {
                             onPressed: () {
                               _viewModel.play(0, false);
                             },
-                            child: Text("Play"),
+                            child: const Text("Play"),
                           ),
                           Button(
                             icon: Icons.shuffle,
                             onPressed: () {
                               _viewModel.shuffle();
                             },
-                            child: Text("Shuffle"),
+                            child: const Text("Shuffle"),
                           ),
                           Button(
                             icon: Icons.playlist_play,
@@ -161,7 +161,7 @@ class _SongsPageState extends State<SongsPage> {
                             onPressed: () {
                               _viewModel.addAllToQueue(true);
                             },
-                            child: Text("Prio. Queue"),
+                            child: const Text("Prio. Queue"),
                           ),
                           Button(
                             icon: Icons.playlist_add,
@@ -169,7 +169,7 @@ class _SongsPageState extends State<SongsPage> {
                             onPressed: () {
                               _viewModel.addAllToQueue(false);
                             },
-                            child: Text("Queue"),
+                            child: const Text("Queue"),
                           ),
                         ],
                       ),
@@ -179,7 +179,7 @@ class _SongsPageState extends State<SongsPage> {
                   if (index == 0 &&
                       _viewModel.status == FetchStatus.success &&
                       _viewModel.songs.isEmpty) {
-                    return Text("No songs available");
+                    return const Text("No songs available");
                   }
                   if (index == _viewModel.songs.length) {
                     return switch (_viewModel.status) {

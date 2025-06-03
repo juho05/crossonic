@@ -40,7 +40,7 @@ class AuthRepository extends ChangeNotifier {
     required SubsonicService openSubsonicService,
     required KeyValueRepository keyValueRepository,
     required Database database,
-  })  : _secureStorage = FlutterSecureStorage(),
+  })  : _secureStorage = const FlutterSecureStorage(),
         _keyValue = keyValueRepository,
         _database = database,
         _openSubsonicService = openSubsonicService;
@@ -128,7 +128,7 @@ class AuthRepository extends ChangeNotifier {
     // calls persistState and notifyListeners
     await _loadOpenSubsonicExtensions();
 
-    return Result.ok(null);
+    return const Result.ok(null);
   }
 
   Future<Result<void>> loginUsernamePassword(
@@ -159,7 +159,7 @@ class AuthRepository extends ChangeNotifier {
       _loadOpenSubsonicExtensions();
     }
 
-    return Result.ok(null);
+    return const Result.ok(null);
   }
 
   Future<Result<void>> loginApiKey(String apiKey) async {
@@ -181,7 +181,7 @@ class AuthRepository extends ChangeNotifier {
 
     notifyListeners();
 
-    return Result.ok(null);
+    return const Result.ok(null);
   }
 
   Future<void> logout(bool keepServerUri) async {

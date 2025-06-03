@@ -41,7 +41,7 @@ class ScanViewModel extends ChangeNotifier {
       await _loadStatus();
     });
     notifyListeners();
-    return Result.ok(null);
+    return const Result.ok(null);
   }
 
   Future<void> _loadStatus() async {

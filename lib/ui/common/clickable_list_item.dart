@@ -92,7 +92,7 @@ class ClickableListItem extends StatelessWidget {
                 child: Text(
                   trailingInfo!,
                   style: textTheme.bodySmall!.copyWith(
-                    fontFeatures: [FontFeature.tabularFigures()],
+                    fontFeatures: [const FontFeature.tabularFigures()],
                   ),
                 ),
               ),
@@ -100,7 +100,7 @@ class ClickableListItem extends StatelessWidget {
         ),
         trailing: trailing,
         onTap: onTap,
-        contentPadding: EdgeInsets.only(left: 4, right: 4),
+        contentPadding: const EdgeInsets.only(left: 4, right: 4),
       );
     });
   }

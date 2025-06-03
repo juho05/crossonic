@@ -33,7 +33,7 @@ class _DebugPageState extends State<DebugPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Debug"),
+        title: const Text("Debug"),
       ),
       body: ListenableBuilder(
         listenable: _viewModel,
@@ -63,7 +63,7 @@ class _DebugPageState extends State<DebugPage> {
                   }).toList(),
                 ),
                 Button(
-                  onPressed: () => context.router.push(LogsRoute()),
+                  onPressed: () => context.router.push(const LogsRoute()),
                   icon: Icons.list,
                   darkTonal: true,
                   child: const Text("View Logs"),

@@ -52,7 +52,7 @@ class FavoritesRepository extends ChangeNotifier {
 
   Future<Result<void>> setFavorite(
       FavoriteType type, String id, bool favorite) async {
-    if (_favoriteIDs.contains((type, id)) == favorite) return Result.ok(null);
+    if (_favoriteIDs.contains((type, id)) == favorite) return const Result.ok(null);
 
     if (favorite) {
       _favoriteIDs.add((type, id));

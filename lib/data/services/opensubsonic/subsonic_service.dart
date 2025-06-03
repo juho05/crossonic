@@ -86,7 +86,7 @@ class SubsonicService {
     } catch (e) {
       return Result.error(ConnectionException());
     }
-    return Result.ok(null);
+    return const Result.ok(null);
   }
 
   Future<Result<PlaylistsModel>> getPlaylists(Connection con) async {
@@ -195,7 +195,7 @@ class SubsonicService {
           scrobbles,
       bool submission,
       bool includeListenDuration) async {
-    if (scrobbles.isEmpty) return Result.ok(null);
+    if (scrobbles.isEmpty) return const Result.ok(null);
     assert(
       scrobbles.length == 1 || submission,
       "cannot set multiple now playing (submission == false) scrobbles",
@@ -440,12 +440,12 @@ class SubsonicService {
               : utf8.decode(response.bodyBytes);
       Map<String, dynamic> body = jsonDecode(json);
       if (!body.containsKey("subsonic-response")) {
-        return Result.error(
+        return const Result.error(
             UnexpectedResponseException("subsonic-response object missing"));
       }
       final res = body["subsonic-response"] as Map<String, dynamic>;
       if (!res.containsKey("version")) {
-        return Result.error(
+        return const Result.error(
             UnexpectedResponseException("version field missing"));
       }
 
@@ -521,17 +521,17 @@ class SubsonicService {
               : utf8.decode(response.bodyBytes);
       Map<String, dynamic> body = jsonDecode(json);
       if (!body.containsKey("subsonic-response")) {
-        return Result.error(
+        return const Result.error(
             UnexpectedResponseException("subsonic-response object missing"));
       }
       final res = body["subsonic-response"] as Map<String, dynamic>;
       if (!res.containsKey("status")) {
-        return Result.error(
+        return const Result.error(
             UnexpectedResponseException("status field missing"));
       }
       if (res["status"] != "ok") {
         if (!res.containsKey("error")) {
-          return Result.error(
+          return const Result.error(
               UnexpectedResponseException("status not ok (no error message)"));
         }
         final error = res["error"] as Map<String, dynamic>;
@@ -553,7 +553,7 @@ class SubsonicService {
         }
         return Result.ok(res[responseKey]);
       }
-      return Result.ok(null);
+      return const Result.ok(null);
     } catch (e) {
       return Result.error(UnexpectedResponseException(e.toString()));
     }

@@ -249,13 +249,13 @@ class NowPlayingDesktop extends StatelessWidget {
                           ),
                         IconButton(
                           onPressed: () {
-                            context.router.push(LyricsRoute());
+                            context.router.push(const LyricsRoute());
                           },
                           icon: const Icon(Icons.lyrics_outlined),
                         ),
                         IconButton(
                           onPressed: () {
-                            context.router.push(QueueRoute());
+                            context.router.push(const QueueRoute());
                           },
                           icon: const Icon(Icons.queue_music),
                         ),

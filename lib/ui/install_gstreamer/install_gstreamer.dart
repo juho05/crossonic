@@ -43,7 +43,7 @@ class InstallGStreamer extends StatelessWidget {
                   child: Builder(
                     builder: (context) {
                       if (viewModel.status == GStreamerStatus.unknown) {
-                        return Center(
+                        return const Center(
                           child: CircularProgressIndicator.adaptive(),
                         );
                       }
@@ -148,10 +148,10 @@ class InstallGStreamer extends StatelessWidget {
                               FilledButton.icon(
                                 onPressed: () => exit(0),
                                 icon: const Icon(Icons.logout),
-                                label: Padding(
-                                  padding: const EdgeInsets.symmetric(
+                                label: const Padding(
+                                  padding: EdgeInsets.symmetric(
                                       horizontal: 32, vertical: 14),
-                                  child: const Text("Exit"),
+                                  child: Text("Exit"),
                                 ),
                               )
                           ],

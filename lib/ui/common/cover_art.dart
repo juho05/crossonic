@@ -84,7 +84,7 @@ class _CoverArtState extends State<CoverArt> {
                       fadeInDuration: const Duration(milliseconds: 300),
                       fadeOutDuration: const Duration(milliseconds: 100),
                       placeholder: (context, url) =>
-                          CircularProgressIndicator.adaptive(),
+                          const CircularProgressIndicator.adaptive(),
                       cacheManager: context.read<CoverRepository>(),
                     ))
               : placeholder(size),

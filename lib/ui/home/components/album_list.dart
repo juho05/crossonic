@@ -33,14 +33,14 @@ class HomeAlbumList extends StatelessWidget {
         listenable: viewModel,
         builder: (context, _) {
           if (viewModel.status == FetchStatus.failure) {
-            return Center(child: Icon(Icons.wifi_off));
+            return const Center(child: Icon(Icons.wifi_off));
           }
           if (viewModel.status != FetchStatus.success) {
-            return Center(child: CircularProgressIndicator.adaptive());
+            return const Center(child: CircularProgressIndicator.adaptive());
           }
           final albums = viewModel.albums;
           if (albums.isEmpty) {
-            return Center(
+            return const Center(
                 child: Text(
               "No albums available",
             ));

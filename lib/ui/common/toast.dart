@@ -8,8 +8,8 @@ class Toast {
       content: Text(message),
       dismissDirection: DismissDirection.down,
       behavior: SnackBarBehavior.floating,
-      duration: Duration(milliseconds: 2500),
-      padding: EdgeInsets.all(8),
+      duration: const Duration(milliseconds: 2500),
+      padding: const EdgeInsets.all(8),
       showCloseIcon: true,
     ));
   }

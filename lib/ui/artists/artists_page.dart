@@ -61,21 +61,21 @@ class _ArtistsPageState extends State<ArtistsPage> {
                         child: DropdownMenu<ArtistsPageMode>(
                           initialSelection: _viewModel.mode,
                           requestFocusOnTap: false,
-                          leadingIcon: Icon(Icons.sort),
+                          leadingIcon: const Icon(Icons.sort),
                           expandedInsets: orientation == Orientation.portrait
                               ? EdgeInsets.zero
                               : null,
                           enableSearch: false,
                           dropdownMenuEntries: [
-                            DropdownMenuEntry(
+                            const DropdownMenuEntry(
                               value: ArtistsPageMode.alphabetical,
                               label: "Alphabetical",
                             ),
-                            DropdownMenuEntry(
+                            const DropdownMenuEntry(
                               value: ArtistsPageMode.favorites,
                               label: "Favorites",
                             ),
-                            DropdownMenuEntry(
+                            const DropdownMenuEntry(
                               value: ArtistsPageMode.random,
                               label: "Random",
                             )
@@ -90,7 +90,8 @@ class _ArtistsPageState extends State<ArtistsPage> {
                   ),
                   if (_viewModel.status == FetchStatus.success &&
                       _viewModel.artists.isEmpty)
-                    SliverToBoxAdapter(child: Text("No artists available")),
+                    const SliverToBoxAdapter(
+                        child: Text("No artists available")),
                   SliverGrid(
                     gridDelegate: AlbumsGridDelegate(),
                     delegate: SliverChildBuilderDelegate(

@@ -60,7 +60,7 @@ class ArtistsViewModel extends ChangeNotifier {
     }
     _audioHandler.playOnNextMediaChange();
     _audioHandler.queue.replace(songs);
-    return Result.ok(null);
+    return const Result.ok(null);
   }
 
   Future<Result<void>> addToQueue(Artist artist, bool priority) async {
@@ -71,7 +71,7 @@ class ArtistsViewModel extends ChangeNotifier {
       case Ok():
     }
     _audioHandler.queue.addAll(result.value.expand((l) => l), priority);
-    return Result.ok(null);
+    return const Result.ok(null);
   }
 
   Future<void> _fetch() async {

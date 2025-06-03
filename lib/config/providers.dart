@@ -86,7 +86,7 @@ Future<List<SingleChildWidget>> get providers async {
   if (!kIsWeb) {
     await songDownloader.init();
     await bd.FileDownloader().resumeFromBackground();
-    Timer(Duration(seconds: 5), () {
+    Timer(const Duration(seconds: 5), () {
       bd.FileDownloader().rescheduleKilledTasks();
     });
   }

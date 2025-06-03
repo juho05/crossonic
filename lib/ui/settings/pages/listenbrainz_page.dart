@@ -42,7 +42,7 @@ class _ListenBrainzPageState extends State<ListenBrainzPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("ListenBrainz"),
+        title: const Text("ListenBrainz"),
       ),
       body: ListenableBuilder(
         listenable: _viewModel,
@@ -70,10 +70,10 @@ class _ListenBrainzPageState extends State<ListenBrainzPage> {
                       autocorrect: false,
                       enableSuggestions: false,
                       keyboardType: TextInputType.visiblePassword,
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         labelText: "API Token",
-                        border: const OutlineInputBorder(),
-                        prefixIcon: const Icon(Icons.key),
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.key),
                       ),
                       validator: FormBuilderValidators.required(),
                       onSubmitted: (value) => _submit(context),

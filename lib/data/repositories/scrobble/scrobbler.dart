@@ -116,9 +116,9 @@ class Scrobbler {
             ((f.songDurationMs.isNull().not() &
                     f.listenDurationMs.isBiggerOrEqualTo(10000)) |
                 (f.listenDurationMs.isBiggerOrEqualTo(
-                        Duration(minutes: 4).inMilliseconds) |
+                        const Duration(minutes: 4).inMilliseconds) |
                     f.listenDurationMs.column.isBiggerOrEqual(
-                        f.songDurationMs.column / Variable(2))));
+                        f.songDurationMs.column / const Variable(2))));
       }).get();
       if (scrobbles.isNotEmpty) {
         final result = await _subsonic.scrobble(

@@ -52,7 +52,7 @@ class NowPlayingViewModel extends ChangeNotifier {
         _volume = _volumeToLinear(_audioHandler.volume);
         notifyListeners();
       },
-      delay: Duration(milliseconds: 100),
+      delay: const Duration(milliseconds: 100),
       leading: true,
       trailing: true,
     );
@@ -86,7 +86,7 @@ class NowPlayingViewModel extends ChangeNotifier {
   }
 
   Future<Result<void>> toggleFavorite() async {
-    if (_song == null) return Result.ok(null);
+    if (_song == null) return const Result.ok(null);
     return await _favoritesRepository.setFavorite(
         FavoriteType.song, _song!.id, !favorite);
   }

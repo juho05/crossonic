@@ -61,7 +61,7 @@ class ConnectServerViewModel extends ChangeNotifier {
       case Err():
         return Result.error(result.error);
       case Ok():
-        return Result.ok(null);
+        return const Result.ok(null);
     }
   }
 

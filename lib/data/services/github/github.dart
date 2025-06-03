@@ -44,7 +44,7 @@ class GitHubService {
       case Err():
         return Result.error(result.error);
       case Ok<String?>():
-        if (result.value == null) return Result.ok(null);
+        if (result.value == null) return const Result.ok(null);
         final list = jsonDecode(result.value!) as List<dynamic>;
         return Result.ok(
             list.map((dynamic obj) => fromJson(obj as Map<String, dynamic>)));
@@ -117,7 +117,7 @@ class GitHubService {
           continue;
         }
         if (response.statusCode == 304) {
-          return Result.ok(null);
+          return const Result.ok(null);
         }
         if (response.statusCode >= 300) {
           throw GitHubUnexpectedStatusCode(response.statusCode);

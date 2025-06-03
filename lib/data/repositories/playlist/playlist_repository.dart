@@ -56,10 +56,10 @@ class PlaylistRepository extends ChangeNotifier {
         _songDownloader.update(true);
         notifyListeners();
         if (!download) {
-          Timer(Duration(seconds: 10), () => _songDownloader.update());
+          Timer(const Duration(seconds: 10), () => _songDownloader.update());
         }
       }
-      return Result.ok(null);
+      return const Result.ok(null);
     } on Exception catch (e) {
       return Result.error(e);
     } catch (e) {
@@ -88,7 +88,7 @@ class PlaylistRepository extends ChangeNotifier {
     try {
       await _db.managers.playlistTable.filter((f) => f.id(id)).delete();
       notifyListeners();
-      return Result.ok(null);
+      return const Result.ok(null);
     } on Exception catch (e) {
       await refresh();
       return Result.error(e);
@@ -211,7 +211,7 @@ class PlaylistRepository extends ChangeNotifier {
       refresh(forceRefresh: true, refreshIds: {id});
     }
 
-    return Result.ok(null);
+    return const Result.ok(null);
   }
 
   Future<Result<void>> addTracks(String id, Iterable<Song> songs) async {
@@ -241,7 +241,7 @@ class PlaylistRepository extends ChangeNotifier {
     String? name,
     String? comment,
   }) async {
-    if (name == null && comment == null) return Result.ok(null);
+    if (name == null && comment == null) return const Result.ok(null);
     final result = await _subsonic.updatePlaylist(
       _auth.con,
       id,
@@ -265,7 +265,7 @@ class PlaylistRepository extends ChangeNotifier {
     } on Exception catch (e) {
       return Result.error(e);
     }
-    return Result.ok(null);
+    return const Result.ok(null);
   }
 
   Future<Result<List<Playlist>>> getPlaylists() async {
@@ -296,7 +296,7 @@ class PlaylistRepository extends ChangeNotifier {
           .filter((f) => f.id(id))
           .withReferences()
           .getSingleOrNull();
-      if (playlist == null) return Result.ok(null);
+      if (playlist == null) return const Result.ok(null);
       final dbSongs = await playlist.$2.playlistSongTableRefs
           .orderBy((o) => o.index.asc())
           .get();
@@ -370,7 +370,7 @@ class PlaylistRepository extends ChangeNotifier {
         if (deletedCount > 0) {
           notifyListeners();
         }
-        return Result.ok(null);
+        return const Result.ok(null);
       }
 
       Map<String, List<ChildModel>> playlistSongs = {};
@@ -383,7 +383,7 @@ class PlaylistRepository extends ChangeNotifier {
           case Ok():
         }
         playlistSongs[p.id] = r.value;
-        return Result.ok(null);
+        return const Result.ok(null);
       }));
       for (final r in results) {
         switch (r) {
@@ -459,7 +459,7 @@ class PlaylistRepository extends ChangeNotifier {
       });
 
       notifyListeners();
-      return Result.ok(null);
+      return const Result.ok(null);
     } on Exception catch (e) {
       return Result.error(e);
     }

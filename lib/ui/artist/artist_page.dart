@@ -318,7 +318,7 @@ class _ArtistPageState extends State<ArtistPage> {
                         ],
                         child: Padding(
                           padding:
-                              EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           child: Row(
                             children: [
                               Expanded(

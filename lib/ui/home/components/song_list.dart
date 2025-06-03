@@ -31,14 +31,14 @@ class HomeSongList extends StatelessWidget {
         listenable: viewModel,
         builder: (context, child) {
           if (viewModel.status == FetchStatus.failure) {
-            return Center(child: Icon(Icons.wifi_off));
+            return const Center(child: Icon(Icons.wifi_off));
           }
           if (viewModel.status != FetchStatus.success) {
-            return Center(child: CircularProgressIndicator.adaptive());
+            return const Center(child: CircularProgressIndicator.adaptive());
           }
           final songs = viewModel.songs;
           if (songs.isEmpty) {
-            return Center(
+            return const Center(
                 child: Text(
               "No songs available",
             ));

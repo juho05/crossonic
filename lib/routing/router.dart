@@ -81,7 +81,7 @@ class AppRouter extends RootStackRouter {
           children: [
             AutoRoute(
               path: "home",
-              page: EmptyShellRoute("HomeTab"),
+              page: const EmptyShellRoute("HomeTab"),
               title: (context, data) => "",
               children: [
                 AutoRoute(
@@ -95,7 +95,7 @@ class AppRouter extends RootStackRouter {
             ),
             AutoRoute(
               path: "browse",
-              page: EmptyShellRoute("BrowseTab"),
+              page: const EmptyShellRoute("BrowseTab"),
               title: (context, data) => "",
               children: [
                 AutoRoute(
@@ -109,7 +109,7 @@ class AppRouter extends RootStackRouter {
             ),
             AutoRoute(
               path: "playlists",
-              page: EmptyShellRoute("PlaylistTab"),
+              page: const EmptyShellRoute("PlaylistTab"),
               title: (context, data) => "",
               children: [
                 AutoRoute(

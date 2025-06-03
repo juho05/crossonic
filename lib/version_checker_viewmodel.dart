@@ -32,8 +32,8 @@ class VersionCheckerViewModel extends ChangeNotifier {
     } else {
       _checked = true;
     }
-    if (bool.hasEnvironment("VERSION_CHECK")) {
-      _checked = !bool.fromEnvironment("VERSION_CHECK");
+    if (const bool.hasEnvironment("VERSION_CHECK")) {
+      _checked = !const bool.fromEnvironment("VERSION_CHECK");
     }
   }
 
@@ -43,7 +43,7 @@ class VersionCheckerViewModel extends ChangeNotifier {
 
     final lastDisplayed = await _keyValue.loadDateTime(_keyLastDisplayedDialog);
     if (lastDisplayed != null &&
-        DateTime.now().difference(lastDisplayed) < Duration(days: 1)) {
+        DateTime.now().difference(lastDisplayed) < const Duration(days: 1)) {
       return;
     }
 

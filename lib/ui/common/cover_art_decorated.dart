@@ -47,7 +47,7 @@ class _CoverArtDecoratedState extends State<CoverArtDecorated> {
             coverId: widget.coverId,
           )
         else
-          AspectRatio(
+          const AspectRatio(
             aspectRatio: 1,
             child: CircularProgressIndicator.adaptive(),
           ),
@@ -76,7 +76,7 @@ class _CoverArtDecoratedState extends State<CoverArtDecorated> {
                             icon: Icon(
                               Icons.favorite,
                               shadows: [
-                                Shadow(blurRadius: 2, color: Colors.black45),
+                                const Shadow(blurRadius: 2, color: Colors.black45),
                               ],
                               size: largeLayout ? 26 : 20,
                               color: const Color.fromARGB(255, 248, 248, 248),
@@ -86,7 +86,7 @@ class _CoverArtDecoratedState extends State<CoverArtDecorated> {
                         Visibility(
                           visible: widget.downloadStatus != DownloadStatus.none,
                           child: DecoratedIcon(
-                            decoration: IconDecoration(
+                            decoration: const IconDecoration(
                               border: IconBorder(
                                 color: Colors.black87,
                                 width: 1,
@@ -98,7 +98,7 @@ class _CoverArtDecoratedState extends State<CoverArtDecorated> {
                                   ? Icons.downloading_outlined
                                   : Icons.download_for_offline_outlined,
                               shadows: [
-                                Shadow(blurRadius: 3, color: Colors.black87),
+                                const Shadow(blurRadius: 3, color: Colors.black87),
                               ],
                               size: largeLayout ? 26 : 20,
                               color: const Color.fromARGB(255, 248, 248, 248),
@@ -110,7 +110,7 @@ class _CoverArtDecoratedState extends State<CoverArtDecorated> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        SizedBox.shrink(),
+                        const SizedBox.shrink(),
                         Visibility(
                           visible: _showMenu,
                           child: Material(

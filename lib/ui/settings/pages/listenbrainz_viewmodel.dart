@@ -49,7 +49,7 @@ class ListenBrainzViewModel extends ChangeNotifier {
     }
     _username = result.value.username;
     notifyListeners();
-    return Result.ok(null);
+    return const Result.ok(null);
   }
 
   Future<Result<void>> disconnect() async {
@@ -65,6 +65,6 @@ class ListenBrainzViewModel extends ChangeNotifier {
     }
     _username = result.value.username;
     notifyListeners();
-    return Result.ok(null);
+    return const Result.ok(null);
   }
 }

@@ -59,7 +59,7 @@ class _CreatePlaylistPageState extends State<CreatePlaylistPage> {
             listenable: _viewModel,
             builder: (context, _) => SubmitButton(
               onPressed: !_viewModel.loading ? () => _submit(context) : null,
-              child: Text("Create"),
+              child: const Text("Create"),
             ),
           ),
         ],

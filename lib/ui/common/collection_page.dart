@@ -201,7 +201,7 @@ class CollectionPageMobile extends StatelessWidget {
             if (contentTitle != null) const SizedBox(height: 10),
             if (content != null) content!,
             if (loadingDescription)
-              Center(child: CircularProgressIndicator.adaptive()),
+              const Center(child: CircularProgressIndicator.adaptive()),
             if (description != null)
               Padding(
                 padding: const EdgeInsets.all(12),
@@ -312,7 +312,7 @@ class CollectionPageDesktop extends StatelessWidget {
                       ),
                     ),
                   if (loadingDescription)
-                    Expanded(
+                    const Expanded(
                       child:
                           Center(child: CircularProgressIndicator.adaptive()),
                     ),

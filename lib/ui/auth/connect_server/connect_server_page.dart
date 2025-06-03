@@ -48,12 +48,12 @@ class _ConnectServerPageState extends State<ConnectServerPage> {
     final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: Text("Connect Server"),
+        title: const Text("Connect Server"),
         actions: [
           IconButton(
             icon: const Icon(Icons.bug_report_outlined),
             onPressed: () {
-              context.router.push(DebugRoute());
+              context.router.push(const DebugRoute());
             },
           )
         ],
@@ -166,7 +166,7 @@ class _ConnectServerPageState extends State<ConnectServerPage> {
                                                         : 4,
                                               ),
                                             if (constraints.maxHeight >= 480)
-                                              Text(
+                                              const Text(
                                                 "Welcome! Crossonic is a cross-platform OpenSubsonic compatible music player.\n\nTo begin, just enter the URL of your server below:",
                                                 textAlign: TextAlign.center,
                                               )
@@ -208,13 +208,13 @@ class _ConnectServerPageState extends State<ConnectServerPage> {
                                                       context: context,
                                                       builder: (context) =>
                                                           AlertDialog.adaptive(
-                                                        title: Text(
+                                                        title: const Text(
                                                             "What is a server URL?"),
-                                                        content: Text(
+                                                        content: const Text(
                                                             "This URL tells Crossonic which server it should connect to. It must point to a Subsonic compatible server.\n\nExample: https://music.example.com"),
                                                         actions: [
                                                           AdaptiveDialogAction(
-                                                            child: Text("Ok"),
+                                                            child: const Text("Ok"),
                                                             onPressed: () =>
                                                                 Navigator.pop(
                                                                     context),
@@ -226,7 +226,7 @@ class _ConnectServerPageState extends State<ConnectServerPage> {
                                                   icon: const Icon(
                                                       Icons.info_outline),
                                                 ),
-                                                border: OutlineInputBorder(),
+                                                border: const OutlineInputBorder(),
                                               ),
                                               validator: FormBuilderValidators
                                                   .compose([
@@ -249,7 +249,7 @@ class _ConnectServerPageState extends State<ConnectServerPage> {
                                                     !viewModel.connect.running
                                                         ? _submit
                                                         : null,
-                                                child: Text("Connect"),
+                                                child: const Text("Connect"),
                                               ),
                                             ),
                                           ],
@@ -285,7 +285,7 @@ class _ConnectServerPageState extends State<ConnectServerPage> {
 
   void _onResult() {
     if (viewModel.connect.completed) {
-      context.router.replaceAll([LoginRoute()]);
+      context.router.replaceAll([const LoginRoute()]);
       viewModel.connect.clearResult();
       return;
     }

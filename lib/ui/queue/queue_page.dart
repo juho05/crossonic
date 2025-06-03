@@ -35,7 +35,7 @@ class _QueuePageState extends State<QueuePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Queue"),
+        title: const Text("Queue"),
       ),
       body: ListenableBuilder(
         listenable: _viewModel,
