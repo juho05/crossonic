@@ -97,9 +97,6 @@ The OpenSubsonic API supports some features that are out-of-scope for this appli
 
 ## Installation
 
-*Currently there is no automatic version checking built into the app. Check the [releases](https://github.com/juho05/crossonic/releases) page regularly to
-know when a new version is available.*
-
 *To update an existing installation just repeat the installation instructions again for the new version.*
 
 ### Android

@@ -9,8 +9,12 @@ class KeyValueRepository {
   KeyValueRepository({required Database database}) : _db = database;
 
   Future<void> store<T>(String key, T value) async {
+    Object? object = value;
+    if (object is DateTime) {
+      object = object.millisecondsSinceEpoch;
+    }
     await _db.managers.keyValueTable.create(
-      (o) => o(key: key, value: jsonEncode(value)),
+      (o) => o(key: key, value: jsonEncode(object)),
       mode: InsertMode.replace,
     );
   }
@@ -41,6 +45,13 @@ class KeyValueRepository {
     final json = await _loadValue(key);
     if (json == null) return null;
     return jsonDecode(json) as bool;
+  }
+
+  Future<DateTime?> loadDateTime(String key) async {
+    final json = await _loadValue(key);
+    if (json == null) return null;
+    final millis = (jsonDecode(json) as num).toInt();
+    return DateTime.fromMillisecondsSinceEpoch(millis);
   }
 
   Future<T?> loadObject<T>(

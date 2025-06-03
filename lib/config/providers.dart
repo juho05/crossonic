@@ -16,11 +16,13 @@ import 'package:crossonic/data/repositories/scrobble/scrobbler.dart';
 import 'package:crossonic/data/repositories/settings/settings_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/favorites_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/subsonic_repository.dart';
+import 'package:crossonic/data/repositories/version/version_repository.dart';
 import 'package:crossonic/data/services/audio_players/audioplayers.dart';
 import 'package:crossonic/data/services/audio_players/gstreamer.dart';
 import 'package:crossonic/data/services/audio_players/plugin.dart';
 import 'package:crossonic/data/services/audio_players/player.dart';
 import 'package:crossonic/data/services/database/database.dart';
+import 'package:crossonic/data/services/github/github.dart';
 import 'package:crossonic/data/services/media_integration/media_integration.dart';
 import 'package:crossonic/data/services/opensubsonic/subsonic_service.dart';
 import 'package:flutter/foundation.dart';
@@ -152,6 +154,15 @@ Future<List<SingleChildWidget>> get providers async {
     ),
     Provider.value(
       value: keyValueRepository,
+    ),
+    Provider(
+      create: (context) => GitHubService(),
+    ),
+    Provider(
+      create: (context) => VersionRepository(
+        github: context.read(),
+        keyValue: context.read(),
+      ),
     ),
     Provider.value(
       value: subsonicService,

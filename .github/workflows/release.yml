@@ -68,11 +68,11 @@ jobs:
 
       - name: Build APK
         working-directory: ${{ env.APK_BUILD_DIR }}
-        run: flutter build apk --release --split-per-abi
+        run: flutter build apk --split-per-abi
 
       - name: Build App Bundle
         working-directory: ${{ env.APK_BUILD_DIR }}
-        run: flutter build appbundle --release
+        run: flutter build appbundle --dart-define=VERSION_CHECK=false
 
       - name: Upload App Bundle
         uses: actions/upload-artifact@v4
@@ -115,7 +115,7 @@ jobs:
       - name: Build generated files
         run: flutter pub run build_runner build
       - name: Compile linux
-        run: flutter build linux --release
+        run: flutter build linux
 
       # tar.gz
       - name: Create tar.gz archive
@@ -186,7 +186,7 @@ jobs:
       - name: Build generated files
         run: flutter pub run build_runner build
       - name: Compile for Windows
-        run: flutter build windows --release
+        run: flutter build windows
 
       - name: Build iss script
         run: dart run inno_bundle:build --no-app --release --no-installer
@@ -246,7 +246,7 @@ jobs:
       - name: Build generated files
         run: flutter pub run build_runner build
       - name: Compile for macOS
-        run: flutter build macos --release
+        run: flutter build macos
 
       - name: Create .dmg file
         run: |
@@ -278,7 +278,7 @@ jobs:
       - name: Build generated files
         run: flutter pub run build_runner build
       - name: Compile for web
-        run: flutter build web --wasm --release
+        run: flutter build web --wasm
 
       - name: Create .zip archive
         run: |

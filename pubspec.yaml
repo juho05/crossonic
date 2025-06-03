@@ -43,8 +43,8 @@ dependencies:
   background_downloader: ^9.1.1
   path: ^1.9.0
   image_picker: ^1.1.2
-  flutter_single_instance: ^1.5.0
-  window_manager: ^0.4.3
+  flutter_single_instance: ^1.5.1
+  window_manager: ^0.5.0
   tray_manager: ^0.5.0
   flutter_svg: ^2.0.17
   dynamic_system_colors: ^1.8.0
@@ -52,6 +52,7 @@ dependencies:
   url_launcher: ^6.3.1
   linkfy_text: ^1.1.6
   file_picker: ^10.1.9
+  package_info_plus: ^8.3.0
 
 dependency_overrides:
   flutter_secure_storage_macos:
@@ -69,7 +70,7 @@ dependency_overrides:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^5.0.0
+  flutter_lints: ^6.0.0
   auto_route_generator: ^10.0.1
   build_runner: ^2.4.15
   json_serializable: ^6.9.3
