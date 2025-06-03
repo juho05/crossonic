@@ -121,7 +121,7 @@ Crossonic is available as an *AppImage* on the [releases](https://github.com/juh
 - Drag `Crossonic.app` to the `Applications` directory
 
 **NOTE:** Currently macOS binaries are not signed. If macOS prevents you from opening the `.dmg` file or starting the app, you will need to
-open *System Settings*, click on *Privacy & Security*, go to *Security*, click *Open* and hit *Open Anyway*. This should only be necessary once.
+open *System Settings*, click on *Privacy & Security*, scroll down to *Security*, click *Open* and hit *Open Anyway*. This should only be necessary once.
 
 ### Web
 
