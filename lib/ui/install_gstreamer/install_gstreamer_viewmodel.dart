@@ -10,7 +10,7 @@ import 'package:path/path.dart' as path;
 enum GStreamerStatus { unknown, missing, installed }
 
 class InstallGStreamerViewModel extends ChangeNotifier {
-  static const String _gstVersion = "1.26.1";
+  static const String _gstVersion = "1.26.2";
 
   GStreamerStatus _status = GStreamerStatus.unknown;
   GStreamerStatus get status => _status;
