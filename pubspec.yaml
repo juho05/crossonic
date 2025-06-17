@@ -55,7 +55,7 @@ dependencies:
   package_info_plus: ^8.3.0
 
 dependency_overrides:
-  flutter_secure_storage_macos:
+  flutter_secure_storage_darwin:
     path: ./dependency_overrides/flutter_secure_storage/flutter_secure_storage_darwin
   # for wasm support, switch to stable version when available
   audioplayers_linux:
