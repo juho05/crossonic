@@ -19,7 +19,7 @@ issues you experience with other servers.
 There are pre-release artifacts available on the [releases](https://github.com/juho05/crossonic/releases) page
 but there is currently no auto-update mechanism and the [installation process](#installation) is sub-optimal on many platforms.
 
-See [Supported platforms](#supported-platforms) for a status per platform.
+See [supported platforms](#supported-platforms) for a status per platform.
 
 ## Features
 
@@ -60,11 +60,11 @@ See [Supported platforms](#supported-platforms) for a status per platform.
   - [x] unsynced
   - [ ] synced
 - [x] Replay gain
-- [ ] Jukebox
 - [ ] Load/save queues
-- [ ] Remote control other devices running the app
 - [ ] Internet Radio
 - [ ] Pre-cache next x songs for spotty networks
+- [ ] Jukebox
+- [ ] Remote control other devices running the app
 - [ ] End-of-year recap
 
 ### Out-of-scope
@@ -114,6 +114,8 @@ Crossonic is available as an *AppImage* on the [releases](https://github.com/juh
 
 - Download and execute `Crossonic-x.x.x-windows-x86-64.exe` from the [releases](https://github.com/juho05/crossonic/releases/latest) page
 
+When launching Crossonic for the first time it may ask you to install *GStreamer*. In that case just click on *Install GStreamer* and let Crossonic automatically install GStreamer.
+
 ### macOS
 
 - Install [GStreamer](https://gstreamer.freedesktop.org/download/#macos) runtime
@@ -121,11 +123,11 @@ Crossonic is available as an *AppImage* on the [releases](https://github.com/juh
 - Drag `Crossonic.app` to the `Applications` directory
 
 **NOTE:** Currently macOS binaries are not signed. If macOS prevents you from opening the `.dmg` file or starting the app, you will need to
-open *System Settings*, click on *Privacy & Security*, scroll down to *Security*, click *Open* and hit *Open Anyway*. This should only be necessary once.
+open *System Settings*, click on *Privacy & Security*, scroll down to *Security* where it says that Crossonic was blocked and hit *Open Anyway*. This should only be necessary once after a new version was installed.
 
 ### Web
 
-- Download and extract `Crossonic-x.x.x-web.zip` from the [releases](https://github.com/juho05/crossonic/releases/latest)
+- Download and extract `Crossonic-x.x.x-web.zip` from the [releases](https://github.com/juho05/crossonic/releases/latest) page
 - Host the extracted files with a web server like [Caddy](https://caddyserver.com/)
 
 #### Hosting requirements
@@ -184,8 +186,6 @@ In the directory of the repository run:
 flutter build linux
 ```
 
-The built executable is at `./build/linux/x64/release/bundle/Crossonic`.
-
 ### Windows
 
 #### Install dependencies
@@ -203,9 +203,6 @@ In the directory of the repository run:
 ```bash
 flutter build windows
 ```
-
-*NOTE:* The first time starting playback the program might hang for a few seconds and a command prompt window might pop up.
-This is a one-time event. Just wait until the playback starts.
 
 ### macOS
 
