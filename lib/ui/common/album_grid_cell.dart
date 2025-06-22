@@ -113,7 +113,7 @@ class _AlbumGridCellState extends State<AlbumGridCell> {
         return Stack(
           children: [
             Padding(
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.all(4),
               child: LayoutBuilder(
                 builder: (context, constraints) {
                   return Column(
@@ -164,7 +164,7 @@ class _AlbumGridCellState extends State<AlbumGridCell> {
               child: LayoutBuilder(builder: (context, constraints) {
                 final largeLayout = constraints.maxHeight > 256;
                 return Padding(
-                  padding: EdgeInsets.all(8 + (largeLayout ? 10 : 6)),
+                  padding: EdgeInsets.all(4 + (largeLayout ? 10 : 6)),
                   child: Align(
                     alignment: Alignment.bottomRight,
                     child: Material(

@@ -92,76 +92,79 @@ class _ArtistsPageState extends State<ArtistsPage> {
                       _viewModel.artists.isEmpty)
                     const SliverToBoxAdapter(
                         child: Text("No artists available")),
-                  SliverGrid(
-                    gridDelegate: AlbumsGridDelegate(),
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                        if (index > _viewModel.artists.length) {
-                          return null;
-                        }
-                        if (index == _viewModel.artists.length) {
-                          return switch (_viewModel.status) {
-                            FetchStatus.success => null,
-                            FetchStatus.failure => const Center(
-                                child: Icon(Icons.wifi_off),
-                              ),
-                            _ => const Center(
-                                child: CircularProgressIndicator.adaptive(),
-                              ),
-                          };
-                        }
-                        final a = _viewModel.artists[index];
-                        return ArtistGridCell(
-                          id: a.id,
-                          key: ValueKey(a.id),
-                          extraInfo: [
-                            if (a.albumCount != null)
-                              "Releases: ${a.albumCount}"
-                          ],
-                          coverId: a.coverId,
-                          name: a.name,
-                          onTap: () {
-                            context.router.push(ArtistRoute(artistId: a.id));
-                          },
-                          onPlay: () async {
-                            final result = await _viewModel.play(a);
-                            if (!context.mounted) return;
-                            toastResult(context, result);
-                          },
-                          onShuffle: () async {
-                            final option = await ChooserDialog.choose(
-                                context, "Shuffle", ["Releases", "Songs"]);
-                            if (option == null) return;
-                            final result = await _viewModel.play(a,
-                                shuffleAlbums: option == 0,
-                                shuffleSongs: option == 1);
-                            if (!context.mounted) return;
-                            toastResult(context, result);
-                          },
-                          onAddToQueue: (priority) async {
-                            final result =
-                                await _viewModel.addToQueue(a, priority);
-                            if (!context.mounted) return;
-                            toastResult(context, result,
-                                successMsg:
-                                    "Added '${a.name}' to ${priority ? "priority " : ""}queue");
-                          },
-                          onAddToPlaylist: () async {
-                            final result = await _viewModel.getArtistSongs(a);
-                            if (!context.mounted) return;
-                            switch (result) {
-                              case Err():
-                                toastResult(context, result);
-                              case Ok():
-                                AddToPlaylistDialog.show(
-                                    context, a.name, result.value);
-                            }
-                          },
-                        );
-                      },
-                      childCount:
-                          (_viewModel.status == FetchStatus.success ? 0 : 1) +
-                              _viewModel.artists.length,
+                  SliverPadding(
+                    padding: const EdgeInsetsGeometry.all(4),
+                    sliver: SliverGrid(
+                      gridDelegate: AlbumsGridDelegate(),
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          if (index > _viewModel.artists.length) {
+                            return null;
+                          }
+                          if (index == _viewModel.artists.length) {
+                            return switch (_viewModel.status) {
+                              FetchStatus.success => null,
+                              FetchStatus.failure => const Center(
+                                  child: Icon(Icons.wifi_off),
+                                ),
+                              _ => const Center(
+                                  child: CircularProgressIndicator.adaptive(),
+                                ),
+                            };
+                          }
+                          final a = _viewModel.artists[index];
+                          return ArtistGridCell(
+                            id: a.id,
+                            key: ValueKey(a.id),
+                            extraInfo: [
+                              if (a.albumCount != null)
+                                "Releases: ${a.albumCount}"
+                            ],
+                            coverId: a.coverId,
+                            name: a.name,
+                            onTap: () {
+                              context.router.push(ArtistRoute(artistId: a.id));
+                            },
+                            onPlay: () async {
+                              final result = await _viewModel.play(a);
+                              if (!context.mounted) return;
+                              toastResult(context, result);
+                            },
+                            onShuffle: () async {
+                              final option = await ChooserDialog.choose(
+                                  context, "Shuffle", ["Releases", "Songs"]);
+                              if (option == null) return;
+                              final result = await _viewModel.play(a,
+                                  shuffleAlbums: option == 0,
+                                  shuffleSongs: option == 1);
+                              if (!context.mounted) return;
+                              toastResult(context, result);
+                            },
+                            onAddToQueue: (priority) async {
+                              final result =
+                                  await _viewModel.addToQueue(a, priority);
+                              if (!context.mounted) return;
+                              toastResult(context, result,
+                                  successMsg:
+                                      "Added '${a.name}' to ${priority ? "priority " : ""}queue");
+                            },
+                            onAddToPlaylist: () async {
+                              final result = await _viewModel.getArtistSongs(a);
+                              if (!context.mounted) return;
+                              switch (result) {
+                                case Err():
+                                  toastResult(context, result);
+                                case Ok():
+                                  AddToPlaylistDialog.show(
+                                      context, a.name, result.value);
+                              }
+                            },
+                          );
+                        },
+                        childCount:
+                            (_viewModel.status == FetchStatus.success ? 0 : 1) +
+                                _viewModel.artists.length,
+                      ),
                     ),
                   ),
                 ],

@@ -142,6 +142,7 @@ class CollectionPageMobile extends StatelessWidget {
                       fontWeight: FontWeight.w600,
                       fontSize: 22,
                     ),
+                textAlign: TextAlign.center,
               ),
             ),
             if (extraInfo != null)
@@ -277,6 +278,7 @@ class CollectionPageDesktop extends StatelessWidget {
                             fontWeight: FontWeight.w600,
                             fontSize: 22,
                           ),
+                      textAlign: TextAlign.center,
                     ),
                   ),
                   if (extraInfo != null)

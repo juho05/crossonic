@@ -198,7 +198,7 @@ class _ArtistPageState extends State<ArtistPage> {
               ),
             ],
             content: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
               child: Builder(builder: (context) {
                 final children = <Widget>[];
                 final currentAlbums = <Album>[];
@@ -317,8 +317,8 @@ class _ArtistPageState extends State<ArtistPage> {
                           ),
                         ],
                         child: Padding(
-                          padding:
-                              const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 4, vertical: 4),
                           child: Row(
                             children: [
                               Expanded(

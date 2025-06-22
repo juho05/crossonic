@@ -138,84 +138,88 @@ class _AlbumsPageState extends State<AlbumsPage> {
                   ),
                   if (_viewModel.status == FetchStatus.success &&
                       _viewModel.albums.isEmpty)
-                    const SliverToBoxAdapter(child: Text("No albums available")),
-                  SliverGrid(
-                    gridDelegate: AlbumsGridDelegate(),
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                        if (index > _viewModel.albums.length) {
-                          return null;
-                        }
-                        if (index == _viewModel.albums.length) {
-                          return switch (_viewModel.status) {
-                            FetchStatus.success => null,
-                            FetchStatus.failure => const Center(
-                                child: Icon(Icons.wifi_off),
-                              ),
-                            _ => const Center(
-                                child: CircularProgressIndicator.adaptive(),
-                              ),
-                          };
-                        }
-                        final a = _viewModel.albums[index];
-                        return AlbumGridCell(
-                          id: a.id,
-                          extraInfo: [
-                            a.displayArtist,
-                            a.year?.toString() ?? "Unknown year",
-                          ],
-                          coverId: a.coverId,
-                          name: a.name,
-                          onTap: () {
-                            context.router.push(AlbumRoute(albumId: a.id));
-                          },
-                          onPlay: () async {
-                            final result = await _viewModel.play(a);
-                            if (!context.mounted) return;
-                            toastResult(context, result);
-                          },
-                          onShuffle: () async {
-                            final result =
-                                await _viewModel.play(a, shuffle: true);
-                            if (!context.mounted) return;
-                            toastResult(context, result);
-                          },
-                          onAddToQueue: (priority) async {
-                            final result =
-                                await _viewModel.addToQueue(a, priority);
-                            if (!context.mounted) return;
-                            toastResult(context, result,
-                                successMsg:
-                                    "Added '${a.name}' to ${priority ? "priority " : ""}queue");
-                          },
-                          onGoToArtist: a.artists.isNotEmpty
-                              ? () async {
-                                  final artistId =
-                                      await ChooserDialog.chooseArtist(
-                                          context, a.artists.toList());
-                                  if (artistId == null || !context.mounted) {
-                                    return;
+                    const SliverToBoxAdapter(
+                        child: Text("No albums available")),
+                  SliverPadding(
+                    padding: const EdgeInsetsGeometry.symmetric(horizontal: 4),
+                    sliver: SliverGrid(
+                      gridDelegate: AlbumsGridDelegate(),
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          if (index > _viewModel.albums.length) {
+                            return null;
+                          }
+                          if (index == _viewModel.albums.length) {
+                            return switch (_viewModel.status) {
+                              FetchStatus.success => null,
+                              FetchStatus.failure => const Center(
+                                  child: Icon(Icons.wifi_off),
+                                ),
+                              _ => const Center(
+                                  child: CircularProgressIndicator.adaptive(),
+                                ),
+                            };
+                          }
+                          final a = _viewModel.albums[index];
+                          return AlbumGridCell(
+                            id: a.id,
+                            extraInfo: [
+                              a.displayArtist,
+                              a.year?.toString() ?? "Unknown year",
+                            ],
+                            coverId: a.coverId,
+                            name: a.name,
+                            onTap: () {
+                              context.router.push(AlbumRoute(albumId: a.id));
+                            },
+                            onPlay: () async {
+                              final result = await _viewModel.play(a);
+                              if (!context.mounted) return;
+                              toastResult(context, result);
+                            },
+                            onShuffle: () async {
+                              final result =
+                                  await _viewModel.play(a, shuffle: true);
+                              if (!context.mounted) return;
+                              toastResult(context, result);
+                            },
+                            onAddToQueue: (priority) async {
+                              final result =
+                                  await _viewModel.addToQueue(a, priority);
+                              if (!context.mounted) return;
+                              toastResult(context, result,
+                                  successMsg:
+                                      "Added '${a.name}' to ${priority ? "priority " : ""}queue");
+                            },
+                            onGoToArtist: a.artists.isNotEmpty
+                                ? () async {
+                                    final artistId =
+                                        await ChooserDialog.chooseArtist(
+                                            context, a.artists.toList());
+                                    if (artistId == null || !context.mounted) {
+                                      return;
+                                    }
+                                    context.router
+                                        .push(ArtistRoute(artistId: artistId));
                                   }
-                                  context.router
-                                      .push(ArtistRoute(artistId: artistId));
-                                }
-                              : null,
-                          onAddToPlaylist: () async {
-                            final result = await _viewModel.getAlbumSongs(a);
-                            if (!context.mounted) return;
-                            switch (result) {
-                              case Err():
-                                toastResult(context, result);
-                              case Ok():
-                                AddToPlaylistDialog.show(
-                                    context, a.name, result.value);
-                            }
-                          },
-                        );
-                      },
-                      childCount:
-                          (_viewModel.status == FetchStatus.success ? 0 : 1) +
-                              _viewModel.albums.length,
+                                : null,
+                            onAddToPlaylist: () async {
+                              final result = await _viewModel.getAlbumSongs(a);
+                              if (!context.mounted) return;
+                              switch (result) {
+                                case Err():
+                                  toastResult(context, result);
+                                case Ok():
+                                  AddToPlaylistDialog.show(
+                                      context, a.name, result.value);
+                              }
+                            },
+                          );
+                        },
+                        childCount:
+                            (_viewModel.status == FetchStatus.success ? 0 : 1) +
+                                _viewModel.albums.length,
+                      ),
                     ),
                   ),
                 ],
