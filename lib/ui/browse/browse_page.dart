@@ -44,6 +44,14 @@ class _BrowsePageState extends State<BrowsePage> with RestorationMixin {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_controller.value.text.isNotEmpty) {
+      _viewModel.updateSearchText(_controller.value.text);
+    }
+  }
+
+  @override
   void dispose() {
     _focusNode.dispose();
     _controller.dispose();
@@ -59,37 +67,38 @@ class _BrowsePageState extends State<BrowsePage> with RestorationMixin {
           child: Column(
             children: [
               StreamBuilder<bool>(
-                  stream: _viewModel.emptySearchStream,
-                  builder: (context, snapshot) {
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      child: TextField(
-                        controller: _controller.value,
-                        focusNode: _focusNode,
-                        decoration: InputDecoration(
-                          labelText: "Search",
-                          icon: const Icon(Icons.search),
-                          suffixIcon: !(snapshot.data ?? false)
-                              ? IconButton(
-                                  icon: const Icon(Icons.clear),
-                                  onPressed: () {
-                                    _controller.value.clear();
-                                    _viewModel.updateSearchText("");
-                                    _focusNode.unfocus();
-                                  },
-                                )
-                              : null,
-                        ),
-                        restorationId: "browse_page_search_input",
-                        onChanged: (value) {
-                          _viewModel.updateSearchText(value);
-                        },
-                        onTapOutside: (event) {
-                          _focusNode.unfocus();
-                        },
+                stream: _viewModel.emptySearchStream,
+                builder: (context, snapshot) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    child: TextField(
+                      controller: _controller.value,
+                      focusNode: _focusNode,
+                      decoration: InputDecoration(
+                        labelText: "Search",
+                        icon: const Icon(Icons.search),
+                        suffixIcon: !(snapshot.data ?? false)
+                            ? IconButton(
+                                icon: const Icon(Icons.clear),
+                                onPressed: () {
+                                  _controller.value.clear();
+                                  _viewModel.updateSearchText("");
+                                  _focusNode.unfocus();
+                                },
+                              )
+                            : null,
                       ),
-                    );
-                  }),
+                      restorationId: "browse_page_search_input",
+                      onChanged: (value) {
+                        _viewModel.updateSearchText(value);
+                      },
+                      onTapOutside: (event) {
+                        _focusNode.unfocus();
+                      },
+                    ),
+                  );
+                },
+              ),
               const SizedBox(height: 12),
               ListenableBuilder(
                 listenable: _viewModel,
