@@ -47,7 +47,8 @@ class _BrowsePageState extends State<BrowsePage> with RestorationMixin {
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (_controller.value.text.isNotEmpty) {
-      _viewModel.updateSearchText(_controller.value.text);
+      _viewModel.updateSearchText(_controller.value.text,
+          disableDebounce: true);
     }
   }
 

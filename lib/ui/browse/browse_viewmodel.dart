@@ -39,7 +39,7 @@ class BrowseViewModel extends ChangeNotifier {
         _audioHandler = audioHandler;
 
   Timer? _searchDebounce;
-  void updateSearchText(String search) {
+  void updateSearchText(String search, {bool disableDebounce = false}) {
     if (_emptySearchStream.value != search.isEmpty) {
       _emptySearchStream.add(search.isEmpty);
     }
@@ -51,6 +51,10 @@ class BrowseViewModel extends ChangeNotifier {
       _albums = [];
       _artists = [];
       notifyListeners();
+      return;
+    }
+    if (disableDebounce) {
+      _updateSearchText(search);
       return;
     }
     _searchDebounce = Timer(
