@@ -168,6 +168,9 @@ class AudioPlayerGstreamer implements AudioPlayer {
 
   @override
   Future<void> seek(Duration position) async {
+    if (eventStream.value == AudioPlayerEvent.loading) {
+      gst.waitUntilReady();
+    }
     gst.seek(position);
   }
 
