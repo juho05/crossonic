@@ -111,15 +111,15 @@ class _SongListItemState extends State<SongListItem> {
             options: [
               if (widget.onAddToQueue != null)
                 ContextMenuOption(
-                  icon: Icons.playlist_add,
-                  title: "Add to queue",
-                  onSelected: () => widget.onAddToQueue!(false),
-                ),
-              if (widget.onAddToQueue != null)
-                ContextMenuOption(
                   icon: Icons.playlist_play,
                   title: "Add to priority queue",
                   onSelected: () => widget.onAddToQueue!(true),
+                ),
+              if (widget.onAddToQueue != null)
+                ContextMenuOption(
+                  icon: Icons.playlist_add,
+                  title: "Add to queue",
+                  onSelected: () => widget.onAddToQueue!(false),
                 ),
               ContextMenuOption(
                 icon: viewModel.favorite ? Icons.heart_broken : Icons.favorite,
