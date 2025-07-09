@@ -12,7 +12,8 @@ class AppShortcuts extends StatelessWidget {
   Widget build(BuildContext context) {
     return Shortcuts(
         shortcuts: {
-          LogicalKeySet(LogicalKeyboardKey.space): const PlayPauseIntent(),
+          const SingleActivator(LogicalKeyboardKey.space,
+              includeRepeats: false): const PlayPauseIntent(),
         },
         child: Actions(
           actions: {
