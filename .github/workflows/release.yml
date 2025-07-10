@@ -174,7 +174,7 @@ jobs:
       - name: Setup GStreamer
         uses: marcpabst/setup-gstreamer@3bafa9efb10f967158fceb6b5b34c2fc4399d141 # v1.5.3
         with:
-          version: ${{ env.FLUTTER_VERSION }}
+          version: ${{ env.GSTREAMER_VERSION }}
           arch: "x86_64"
 
       - uses: subosito/flutter-action@v2
@@ -234,7 +234,7 @@ jobs:
       - name: Setup GStreamer
         uses: marcpabst/setup-gstreamer@3bafa9efb10f967158fceb6b5b34c2fc4399d141 # v1.5.3
         with:
-          version: ${{ env.FLUTTER_VERSION }}
+          version: ${{ env.GSTREAMER_VERSION }}
           arch: "universal"
 
       - uses: subosito/flutter-action@v2
