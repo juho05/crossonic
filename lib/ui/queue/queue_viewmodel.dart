@@ -25,6 +25,7 @@ class QueueViewModel extends ChangeNotifier {
     _audioHandler.queue.addListener(_queueChanged);
     _currentSubscription = _audioHandler.queue.current.listen(_currentChanged);
     _queueChanged();
+    _currentChanged(_audioHandler.queue.current.value);
   }
 
   void clearQueue() {

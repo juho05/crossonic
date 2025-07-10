@@ -157,7 +157,9 @@ class _PlaylistPageState extends State<PlaylistPage> {
                       final result = await _viewModel.toggleDownload();
                       if (!context.mounted) return;
                       toastResult(context, result,
-                          successMsg: !playlist.download ? "Scheduling downloads…" : null);
+                          successMsg: !playlist.download
+                              ? "Scheduling downloads…"
+                              : null);
                     },
                   ),
               ],
@@ -225,7 +227,7 @@ class _PlaylistPageState extends State<PlaylistPage> {
               final t = songs[index];
               final s = t.$1;
               return SongListItem(
-                key: ValueKey(index),
+                key: ValueKey("$index-${s.id}"),
                 id: s.id,
                 title: s.title,
                 reorderIndex: _viewModel.reorderEnabled ? index : null,

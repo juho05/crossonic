@@ -57,6 +57,7 @@ class _QueuePageState extends State<QueuePage> {
                 ),
                 if (_viewModel.currentSong != null)
                   SongListItem(
+                    key: ValueKey("current-${_viewModel.currentSong!.id}"),
                     id: _viewModel.currentSong!.id,
                     title: _viewModel.currentSong!.title,
                     artist: _viewModel.currentSong!.displayArtist,

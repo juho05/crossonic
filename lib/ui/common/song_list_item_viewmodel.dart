@@ -38,8 +38,12 @@ class SongListItemViewModel extends ChangeNotifier {
       });
       _statusSubscription = _audioHandler.playbackStatus.listen((status) {
         _playbackStatus = status;
-        notifyListeners();
+        if (_currentSongId == songId) {
+          notifyListeners();
+        }
       });
+      _currentSongId = _audioHandler.queue.current.value.song?.id;
+      _playbackStatus = _audioHandler.playbackStatus.value;
     }
 
     _updateFavoriteStatus();
