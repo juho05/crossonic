@@ -9,6 +9,7 @@ import 'package:crossonic/data/services/opensubsonic/models/albumid3_model.dart'
 import 'package:crossonic/data/services/opensubsonic/models/artist_info2_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/artistid3_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/artists_model.dart';
+import 'package:crossonic/data/services/opensubsonic/models/child_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/genres_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/listenbrainz_config_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/lyrics_list_model.dart';
@@ -138,6 +139,18 @@ class SubsonicService {
       },
       PlaylistModel.fromJson,
       "playlist",
+    );
+  }
+
+  Future<Result<ChildModel>> getSong(Connection con, String id) async {
+    return await _fetchObject(
+      con,
+      "getSong",
+      {
+        "id": [id],
+      },
+      ChildModel.fromJson,
+      "song",
     );
   }
 

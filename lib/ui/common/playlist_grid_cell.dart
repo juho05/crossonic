@@ -1,4 +1,5 @@
 import 'package:crossonic/data/repositories/playlist/song_downloader.dart';
+import 'package:crossonic/ui/common/dialogs/media_info.dart';
 import 'package:crossonic/ui/common/menu_button.dart';
 import 'package:crossonic/ui/common/cover_art_decorated.dart';
 import 'package:crossonic/ui/common/with_context_menu.dart';
@@ -6,6 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class PlaylistGridCell extends StatefulWidget {
+  final String id;
   final String name;
   final List<String> extraInfo;
   final String? coverId;
@@ -22,6 +24,7 @@ class PlaylistGridCell extends StatefulWidget {
 
   const PlaylistGridCell({
     super.key,
+    required this.id,
     required this.name,
     required this.extraInfo,
     this.downloadStatus = DownloadStatus.none,
@@ -81,6 +84,13 @@ class _PlaylistGridCellState extends State<PlaylistGridCell> {
           icon: widget.download ? Icons.delete : Icons.download,
           onSelected: widget.onToggleDownload,
         ),
+      ContextMenuOption(
+        title: "Info",
+        icon: Icons.info_outline,
+        onSelected: () {
+          MediaInfoDialog.showPlaylist(context, widget.id);
+        },
+      ),
       if (widget.onDelete != null)
         ContextMenuOption(
           title: "Delete",

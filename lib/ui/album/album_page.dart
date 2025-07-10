@@ -5,6 +5,7 @@ import 'package:crossonic/ui/common/collection_page.dart';
 import 'package:crossonic/ui/common/cover_art_decorated.dart';
 import 'package:crossonic/ui/common/dialogs/add_to_playlist.dart';
 import 'package:crossonic/ui/common/dialogs/chooser.dart';
+import 'package:crossonic/ui/common/dialogs/media_info.dart';
 import 'package:crossonic/ui/common/song_list_item.dart';
 import 'package:crossonic/ui/common/toast.dart';
 import 'package:crossonic/ui/common/with_context_menu.dart';
@@ -132,6 +133,13 @@ class _AlbumPageState extends State<AlbumPage> {
                     router.push(ArtistRoute(artistId: artistId));
                   },
                 ),
+                ContextMenuOption(
+                  title: "Info",
+                  icon: Icons.info_outline,
+                  onSelected: () {
+                    MediaInfoDialog.showAlbum(context, album.id);
+                  },
+                )
               ],
             ),
             extraInfo: [
@@ -250,8 +258,8 @@ class _AlbumPageState extends State<AlbumPage> {
                           ),
                         ],
                         child: Padding(
-                          padding:
-                              const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 8),
                           child: Row(
                             children: [
                               const Icon(Icons.album),

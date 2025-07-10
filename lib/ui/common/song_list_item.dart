@@ -2,6 +2,7 @@ import 'package:crossonic/data/repositories/audio/audio_handler.dart';
 import 'package:crossonic/data/repositories/playlist/song_downloader.dart';
 import 'package:crossonic/ui/common/clickable_list_item_with_context_menu.dart';
 import 'package:crossonic/ui/common/cover_art.dart';
+import 'package:crossonic/ui/common/dialogs/media_info.dart';
 import 'package:crossonic/ui/common/song_list_item_viewmodel.dart';
 import 'package:crossonic/ui/common/with_context_menu.dart';
 import 'package:crossonic/utils/format.dart';
@@ -150,6 +151,13 @@ class _SongListItemState extends State<SongListItem> {
                   title: "Go to artist",
                   onSelected: widget.onGoToArtist,
                 ),
+              ContextMenuOption(
+                title: "Info",
+                icon: Icons.info_outline,
+                onSelected: () {
+                  MediaInfoDialog.showSong(context, widget.id);
+                },
+              ),
               if (widget.onRemove != null && !widget.removeButton)
                 ContextMenuOption(
                   icon: Icons.playlist_remove,

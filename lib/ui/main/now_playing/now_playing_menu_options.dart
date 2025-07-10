@@ -2,6 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:crossonic/routing/router.gr.dart';
 import 'package:crossonic/ui/common/dialogs/add_to_playlist.dart';
 import 'package:crossonic/ui/common/dialogs/chooser.dart';
+import 'package:crossonic/ui/common/dialogs/media_info.dart';
 import 'package:crossonic/ui/common/toast.dart';
 import 'package:crossonic/ui/common/with_context_menu.dart';
 import 'package:crossonic/ui/main/now_playing/now_playing_viewmodel.dart';
@@ -63,4 +64,11 @@ List<ContextMenuOption> getNowPlayingMenuOptions(
           },
           icon: Icons.person,
         ),
+      ContextMenuOption(
+        title: "Info",
+        icon: Icons.info_outline,
+        onSelected: () {
+          MediaInfoDialog.showSong(context, viewModel.song!.id);
+        },
+      ),
     ];

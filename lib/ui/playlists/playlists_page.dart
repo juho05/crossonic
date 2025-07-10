@@ -148,6 +148,7 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
                           final playlist = playlists[index];
                           final p = playlists[index].$1;
                           return PlaylistGridCell(
+                            id: p.id,
                             extraInfo: [
                               "Songs: ${p.songCount}",
                             ],

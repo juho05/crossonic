@@ -10,6 +10,7 @@ import 'package:crossonic/ui/common/collection_page.dart';
 import 'package:crossonic/ui/common/cover_art_decorated.dart';
 import 'package:crossonic/ui/common/dialogs/add_to_playlist.dart';
 import 'package:crossonic/ui/common/dialogs/chooser.dart';
+import 'package:crossonic/ui/common/dialogs/media_info.dart';
 import 'package:crossonic/ui/common/toast.dart';
 import 'package:crossonic/ui/common/with_context_menu.dart';
 import 'package:crossonic/utils/fetch_status.dart';
@@ -139,6 +140,13 @@ class _ArtistPageState extends State<ArtistPage> {
                         AddToPlaylistDialog.show(
                             context, artist.name, result.value);
                     }
+                  },
+                ),
+                ContextMenuOption(
+                  title: "Info",
+                  icon: Icons.info_outline,
+                  onSelected: () {
+                    MediaInfoDialog.showArtist(context, artist.id);
                   },
                 ),
               ],

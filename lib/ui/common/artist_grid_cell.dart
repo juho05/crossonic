@@ -1,4 +1,5 @@
 import 'package:crossonic/ui/common/artist_grid_cell_viewmodel.dart';
+import 'package:crossonic/ui/common/dialogs/media_info.dart';
 import 'package:crossonic/ui/common/menu_button.dart';
 import 'package:crossonic/ui/common/cover_art_decorated.dart';
 import 'package:crossonic/ui/common/with_context_menu.dart';
@@ -101,6 +102,13 @@ class _ArtistGridCellState extends State<ArtistGridCell> {
               icon: Icons.playlist_add,
               onSelected: widget.onAddToPlaylist,
             ),
+          ContextMenuOption(
+            title: "Info",
+            icon: Icons.info_outline,
+            onSelected: () {
+              MediaInfoDialog.showArtist(context, _viewModel.artistId);
+            },
+          )
         ];
         return WithContextMenu(
           options: menuOptions,

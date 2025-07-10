@@ -1,4 +1,5 @@
 import 'package:crossonic/ui/common/album_grid_cell_viewmodel.dart';
+import 'package:crossonic/ui/common/dialogs/media_info.dart';
 import 'package:crossonic/ui/common/menu_button.dart';
 import 'package:crossonic/ui/common/cover_art_decorated.dart';
 import 'package:crossonic/ui/common/with_context_menu.dart';
@@ -109,6 +110,12 @@ class _AlbumGridCellState extends State<AlbumGridCell> {
               icon: Icons.person,
               onSelected: widget.onGoToArtist,
             ),
+          ContextMenuOption(
+            title: "Info",
+            icon: Icons.info_outline,
+            onSelected: () =>
+                MediaInfoDialog.showAlbum(context, _viewModel.albumId),
+          )
         ];
         return Stack(
           children: [

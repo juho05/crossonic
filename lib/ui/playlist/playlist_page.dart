@@ -6,6 +6,7 @@ import 'package:crossonic/ui/common/cover_art_decorated.dart';
 import 'package:crossonic/ui/common/dialogs/add_to_playlist.dart';
 import 'package:crossonic/ui/common/dialogs/chooser.dart';
 import 'package:crossonic/ui/common/dialogs/confirmation.dart';
+import 'package:crossonic/ui/common/dialogs/media_info.dart';
 import 'package:crossonic/ui/common/song_list_item.dart';
 import 'package:crossonic/ui/common/toast.dart';
 import 'package:crossonic/ui/common/with_context_menu.dart';
@@ -162,6 +163,13 @@ class _PlaylistPageState extends State<PlaylistPage> {
                               : null);
                     },
                   ),
+                ContextMenuOption(
+                  title: "Info",
+                  icon: Icons.info_outline,
+                  onSelected: () {
+                    MediaInfoDialog.showPlaylist(context, playlist.id);
+                  },
+                ),
               ],
             ),
             extraInfo: [

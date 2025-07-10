@@ -1,6 +1,7 @@
 import 'package:crossonic/ui/common/album_list_item_viewmodel.dart';
 import 'package:crossonic/ui/common/clickable_list_item_with_context_menu.dart';
 import 'package:crossonic/ui/common/cover_art.dart';
+import 'package:crossonic/ui/common/dialogs/media_info.dart';
 import 'package:crossonic/ui/common/with_context_menu.dart';
 import 'package:crossonic/utils/result_toast.dart';
 import 'package:flutter/material.dart';
@@ -133,6 +134,13 @@ class _AlbumListItemState extends State<AlbumListItem> {
                   title: "Go to artist",
                   onSelected: widget.onGoToArtist,
                 ),
+              ContextMenuOption(
+                title: "Info",
+                icon: Icons.info_outline,
+                onSelected: () {
+                  MediaInfoDialog.showAlbum(context, viewModel.albumId);
+                },
+              ),
             ],
           );
         });
