@@ -102,11 +102,11 @@ class MediaInfoDialogViewModel extends ChangeNotifier {
       if (s.channelCount != null) ("Channels", s.channelCount!.toString()),
       if (s.bpm != null) ("BPM", s.bpm!.toString()),
       if (s.replayGain != null && s.replayGain!.trackGain != null)
-        ("Track gain", formatDouble(s.replayGain!.trackGain!)),
+        ("Track gain", "${formatDouble(s.replayGain!.trackGain!)} dB"),
       if (s.replayGain != null && s.replayGain!.trackGain != null)
-        ("Album gain", formatDouble(s.replayGain!.albumGain!)),
+        ("Album gain", "${formatDouble(s.replayGain!.albumGain!)} dB"),
       if (s.replayGain != null && s.replayGain!.fallbackGain != null)
-        ("Fallback gain", formatDouble(s.replayGain!.fallbackGain!)),
+        ("Fallback gain", "${formatDouble(s.replayGain!.fallbackGain!)} dB"),
       if (s.size != null)
         ("Size", "${formatDouble(s.size! / 1000000.0, precision: 3)} MB")
     ];
