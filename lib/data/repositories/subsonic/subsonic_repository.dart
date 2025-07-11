@@ -1,5 +1,8 @@
+import 'dart:math';
+
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
 import 'package:crossonic/data/repositories/auth/models/server_features.dart';
+import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/data/repositories/subsonic/favorites_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/models/album.dart';
 import 'package:crossonic/data/repositories/subsonic/models/album_info.dart';
@@ -347,7 +350,13 @@ class SubsonicRepository {
   }
 
   Future<Result<List<List<Song>>>> getArtistSongs(Artist artist) async {
-    return getAlbumsSongs(artist.albums ?? []);
+    final albums = await getArtistAlbums(artist);
+    switch (albums) {
+      case Err():
+        return Result.error(albums.error);
+      case Ok():
+    }
+    return getAlbumsSongs(albums.value);
   }
 
   Future<Result<List<Song>>> getAlbumSongs(Album album) async {
@@ -359,6 +368,96 @@ class SubsonicRepository {
       case Ok():
     }
     return Result.ok(result.value.songs ?? []);
+  }
+
+  Future<Result<void>> incrementallyLoadSongs(
+    List<Album> albums,
+    Future<void> Function(List<Song> songs, bool firstBatch) songsLoaded, {
+    bool shuffleAlbums = false,
+    bool shuffleSongs = false,
+  }) async {
+    if (shuffleSongs) {
+      shuffleAlbums = true;
+    }
+    if (albums.isEmpty) {
+      return const Result.ok(null);
+    }
+    albums = List.of(albums);
+    if (shuffleAlbums) {
+      albums.shuffle();
+    }
+    final firstSongs = await getAlbumSongs(albums.first);
+    switch (firstSongs) {
+      case Err():
+        return Result.error(firstSongs.error);
+      case Ok():
+    }
+
+    final songs = <Song>[];
+    bool firstBatch = true;
+    if (firstSongs.value.isNotEmpty) {
+      if (shuffleSongs) {
+        final song = firstSongs.value
+            .removeAt(Random().nextInt(firstSongs.value.length));
+        await songsLoaded([song], firstBatch);
+        firstBatch = false;
+        songs.addAll(firstSongs.value);
+      } else {
+        await songsLoaded(firstSongs.value, firstBatch);
+        firstBatch = false;
+      }
+    }
+
+    if (albums.length > 1) {
+      for (final a in albums.sublist(1)) {
+        final result = await getAlbumSongs(a);
+        switch (result) {
+          case Err():
+            Log.error("Failed to load album songs: ${result.error}");
+            continue;
+          case Ok():
+        }
+        songs.addAll(result.value);
+      }
+    }
+    if (shuffleSongs) {
+      songs.shuffle();
+    }
+    await songsLoaded(songs, firstBatch);
+    firstBatch = false;
+    return const Result.ok(null);
+  }
+
+  Future<Result<void>> incrementallyLoadArtistSongs(
+    Artist artist,
+    Future<void> Function(List<Song> songs, bool firstBatch) songsLoaded, {
+    bool shuffleReleases = false,
+    bool shuffleSongs = false,
+  }) async {
+    final albums = await getArtistAlbums(artist);
+    switch (albums) {
+      case Err():
+        return Result.error(albums.error);
+      case Ok():
+    }
+    return incrementallyLoadSongs(
+      albums.value,
+      songsLoaded,
+      shuffleAlbums: shuffleReleases,
+      shuffleSongs: shuffleSongs,
+    );
+  }
+
+  Future<Result<List<Album>>> getArtistAlbums(Artist artist) async {
+    if (artist.albums != null) return Result.ok(artist.albums!);
+
+    final result = await getArtist(artist.id);
+    switch (result) {
+      case Err():
+        return Result.error(result.error);
+      case Ok():
+    }
+    return Result.ok(result.value.albums ?? []);
   }
 
   void _updateArtistFavorites(Iterable<ArtistID3Model>? artists) {

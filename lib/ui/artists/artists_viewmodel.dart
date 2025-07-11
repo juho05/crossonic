@@ -45,33 +45,26 @@ class ArtistsViewModel extends ChangeNotifier {
 
   Future<Result<void>> play(Artist artist,
       {bool shuffleAlbums = false, bool shuffleSongs = false}) async {
-    final result = await _subsonic.getArtistSongs(artist);
-    switch (result) {
-      case Err():
-        return Result.error(result.error);
-      case Ok():
-    }
-    if (shuffleAlbums) {
-      result.value.shuffle();
-    }
-    final songs = result.value.expand((l) => l).toList();
-    if (shuffleSongs) {
-      songs.shuffle();
-    }
-    _audioHandler.playOnNextMediaChange();
-    _audioHandler.queue.replace(songs);
-    return const Result.ok(null);
+    return _subsonic.incrementallyLoadArtistSongs(
+      artist,
+      (songs, firstBatch) async {
+        if (firstBatch) {
+          _audioHandler.playOnNextMediaChange();
+          _audioHandler.queue.replace(songs);
+          return;
+        }
+        _audioHandler.queue.addAll(songs, false);
+      },
+      shuffleReleases: shuffleAlbums,
+      shuffleSongs: shuffleSongs,
+    );
   }
 
   Future<Result<void>> addToQueue(Artist artist, bool priority) async {
-    final result = await _subsonic.getArtistSongs(artist);
-    switch (result) {
-      case Err():
-        return Result.error(result.error);
-      case Ok():
-    }
-    _audioHandler.queue.addAll(result.value.expand((l) => l), priority);
-    return const Result.ok(null);
+    return _subsonic.incrementallyLoadArtistSongs(
+      artist,
+      (songs, firstBatch) async => _audioHandler.queue.addAll(songs, priority),
+    );
   }
 
   Future<void> _fetch() async {

@@ -1,7 +1,4 @@
-import 'dart:math';
-
 import 'package:crossonic/data/repositories/audio/audio_handler.dart';
-import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/data/repositories/subsonic/favorites_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/models/album.dart';
 import 'package:crossonic/data/repositories/subsonic/models/artist.dart';
@@ -189,59 +186,19 @@ class ArtistViewModel extends ChangeNotifier {
       bool priorityQueue = false,
       bool shuffleReleases = false,
       bool shuffleSongs = false}) async {
-    if (albums.isEmpty) return const Result.ok(null);
-    albums = List.of(albums);
-    if (shuffleReleases || shuffleSongs) {
-      albums.shuffle();
-    }
-
-    final firstSongs = await _subsonic.getAlbumSongs(albums.first);
-    switch (firstSongs) {
-      case Err():
-        return Result.error(firstSongs.error);
-      case Ok():
-    }
-    if (play) {
-      _audioHandler.playOnNextMediaChange();
-    }
-
-    final songs = <Song>[];
-    if (firstSongs.value.isNotEmpty) {
-      if (shuffleSongs) {
-        final song = firstSongs.value
-            .removeAt(Random().nextInt(firstSongs.value.length));
-        if (play) {
-          _audioHandler.queue.replace([song]);
-        } else {
-          _audioHandler.queue.add(song, priorityQueue);
+    return _subsonic.incrementallyLoadSongs(
+      albums,
+      (songs, firstBatch) async {
+        if (firstBatch && play) {
+          _audioHandler.playOnNextMediaChange();
+          _audioHandler.queue.replace(songs);
+          return;
         }
-        songs.addAll(firstSongs.value);
-      } else {
-        if (play) {
-          _audioHandler.queue.replace(firstSongs.value);
-        } else {
-          _audioHandler.queue.addAll(firstSongs.value, priorityQueue);
-        }
-      }
-    }
-
-    if (albums.length > 1) {
-      for (final a in albums.sublist(1)) {
-        final result = await _subsonic.getAlbumSongs(a);
-        switch (result) {
-          case Err():
-            Log.error("Failed to load album songs: ${result.error}");
-            continue;
-          case Ok():
-        }
-        songs.addAll(result.value);
-      }
-    }
-    if (shuffleSongs) {
-      songs.shuffle();
-    }
-    _audioHandler.queue.addAll(songs, priorityQueue);
-    return const Result.ok(null);
+        _audioHandler.queue.addAll(songs, priorityQueue);
+      },
+      shuffleAlbums: shuffleReleases,
+      shuffleSongs: shuffleSongs,
+    );
   }
 
   Future<void> _loadDescription(String albumId) async {
