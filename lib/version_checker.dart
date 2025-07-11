@@ -1,6 +1,7 @@
 import 'package:crossonic/ui/common/adaptive_dialog_action.dart';
 import 'package:crossonic/ui/common/toast.dart';
 import 'package:crossonic/version_checker_viewmodel.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:provider/provider.dart';
@@ -22,8 +23,27 @@ class VersionChecker extends StatelessWidget {
       )..check(),
       child: Consumer<VersionCheckerViewModel>(
         builder: (context, viewModel, _) {
+          bool isApple = defaultTargetPlatform == TargetPlatform.iOS ||
+              defaultTargetPlatform == TargetPlatform.macOS;
           if (viewModel.newVersionAvailable) {
             SchedulerBinding.instance.addPostFrameCallback((_) {
+              final actions = [
+                AdaptiveDialogAction(
+                  onPressed: () =>
+                      Navigator.pop(context, VersionDialogChoice.ignore),
+                  child: const Text("Ignore"),
+                ),
+                AdaptiveDialogAction(
+                  onPressed: () =>
+                      Navigator.pop(context, VersionDialogChoice.remind),
+                  child: const Text("Remind later"),
+                ),
+                AdaptiveDialogAction(
+                  onPressed: () =>
+                      Navigator.pop(context, VersionDialogChoice.view),
+                  child: const Text("View"),
+                )
+              ];
               showAdaptiveDialog<VersionDialogChoice>(
                 context: context,
                 builder: (context) {
@@ -31,23 +51,7 @@ class VersionChecker extends StatelessWidget {
                     title: const Text("New version available"),
                     content: Text(
                         "Current: v${viewModel.current}\nLatest: v${viewModel.latest}"),
-                    actions: [
-                      AdaptiveDialogAction(
-                        onPressed: () =>
-                            Navigator.pop(context, VersionDialogChoice.ignore),
-                        child: const Text("Ignore"),
-                      ),
-                      AdaptiveDialogAction(
-                        onPressed: () =>
-                            Navigator.pop(context, VersionDialogChoice.remind),
-                        child: const Text("Remind later"),
-                      ),
-                      AdaptiveDialogAction(
-                        onPressed: () =>
-                            Navigator.pop(context, VersionDialogChoice.view),
-                        child: const Text("View"),
-                      )
-                    ],
+                    actions: isApple ? actions.reversed.toList() : actions,
                   );
                 },
               ).then((choice) async {
