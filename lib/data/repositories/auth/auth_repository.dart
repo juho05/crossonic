@@ -127,9 +127,6 @@ class AuthRepository extends ChangeNotifier {
             "Failed to parse crossonic version: ${info.crossonicVersion}");
       }
     }
-    if (crossonicVersion == null && info.isCrossonic) {
-      crossonicVersion = const Version(major: 0);
-    }
 
     _serverFeatures = ServerFeatures(
       isOpenSubsonic: info.isOpenSubsonic,
@@ -167,9 +164,6 @@ class AuthRepository extends ChangeNotifier {
         Log.error(
             "Failed to parse crossonic version: ${info.crossonicVersion}");
       }
-    }
-    if (crossonicVersion == null && info.isCrossonic) {
-      crossonicVersion = const Version(major: 0);
     }
 
     _serverFeatures = _serverFeatures.copyWith(

@@ -13,6 +13,7 @@ import 'package:crossonic/data/repositories/settings/replay_gain.dart';
 import 'package:crossonic/data/repositories/settings/settings_repository.dart';
 import 'package:crossonic/data/repositories/settings/transcoding.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
+import 'package:crossonic/data/repositories/version/version.dart';
 import 'package:crossonic/data/services/audio_players/player.dart';
 import 'package:crossonic/data/services/media_integration/media_integration.dart';
 import 'package:crossonic/data/services/opensubsonic/subsonic_service.dart';
@@ -150,7 +151,6 @@ class AudioHandler {
         _positionOffset == Duration.zero) {
       await _player.seek(pos);
     } else {
-      pos = Duration(seconds: pos.inSeconds);
       await _player.setCurrent(_getStreamUri(song, pos));
       _positionOffset = pos;
     }
@@ -430,7 +430,13 @@ class AudioHandler {
           : [],
       "maxBitRate":
           _transcoding.$2 != null ? [_transcoding.$2!.toString()] : [],
-      "timeOffset": offset != null ? [offset.inSeconds.toString()] : [],
+      if (!_auth.serverFeatures
+          .isMinCrossonicVersion(const Version(major: 0, minor: 0)))
+        "timeOffset": offset != null ? [offset.inSeconds.toString()] : [],
+      if (_auth.serverFeatures
+          .isMinCrossonicVersion(const Version(major: 0, minor: 0)))
+        "timeOffsetMs":
+            offset != null ? [offset.inMilliseconds.toString()] : [],
     }, _auth.con.auth);
     return Uri.parse(
         '${_auth.con.baseUri}/rest/stream${Uri(queryParameters: query)}');

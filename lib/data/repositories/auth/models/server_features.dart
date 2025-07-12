@@ -16,6 +16,13 @@ class ServerFeatures {
   final Set<int> apiKeyAuthentication;
   final Version? crossonicVersion;
 
+  bool isMinCrossonicVersion(Version min) {
+    if (crossonicVersion == null) {
+      return false;
+    }
+    return crossonicVersion! >= min;
+  }
+
   ServerFeatures({
     this.isOpenSubsonic = false,
     this.isCrossonic = false,
