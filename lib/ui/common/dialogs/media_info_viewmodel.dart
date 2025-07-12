@@ -24,7 +24,6 @@ class MediaInfoDialogViewModel extends ChangeNotifier {
     required String id,
   })  : _subsonic = subsonicService,
         _auth = authRepository {
-    // TODO
     _loadSong(id);
   }
 
@@ -108,7 +107,7 @@ class MediaInfoDialogViewModel extends ChangeNotifier {
       if (s.replayGain != null && s.replayGain!.fallbackGain != null)
         ("Fallback gain", "${formatDouble(s.replayGain!.fallbackGain!)} dB"),
       if (s.size != null)
-        ("Size", "${formatDouble(s.size! / 1000000.0, precision: 3)} MB")
+        ("Size", "${formatDouble(s.size! / 1000000.0, precision: 2)} MB")
     ];
 
     _status = FetchStatus.success;
