@@ -121,15 +121,17 @@ Future<List<SingleChildWidget>> get providers async {
     }
 
     final audioService = await AudioService.init(
-        builder: () =>
-            AudioServiceIntegration(playlistRepository: playlistRepository),
-        config: AudioServiceConfig(
-          androidNotificationChannelId: "org.crossonic.app",
-          androidNotificationChannelName: "Music playback",
-          androidNotificationIcon: "drawable/ic_stat_crossonic",
-          androidStopForegroundOnPause: androidBackgroundAvailable,
-          androidNotificationChannelDescription: "Playback notification",
-        ));
+      builder: () =>
+          AudioServiceIntegration(playlistRepository: playlistRepository),
+      config: AudioServiceConfig(
+        androidNotificationChannelId: "org.crossonic.app",
+        androidNotificationChannelName: "Music playback",
+        androidNotificationIcon: "drawable/ic_stat_crossonic",
+        androidStopForegroundOnPause: androidBackgroundAvailable,
+        androidNotificationChannelDescription: "Playback notification",
+      ),
+      cacheManager: coverRepository,
+    );
     mediaIntegration = audioService;
   }
 
