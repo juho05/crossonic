@@ -6,6 +6,7 @@ class ServerInfo {
   final String? type;
 
   final bool isCrossonic;
+  final String? crossonicVersion;
 
   ServerInfo({
     required this.serverVersion,
@@ -13,5 +14,6 @@ class ServerInfo {
     required this.subsonicVersion,
     required this.type,
     required this.isCrossonic,
+    required this.crossonicVersion,
   });
 }

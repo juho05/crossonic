@@ -471,6 +471,9 @@ class SubsonicService {
         type: res.containsKey("type") ? res["type"] : null,
         isOpenSubsonic: res.containsKey("openSubsonic") && res["openSubsonic"],
         isCrossonic: res.containsKey("crossonic") && res["crossonic"],
+        crossonicVersion: res.containsKey("crossonicVersion")
+            ? res["crossonicVersion"]
+            : null,
       ));
     } catch (e) {
       return Result.error(UnexpectedResponseException(e.toString()));

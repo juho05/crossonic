@@ -1,5 +1,9 @@
 import 'package:crossonic/data/repositories/version/exception.dart';
+import 'package:json_annotation/json_annotation.dart';
 
+part 'version.g.dart';
+
+@JsonSerializable()
 class Version implements Comparable {
   final int major;
   final int minor;
@@ -7,7 +11,7 @@ class Version implements Comparable {
 
   final bool isFullVersion;
 
-  Version({
+  const Version({
     required this.major,
     this.minor = 0,
     this.patch = 0,
@@ -104,4 +108,9 @@ class Version implements Comparable {
     if (isFullVersion) return v;
     return "$v-prerelease";
   }
+
+  factory Version.fromJson(Map<String, dynamic> json) =>
+      _$VersionFromJson(json);
+
+  Map<String, dynamic> toJson() => _$VersionToJson(this);
 }

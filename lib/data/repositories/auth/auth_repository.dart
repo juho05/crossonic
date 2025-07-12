@@ -3,6 +3,7 @@ import 'package:crossonic/data/repositories/auth/exceptions.dart';
 import 'package:crossonic/data/repositories/auth/models/server_features.dart';
 import 'package:crossonic/data/repositories/keyvalue/key_value_repository.dart';
 import 'package:crossonic/data/repositories/logger/log.dart';
+import 'package:crossonic/data/repositories/version/version.dart';
 import 'package:crossonic/data/services/database/database.dart';
 import 'package:crossonic/data/services/opensubsonic/auth.dart';
 import 'package:crossonic/data/services/opensubsonic/exceptions.dart';
@@ -62,7 +63,7 @@ class AuthRepository extends ChangeNotifier {
 
     notifyListeners();
 
-    // TODO refresh server features
+    await _refreshServerFeatures();
   }
 
   Future<Result<void>> connect(Uri serverUri) async {
@@ -117,13 +118,65 @@ class AuthRepository extends ChangeNotifier {
       case Ok():
     }
 
+    Version? crossonicVersion;
+    if (info.crossonicVersion != null) {
+      try {
+        crossonicVersion = Version.parse(info.crossonicVersion!);
+      } catch (_) {
+        Log.error(
+            "Failed to parse crossonic version: ${info.crossonicVersion}");
+      }
+    }
+    if (crossonicVersion == null && info.isCrossonic) {
+      crossonicVersion = const Version(major: 0);
+    }
+
     _serverFeatures = ServerFeatures(
       isOpenSubsonic: info.isOpenSubsonic,
       isCrossonic: info.isCrossonic,
       supportsPasswordAuth: supportsPasswordAuth,
       supportsTokenAuth: supportsTokenAuth,
+      crossonicVersion: crossonicVersion,
     );
     _serverUri = serverUri;
+
+    // calls persistState and notifyListeners
+    await _loadOpenSubsonicExtensions();
+
+    return const Result.ok(null);
+  }
+
+  Future<Result<void>> _refreshServerFeatures() async {
+    final result = await _openSubsonicService.fetchServerInfo(_serverUri!);
+    switch (result) {
+      case Err<ServerInfo>():
+        if (result is UnexpectedResponseException) {
+          return Result.error(InvalidServerException(
+              (result.error as UnexpectedResponseException).message));
+        }
+        return Result.error(result.error);
+      case Ok<ServerInfo>():
+    }
+    final info = result.value;
+
+    Version? crossonicVersion;
+    if (info.crossonicVersion != null) {
+      try {
+        crossonicVersion = Version.parse(info.crossonicVersion!);
+      } catch (_) {
+        Log.error(
+            "Failed to parse crossonic version: ${info.crossonicVersion}");
+      }
+    }
+    if (crossonicVersion == null && info.isCrossonic) {
+      crossonicVersion = const Version(major: 0);
+    }
+
+    _serverFeatures = _serverFeatures.copyWith(
+      isOpenSubsonic: info.isOpenSubsonic,
+      isCrossonic: info.isCrossonic,
+      crossonicVersion: crossonicVersion,
+    );
 
     // calls persistState and notifyListeners
     await _loadOpenSubsonicExtensions();
@@ -231,6 +284,7 @@ class AuthRepository extends ChangeNotifier {
         transcodeOffset: transcodeOffset,
         songLyrics: songLyrics,
         apiKeyAuthentication: apiKeyAuthentication,
+        crossonicVersion: _serverFeatures.crossonicVersion,
       );
     } else {
       Log.error(
