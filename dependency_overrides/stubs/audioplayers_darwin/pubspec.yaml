@@ -1,3 +1,20 @@
 name: audioplayers_darwin
 publish_to: "none"
 version: 0.0.0
+
+flutter:
+  plugin:
+    platforms:
+      ios:
+        dartPluginClass: AudioplayersPluginDarwin
+      macos:
+        dartPluginClass: AudioplayersPluginDarwin
+
+dependencies:
+  audioplayers_platform_interface: ^7.1.1
+  flutter:
+    sdk: flutter
+
+environment:
+  sdk: ^3.6.0
+  flutter: ">=3.27.0"
