@@ -1,5 +1,6 @@
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
 import 'package:crossonic/data/repositories/cover/file_service.dart';
+import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/data/services/opensubsonic/subsonic_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_cache_manager/file.dart';
@@ -27,7 +28,9 @@ class CoverRepository extends BaseCacheManager {
       fileService: CoverFileService(
           authRepository: _authRepository, subsonicService: _subsonicService),
       fileSystem: kIsWeb ? MemoryCacheSystem() : IOFileSystem(key),
-      repo: kIsWeb ? NonStoringObjectProvider() : JsonCacheInfoRepository(databaseName: key),
+      repo: kIsWeb
+          ? NonStoringObjectProvider()
+          : JsonCacheInfoRepository(databaseName: key),
     ));
     _authRepository.addListener(_onAuthChanged);
     _onAuthChanged();
@@ -52,6 +55,7 @@ class CoverRepository extends BaseCacheManager {
   @override
   Future<FileInfo> downloadFile(String url,
       {String? key, Map<String, String>? authHeaders, bool force = false}) {
+    url = _convertUrl(url);
     return _cacheManager.downloadFile(url,
         key: key, authHeaders: authHeaders, force: force);
   }
@@ -65,6 +69,7 @@ class CoverRepository extends BaseCacheManager {
   @Deprecated('Prefer to use the new getFileStream method')
   Stream<FileInfo> getFile(String url,
       {String? key, Map<String, String>? headers}) {
+    url = _convertUrl(url);
     // ignore: deprecated_member_use
     return _cacheManager.getFile(url, key: key, headers: headers);
   }
@@ -83,6 +88,7 @@ class CoverRepository extends BaseCacheManager {
   @override
   Stream<FileResponse> getFileStream(String url,
       {String? key, Map<String, String>? headers, bool withProgress = false}) {
+    url = _convertUrl(url);
     return _cacheManager.getFileStream(url,
         key: key, headers: headers, withProgress: withProgress);
   }
@@ -90,6 +96,7 @@ class CoverRepository extends BaseCacheManager {
   @override
   Future<File> getSingleFile(String url,
       {String? key, Map<String, String>? headers}) {
+    url = _convertUrl(url);
     return _cacheManager.getSingleFile(url, key: key, headers: headers);
   }
 
@@ -99,6 +106,7 @@ class CoverRepository extends BaseCacheManager {
       String? eTag,
       Duration maxAge = const Duration(days: 30),
       String fileExtension = 'file'}) {
+    url = _convertUrl(url);
     return _cacheManager.putFile(url, fileBytes,
         key: key, eTag: eTag, maxAge: maxAge, fileExtension: fileExtension);
   }
@@ -109,6 +117,7 @@ class CoverRepository extends BaseCacheManager {
       String? eTag,
       Duration maxAge = const Duration(days: 30),
       String fileExtension = 'file'}) {
+    url = _convertUrl(url);
     return _cacheManager.putFileStream(url, source,
         key: key, eTag: eTag, maxAge: maxAge, fileExtension: fileExtension);
   }
@@ -116,5 +125,26 @@ class CoverRepository extends BaseCacheManager {
   @override
   Future<void> removeFile(String key) {
     return _cacheManager.removeFile(key);
+  }
+
+  String _convertUrl(String url) {
+    try {
+      Uri u = Uri.parse(url);
+      if (!u.hasScheme ||
+          u.pathSegments.length != 2 ||
+          u.pathSegments[0] != "rest" ||
+          u.pathSegments[1] != "getCoverArt") {
+        return url;
+      }
+      final id = u.queryParameters["id"];
+      final size = int.parse(u.queryParameters["size"] ?? "512");
+      if (id == null) {
+        Log.error("Failed to extract id from coverArt url");
+        return url;
+      }
+      return getKey(id, size);
+    } catch (_) {
+      return url;
+    }
   }
 }
