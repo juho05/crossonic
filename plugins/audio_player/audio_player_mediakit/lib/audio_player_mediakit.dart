@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:audio_player_platform_interface/audio_player_event.dart';
 import 'package:audio_player_platform_interface/audio_player_platform_interface.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:rxdart/rxdart.dart';
@@ -128,7 +129,11 @@ class AudioPlayerMediaKit extends AudioPlayerPlatform {
     if (!initialized) return;
     // mpv volume is cubic:
     // https://github.com/mpv-player/mpv/blob/440f35a26db3fd9f25282bff0f06f4e86e8133c2/player/audio.c#L177
-    await _player!.setVolume((100 * pow(_targetVolume, 1.0 / 3)).toDouble());
+    double volume = _targetVolume;
+    if (!kIsWeb) {
+      volume = pow(_targetVolume, 1.0 / 3).toDouble();
+    }
+    await _player!.setVolume(100 * volume);
   }
 
   @override
