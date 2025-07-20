@@ -53,6 +53,8 @@ dependencies:
   linkfy_text: ^1.1.6
   file_picker: ^10.1.9
   package_info_plus: ^8.3.0
+  media_kit: ^1.2.0
+  media_kit_libs_audio: ^1.0.6
 
 dependency_overrides:
   flutter_secure_storage_darwin:

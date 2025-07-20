@@ -7,6 +7,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   dynamic_system_colors
   file_selector_windows
   flutter_secure_storage_windows
+  media_kit_libs_windows_audio
   screen_retriever_windows
   share_plus
   sqlite3_flutter_libs

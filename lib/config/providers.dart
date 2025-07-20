@@ -18,7 +18,7 @@ import 'package:crossonic/data/repositories/subsonic/favorites_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/subsonic_repository.dart';
 import 'package:crossonic/data/repositories/version/version_repository.dart';
 import 'package:crossonic/data/services/audio_players/audioplayers.dart';
-import 'package:crossonic/data/services/audio_players/gstreamer.dart';
+import 'package:crossonic/data/services/audio_players/mediakit.dart';
 import 'package:crossonic/data/services/audio_players/plugin.dart';
 import 'package:crossonic/data/services/audio_players/player.dart';
 import 'package:crossonic/data/services/database/database.dart';
@@ -142,7 +142,7 @@ Future<List<SingleChildWidget>> get providers async {
           Platform.isMacOS ||
           Platform.isWindows ||
           Platform.isIOS)) {
-    audioPlayer = AudioPlayerGstreamer(audioSession);
+    audioPlayer = AudioPlayerMediaKit(audioSession);
   } else if (!kIsWeb && Platform.isAndroid) {
     audioPlayer = AudioPlayerPlugin(audioSession);
   } else {

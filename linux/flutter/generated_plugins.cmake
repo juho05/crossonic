@@ -6,6 +6,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   dynamic_system_colors
   file_selector_linux
   flutter_secure_storage_linux
+  media_kit_libs_linux
   screen_retriever_linux
   sqlite3_flutter_libs
   tray_manager
