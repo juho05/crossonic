@@ -122,7 +122,9 @@ class AudioPlayerMediaKit implements AudioPlayer {
       return;
     }
     _nextMedia = Media(url.toString());
-    await _player!.add(_nextMedia!);
+    if (_player!.state.playlist.medias.isNotEmpty) {
+      await _player!.add(_nextMedia!);
+    }
   }
 
   @override
