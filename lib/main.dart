@@ -5,12 +5,10 @@ import 'package:crossonic/config/providers.dart';
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
 import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/routing/router.dart';
-import 'package:crossonic/ui/install_gstreamer/install_gstreamer.dart';
 import 'package:crossonic/window_listener.dart';
 import 'package:dynamic_system_colors/dynamic_system_colors.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:media_kit/media_kit.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_single_instance/flutter_single_instance.dart';
 import 'package:window_manager/window_manager.dart';
@@ -31,8 +29,6 @@ void main() async {
   }
 
   WidgetsFlutterBinding.ensureInitialized();
-
-  MediaKit.ensureInitialized();
 
   FlutterSingleInstance.onFocus = (metadata) async {
     if (!(await windowManager.isVisible())) {
@@ -62,12 +58,12 @@ void main() async {
     });
   }
 
-  runApp(InstallGStreamer(
-    child: MultiProvider(
+  runApp(
+    MultiProvider(
       providers: await providers,
       child: const AppShortcuts(child: MainApp()),
     ),
-  ));
+  );
 }
 
 class MainApp extends StatelessWidget {

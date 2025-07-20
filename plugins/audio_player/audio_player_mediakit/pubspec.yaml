@@ -1,0 +1,44 @@
+name: audio_player_mediakit
+description: Audio player implementation based on media_kit
+version: 0.0.1
+publish_to: "none"
+
+environment:
+  sdk: ^3.6.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+  rxdart: ^0.28.0
+  audio_player_platform_interface:
+    path: ../audio_player_platform_interface
+  media_kit: ^1.2.0
+  media_kit_libs_audio: ^1.0.6
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  plugin:
+    implements: audio_player
+    platforms:
+      windows:
+        dartPluginClass: AudioPlayerMediaKit
+      linux:
+        dartPluginClass: AudioPlayerMediaKit
+      macos:
+        dartPluginClass: AudioPlayerMediaKit
+      ios:
+        dartPluginClass: AudioPlayerMediaKit
+      web:
+        pluginClass: AudioPlayerMediaKit
+        fileName: audio_player_mediakit.dart
+
+platforms:
+  linux:
+  macos:
+  windows:
+  ios:
+  web:

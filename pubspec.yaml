@@ -9,10 +9,8 @@ dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.8
-  gstreamer:
-    path: ./native_bindings/gstreamer/gstreamer
   audio_player:
-    path: ./plugins/audio_player
+    path: ./plugins/audio_player/audio_player
   provider: ^6.1.2
   auto_route: ^10.0.1
   flutter_secure_storage: ^10.0.0-beta.4
@@ -23,7 +21,6 @@ dependencies:
   json_annotation: ^4.9.0
   rxdart: ^0.28.0
   audio_session: ^0.2.0
-  audioplayers: ^6.1.2
   smtc_windows: ^1.0.0
   audio_service: ^0.18.17
   optimize_battery:
@@ -53,22 +50,12 @@ dependencies:
   linkfy_text: ^1.1.6
   file_picker: ^10.1.9
   package_info_plus: ^8.3.0
-  media_kit: ^1.2.0
-  media_kit_libs_audio: ^1.0.6
 
 dependency_overrides:
   flutter_secure_storage_darwin:
     path: ./dependency_overrides/flutter_secure_storage/flutter_secure_storage_darwin
-  # for wasm support, switch to stable version when available
-  audioplayers_linux:
-    path: ./dependency_overrides/stubs/audioplayers_linux
-  audioplayers_android:
-    path: ./dependency_overrides/stubs/audioplayers_android
-  audioplayers_darwin:
-    path: ./dependency_overrides/stubs/audioplayers_darwin
-  audioplayers_windows:
-    path: ./dependency_overrides/stubs/audioplayers_windows
-
+  media_kit_libs_android_audio:
+    path: ./dependency_overrides/stubs/media_kit_libs_android_audio
 dev_dependencies:
   flutter_test:
     sdk: flutter

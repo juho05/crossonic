@@ -1,0 +1,31 @@
+name: audio_player_exoplayer
+description: Audio player implementation based on ExoPlayer
+version: 0.0.1
+publish_to: "none"
+
+environment:
+  sdk: ^3.6.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+  rxdart: ^0.28.0
+  audio_player_platform_interface:
+    path: ../audio_player_platform_interface
+  exoplayer:
+    path: ./exoplayer
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  plugin:
+    implements: audio_player
+    platforms:
+      android:
+        dartPluginClass: AudioPlayerExoPlayer
+
+platforms:
+  android:

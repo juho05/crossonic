@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:audio_player/audio_player.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:audio_session/audio_session.dart';
 import 'package:background_downloader/background_downloader.dart' as bd;
@@ -17,10 +18,6 @@ import 'package:crossonic/data/repositories/settings/settings_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/favorites_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/subsonic_repository.dart';
 import 'package:crossonic/data/repositories/version/version_repository.dart';
-import 'package:crossonic/data/services/audio_players/audioplayers.dart';
-import 'package:crossonic/data/services/audio_players/mediakit.dart';
-import 'package:crossonic/data/services/audio_players/plugin.dart';
-import 'package:crossonic/data/services/audio_players/player.dart';
 import 'package:crossonic/data/services/database/database.dart';
 import 'package:crossonic/data/services/github/github.dart';
 import 'package:crossonic/data/services/media_integration/media_integration.dart';
@@ -135,19 +132,7 @@ Future<List<SingleChildWidget>> get providers async {
     mediaIntegration = audioService;
   }
 
-  final AudioPlayer audioPlayer;
   final audioSession = await AudioSession.instance;
-  if (!kIsWeb &&
-      (Platform.isLinux ||
-          Platform.isMacOS ||
-          Platform.isWindows ||
-          Platform.isIOS)) {
-    audioPlayer = AudioPlayerMediaKit(audioSession);
-  } else if (!kIsWeb && Platform.isAndroid) {
-    audioPlayer = AudioPlayerPlugin(audioSession);
-  } else {
-    audioPlayer = AudioPlayerAudioPlayers();
-  }
   await audioSession.configure(const AudioSessionConfiguration.music());
 
   return [
@@ -189,7 +174,7 @@ Future<List<SingleChildWidget>> get providers async {
     ),
     Provider(
       create: (context) => ah.AudioHandler(
-        player: audioPlayer,
+        player: AudioPlayer(),
         integration: mediaIntegration,
         authRepository: context.read(),
         subsonicService: context.read(),

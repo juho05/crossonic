@@ -114,11 +114,8 @@ Crossonic is available as an *AppImage* on the [releases](https://github.com/juh
 
 - Download and execute `Crossonic-x.x.x-windows-x86-64.exe` from the [releases](https://github.com/juho05/crossonic/releases/latest) page
 
-When launching Crossonic for the first time it may ask you to install *GStreamer*. In that case just click on *Install GStreamer* and let Crossonic automatically install GStreamer.
-
 ### macOS
 
-- Install [GStreamer](https://gstreamer.freedesktop.org/download/#macos) runtime
 - Download and execute `Crossonic-x.x.x-macOS-universal.dmg`
 - Drag `Crossonic.app` to the `Applications` directory
 
@@ -162,20 +159,20 @@ dart run build_runner build # or watch to automatically run build on file change
 
 #### Install dependencies
 
-- Install [GStreamer](https://gstreamer.freedesktop.org/documentation/installing/on-linux.html?gi-language=c).
+- Install `libmpv`
 - Install `libsecret-1-0` and `libjsoncpp1`
 - Install `ayatana-appindicator3-0.1` or `appindicator3-0.1`
 
 ##### Debian
 
 ```bash
-sudo apt install libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev gstreamer1.0-plugins-good gstreamer1.0-plugins-bad libsecret-1-dev libjsoncpp-dev libayatana-appindicator3-dev
+sudo apt install mpv libmpv-dev libsecret-1-dev libjsoncpp-dev libayatana-appindicator3-dev
 ```
 
 ##### ArchLinux
 
 ```bash
-sudo pacman -S gstreamer gst-libav gst-plugins-base gst-plugins-goodgstreamer1.0-plugins-bad libsecret jsoncpp libayatana-appindicator
+sudo pacman -S mpv libsecret jsoncpp libayatana-appindicator
 ```
 
 #### Build
@@ -188,16 +185,6 @@ flutter build linux
 
 ### Windows
 
-#### Install dependencies
-
-Install [GStreamer](https://gstreamer.freedesktop.org/documentation/installing/on-windows.html?gi-language=c) for example with [chocolatey](https://chocolatey.org/):
-
-```bash
-choco install gstreamer gstreamer-devel
-```
-
-#### Build
-
 In the directory of the repository run:
 
 ```bash
@@ -205,8 +192,6 @@ flutter build windows
 ```
 
 ### macOS
-
-- Install [GStreamer](https://gstreamer.freedesktop.org/download/#macos) (*runtime* **and** *development*)
 
 In the directory of the repository run:
 ```bash
@@ -223,7 +208,6 @@ flutter build apk
 
 ### iOS
 
-- Install [GStreamer](https://gstreamer.freedesktop.org/download/#ios) for iOS
 - Select your development team in Xcode
   - Open `./ios/Runner.xcworkspace` in Xcode
   - Select `Runner` in the project navigator
