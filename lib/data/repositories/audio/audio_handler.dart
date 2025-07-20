@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:audio_player/audio_player.dart';
+import 'package:audio_session/audio_session.dart';
 import 'package:background_downloader/background_downloader.dart';
 import 'package:crossonic/data/repositories/audio/queue/changable_queue.dart';
 import 'package:crossonic/data/repositories/audio/queue/local_queue.dart';
@@ -37,6 +38,10 @@ class AudioHandler {
   StreamSubscription? _playerEventSubscription;
   StreamSubscription? _restartPlaybackSubscription;
 
+  final AudioSession _audioSession;
+  StreamSubscription? _audioSessionInterruptionStream;
+  StreamSubscription? _audioSessionBecomingNoisyStream;
+
   final MediaIntegration _integration;
 
   final BehaviorSubject<PlaybackStatus> _playbackStatus =
@@ -70,14 +75,18 @@ class AudioHandler {
     _applyReplayGain();
   }
 
+  bool _ducking = false;
+
   AudioHandler({
     required AudioPlayer player,
+    required AudioSession audioSession,
     required MediaIntegration integration,
     required AuthRepository authRepository,
     required SubsonicService subsonicService,
     required SettingsRepository settingsRepository,
     required SongDownloader songDownloader,
   })  : _player = player,
+        _audioSession = audioSession,
         _integration = integration,
         _auth = authRepository,
         _subsonic = subsonicService,
@@ -111,6 +120,39 @@ class AudioHandler {
       _settings.replayGain.addListener(_onReplayGainChanged);
       _settings.transcoding.addListener(_onTranscodingChanged);
       _onTranscodingChanged();
+    });
+
+    _audioSessionInterruptionStream =
+        _audioSession.interruptionEventStream.listen((event) async {
+      if (event.begin) {
+        switch (event.type) {
+          case AudioInterruptionType.duck:
+            _ducking = true;
+            // ducking is automatically handled in _setPlayerVolume
+            _setPlayerVolume(1);
+            break;
+          case AudioInterruptionType.pause:
+          case AudioInterruptionType.unknown:
+            await pause();
+            break;
+        }
+      } else {
+        switch (event.type) {
+          case AudioInterruptionType.duck:
+            _ducking = false;
+            _setPlayerVolume(1);
+            break;
+          case AudioInterruptionType.pause:
+          case AudioInterruptionType.unknown:
+            await play();
+            break;
+        }
+      }
+    });
+
+    _audioSessionBecomingNoisyStream =
+        _audioSession.becomingNoisyEventStream.listen((_) async {
+      await pause();
     });
   }
 
@@ -186,6 +228,9 @@ class AudioHandler {
       AudioPlayerEvent.advance => throw Exception("should never happen"),
     };
     if (status == _playbackStatus.value) return;
+
+    _audioSession.setActive(status == PlaybackStatus.playing);
+
     if (status == PlaybackStatus.stopped) {
       await stop();
       return;
@@ -327,6 +372,9 @@ class AudioHandler {
 
   Future<void> _setPlayerVolume(double volume) async {
     volume *= _volume;
+    if (_ducking) {
+      volume *= 0.5;
+    }
     if (_player.volume == volume) return;
     await _player.setVolume(volume);
   }
@@ -375,6 +423,7 @@ class AudioHandler {
     }
     _player.setVolume(1);
     await _player.dispose();
+    await _audioSession.setActive(false);
   }
 
   void _startPositionTimer() {
@@ -458,6 +507,9 @@ class AudioHandler {
     await _queueCurrentSubscription?.cancel();
     await _queueNextSubscription?.cancel();
     _queue.dispose();
+
+    await _audioSessionInterruptionStream?.cancel();
+    await _audioSessionBecomingNoisyStream?.cancel();
 
     // dispose player
     await _playerEventSubscription?.cancel();

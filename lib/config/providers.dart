@@ -175,6 +175,7 @@ Future<List<SingleChildWidget>> get providers async {
     Provider(
       create: (context) => ah.AudioHandler(
         player: AudioPlayer(),
+        audioSession: audioSession,
         integration: mediaIntegration,
         authRepository: context.read(),
         subsonicService: context.read(),
