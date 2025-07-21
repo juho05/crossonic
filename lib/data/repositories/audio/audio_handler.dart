@@ -216,7 +216,7 @@ class AudioHandler {
     pos ??= _seekingPos;
     pos ??= await _player.position + _positionOffset;
     _positionUpdate = (DateTime.now(), pos);
-    _integration.updatePosition(pos, await _player.bufferedPosition);
+    _integration.updatePosition(pos);
   }
 
   Future<void> playNext() async {
@@ -267,7 +267,6 @@ class AudioHandler {
     } else {
       _updatePosition(lastPos);
     }
-    _integration.updatePosition(position, await bufferedPosition);
 
     if (status != PlaybackStatus.playing && status != PlaybackStatus.loading) {
       // web browsers stop media os integration without active player

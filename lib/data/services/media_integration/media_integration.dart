@@ -15,6 +15,6 @@ abstract interface class MediaIntegration {
     required Future<void> Function() onStop,
   });
   void updateMedia(Song? song, Uri? coverArt);
-  void updatePosition(Duration position, [Duration bufferedPosition]);
+  void updatePosition(Duration position);
   void updatePlaybackState(PlaybackStatus status);
 }

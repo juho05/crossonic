@@ -181,6 +181,8 @@ class AudioServiceIntegration extends asv.BaseAudioHandler
         processingState: asv.AudioProcessingState.idle,
         playing: false,
       ));
+      _positionTimer?.cancel();
+      _positionTimer = null;
     } else {
       if (playbackState.value.controls.isEmpty) {
         playbackState.add(playbackState.value.copyWith(
@@ -222,6 +224,9 @@ class AudioServiceIntegration extends asv.BaseAudioHandler
     }
   }
 
+  Timer? _positionTimer;
+  (DateTime, Duration) _positionUpdate = (DateTime.now(), Duration.zero);
+
   @override
   void updatePlaybackState(PlaybackStatus status) {
     switch (status) {
@@ -238,14 +243,30 @@ class AudioServiceIntegration extends asv.BaseAudioHandler
         playbackState.add(playbackState.value.copyWith(
             playing: false, processingState: asv.AudioProcessingState.idle));
     }
+
+    // TODO test whether periodic updates are unnecessary on other platforms
+    if (!Platform.isAndroid && status == PlaybackStatus.playing) {
+      _positionTimer ??=
+          Timer.periodic(const Duration(seconds: 1), (_) => _updatePosition());
+    } else {
+      _positionTimer?.cancel();
+      _positionTimer = null;
+    }
   }
 
   @override
-  void updatePosition(Duration position,
-      [Duration bufferedPosition = Duration.zero]) {
+  void updatePosition(Duration position) {
+    _positionUpdate = (DateTime.now(), position);
+    _updatePosition();
+  }
+
+  void _updatePosition() {
+    Duration position = _positionUpdate.$2;
+    if (playbackState.value.playing) {
+      position += DateTime.now().difference(_positionUpdate.$1);
+    }
     playbackState.add(playbackState.value.copyWith(
       updatePosition: position,
-      bufferedPosition: bufferedPosition,
     ));
   }
 
