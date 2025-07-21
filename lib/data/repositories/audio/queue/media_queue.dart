@@ -4,9 +4,11 @@ import 'package:rxdart/rxdart.dart';
 
 abstract interface class MediaQueue extends ChangeNotifier {
   // The currently playing song. [fromAdvance] is `true` if the change resulted from a `queue.advance()` call.
-  ValueStream<({Song? song, bool fromAdvance})> get current;
-  // The next song to play.
-  ValueStream<Song?> get next;
+  ValueStream<Song?> get current;
+  // The currently playing song and the next song. [fromAdvance] is `true` if the change resulted from a `queue.advance()` call.
+  ValueStream<
+          ({Song? current, Song? next, bool currentChanged, bool fromAdvance})>
+      get currentAndNext;
 
   /// Adds [song] to the end of the regular queue if [priority] is `false`
   /// or to the end of the priority queue if [priority] is `true`.

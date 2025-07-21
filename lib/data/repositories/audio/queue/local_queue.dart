@@ -6,14 +6,22 @@ import 'package:flutter/material.dart';
 import 'package:rxdart/rxdart.dart';
 
 class LocalQueue extends ChangeNotifier implements MediaQueue {
-  final BehaviorSubject<({Song? song, bool fromAdvance})> _current =
-      BehaviorSubject.seeded((song: null, fromAdvance: false));
+  final BehaviorSubject<Song?> _current = BehaviorSubject.seeded(null);
   @override
-  ValueStream<({Song? song, bool fromAdvance})> get current => _current.stream;
+  ValueStream<Song?> get current => _current.stream;
 
-  final BehaviorSubject<Song?> _next = BehaviorSubject.seeded(null);
+  final BehaviorSubject<
+          ({Song? current, Song? next, bool currentChanged, bool fromAdvance})>
+      _currentAndNext = BehaviorSubject.seeded((
+    current: null,
+    next: null,
+    currentChanged: false,
+    fromAdvance: false
+  ));
   @override
-  ValueStream<Song?> get next => _next.stream;
+  ValueStream<
+          ({Song? current, Song? next, bool currentChanged, bool fromAdvance})>
+      get currentAndNext => _currentAndNext.stream;
 
   final _priorityQueue = Queue<Song>();
   final _queue = <Song>[];
@@ -29,7 +37,7 @@ class LocalQueue extends ChangeNotifier implements MediaQueue {
     if (_looping.value == loop) return;
     _looping.add(loop);
     if (_priorityQueue.isEmpty) {
-      _next.add(_queue.elementAtOrNull(_nextIndex));
+      _nextChanged(_queue.elementAtOrNull(_nextIndex));
     }
     notifyListeners();
   }
@@ -75,10 +83,7 @@ class LocalQueue extends ChangeNotifier implements MediaQueue {
     _queue.clear();
     _queue.addAll(songs);
     _currentIndex = startIndex;
-    _current.add((song: _queue[_currentIndex], fromAdvance: false));
-    if (_priorityQueue.isEmpty) {
-      _next.add(_queue.elementAtOrNull(_nextIndex));
-    }
+    _currentChanged(_queue[_currentIndex]);
     notifyListeners();
   }
 
@@ -94,19 +99,15 @@ class LocalQueue extends ChangeNotifier implements MediaQueue {
       }
       if (fromIndex <= _currentIndex) {
         if (_priorityQueue.isNotEmpty) {
-          _current
-              .add((song: _priorityQueue.removeFirst(), fromAdvance: false));
+          _currentChanged(_priorityQueue.removeFirst());
         } else if (_nextIndex < fromIndex) {
           _incrementCurrentIndex();
-          _current.add((song: _queue[_currentIndex], fromAdvance: false));
-        } else if (_current.value.song != null) {
-          _current.add((song: null, fromAdvance: false));
+          _currentChanged(_queue[_currentIndex]);
+        } else if (_current.value != null) {
+          _currentChanged(null);
         }
       }
     }
-    _next.add(_priorityQueue.isNotEmpty
-        ? _priorityQueue.first
-        : _queue.elementAtOrNull(_nextIndex));
     notifyListeners();
   }
 
@@ -118,10 +119,7 @@ class LocalQueue extends ChangeNotifier implements MediaQueue {
     }
     if (index == _currentIndex) return;
     _currentIndex = index;
-    _current.add((song: _queue[_currentIndex], fromAdvance: false));
-    _next.add(_priorityQueue.isNotEmpty
-        ? _priorityQueue.first
-        : _queue.elementAtOrNull(_nextIndex));
+    _currentChanged(_queue[_currentIndex]);
     notifyListeners();
   }
 
@@ -134,10 +132,7 @@ class LocalQueue extends ChangeNotifier implements MediaQueue {
     while (index > 0) {
       _priorityQueue.removeFirst();
     }
-    _current.add((song: _priorityQueue.removeFirst(), fromAdvance: false));
-    _next.add(_priorityQueue.isNotEmpty
-        ? _priorityQueue.first
-        : _queue.elementAtOrNull(_nextIndex));
+    _currentChanged(_priorityQueue.removeFirst());
     notifyListeners();
   }
 
@@ -150,12 +145,9 @@ class LocalQueue extends ChangeNotifier implements MediaQueue {
     _queue.removeAt(index);
     if (_currentIndex == index) {
       _incrementCurrentIndex();
-      _current.add((song: _next.value, fromAdvance: false));
-      _next.add(_priorityQueue.isNotEmpty
-          ? _priorityQueue.first
-          : _queue.elementAtOrNull(_nextIndex));
+      _currentChanged(_currentAndNext.value.next);
     } else if (_nextIndex == index && _priorityQueue.isEmpty) {
-      _next.add(_queue.elementAtOrNull(_nextIndex));
+      _nextChanged(_queue.elementAtOrNull(_nextIndex));
     }
     notifyListeners();
   }
@@ -187,12 +179,11 @@ class LocalQueue extends ChangeNotifier implements MediaQueue {
           message: "index out of bounds");
     }
     _queue.insertAll(index, songs);
-    if (current.value.song == null) {
-      _current.add((song: _queue.first, fromAdvance: false));
+    if (current.value == null) {
+      _currentChanged(_queue.first);
       _currentIndex = 0;
-    }
-    if (_priorityQueue.isEmpty) {
-      _next.add(_queue.elementAtOrNull(_nextIndex));
+    } else if (_priorityQueue.isEmpty) {
+      _nextChanged(_queue.elementAtOrNull(_nextIndex));
     }
     notifyListeners();
   }
@@ -210,11 +201,12 @@ class LocalQueue extends ChangeNotifier implements MediaQueue {
     }
 
     if (index == 0) {
-      if (current.value.song == null) {
-        _current.add((song: _priorityQueue.removeFirst(), fromAdvance: false));
+      if (current.value == null) {
+        _currentChanged(_priorityQueue.removeFirst());
         _currentIndex = 0;
+      } else {
+        _nextChanged(_priorityQueue.firstOrNull);
       }
-      _next.add(_priorityQueue.firstOrNull);
     }
 
     notifyListeners();
@@ -228,7 +220,7 @@ class LocalQueue extends ChangeNotifier implements MediaQueue {
     _queue.removeRange(_currentIndex + 1, _queue.length);
     _queue.addAll(following);
     if (_priorityQueue.isEmpty) {
-      _next.add(_queue.elementAtOrNull(_nextIndex));
+      _nextChanged(_queue.elementAtOrNull(_nextIndex));
     }
     notifyListeners();
   }
@@ -239,7 +231,7 @@ class LocalQueue extends ChangeNotifier implements MediaQueue {
     final newQueue = _priorityQueue.toList()..shuffle();
     _priorityQueue.clear();
     _priorityQueue.addAll(newQueue);
-    _next.add(_priorityQueue.first);
+    _nextChanged(_priorityQueue.first);
     notifyListeners();
   }
 
@@ -258,19 +250,13 @@ class LocalQueue extends ChangeNotifier implements MediaQueue {
       throw StateError("End of queue already reached");
     }
     if (_priorityQueue.isNotEmpty) {
-      _current
-          .add((song: _priorityQueue.removeFirst(), fromAdvance: fromAdvance));
+      _currentChanged(_priorityQueue.removeFirst(), fromAdvance: fromAdvance);
     } else if (_nextIndex < _queue.length) {
       _incrementCurrentIndex();
-      _current.add((song: _queue[_currentIndex], fromAdvance: fromAdvance));
-    } else {
-      if (_current.value.song != null) {
-        _current.add((song: null, fromAdvance: fromAdvance));
-      }
+      _currentChanged(_queue[_currentIndex], fromAdvance: fromAdvance);
+    } else if (_current.value != null) {
+      _currentChanged(null, fromAdvance: fromAdvance);
     }
-    _next.add(_priorityQueue.isNotEmpty
-        ? _priorityQueue.first
-        : _queue.elementAtOrNull(_nextIndex));
     notifyListeners();
   }
 
@@ -278,10 +264,7 @@ class LocalQueue extends ChangeNotifier implements MediaQueue {
   void skipPrev() {
     if (!canGoBack) throw StateError("Cannot go back in empty queue");
     _decrementCurrentIndex();
-    _current.add((song: _queue[_currentIndex], fromAdvance: false));
-    _next.add(_priorityQueue.isNotEmpty
-        ? _priorityQueue.first
-        : _queue.elementAtOrNull(_nextIndex));
+    _currentChanged(_queue[_currentIndex]);
     notifyListeners();
   }
 
@@ -330,4 +313,27 @@ class LocalQueue extends ChangeNotifier implements MediaQueue {
 
   @override
   int get currentIndex => _currentIndex;
+
+  void _currentChanged(Song? current, {bool fromAdvance = false}) {
+    _current.add(current);
+    _currentAndNext.add((
+      current: current,
+      next: current == null
+          ? null
+          : _priorityQueue.isNotEmpty
+              ? _priorityQueue.first
+              : _queue.elementAtOrNull(_nextIndex),
+      currentChanged: true,
+      fromAdvance: fromAdvance,
+    ));
+  }
+
+  void _nextChanged(Song? next) {
+    _currentAndNext.add((
+      current: _currentAndNext.value.current,
+      next: next,
+      currentChanged: false,
+      fromAdvance: false
+    ));
+  }
 }

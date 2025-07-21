@@ -33,7 +33,7 @@ class SongListItemViewModel extends ChangeNotifier {
 
     if (!disablePlaybackStatus) {
       _currentSubscription = _audioHandler.queue.current.listen((current) {
-        _currentSongId = current.song?.id;
+        _currentSongId = current?.id;
         notifyListeners();
       });
       _statusSubscription = _audioHandler.playbackStatus.listen((status) {
@@ -42,7 +42,7 @@ class SongListItemViewModel extends ChangeNotifier {
           notifyListeners();
         }
       });
-      _currentSongId = _audioHandler.queue.current.value.song?.id;
+      _currentSongId = _audioHandler.queue.current.value?.id;
       _playbackStatus = _audioHandler.playbackStatus.value;
     }
 

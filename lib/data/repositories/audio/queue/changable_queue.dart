@@ -8,16 +8,20 @@ import 'package:rxdart/rxdart.dart';
 class ChangableQueue extends ChangeNotifier implements MediaQueue {
   MediaQueue _queue;
   StreamSubscription? _currentSubscription;
-  StreamSubscription? _nextSubscription;
+  StreamSubscription? _currentAndNextSubscription;
   StreamSubscription? _loopingSubscription;
 
-  final BehaviorSubject<({bool fromAdvance, Song? song})> _current;
+  final BehaviorSubject<Song?> _current;
   @override
-  ValueStream<({bool fromAdvance, Song? song})> get current => _current.stream;
+  ValueStream<Song?> get current => _current.stream;
 
-  final BehaviorSubject<Song?> _next;
+  final BehaviorSubject<
+          ({Song? current, Song? next, bool currentChanged, bool fromAdvance})>
+      _currentAndNext;
   @override
-  ValueStream<Song?> get next => _next.stream;
+  ValueStream<
+          ({Song? current, Song? next, bool currentChanged, bool fromAdvance})>
+      get currentAndNext => _currentAndNext.stream;
 
   final BehaviorSubject<bool> _looping;
   @override
@@ -26,14 +30,14 @@ class ChangableQueue extends ChangeNotifier implements MediaQueue {
   ChangableQueue(MediaQueue queue)
       : _queue = queue,
         _current = BehaviorSubject.seeded(queue.current.value),
-        _next = BehaviorSubject.seeded(queue.next.value),
+        _currentAndNext = BehaviorSubject.seeded(queue.currentAndNext.value),
         _looping = BehaviorSubject.seeded(queue.looping.value) {
     change(queue);
   }
 
   Future<void> change(MediaQueue queue) async {
     _queue.removeListener(notifyListeners);
-    await _nextSubscription?.cancel();
+    await _currentAndNextSubscription?.cancel();
     await _currentSubscription?.cancel();
     await _loopingSubscription?.cancel();
 
@@ -42,7 +46,8 @@ class ChangableQueue extends ChangeNotifier implements MediaQueue {
     _queue.addListener(notifyListeners);
     _currentSubscription =
         _queue.current.listen((event) => _current.add(event));
-    _nextSubscription = _queue.next.listen((event) => _next.add(event));
+    _currentAndNextSubscription =
+        _queue.currentAndNext.listen((event) => _currentAndNext.add(event));
     _loopingSubscription = _queue.looping.listen((loop) => _looping.add(loop));
   }
 

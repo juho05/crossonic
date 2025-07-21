@@ -50,18 +50,18 @@ class Scrobbler {
   }
 
   Future<void> _onCurrentChanged(
-      ({bool fromAdvance, Song? song}) current) async {
+      Song? song) async {
     await _updateCurrent();
     _current = null;
     await _submitScrobbles();
-    if (current.song == null) {
+    if (song == null) {
       return;
     }
     _current = _Scrobble(
-      songId: current.song!.id,
+      songId: song.id,
       time: DateTime.now(),
       listenDuration: Duration.zero,
-      songDuration: current.song!.duration,
+      songDuration: song.duration,
     );
     final result = await _subsonic.scrobble(
         _auth.con,

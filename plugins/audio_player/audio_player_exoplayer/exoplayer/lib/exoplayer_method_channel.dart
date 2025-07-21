@@ -80,11 +80,15 @@ class MethodChannelExoPlayer extends ExoPlayerPlatform {
       methodChannel.invokeMethod("seek", {"pos": position.inMilliseconds});
 
   @override
-  Future<void> setCurrent(Uri url, [Duration? pos]) =>
-      methodChannel.invokeMethod("setCurrent", {
-        "uri": url.toString(),
-        "pos": pos?.inMilliseconds ?? 0,
-      });
+  Future<void> setCurrent(
+    Uri url, {
+    Uri? nextUrl,
+    Duration pos = Duration.zero,
+  }) => methodChannel.invokeMethod("setCurrent", {
+    "uri": url.toString(),
+    "nextUri": nextUrl?.toString(),
+    "pos": pos.inMilliseconds,
+  });
 
   @override
   Future<void> setNext(Uri? url) =>

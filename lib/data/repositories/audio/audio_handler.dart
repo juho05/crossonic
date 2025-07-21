@@ -64,7 +64,6 @@ class AudioHandler {
 
   final ChangableQueue _queue = ChangableQueue(LocalQueue());
   StreamSubscription? _queueCurrentSubscription;
-  StreamSubscription? _queueNextSubscription;
 
   Duration _positionOffset = Duration.zero;
 
@@ -117,8 +116,8 @@ class AudioHandler {
       _integration.updateMedia(null, null);
       _auth.addListener(_authChanged);
 
-      _queueCurrentSubscription = _queue.current.listen(_onCurrentChanged);
-      _queueNextSubscription = _queue.next.listen(_onNextChanged);
+      _queueCurrentSubscription =
+          _queue.currentAndNext.listen(_onCurrentOrNextChanged);
 
       _playerEventSubscription = _player.eventStream.listen(_playerEvent);
       _restartPlaybackSubscription =
@@ -194,7 +193,7 @@ class AudioHandler {
   Duration? _seekingPos;
 
   Future<void> seek(Duration pos) async {
-    final song = _queue.current.value.song;
+    final song = _queue.current.value;
     if (song == null) return;
     await _ensurePlayerLoaded();
     _seekingPos = pos;
@@ -282,7 +281,7 @@ class AudioHandler {
   }
 
   Future<void> _onRestartPlayback(Duration pos) async {
-    if (_queue.current.value.song == null) return;
+    if (_queue.current.value == null) return;
     Log.warn("Restarting playback at position $pos");
     pos += _positionOffset;
     if (!_player.canSeek) {
@@ -291,44 +290,51 @@ class AudioHandler {
     }
     _updatePosition(pos);
 
-    final canSeek =
-        _downloader.getPath(_queue.current.value.song!.id) != null ||
-            _transcoding.$1.name == "raw";
+    final canSeek = _downloader.getPath(_queue.current.value!.id) != null ||
+        _transcoding.$1.name == "raw";
 
+    final next = _queue.currentAndNext.value.next;
     await _player.setCurrent(
-        _getStreamUri(_queue.current.value.song!, !canSeek ? pos : null),
-        canSeek ? pos : null);
+      _getStreamUri(_queue.current.value!, !canSeek ? pos : null),
+      nextUrl: next != null ? _getStreamUri(next) : null,
+      pos: canSeek ? pos : Duration.zero,
+    );
 
     await _player.play();
   }
 
-  Future<void> _onCurrentChanged(({Song? song, bool fromAdvance}) event) async {
+  Future<void> _onCurrentOrNextChanged(
+      ({
+        Song? current,
+        Song? next,
+        bool currentChanged,
+        bool fromAdvance,
+      }) event) async {
     final playAfterChange = _playOnNextMediaChange;
     _playOnNextMediaChange = false;
-    if (event.song == null) {
+    if (event.current == null) {
       await stop();
       return;
     }
-    _positionOffset = Duration.zero;
-    _updatePosition(Duration.zero);
-
     await _ensurePlayerLoaded(false);
+    if (event.currentChanged) {
+      _positionOffset = Duration.zero;
+      _updatePosition(Duration.zero);
+      await _applyReplayGain();
+    }
 
-    await _applyReplayGain();
-
-    if (!event.fromAdvance) {
-      await _player.setCurrent(_getStreamUri(event.song!));
+    if (event.currentChanged && !event.fromAdvance) {
+      await _player.setCurrent(_getStreamUri(event.current!),
+          nextUrl: event.next != null ? _getStreamUri(event.next!) : null);
       if (playAfterChange) {
         await _player.play();
       }
-      await _onNextChanged(_queue.next.value);
+    } else {
+      await _player
+          .setNext(event.next != null ? _getStreamUri(event.next!) : null);
     }
-    _integration.updateMedia(event.song,
-        _subsonic.getCoverUri(_auth.con, event.song!.coverId, size: 512));
-  }
-
-  Future<void> _onNextChanged(Song? song) async {
-    await _player.setNext(song != null ? _getStreamUri(song) : null);
+    _integration.updateMedia(event.current,
+        _subsonic.getCoverUri(_auth.con, event.current!.coverId, size: 512));
   }
 
   Future<void> _authChanged() async {
@@ -344,8 +350,8 @@ class AudioHandler {
 
   Future<void> _onTranscodingChanged() async {
     _transcoding = await _settings.transcoding.activeTranscoding();
-    if (_queue.next.value != null) {
-      await _onNextChanged(_queue.next.value);
+    if (_queue.currentAndNext.value.next != null) {
+      await _player.setNext(_getStreamUri(_queue.currentAndNext.value.next!));
     }
   }
 
@@ -354,7 +360,7 @@ class AudioHandler {
   Future<void> _applyReplayGain() async {
     if (!_player.initialized) return;
     ReplayGainMode mode = _settings.replayGain.mode;
-    final media = _queue.current.value.song;
+    final media = _queue.current.value;
     if (mode == ReplayGainMode.disabled || media == null) {
       await _setPlayerVolume(1);
       return;
@@ -372,7 +378,7 @@ class AudioHandler {
           previousIsSameAlbum = previous.album?.id == media.album!.id;
         }
 
-        final next = _queue.next.value;
+        final next = _queue.currentAndNext.value.next;
         bool nextIsSameAlbum =
             next == null || next.album?.id == media.album!.id;
 
@@ -414,24 +420,28 @@ class AudioHandler {
   }
 
   Future<void> _restorePlayerState() async {
-    final current = _queue.current.value.song;
-    final next = _queue.next.value;
+    final current = _queue.current.value;
+    final next = _queue.currentAndNext.value.next;
     if (current != null) {
       if (_downloader.getPath(current.id) != null) {
-        await _player.setCurrent(_getStreamUri(current), position);
+        await _player.setCurrent(
+          _getStreamUri(current),
+          nextUrl: next != null ? _getStreamUri(next) : null,
+          pos: position,
+        );
         _positionOffset = Duration.zero;
       } else {
         _positionOffset = position;
-        await _player.setCurrent(_getStreamUri(current, _positionOffset));
+        await _player.setCurrent(
+          _getStreamUri(current, _positionOffset),
+          nextUrl: next != null ? _getStreamUri(next) : null,
+        );
       }
       if (_playbackStatus.value == PlaybackStatus.playing) {
         await play();
       } else {
         await pause();
       }
-    }
-    if (next != null) {
-      await _player.setNext(_getStreamUri(next));
     }
     if (current == null && next == null) {
       await stop();
@@ -488,7 +498,6 @@ class AudioHandler {
     await stop();
     // dispose queue
     await _queueCurrentSubscription?.cancel();
-    await _queueNextSubscription?.cancel();
     _queue.dispose();
 
     await _audioSessionInterruptionStream?.cancel();

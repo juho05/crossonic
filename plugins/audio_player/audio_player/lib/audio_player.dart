@@ -18,8 +18,9 @@ class AudioPlayer {
   bool get initialized => _platform.initialized;
 
   Future<void> init() => _platform.init();
-  Future<void> setCurrent(Uri url, [Duration? pos]) =>
-      _platform.setCurrent(url, pos);
+  Future<void> setCurrent(Uri url,
+          {Uri? nextUrl, Duration pos = Duration.zero}) =>
+      _platform.setCurrent(url, nextUrl: nextUrl, pos: pos);
   Future<void> setNext(Uri? url) => _platform.setNext(url);
   Future<void> play() => _platform.play();
   Future<void> pause() => _platform.pause();

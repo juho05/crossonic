@@ -74,7 +74,7 @@ public class AudioPlayer implements Player.Listener {
             case "play": play(); break;
             case "pause": pause(); break;
             case "seek": seek(call.argument("pos")); break;
-            case "setCurrent": setCurrent(call.argument("uri"), call.argument("pos")); break;
+            case "setCurrent": setCurrent(call.argument("uri"), call.argument("nextUri"), call.argument("pos")); break;
             case "setNext": setNext(call.argument("uri")); break;
             case "stop": stop(); break;
             case "setVolume": setVolume(call.argument("volume")); break;
@@ -137,15 +137,15 @@ public class AudioPlayer implements Player.Listener {
         _player.seekTo(pos);
     }
 
-    private void setCurrent(String uri, int pos) {
+    private void setCurrent(String uri, String nextUri, int pos) {
         if (uri == null) {
             _player.clearMediaItems();
             return;
         }
         List<MediaItem> items = new ArrayList<>();
         items.add(MediaItem.fromUri(uri));
-        if (_player.getMediaItemCount() > _player.getCurrentMediaItemIndex()+1) {
-            items.add(_player.getMediaItemAt(_player.getCurrentMediaItemIndex()+1));
+        if (nextUri != null) {
+            list.add(MediaItem.fromUri(nextUri));
         }
         Log.d("AudioPlayer", "Replace playlist with " + items.size() + " items");
         _player.setMediaItems(items, 0, pos == 0 ? C.TIME_UNSET : pos);

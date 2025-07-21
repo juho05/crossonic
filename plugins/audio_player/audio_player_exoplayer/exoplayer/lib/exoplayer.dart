@@ -15,8 +15,11 @@ class ExoPlayer {
       ExoPlayerPlatform.instance.setVolume(volume);
 
   Future<void> init() => ExoPlayerPlatform.instance.init();
-  Future<void> setCurrent(Uri url, [Duration? pos]) =>
-      ExoPlayerPlatform.instance.setCurrent(url, pos);
+  Future<void> setCurrent(
+    Uri url, {
+    Uri? nextUrl,
+    Duration pos = Duration.zero,
+  }) => ExoPlayerPlatform.instance.setCurrent(url, nextUrl: nextUrl, pos: pos);
   Future<void> setNext(Uri? url) => ExoPlayerPlatform.instance.setNext(url);
   Future<void> play() => ExoPlayerPlatform.instance.play();
   Future<void> pause() => ExoPlayerPlatform.instance.pause();

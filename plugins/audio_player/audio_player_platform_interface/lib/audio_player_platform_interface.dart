@@ -28,8 +28,9 @@ abstract class AudioPlayerPlatform extends PlatformInterface {
   bool get initialized => _instance.initialized;
 
   Future<void> init() => _instance.init();
-  Future<void> setCurrent(Uri url, [Duration? pos]) =>
-      _instance.setCurrent(url, pos);
+  Future<void> setCurrent(Uri url,
+          {Uri? nextUrl, Duration pos = Duration.zero}) =>
+      _instance.setCurrent(url, nextUrl: nextUrl, pos: pos);
   Future<void> setNext(Uri? url) => _instance.setNext(url);
   Future<void> play() => _instance.play();
   Future<void> pause() => _instance.pause();

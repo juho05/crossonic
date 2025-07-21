@@ -48,7 +48,8 @@ class AudioPlayerUnimplemented extends AudioPlayerPlatform {
   }
 
   @override
-  Future<void> setCurrent(Uri url, [Duration? pos]) {
+  Future<void> setCurrent(Uri url,
+      {Uri? nextUrl, Duration pos = Duration.zero}) {
     throw UnimplementedError();
   }
 

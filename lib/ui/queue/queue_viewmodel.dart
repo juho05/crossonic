@@ -99,8 +99,8 @@ class QueueViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void _currentChanged(({bool fromAdvance, Song? song}) current) {
-    _currentSong = current.song;
+  void _currentChanged(Song? song) {
+    _currentSong = song;
     notifyListeners();
   }
 

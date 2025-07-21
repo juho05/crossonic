@@ -33,7 +33,11 @@ abstract class ExoPlayerPlatform extends PlatformInterface {
   Future<void> setVolume(double volume);
 
   Future<void> init();
-  Future<void> setCurrent(Uri url, [Duration? pos]);
+  Future<void> setCurrent(
+    Uri url, {
+    Uri? nextUrl,
+    Duration pos = Duration.zero,
+  });
   Future<void> setNext(Uri? url);
   Future<void> play();
   Future<void> pause();

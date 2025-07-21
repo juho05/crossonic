@@ -69,26 +69,17 @@ class AudioPlayerExoPlayer extends AudioPlayerPlatform {
   Future<void> seek(Duration position) => _player.seek(position);
 
   @override
-  Future<void> setCurrent(Uri url, [Duration? pos]) async {
-    _canSeek = url.scheme == "file" ||
-        (url.queryParameters.containsKey("format") &&
-            url.queryParameters["format"] == "raw");
-    await _player.setCurrent(url, pos);
+  Future<void> setCurrent(Uri url,
+      {Uri? nextUrl, Duration pos = Duration.zero}) async {
+    _canSeek = _canSeekFromUrl(url);
+    _nextCanSeek = nextUrl != null && _canSeekFromUrl(nextUrl);
+    await _player.setCurrent(url, nextUrl: nextUrl, pos: pos);
   }
 
   @override
   Future<void> setNext(Uri? url) async {
     if (!initialized) return;
-    if (url != null) {
-      _nextCanSeek = url.scheme == "file" ||
-          (url.queryParameters.containsKey("format") &&
-              url.queryParameters["format"] == "raw");
-    } else {
-      _nextCanSeek = false;
-    }
-    if (!initialized) {
-      return;
-    }
+    _nextCanSeek = url != null && _canSeekFromUrl(url);
     await _player.setNext(url);
   }
 
@@ -143,5 +134,11 @@ class AudioPlayerExoPlayer extends AudioPlayerPlatform {
 
   Future<void> _onPlatformError(Object error, StackTrace stackTrace) async {
     throw error;
+  }
+
+  bool _canSeekFromUrl(Uri url) {
+    return url.scheme == "file" ||
+        (url.queryParameters.containsKey("format") &&
+            url.queryParameters["format"] == "raw");
   }
 }

@@ -36,7 +36,6 @@ class AudioPlayerMediaKit extends AudioPlayerPlatform {
   Future<void> _onAdvance() async {
     _canSeek = _nextCanSeek;
     _nextCanSeek = false;
-    _nextMedia = null;
     _eventStream.add(AudioPlayerEvent.advance);
   }
 
@@ -55,48 +54,43 @@ class AudioPlayerMediaKit extends AudioPlayerPlatform {
   @override
   Future<void> seek(Duration position) => _player!.seek(position);
 
-  Media? _nextMedia;
-
   @override
-  Future<void> setCurrent(Uri url, [Duration? pos]) async {
-    _canSeek = url.scheme == "file" ||
-        (url.queryParameters.containsKey("format") &&
-            url.queryParameters["format"] == "raw");
+  Future<void> setCurrent(Uri url,
+      {Uri? nextUrl, Duration pos = Duration.zero}) async {
+    _canSeek = _canSeekFromUrl(url);
+    _nextCanSeek = nextUrl != null && _canSeekFromUrl(nextUrl);
     _currentChanged = true;
     await _player!.open(
-      Playlist([Media(url.toString()), if (_nextMedia != null) _nextMedia!]),
+      Playlist([
+        Media(url.toString()),
+        if (nextUrl != null) Media(nextUrl.toString())
+      ]),
       play: _eventStream.value == AudioPlayerEvent.playing,
     );
-    if (pos != null) {
+    if (pos > Duration.zero) {
       await seek(pos);
     }
+    Future.delayed(
+        const Duration(milliseconds: 500),
+        () => print(
+            "current: ${_player!.state.playlist.medias.map((m) => "${m.uri}\n")}"));
   }
 
   @override
   Future<void> setNext(Uri? url) async {
     if (!initialized) return;
-    if (url != null) {
-      _nextCanSeek = url.scheme == "file" ||
-          (url.queryParameters.containsKey("format") &&
-              url.queryParameters["format"] == "raw");
-    } else {
-      _nextCanSeek = false;
-    }
-    if (!initialized) {
-      return;
-    }
+    _nextCanSeek = url != null && _canSeekFromUrl(url);
     if (_player!.state.playlist.index <
         _player!.state.playlist.medias.length - 1) {
       await _player!.remove(_player!.state.playlist.medias.length - 1);
     }
-    if (url == null) {
-      _nextMedia = null;
-      return;
+    if (url != null) {
+      await _player!.add(Media(url.toString()));
     }
-    _nextMedia = Media(url.toString());
-    if (_player!.state.playlist.medias.isNotEmpty) {
-      await _player!.add(_nextMedia!);
-    }
+    Future.delayed(
+        const Duration(milliseconds: 500),
+        () => print(
+            "next: ${_player!.state.playlist.medias.map((m) => "${m.uri}\n")}"));
   }
 
   @override
@@ -197,5 +191,11 @@ class AudioPlayerMediaKit extends AudioPlayerPlatform {
 
   Future<void> _onError(String msg) async {
     throw PlatformException(code: "media_kit:error", message: msg);
+  }
+
+  bool _canSeekFromUrl(Uri url) {
+    return url.scheme == "file" ||
+        (url.queryParameters.containsKey("format") &&
+            url.queryParameters["format"] == "raw");
   }
 }

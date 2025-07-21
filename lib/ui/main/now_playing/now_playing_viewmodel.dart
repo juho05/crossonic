@@ -138,9 +138,9 @@ class NowPlayingViewModel extends ChangeNotifier {
     }
   }
 
-  void _onSongChanged(({Song? song, bool fromAdvance}) event) {
+  void _onSongChanged(Song? song) {
     _updatePosition();
-    _song = event.song;
+    _song = song;
     if (_song == null) {
       _favorite = false;
       return;

@@ -27,7 +27,7 @@ class LyricsViewModel extends ChangeNotifier {
   })  : _subsonic = subsonic,
         _audioHandler = audioHandler {
     _currentSubscription = _audioHandler.queue.current.listen((current) {
-      _currentSong = current.song;
+      _currentSong = current;
       _fetch();
     });
   }
