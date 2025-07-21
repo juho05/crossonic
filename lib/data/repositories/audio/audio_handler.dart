@@ -204,6 +204,7 @@ class AudioHandler {
       await _player.seek(pos);
       _seekingPos = null;
     } else {
+      _playbackStatus.add(PlaybackStatus.loading);
       await _player.setCurrent(_getStreamUri(song, pos));
       _positionOffset = pos;
       _seekingPos = null;

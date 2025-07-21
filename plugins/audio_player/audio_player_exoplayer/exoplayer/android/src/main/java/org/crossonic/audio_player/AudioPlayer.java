@@ -145,7 +145,7 @@ public class AudioPlayer implements Player.Listener {
         List<MediaItem> items = new ArrayList<>();
         items.add(MediaItem.fromUri(uri));
         if (nextUri != null) {
-            list.add(MediaItem.fromUri(nextUri));
+            items.add(MediaItem.fromUri(nextUri));
         }
         Log.d("AudioPlayer", "Replace playlist with " + items.size() + " items");
         _player.setMediaItems(items, 0, pos == 0 ? C.TIME_UNSET : pos);
