@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 import 'dart:math';
 
 import 'package:audio_player/audio_player.dart';
@@ -48,18 +47,26 @@ class AudioHandler {
       BehaviorSubject.seeded(PlaybackStatus.stopped);
   ValueStream<PlaybackStatus> get playbackStatus => _playbackStatus.stream;
 
-  final BehaviorSubject<({Duration position, Duration? bufferedPosition})>
-      _position =
-      BehaviorSubject.seeded((position: Duration.zero, bufferedPosition: null));
-  ValueStream<({Duration position, Duration? bufferedPosition})> get position =>
-      _position.stream;
+  (DateTime time, Duration position) _positionUpdate =
+      (DateTime.now(), Duration.zero);
+
+  Duration get position {
+    if (_playbackStatus.value == PlaybackStatus.playing) {
+      return _positionUpdate.$2 +
+          (DateTime.now().difference(_positionUpdate.$1));
+    }
+    return _positionUpdate.$2;
+  }
+
+  Future<Duration> get bufferedPosition async => _player.initialized
+      ? (await _player.bufferedPosition) + _positionOffset
+      : Duration.zero;
 
   final ChangableQueue _queue = ChangableQueue(LocalQueue());
   StreamSubscription? _queueCurrentSubscription;
   StreamSubscription? _queueNextSubscription;
 
   Duration _positionOffset = Duration.zero;
-  Timer? _positionTimer;
 
   Timer? _disposePlayerTimer;
 
@@ -174,29 +181,42 @@ class AudioHandler {
 
   Future<void> stop() async {
     _playOnNextMediaChange = false;
-    _stopPositionTimer();
     _integration.updateMedia(null, null);
     _integration.updatePosition(Duration.zero);
     _integration.updatePlaybackState(PlaybackStatus.stopped);
     _positionOffset = Duration.zero;
     _playbackStatus.add(PlaybackStatus.stopped);
+    _updatePosition(Duration.zero);
     _queue.clear();
     await _disposePlayer();
   }
+
+  Duration? _seekingPos;
 
   Future<void> seek(Duration pos) async {
     final song = _queue.current.value.song;
     if (song == null) return;
     await _ensurePlayerLoaded();
+    _seekingPos = pos;
+    _updatePosition();
     if ((!_auth.serverFeatures.transcodeOffset.contains(1) ||
             _player.canSeek) &&
         _positionOffset == Duration.zero) {
       await _player.seek(pos);
+      _seekingPos = null;
     } else {
       await _player.setCurrent(_getStreamUri(song, pos));
       _positionOffset = pos;
+      _seekingPos = null;
+      _updatePosition();
     }
-    _position.add((position: pos, bufferedPosition: pos));
+  }
+
+  Future<void> _updatePosition([Duration? pos]) async {
+    pos ??= _seekingPos;
+    pos ??= await _player.position + _positionOffset;
+    _positionUpdate = (DateTime.now(), pos);
+    _integration.updatePosition(pos, await _player.bufferedPosition);
   }
 
   Future<void> playNext() async {
@@ -205,7 +225,7 @@ class AudioHandler {
   }
 
   Future<void> playPrev() async {
-    if (position.value.position.inSeconds > 3 || !_queue.canGoBack) {
+    if (position.inSeconds > 3 || !_queue.canGoBack) {
       await seek(Duration.zero);
       return;
     }
@@ -220,6 +240,7 @@ class AudioHandler {
       _queue.advance();
       return;
     }
+
     var status = switch (event) {
       AudioPlayerEvent.stopped => PlaybackStatus.stopped,
       AudioPlayerEvent.loading => PlaybackStatus.loading,
@@ -235,14 +256,18 @@ class AudioHandler {
       await stop();
       return;
     }
+
+    final lastPos = position;
+
     _integration.updatePlaybackState(status);
     _playbackStatus.add(status);
-    _updatePosition(true);
+
     if (status == PlaybackStatus.playing) {
-      _startPositionTimer();
+      _updatePosition();
     } else {
-      _stopPositionTimer();
+      _updatePosition(lastPos);
     }
+    _integration.updatePosition(position, await bufferedPosition);
 
     if (status != PlaybackStatus.playing && status != PlaybackStatus.loading) {
       // web browsers stop media os integration without active player
@@ -264,7 +289,7 @@ class AudioHandler {
       pos = Duration(seconds: (pos.inMilliseconds / 1000.0).round());
       _positionOffset = pos;
     }
-    _position.add((position: pos, bufferedPosition: pos));
+    _updatePosition(pos);
 
     final canSeek =
         _downloader.getPath(_queue.current.value.song!.id) != null ||
@@ -285,7 +310,7 @@ class AudioHandler {
       return;
     }
     _positionOffset = Duration.zero;
-    _position.add((position: Duration.zero, bufferedPosition: Duration.zero));
+    _updatePosition(Duration.zero);
 
     await _ensurePlayerLoaded(false);
 
@@ -393,13 +418,11 @@ class AudioHandler {
     final next = _queue.next.value;
     if (current != null) {
       if (_downloader.getPath(current.id) != null) {
-        await _player.setCurrent(
-            _getStreamUri(current), position.value.position);
+        await _player.setCurrent(_getStreamUri(current), position);
         _positionOffset = Duration.zero;
       } else {
-        _positionOffset = position.value.position;
-        await _player
-            .setCurrent(_getStreamUri(current, position.value.position));
+        _positionOffset = position;
+        await _player.setCurrent(_getStreamUri(current, _positionOffset));
       }
       if (_playbackStatus.value == PlaybackStatus.playing) {
         await play();
@@ -424,47 +447,7 @@ class AudioHandler {
     _player.setVolume(1);
     await _player.dispose();
     await _audioSession.setActive(false);
-  }
-
-  void _startPositionTimer() {
-    if (_positionTimer != null) return;
-    int counter = 0;
-    _positionTimer =
-        Timer.periodic(const Duration(milliseconds: 200), (timer) async {
-      if (!kIsWeb && Platform.isLinux) {
-        counter++;
-      }
-      _updatePosition(counter % 5 == 0);
-    });
-  }
-
-  Future<void> _updatePosition(bool updateNative) async {
-    if (_playbackStatus.value == PlaybackStatus.stopped) {
-      _position.add((position: Duration.zero, bufferedPosition: null));
-      if (updateNative) {
-        _integration.updatePosition(Duration.zero);
-      }
-      return;
-    }
-    if (_playbackStatus.value != PlaybackStatus.playing &&
-        _playbackStatus.value != PlaybackStatus.paused) {
-      return;
-    }
-
-    await _ensurePlayerLoaded();
-
-    final pos = await _player.position + _positionOffset;
-    final bufferedPos = await _player.bufferedPosition + _positionOffset;
-
-    _position.add((position: pos, bufferedPosition: bufferedPos));
-    if (updateNative) {
-      _integration.updatePosition(pos, bufferedPos);
-    }
-  }
-
-  void _stopPositionTimer() {
-    _positionTimer?.cancel();
-    _positionTimer = null;
+    _updatePosition(Duration.zero);
   }
 
   Uri _getStreamUri(Song song, [Duration? offset]) {

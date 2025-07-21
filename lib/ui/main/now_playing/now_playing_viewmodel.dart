@@ -13,7 +13,6 @@ class NowPlayingViewModel extends ChangeNotifier {
   final FavoritesRepository _favoritesRepository;
   final AudioHandler _audioHandler;
   late final StreamSubscription _currentSongSubscription;
-  late final StreamSubscription _positionSubscription;
   late final StreamSubscription _playbackStatusSubscription;
   late final StreamSubscription _loopSubscription;
 
@@ -70,7 +69,6 @@ class NowPlayingViewModel extends ChangeNotifier {
     _favoritesRepository.addListener(_onFavoriteChanged);
     _currentSongSubscription =
         _audioHandler.queue.current.listen(_onSongChanged);
-    _positionSubscription = _audioHandler.position.listen(_onPositionChanged);
     _playbackStatusSubscription =
         _audioHandler.playbackStatus.listen(_onStatusChanged);
     _loopSubscription = _audioHandler.queue.looping.listen(
@@ -116,12 +114,32 @@ class NowPlayingViewModel extends ChangeNotifier {
     _audioHandler.queue.add(_song!, priority);
   }
 
-  void _onStatusChanged(PlaybackStatus status) {
+  Timer? _positionTimer;
+  Timer? _bufferedPositionTimer;
+  Duration? _bufferedPosition;
+
+  Future<void> _onStatusChanged(PlaybackStatus status) async {
     _playbackStatus = status;
     notifyListeners();
+    if (status == PlaybackStatus.playing) {
+      _positionTimer ??= Timer.periodic(
+          const Duration(milliseconds: 50), (_) => _updatePosition());
+      _bufferedPositionTimer ??= Timer.periodic(
+          const Duration(milliseconds: 500),
+          (_) async =>
+              _bufferedPosition = await _audioHandler.bufferedPosition);
+    } else {
+      _positionTimer?.cancel();
+      _positionTimer = null;
+      _bufferedPositionTimer?.cancel();
+      _bufferedPositionTimer = null;
+      _bufferedPosition = await _audioHandler.bufferedPosition;
+      _updatePosition();
+    }
   }
 
   void _onSongChanged(({Song? song, bool fromAdvance}) event) {
+    _updatePosition();
     _song = event.song;
     if (_song == null) {
       _favorite = false;
@@ -131,9 +149,11 @@ class NowPlayingViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void _onPositionChanged(
-      ({Duration position, Duration? bufferedPosition}) pos) {
-    _position.add(pos);
+  void _updatePosition() async {
+    _position.add((
+      position: _audioHandler.position,
+      bufferedPosition: _bufferedPosition
+    ));
   }
 
   void _onFavoriteChanged() {
@@ -147,10 +167,11 @@ class NowPlayingViewModel extends ChangeNotifier {
   @override
   Future<void> dispose() async {
     _favoritesRepository.removeListener(_onFavoriteChanged);
-    await _positionSubscription.cancel();
     await _loopSubscription.cancel();
     await _currentSongSubscription.cancel();
     await _playbackStatusSubscription.cancel();
+    _positionTimer?.cancel();
+    _bufferedPositionTimer?.cancel();
     super.dispose();
   }
 
