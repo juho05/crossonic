@@ -162,6 +162,15 @@ class AudioPlayerMediaKit extends AudioPlayerPlatform {
       lastIndex = playlist.index;
       _onAdvance();
     });
+    _player!.stream.completed.listen((completed) {
+      if (!completed) return;
+      if (_player!.state.playing) return;
+      if (_player!.state.playlist.index + 1 ==
+          _player!.state.playlist.medias.length) {
+        // final advance to stop playback
+        _onAdvance();
+      }
+    });
     _player!.stream.error.listen((err) => _onError(err));
     await _applyVolume();
   }
