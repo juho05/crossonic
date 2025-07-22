@@ -457,7 +457,6 @@ class AudioHandler {
     _player.setVolume(1);
     await _player.dispose();
     await _audioSession.setActive(false);
-    _updatePosition(Duration.zero);
   }
 
   Uri _getStreamUri(Song song, [Duration? offset]) {

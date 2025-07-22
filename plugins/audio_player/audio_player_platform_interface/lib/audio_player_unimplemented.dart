@@ -1,4 +1,4 @@
-import 'package:rxdart/src/streams/value_stream.dart';
+import 'package:rxdart/rxdart.dart';
 
 import 'audio_player_event.dart';
 import 'audio_player_platform_interface.dart';

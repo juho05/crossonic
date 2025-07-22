@@ -62,18 +62,11 @@ class AudioPlayerMediaKit extends AudioPlayerPlatform {
     _currentChanged = true;
     await _player!.open(
       Playlist([
-        Media(url.toString()),
+        Media(url.toString(), start: pos > Duration.zero ? pos : null),
         if (nextUrl != null) Media(nextUrl.toString())
       ]),
       play: _eventStream.value == AudioPlayerEvent.playing,
     );
-    if (pos > Duration.zero) {
-      await seek(pos);
-    }
-    Future.delayed(
-        const Duration(milliseconds: 500),
-        () => print(
-            "current: ${_player!.state.playlist.medias.map((m) => "${m.uri}\n")}"));
   }
 
   @override
@@ -87,10 +80,6 @@ class AudioPlayerMediaKit extends AudioPlayerPlatform {
     if (url != null) {
       await _player!.add(Media(url.toString()));
     }
-    Future.delayed(
-        const Duration(milliseconds: 500),
-        () => print(
-            "next: ${_player!.state.playlist.medias.map((m) => "${m.uri}\n")}"));
   }
 
   @override
