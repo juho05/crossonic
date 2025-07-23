@@ -245,7 +245,7 @@ class AudioServiceIntegration extends asv.BaseAudioHandler
     }
 
     // TODO test whether periodic updates are unnecessary on other platforms
-    if (!Platform.isAndroid && status == PlaybackStatus.playing) {
+    if ((kIsWeb || !Platform.isAndroid) && status == PlaybackStatus.playing) {
       _positionTimer ??=
           Timer.periodic(const Duration(seconds: 1), (_) => _updatePosition());
     } else {
