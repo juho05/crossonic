@@ -3,7 +3,7 @@ template: |
 
   ## How to install
 
-  See [here](https://github.com/juho05/crossonic#installation) for installation instructions.
+  See [here](https://github.com/juho05/crossonic/tree/v$RESOLVED_VERSION#installation) for installation instructions.
 
   ## What's Changed
 
