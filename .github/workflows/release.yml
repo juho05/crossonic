@@ -157,6 +157,7 @@ jobs:
           ./appimage-builder.AppImage --appimage-extract
           sed -i 's|"https://github.com/AppImage/AppImageKit/releases/download/continuous/runtime-%s"|"https://github.com/AppImage/type2-runtime/releases/download/continuous/runtime-%s"|g' squashfs-root/usr/lib/python3.8/site-packages/appimagebuilder/modules/appimage.py
           sed -i 's|"https://github.com/AppImage/AppImageKit/releases/download/continuous/runtime-%s"|"https://github.com/AppImage/type2-runtime/releases/download/continuous/runtime-%s"|g' squashfs-root/usr/lib/python3.8/site-packages/appimagebuilder/modules/prime/appimage_primer.py
+          sed -i 's|"xz"|"gzip"|g' squashfs-root/usr/lib/python3.8/site-packages/appimagebuilder/modules/prime/appimage_primer.py
           ./appimagetool.AppImage squashfs-root appimage-builder.AppImage
           ./appimage-builder.AppImage --recipe=./AppImageBuilder.yml
           rm appimagetool.AppImage
