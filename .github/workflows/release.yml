@@ -150,9 +150,16 @@ jobs:
 
       - name: Build AppImage
         run: |
+          wget -O appimagetool.AppImage https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
+          chmod +x appimagetool.AppImage
           wget -O appimage-builder.AppImage https://github.com/AppImageCrafters/appimage-builder/releases/download/v1.1.0/appimage-builder-1.1.0-x86_64.AppImage
           chmod +x appimage-builder.AppImage
+          ./appimage-builder.AppImage --appimage-extract
+          sed -i 's|"https://github.com/AppImage/AppImageKit/releases/download/continuous/runtime-%s"|"https://github.com/AppImage/type2-runtime/releases/download/continuous/runtime-%s"|g' squashfs-root/usr/lib/python3.8/site-packages/appimagebuilder/modules/appimage.py
+          sed -i 's|"https://github.com/AppImage/AppImageKit/releases/download/continuous/runtime-%s"|"https://github.com/AppImage/type2-runtime/releases/download/continuous/runtime-%s"|g' squashfs-root/usr/lib/python3.8/site-packages/appimagebuilder/modules/prime/appimage_primer.py
+          ./appimagetool.AppImage squashfs-root appimage-builder.AppImage
           ./appimage-builder.AppImage --recipe=./AppImageBuilder.yml
+          rm appimagetool.AppImage
           rm appimage-builder.AppImage
 
       - name: Upload AppImage file
