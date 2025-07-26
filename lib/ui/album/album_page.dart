@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:crossonic/routing/router.gr.dart';
 import 'package:crossonic/ui/album/album_viewmodel.dart';
+import 'package:crossonic/ui/common/clickable_list_item.dart';
 import 'package:crossonic/ui/common/collection_page.dart';
 import 'package:crossonic/ui/common/cover_art_decorated.dart';
 import 'package:crossonic/ui/common/dialogs/add_to_playlist.dart';
@@ -26,6 +27,8 @@ class AlbumPage extends StatefulWidget {
 
 class _AlbumPageState extends State<AlbumPage> {
   late final AlbumViewModel _viewModel;
+
+  static final double discTitleExtent = 40;
 
   @override
   void initState() {
@@ -56,12 +59,9 @@ class _AlbumPageState extends State<AlbumPage> {
               return const Center(child: Icon(Icons.wifi_off));
             case FetchStatus.success:
           }
-          final album = _viewModel.album!;
-          final songs = _viewModel.album!.songs ?? [];
-          final showDiscs = songs.isNotEmpty &&
-              ((songs.last.discNr ?? 1) > 1 || album.discTitles.isNotEmpty);
+
           return CollectionPage(
-            name: album.name,
+            name: _viewModel.name,
             loadingDescription: _viewModel.description == null,
             description: (_viewModel.description ?? "").isNotEmpty
                 ? _viewModel.description
@@ -70,7 +70,7 @@ class _AlbumPageState extends State<AlbumPage> {
               placeholderIcon: Icons.album,
               borderRadius: BorderRadius.circular(10),
               isFavorite: _viewModel.favorite,
-              coverId: album.coverId,
+              coverId: _viewModel.coverId,
               menuOptions: [
                 ContextMenuOption(
                   title: "Play",
@@ -91,8 +91,8 @@ class _AlbumPageState extends State<AlbumPage> {
                   icon: Icons.playlist_play,
                   onSelected: () {
                     _viewModel.addToQueue(true);
-                    Toast.show(
-                        context, "Added '${album.name}' to priority queue");
+                    Toast.show(context,
+                        "Added '${_viewModel.name}' to priority queue");
                   },
                 ),
                 ContextMenuOption(
@@ -100,7 +100,7 @@ class _AlbumPageState extends State<AlbumPage> {
                   icon: Icons.playlist_add,
                   onSelected: () {
                     _viewModel.addToQueue(false);
-                    Toast.show(context, "Added '${album.name}' to queue");
+                    Toast.show(context, "Added '${_viewModel.name}' to queue");
                   },
                 ),
                 ContextMenuOption(
@@ -119,7 +119,8 @@ class _AlbumPageState extends State<AlbumPage> {
                   title: "Add to playlist",
                   icon: Icons.playlist_add,
                   onSelected: () {
-                    AddToPlaylistDialog.show(context, album.name, songs);
+                    AddToPlaylistDialog.show(
+                        context, _viewModel.name, _viewModel.songs);
                   },
                 ),
                 ContextMenuOption(
@@ -128,7 +129,7 @@ class _AlbumPageState extends State<AlbumPage> {
                   onSelected: () async {
                     final router = context.router;
                     final artistId = await ChooserDialog.chooseArtist(
-                        context, album.artists.toList());
+                        context, _viewModel.artists);
                     if (artistId == null) return;
                     router.push(ArtistRoute(artistId: artistId));
                   },
@@ -137,19 +138,19 @@ class _AlbumPageState extends State<AlbumPage> {
                   title: "Info",
                   icon: Icons.info_outline,
                   onSelected: () {
-                    MediaInfoDialog.showAlbum(context, album.id);
+                    MediaInfoDialog.showAlbum(context, _viewModel.id);
                   },
                 )
               ],
             ),
             extraInfo: [
               CollectionExtraInfo(
-                text: album.displayArtist +
-                    (album.year != null ? ' • ${album.year}' : ''),
+                text: _viewModel.displayArtist +
+                    (_viewModel.year != null ? ' • ${_viewModel.year}' : ''),
                 onClick: () async {
                   final router = context.router;
                   final artistId = await ChooserDialog.chooseArtist(
-                      context, album.artists.toList());
+                      context, _viewModel.artists);
                   if (artistId == null) return;
                   router.push(ArtistRoute(artistId: artistId));
                 },
@@ -170,7 +171,7 @@ class _AlbumPageState extends State<AlbumPage> {
                 onClick: () {
                   _viewModel.addToQueue(true);
                   Toast.show(
-                      context, "Added '${album.name}' to priority queue");
+                      context, "Added '${_viewModel.name}' to priority queue");
                 },
               ),
               CollectionAction(
@@ -178,125 +179,125 @@ class _AlbumPageState extends State<AlbumPage> {
                 icon: Icons.playlist_add,
                 onClick: () {
                   _viewModel.addToQueue(false);
-                  Toast.show(context, "Added '${album.name}' to queue");
+                  Toast.show(context, "Added '${_viewModel.name}' to queue");
                 },
               ),
             ],
-            contentTitle: "Tracks (${songs.length})",
-            content: Column(
-                children: List<Widget>.generate(songs.length, (index) {
-              final s = songs[index];
-              final listItem = SongListItem(
-                id: s.id,
-                title: s.title,
-                artist: s.displayArtist,
-                duration: s.duration,
-                trackNr: s.trackNr ?? index,
-                onAddToPlaylist: () {
-                  AddToPlaylistDialog.show(context, s.title, [s]);
-                },
-                onAddToQueue: (priority) {
-                  _viewModel.addSongToQueue(s, priority);
-                  Toast.show(context,
-                      "Added '${s.title}' to ${priority ? "priority " : ""}queue");
-                },
-                onGoToArtist: s.artists.isNotEmpty
-                    ? () async {
-                        final router = context.router;
-                        final artistId = await ChooserDialog.chooseArtist(
-                            context, s.artists.toList());
-                        if (artistId == null) return;
-                        router.push(ArtistRoute(artistId: artistId));
-                      }
-                    : null,
-                onTap: (ctrlPressed) {
-                  _viewModel.play(index, ctrlPressed);
-                },
-              );
-              if (showDiscs &&
-                  songs[index].discNr != null &&
-                  (index == 0 ||
-                      songs[index].discNr != songs[index - 1].discNr)) {
-                return Column(
-                  children: [
-                    Padding(
-                      padding: EdgeInsets.only(top: index == 0 ? 8 : 0),
-                      child: WithContextMenu(
-                        openOnTap: true,
-                        options: [
-                          ContextMenuOption(
-                            title: "Play",
-                            icon: Icons.play_arrow,
-                            onSelected: () =>
-                                _viewModel.playDisc(songs[index].discNr!),
-                          ),
-                          ContextMenuOption(
-                            title: "Shuffle",
-                            icon: Icons.shuffle,
-                            onSelected: () => _viewModel
-                                .playDisc(songs[index].discNr!, shuffle: true),
-                          ),
-                          ContextMenuOption(
-                            title: "Add to priority queue",
-                            icon: Icons.playlist_play,
-                            onSelected: () {
-                              _viewModel.addDiscToQueue(
-                                  songs[index].discNr!, true);
-                              Toast.show(context,
-                                  "Added '${album.discTitles[songs[index].discNr!] ?? "Disc ${songs[index].discNr}"}' to priority queue");
-                            },
-                          ),
-                          ContextMenuOption(
-                            title: "Add to queue",
-                            icon: Icons.playlist_add,
-                            onSelected: () {
-                              _viewModel.addDiscToQueue(
-                                  songs[index].discNr!, false);
-                              Toast.show(context,
-                                  "Added '${album.discTitles[songs[index].discNr!] ?? "Disc ${songs[index].discNr}"}' to queue");
-                            },
-                          ),
-                        ],
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 8),
-                          child: Row(
-                            children: [
-                              const Icon(Icons.album),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: OrientationBuilder(
-                                  builder: (context, orientation) => Text(
-                                    album.discTitles[songs[index].discNr!] ??
-                                        "Disc ${songs[index].discNr}",
-                                    textAlign: TextAlign.center,
-                                    overflow: TextOverflow.ellipsis,
-                                    maxLines: 1,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .titleMedium!
-                                        .copyWith(
-                                          fontWeight: orientation ==
-                                                  Orientation.portrait
-                                              ? FontWeight.w800
-                                              : FontWeight.bold,
-                                        ),
-                                  ),
+            contentTitle: "Tracks (${_viewModel.songs.length})",
+            contentSliver: SliverVariedExtentList.builder(
+              itemCount: _viewModel.listItems.length,
+              itemBuilder: (context, index) {
+                if (index >= _viewModel.listItems.length) return null;
+                if (_viewModel.listItems[index].$1 != null) {
+                  final discNr = _viewModel.listItems[index].$1!;
+                  return Padding(
+                    padding: EdgeInsets.only(top: index == 0 ? 8 : 0),
+                    child: WithContextMenu(
+                      openOnTap: true,
+                      options: [
+                        ContextMenuOption(
+                          title: "Play",
+                          icon: Icons.play_arrow,
+                          onSelected: () => _viewModel.playDisc(discNr),
+                        ),
+                        ContextMenuOption(
+                          title: "Shuffle",
+                          icon: Icons.shuffle,
+                          onSelected: () =>
+                              _viewModel.playDisc(discNr, shuffle: true),
+                        ),
+                        ContextMenuOption(
+                          title: "Add to priority queue",
+                          icon: Icons.playlist_play,
+                          onSelected: () {
+                            _viewModel.addDiscToQueue(discNr, true);
+                            Toast.show(context,
+                                "Added '${_viewModel.discTitles[discNr] ?? "Disc $discNr"}' to priority queue");
+                          },
+                        ),
+                        ContextMenuOption(
+                          title: "Add to queue",
+                          icon: Icons.playlist_add,
+                          onSelected: () {
+                            _viewModel.addDiscToQueue(discNr, false);
+                            Toast.show(context,
+                                "Added '${_viewModel.discTitles[discNr] ?? "Disc $discNr"}' to queue");
+                          },
+                        ),
+                      ],
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 8),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.album),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: OrientationBuilder(
+                                builder: (context, orientation) => Text(
+                                  _viewModel.discTitles[discNr] ??
+                                      "Disc $discNr",
+                                  textAlign: TextAlign.center,
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleMedium!
+                                      .copyWith(
+                                        fontWeight:
+                                            orientation == Orientation.portrait
+                                                ? FontWeight.w800
+                                                : FontWeight.bold,
+                                      ),
                                 ),
                               ),
-                              const SizedBox(width: 8),
-                              const Icon(Icons.album),
-                            ],
-                          ),
+                            ),
+                            const SizedBox(width: 8),
+                            const Icon(Icons.album),
+                          ],
                         ),
                       ),
                     ),
-                    listItem,
-                  ],
+                  );
+                }
+                final s = _viewModel.listItems[index].$2!.$1;
+                final songIndex = _viewModel.listItems[index].$2!.$2;
+                return SongListItem(
+                  id: s.id,
+                  title: s.title,
+                  artist: s.displayArtist,
+                  duration: s.duration,
+                  trackNr: s.trackNr ?? songIndex + 1,
+                  onAddToPlaylist: () {
+                    AddToPlaylistDialog.show(context, s.title, [s]);
+                  },
+                  onAddToQueue: (priority) {
+                    _viewModel.addSongToQueue(s, priority);
+                    Toast.show(context,
+                        "Added '${s.title}' to ${priority ? "priority " : ""}queue");
+                  },
+                  onGoToArtist: s.artists.isNotEmpty
+                      ? () async {
+                          final router = context.router;
+                          final artistId = await ChooserDialog.chooseArtist(
+                              context, s.artists.toList());
+                          if (artistId == null) return;
+                          router.push(ArtistRoute(artistId: artistId));
+                        }
+                      : null,
+                  onTap: (ctrlPressed) {
+                    _viewModel.play(songIndex, ctrlPressed);
+                  },
                 );
-              }
-              return listItem;
-            })),
+              },
+              itemExtentBuilder: (index, dimensions) {
+                if (index >= _viewModel.listItems.length) return null;
+                if (_viewModel.listItems[index].$1 != null) {
+                  return discTitleExtent + (index == 0 ? 8 : 0);
+                }
+                return ClickableListItem.verticalExtent;
+              },
+            ),
           );
         },
       ),

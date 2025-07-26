@@ -252,7 +252,7 @@ class SongLeadingWidget extends StatelessWidget {
       );
     }
     leading = Padding(
-      padding: const EdgeInsets.only(left: 8),
+      padding: const EdgeInsets.only(left: 4),
       child: SizedBox(
         width: 40,
         height: 40,
@@ -266,7 +266,7 @@ class SongLeadingWidget extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             const Padding(
-              padding: EdgeInsets.only(left: 8),
+              padding: EdgeInsets.only(left: 4),
               child: Icon(Icons.drag_handle),
             ),
             leading,
