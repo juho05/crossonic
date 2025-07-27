@@ -129,7 +129,7 @@ class LocalQueue extends ChangeNotifier implements MediaQueue {
       throw IndexError.withLength(index, _priorityQueue.length,
           message: "index out of bounds");
     }
-    while (index > 0) {
+    for (; index > 0; index--) {
       _priorityQueue.removeFirst();
     }
     _currentChanged(_priorityQueue.removeFirst());

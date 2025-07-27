@@ -33,92 +33,95 @@ class ClickableListItem extends StatelessWidget {
     return LayoutBuilder(builder: (context, constraints) {
       return SizedBox(
         height: verticalExtent,
-        child: InkWell(
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: Row(
-              children: [
-                if (leading != null) leading!,
-                if (leading != null) const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        title,
-                        style: textTheme.bodyMedium!.copyWith(
-                          fontSize: 15,
-                          fontWeight:
-                              titleBold ? FontWeight.w600 : FontWeight.w400,
+        child: Material(
+          child: InkWell(
+            onTap: onTap,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: Row(
+                children: [
+                  if (leading != null) leading!,
+                  if (leading != null) const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          title,
+                          style: textTheme.bodyMedium!.copyWith(
+                            fontSize: 15,
+                            fontWeight:
+                                titleBold ? FontWeight.w600 : FontWeight.w400,
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      if (extraInfo.isNotEmpty ||
-                          downloadStatus != DownloadStatus.none)
-                        Row(
-                          spacing: 2,
-                          children: [
-                            if (downloadStatus == DownloadStatus.downloaded)
-                              Icon(
-                                Icons.download_for_offline_outlined,
-                                color: Theme.of(context).colorScheme.primary,
-                                size: 15,
+                        if (extraInfo.isNotEmpty ||
+                            downloadStatus != DownloadStatus.none)
+                          Row(
+                            spacing: 2,
+                            children: [
+                              if (downloadStatus == DownloadStatus.downloaded)
+                                Icon(
+                                  Icons.download_for_offline_outlined,
+                                  color: Theme.of(context).colorScheme.primary,
+                                  size: 15,
+                                ),
+                              if (downloadStatus == DownloadStatus.downloading)
+                                Icon(
+                                  Icons.downloading_outlined,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .surfaceContainerHighest,
+                                  size: 15,
+                                ),
+                              if (downloadStatus == DownloadStatus.enqueued)
+                                Icon(
+                                  Icons.schedule,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .surfaceContainerHighest,
+                                  size: 15,
+                                ),
+                              Expanded(
+                                child: Text(
+                                  extraInfo.join(" • "),
+                                  style: textTheme.bodySmall!.copyWith(
+                                      fontWeight: FontWeight.w300,
+                                      fontSize: 12),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               ),
-                            if (downloadStatus == DownloadStatus.downloading)
-                              Icon(
-                                Icons.downloading_outlined,
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .surfaceContainerHighest,
-                                size: 15,
-                              ),
-                            if (downloadStatus == DownloadStatus.enqueued)
-                              Icon(
-                                Icons.schedule,
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .surfaceContainerHighest,
-                                size: 15,
-                              ),
-                            Expanded(
-                              child: Text(
-                                extraInfo.join(" • "),
-                                style: textTheme.bodySmall!.copyWith(
-                                    fontWeight: FontWeight.w300, fontSize: 12),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ),
-                    ],
-                  ),
-                ),
-                const SizedBox(
-                  width: 4,
-                ),
-                if (isFavorite)
-                  const Padding(
-                    padding: EdgeInsets.only(right: 4),
-                    child: Icon(Icons.favorite, size: 15),
-                  ),
-                if (trailingInfo != null && constraints.maxWidth > 320)
-                  Padding(
-                    padding: const EdgeInsets.only(left: 8),
-                    child: Text(
-                      trailingInfo!,
-                      style: textTheme.bodySmall!.copyWith(
-                        fontFeatures: [const FontFeature.tabularFigures()],
-                      ),
+                            ],
+                          ),
+                      ],
                     ),
                   ),
-                if (trailing != null)
-                  Padding(
-                    padding: const EdgeInsets.only(left: 4),
-                    child: trailing!,
+                  const SizedBox(
+                    width: 4,
                   ),
-              ],
+                  if (isFavorite)
+                    const Padding(
+                      padding: EdgeInsets.only(right: 4),
+                      child: Icon(Icons.favorite, size: 15),
+                    ),
+                  if (trailingInfo != null && constraints.maxWidth > 320)
+                    Padding(
+                      padding: const EdgeInsets.only(left: 8),
+                      child: Text(
+                        trailingInfo!,
+                        style: textTheme.bodySmall!.copyWith(
+                          fontFeatures: [const FontFeature.tabularFigures()],
+                        ),
+                      ),
+                    ),
+                  if (trailing != null)
+                    Padding(
+                      padding: const EdgeInsets.only(left: 4),
+                      child: trailing!,
+                    ),
+                ],
+              ),
             ),
           ),
         ),

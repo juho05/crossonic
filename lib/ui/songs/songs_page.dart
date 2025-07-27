@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:crossonic/routing/router.gr.dart';
 import 'package:crossonic/ui/common/buttons.dart';
+import 'package:crossonic/ui/common/clickable_list_item.dart';
 import 'package:crossonic/ui/common/dialogs/add_to_playlist.dart';
 import 'package:crossonic/ui/common/dialogs/chooser.dart';
 import 'package:crossonic/ui/common/song_list_item.dart';
@@ -68,22 +69,16 @@ class _SongsPageState extends State<SongsPage> {
           listenable: _viewModel,
           builder: (context, _) {
             return OrientationBuilder(builder: (context, orientation) {
-              return ListView.builder(
+              return CustomScrollView(
                 controller: _controller,
-                itemCount: 2 +
-                    _viewModel.songs.length +
-                    (_viewModel.status == FetchStatus.success &&
-                            _viewModel.songs.isNotEmpty
-                        ? 0
-                        : 1),
-                itemBuilder: (context, index) {
-                  if (index == 0) {
-                    if (_viewModel.mode == SongsPageMode.genre) {
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 4,
-                        ),
+                slivers: [
+                  if (_viewModel.mode == SongsPageMode.genre)
+                    SliverPadding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      sliver: SliverToBoxAdapter(
                         child: Text(
                           "Genre: ${widget.genre}",
                           overflow: TextOverflow.ellipsis,
@@ -93,10 +88,12 @@ class _SongsPageState extends State<SongsPage> {
                                     fontSize: 18,
                                   ),
                         ),
-                      );
-                    } else {
-                      return Padding(
-                        padding: const EdgeInsets.all(8.0),
+                      ),
+                    ),
+                  if (_viewModel.mode != SongsPageMode.genre)
+                    SliverPadding(
+                      padding: const EdgeInsets.all(8.0),
+                      sliver: SliverToBoxAdapter(
                         child: Align(
                           alignment: Alignment.centerLeft,
                           child: DropdownMenu<SongsPageMode>(
@@ -128,15 +125,14 @@ class _SongsPageState extends State<SongsPage> {
                             },
                           ),
                         ),
-                      );
-                    }
-                  }
-                  if (index == 1) {
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 10,
                       ),
+                    ),
+                  SliverPadding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
+                    sliver: SliverToBoxAdapter(
                       child: Wrap(
                         spacing: 8,
                         runSpacing: 8,
@@ -173,61 +169,67 @@ class _SongsPageState extends State<SongsPage> {
                           ),
                         ],
                       ),
-                    );
-                  }
-                  index -= 2;
-                  if (index == 0 &&
-                      _viewModel.status == FetchStatus.success &&
-                      _viewModel.songs.isEmpty) {
-                    return const Text("No songs available");
-                  }
-                  if (index == _viewModel.songs.length) {
-                    return switch (_viewModel.status) {
-                      FetchStatus.success => null,
-                      FetchStatus.failure => const Center(
-                          child: Icon(Icons.wifi_off),
-                        ),
-                      _ => const Center(
-                          child: CircularProgressIndicator.adaptive(),
-                        ),
-                    };
-                  }
-                  final s = _viewModel.songs[index];
-                  return SongListItem(
-                    id: s.id,
-                    title: s.title,
-                    artist: s.displayArtist,
-                    coverId: s.coverId,
-                    duration: s.duration,
-                    year: s.year,
-                    onTap: (ctrlPressed) {
-                      _viewModel.play(index, ctrlPressed);
+                    ),
+                  ),
+                  SliverFixedExtentList.builder(
+                    itemBuilder: (context, index) {
+                      final s = _viewModel.songs[index];
+                      return SongListItem(
+                        id: s.id,
+                        title: s.title,
+                        artist: s.displayArtist,
+                        coverId: s.coverId,
+                        duration: s.duration,
+                        year: s.year,
+                        onTap: (ctrlPressed) {
+                          _viewModel.play(index, ctrlPressed);
+                        },
+                        onAddToQueue: (priority) {
+                          _viewModel.addToQueue(s, priority);
+                          Toast.show(context,
+                              "Added '${s.title}' to ${priority ? "priority " : ""}queue");
+                        },
+                        onAddToPlaylist: () {
+                          AddToPlaylistDialog.show(context, s.title, [s]);
+                        },
+                        onGoToAlbum: s.album != null
+                            ? () {
+                                context.router
+                                    .push(AlbumRoute(albumId: s.album!.id));
+                              }
+                            : null,
+                        onGoToArtist: s.artists.isNotEmpty
+                            ? () async {
+                                final artistId =
+                                    await ChooserDialog.chooseArtist(
+                                        context, s.artists.toList());
+                                if (artistId == null || !context.mounted) {
+                                  return;
+                                }
+                                context.router
+                                    .push(ArtistRoute(artistId: artistId));
+                              }
+                            : null,
+                      );
                     },
-                    onAddToQueue: (priority) {
-                      _viewModel.addToQueue(s, priority);
-                      Toast.show(context,
-                          "Added '${s.title}' to ${priority ? "priority " : ""}queue");
-                    },
-                    onAddToPlaylist: () {
-                      AddToPlaylistDialog.show(context, s.title, [s]);
-                    },
-                    onGoToAlbum: s.album != null
-                        ? () {
-                            context.router
-                                .push(AlbumRoute(albumId: s.album!.id));
-                          }
-                        : null,
-                    onGoToArtist: s.artists.isNotEmpty
-                        ? () async {
-                            final artistId = await ChooserDialog.chooseArtist(
-                                context, s.artists.toList());
-                            if (artistId == null || !context.mounted) return;
-                            context.router
-                                .push(ArtistRoute(artistId: artistId));
-                          }
-                        : null,
-                  );
-                },
+                    itemExtent: ClickableListItem.verticalExtent,
+                    itemCount: _viewModel.songs.length,
+                  ),
+                  if (_viewModel.status == FetchStatus.success &&
+                      _viewModel.songs.isEmpty)
+                    const SliverToBoxAdapter(child: Text("No songs available")),
+                  if (_viewModel.status == FetchStatus.failure)
+                    const SliverToBoxAdapter(
+                      child: Center(
+                        child: Icon(Icons.wifi_off),
+                      ),
+                    ),
+                  if (_viewModel.status == FetchStatus.loading)
+                    const SliverToBoxAdapter(
+                      child:
+                          Center(child: CircularProgressIndicator.adaptive()),
+                    ),
+                ],
               );
             });
           }),

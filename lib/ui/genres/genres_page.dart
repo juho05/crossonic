@@ -34,6 +34,7 @@ class _GenresPageState extends State<GenresPage> {
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
     return Material(
       child: ListenableBuilder(
         listenable: _viewModel,
@@ -52,14 +53,12 @@ class _GenresPageState extends State<GenresPage> {
                 _viewModel.largestAlbumCount.toString().length * 10;
             final songTextSize =
                 _viewModel.largestSongCount.toString().length * 10;
-            return ListView.builder(
-              itemCount: _viewModel.genres.length + 1,
-              itemBuilder: (context, index) {
-                if (index == 0) {
-                  final textTheme = Theme.of(context).textTheme;
-                  return Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+            return CustomScrollView(
+              slivers: [
+                SliverPadding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  sliver: SliverToBoxAdapter(
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -98,88 +97,105 @@ class _GenresPageState extends State<GenresPage> {
                         ),
                       ],
                     ),
-                  );
-                } else {
-                  index--;
-                }
-                final g = _viewModel.genres[index];
-                return ListTile(
-                  title: Text(g.name),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    spacing: 8,
-                    children: [
-                      SizedBox(
-                        width: orientation == Orientation.landscape
-                            ? albumTextSize + 100
-                            : albumTextSize + 50,
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(5),
-                          child: Material(
-                            color:
-                                Theme.of(context).colorScheme.surfaceContainer,
-                            child: InkWell(
-                              onTap: () {
-                                context.router.push(AlbumsRoute(
-                                  mode: AlbumsPageMode.genre.name,
-                                  genre: g.name,
-                                ));
-                              },
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Row(
-                                  spacing: 4,
-                                  children: [
-                                    const Icon(Icons.album),
-                                    if (orientation == Orientation.landscape)
-                                      Text("Releases: ${g.albumCount}")
-                                    else
-                                      Text("${g.albumCount}")
-                                  ],
-                                ),
+                  ),
+                ),
+                SliverPadding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  sliver: SliverFixedExtentList.builder(
+                    itemCount: _viewModel.genres.length,
+                    itemExtent: 48,
+                    itemBuilder: (context, index) {
+                      final g = _viewModel.genres[index];
+                      return Material(
+                        child: Row(
+                          spacing: 8,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                g.name,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style:
+                                    textTheme.bodyLarge!.copyWith(fontSize: 16),
                               ),
                             ),
-                          ),
-                        ),
-                      ),
-                      SizedBox(
-                          width: orientation == Orientation.landscape
-                              ? songTextSize + 110
-                              : songTextSize + 60,
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(5),
-                            child: Material(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .surfaceContainer,
-                              child: InkWell(
-                                onTap: () {
-                                  context.router.push(SongsRoute(
-                                    mode: SongsPageMode.genre.name,
-                                    genre: g.name,
-                                  ));
-                                },
-                                child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Row(
-                                    spacing: 4,
-                                    children: [
-                                      const Icon(Icons.music_note),
-                                      if (orientation == Orientation.landscape)
-                                        Text("Songs: ${g.songCount}")
-                                      else
-                                        Text("${g.songCount}")
-                                    ],
+                            SizedBox(
+                              width: orientation == Orientation.landscape
+                                  ? albumTextSize + 100
+                                  : albumTextSize + 50,
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(5),
+                                child: Material(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .surfaceContainer,
+                                  child: InkWell(
+                                    onTap: () {
+                                      context.router.push(AlbumsRoute(
+                                        mode: AlbumsPageMode.genre.name,
+                                        genre: g.name,
+                                      ));
+                                    },
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Row(
+                                        spacing: 4,
+                                        children: [
+                                          const Icon(Icons.album),
+                                          if (orientation ==
+                                              Orientation.landscape)
+                                            Text("Releases: ${g.albumCount}")
+                                          else
+                                            Text("${g.albumCount}")
+                                        ],
+                                      ),
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
-                          )),
-                    ],
+                            SizedBox(
+                                width: orientation == Orientation.landscape
+                                    ? songTextSize + 110
+                                    : songTextSize + 60,
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(5),
+                                  child: Material(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .surfaceContainer,
+                                    child: InkWell(
+                                      onTap: () {
+                                        context.router.push(SongsRoute(
+                                          mode: SongsPageMode.genre.name,
+                                          genre: g.name,
+                                        ));
+                                      },
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Row(
+                                          spacing: 4,
+                                          children: [
+                                            const Icon(Icons.music_note),
+                                            if (orientation ==
+                                                Orientation.landscape)
+                                              Text("Songs: ${g.songCount}")
+                                            else
+                                              Text("${g.songCount}")
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                )),
+                          ],
+                        ),
+                      );
+                    },
                   ),
-                );
-              },
+                )
+              ],
             );
           });
         },
