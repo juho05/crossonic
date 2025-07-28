@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:crossonic/app_shortcuts.dart';
 import 'package:crossonic/config/providers.dart';
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
+import 'package:crossonic/data/repositories/linux_theme_detector/linux_theme_detector.dart';
 import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/routing/router.dart';
 import 'package:crossonic/window_listener.dart';
@@ -72,24 +73,30 @@ class MainApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final authRepository = context.read<AuthRepository>();
+    final linuxThemeDetector = context.read<LinuxThemeDetector>();
     return DynamicColorBuilder(
       builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) {
-        return MaterialApp.router(
-          title: "Crossonic",
-          restorationScopeId: "crossonic_app",
-          theme: ThemeData(
-            useMaterial3: true,
-            colorScheme: lightDynamic ?? defaultLightColorScheme,
-          ),
-          darkTheme: ThemeData(
-            useMaterial3: true,
-            colorScheme: darkDynamic ?? defaultDarkColorScheme,
-          ),
-          debugShowCheckedModeBanner: false,
-          routerConfig: AppRouter(authRepository: authRepository).config(
-            reevaluateListenable: authRepository,
-          ),
-        );
+        return ListenableBuilder(
+            listenable: linuxThemeDetector,
+            builder: (context, _) {
+              return MaterialApp.router(
+                title: "Crossonic",
+                restorationScopeId: "crossonic_app",
+                theme: ThemeData(
+                  useMaterial3: true,
+                  colorScheme: lightDynamic ?? defaultLightColorScheme,
+                ),
+                darkTheme: ThemeData(
+                  useMaterial3: true,
+                  colorScheme: darkDynamic ?? defaultDarkColorScheme,
+                ),
+                themeMode: linuxThemeDetector.themeMode,
+                debugShowCheckedModeBanner: false,
+                routerConfig: AppRouter(authRepository: authRepository).config(
+                  reevaluateListenable: authRepository,
+                ),
+              );
+            });
       },
     );
   }

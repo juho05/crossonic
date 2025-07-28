@@ -9,6 +9,7 @@ import 'package:crossonic/data/repositories/audio/audio_handler.dart' as ah;
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
 import 'package:crossonic/data/repositories/cover/cover_repository.dart';
 import 'package:crossonic/data/repositories/keyvalue/key_value_repository.dart';
+import 'package:crossonic/data/repositories/linux_theme_detector/linux_theme_detector.dart';
 import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/data/repositories/playlist/downloader_storage.dart';
 import 'package:crossonic/data/repositories/playlist/playlist_repository.dart';
@@ -136,6 +137,9 @@ Future<List<SingleChildWidget>> get providers async {
   await audioSession.configure(const AudioSessionConfiguration.music());
 
   return [
+    ChangeNotifierProvider(
+      create: (context) => LinuxThemeDetector(keyValue: keyValueRepository),
+    ),
     Provider.value(
       value: database,
     ),
