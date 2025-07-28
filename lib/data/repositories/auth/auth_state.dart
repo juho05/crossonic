@@ -1,19 +1,18 @@
 import 'dart:convert';
 import 'dart:math';
+import 'package:crossonic/data/repositories/auth/encrypted_storage.dart';
 import 'package:crossonic/data/services/opensubsonic/auth.dart';
 import 'package:crypto/crypto.dart';
-
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 abstract class AuthState extends SubsonicAuth {
   String get username;
 
   static const String storageKey = "auth_state";
 
-  Future<void> persist(FlutterSecureStorage storage);
+  Future<void> persist(EncryptedStorage storage);
 
-  static Future<AuthState?> load(FlutterSecureStorage storage) async {
-    final data = await storage.read(key: "auth_state");
+  static Future<AuthState?> load(EncryptedStorage storage) async {
+    final data = await storage.read("auth_state");
     if (data == null) {
       return null;
     }
@@ -28,8 +27,8 @@ abstract class AuthState extends SubsonicAuth {
     };
   }
 
-  static Future<void> clear(FlutterSecureStorage storage) {
-    return storage.delete(key: storageKey);
+  static Future<void> clear(EncryptedStorage storage) {
+    return storage.delete(storageKey);
   }
 }
 
@@ -61,9 +60,8 @@ class AuthStatePassword extends AuthState {
   }
 
   @override
-  Future<void> persist(FlutterSecureStorage storage) {
-    return storage.write(
-        key: AuthState.storageKey, value: jsonEncode(toJson()));
+  Future<void> persist(EncryptedStorage storage) {
+    return storage.write(AuthState.storageKey, jsonEncode(toJson()));
   }
 
   @override
@@ -101,9 +99,8 @@ class AuthStateToken extends AuthState {
   }
 
   @override
-  Future<void> persist(FlutterSecureStorage storage) {
-    return storage.write(
-        key: AuthState.storageKey, value: jsonEncode(toJson()));
+  Future<void> persist(EncryptedStorage storage) {
+    return storage.write(AuthState.storageKey, jsonEncode(toJson()));
   }
 
   @override
@@ -163,9 +160,8 @@ class AuthStateApiKey extends AuthState {
   }
 
   @override
-  Future<void> persist(FlutterSecureStorage storage) {
-    return storage.write(
-        key: AuthState.storageKey, value: jsonEncode(toJson()));
+  Future<void> persist(EncryptedStorage storage) {
+    return storage.write(AuthState.storageKey, jsonEncode(toJson()));
   }
 
   @override

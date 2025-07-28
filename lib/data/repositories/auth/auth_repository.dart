@@ -1,4 +1,9 @@
+import 'dart:io';
+
 import 'package:crossonic/data/repositories/auth/auth_state.dart';
+import 'package:crossonic/data/repositories/auth/encrypted_storage.dart';
+import 'package:crossonic/data/repositories/auth/encrypted_storage_linux.dart';
+import 'package:crossonic/data/repositories/auth/encrypted_storage_secure_storage.dart';
 import 'package:crossonic/data/repositories/auth/exceptions.dart';
 import 'package:crossonic/data/repositories/auth/models/server_features.dart';
 import 'package:crossonic/data/repositories/keyvalue/key_value_repository.dart';
@@ -12,14 +17,13 @@ import 'package:crossonic/data/services/opensubsonic/models/server_info.dart';
 import 'package:crossonic/data/services/opensubsonic/subsonic_service.dart';
 import 'package:crossonic/utils/exceptions.dart';
 import 'package:crossonic/utils/result.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter/foundation.dart';
 
 class AuthRepository extends ChangeNotifier {
-  final FlutterSecureStorage _secureStorage;
   final SubsonicService _openSubsonicService;
   final KeyValueRepository _keyValue;
   final Database _database;
+  final EncryptedStorage _storage;
 
   Uri? _serverUri;
   AuthState? _state;
@@ -41,10 +45,12 @@ class AuthRepository extends ChangeNotifier {
     required SubsonicService openSubsonicService,
     required KeyValueRepository keyValueRepository,
     required Database database,
-  })  : _secureStorage = const FlutterSecureStorage(),
-        _keyValue = keyValueRepository,
+  })  : _keyValue = keyValueRepository,
         _database = database,
-        _openSubsonicService = openSubsonicService;
+        _openSubsonicService = openSubsonicService,
+        _storage = kIsWeb || !Platform.isLinux
+            ? EncryptedStorageSecureStorage()
+            : EncryptedStorageLinux(keyValueRepo: keyValueRepository);
 
   static const _serverUriKey = "server_uri";
   static const _serverFeaturesKey = "server_features";
@@ -59,7 +65,7 @@ class AuthRepository extends ChangeNotifier {
     }
     _serverUri = Uri.parse(uri);
     _serverFeatures = serverFeatures;
-    _state = await AuthState.load(_secureStorage);
+    _state = await AuthState.load(_storage);
 
     notifyListeners();
 
@@ -297,9 +303,9 @@ class AuthRepository extends ChangeNotifier {
       await _keyValue.remove(_serverFeaturesKey);
     }
     if (_state != null) {
-      await _state!.persist(_secureStorage);
+      await _state!.persist(_storage);
     } else {
-      await AuthState.clear(_secureStorage);
+      await AuthState.clear(_storage);
     }
   }
 

@@ -70,6 +70,10 @@ class KeyValueRepository {
         .map((e) => fromJson(e));
   }
 
+  Future<Iterable<String>> keys() async {
+    return (await _db.managers.keyValueTable.get()).map((kv) => kv.key);
+  }
+
   Future<String?> _loadValue(String key) async {
     return (await _db.managers.keyValueTable
             .filter((kv) => kv.key(key))
