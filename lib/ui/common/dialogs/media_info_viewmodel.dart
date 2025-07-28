@@ -15,8 +15,8 @@ class MediaInfoDialogViewModel extends ChangeNotifier {
   String _name = "";
   String get name => _name;
 
-  List<(String, String)> _fields = const [];
-  List<(String, String)> get fields => _fields;
+  List<(String, String, Uri?)> _fields = const [];
+  List<(String, String, Uri?)> get fields => _fields;
 
   MediaInfoDialogViewModel.song({
     required SubsonicService subsonicService,
@@ -71,43 +71,55 @@ class MediaInfoDialogViewModel extends ChangeNotifier {
     _name = s.title;
 
     _fields = [
-      ("ID", s.id),
-      if (s.musicBrainzId != null) ("MBID", s.musicBrainzId!),
+      ("ID", s.id, null),
+      if (s.musicBrainzId != null)
+        (
+          "MBID",
+          s.musicBrainzId!,
+          _mbidToUrlIfCrossonic(s.musicBrainzId!, "recording"),
+        ),
       if (s.duration != null)
-        ("Duration", formatDuration(Duration(seconds: s.duration!))),
-      if (s.playCount != null) ("Play count", s.playCount.toString()),
-      if (s.played != null) ("Last played", formatDateTime(s.played!)),
-      if (s.starred != null) ("Favorited", formatDateTime(s.starred!)),
-      if (s.userRating != null) ("User rating", s.userRating.toString()),
+        ("Duration", formatDuration(Duration(seconds: s.duration!)), null),
+      if (s.playCount != null) ("Play count", s.playCount.toString(), null),
+      if (s.played != null) ("Last played", formatDateTime(s.played!), null),
+      if (s.starred != null) ("Favorited", formatDateTime(s.starred!), null),
+      if (s.userRating != null) ("User rating", s.userRating.toString(), null),
       if (s.averageRating != null)
         (
           "Average rating",
           formatDouble(s.averageRating!),
+          null,
         ),
       if ((s.genres == null || s.genres!.isEmpty) && s.genre != null)
-        ("Genres", s.genre!),
+        ("Genres", s.genre!, null),
       if (s.genres != null && s.genres!.isNotEmpty)
-        ("Genres", s.genres!.map((g) => g.name).join(", ")),
-      if (s.year != null) ("Year", s.year.toString()),
-      if (s.sortName != null) ("Sort name", s.sortName!),
+        ("Genres", s.genres!.map((g) => g.name).join(", "), null),
+      if (s.year != null) ("Year", s.year.toString(), null),
+      if (s.sortName != null) ("Sort name", s.sortName!, null),
       if (s.moods != null && s.moods!.isNotEmpty)
-        ("Moods", s.moods!.join(", ")),
+        ("Moods", s.moods!.join(", "), null),
       if (s.explicitStatus != null)
-        ("Explicit", formatBoolToYesNo(s.explicitStatus == "explicit")),
-      if (s.contentType != null) ("Content type", s.contentType!),
-      if (s.bitRate != null) ("Bitrate", "${s.bitRate!} kbps"),
-      if (s.samplingRate != null) ("Sample rate", "${s.samplingRate!} Hz"),
-      if (s.bitDepth != null) ("Bit depth", "${s.bitDepth!} bit"),
-      if (s.channelCount != null) ("Channels", s.channelCount!.toString()),
-      if (s.bpm != null) ("BPM", s.bpm!.toString()),
+        ("Explicit", formatBoolToYesNo(s.explicitStatus == "explicit"), null),
+      if (s.contentType != null) ("Content type", s.contentType!, null),
+      if (s.bitRate != null) ("Bitrate", "${s.bitRate!} kbps", null),
+      if (s.samplingRate != null)
+        ("Sample rate", "${s.samplingRate!} Hz", null),
+      if (s.bitDepth != null) ("Bit depth", "${s.bitDepth!} bit", null),
+      if (s.channelCount != null)
+        ("Channels", s.channelCount!.toString(), null),
+      if (s.bpm != null) ("BPM", s.bpm!.toString(), null),
       if (s.replayGain != null && s.replayGain!.trackGain != null)
-        ("Track gain", "${formatDouble(s.replayGain!.trackGain!)} dB"),
+        ("Track gain", "${formatDouble(s.replayGain!.trackGain!)} dB", null),
       if (s.replayGain != null && s.replayGain!.trackGain != null)
-        ("Album gain", "${formatDouble(s.replayGain!.albumGain!)} dB"),
+        ("Album gain", "${formatDouble(s.replayGain!.albumGain!)} dB", null),
       if (s.replayGain != null && s.replayGain!.fallbackGain != null)
-        ("Fallback gain", "${formatDouble(s.replayGain!.fallbackGain!)} dB"),
+        (
+          "Fallback gain",
+          "${formatDouble(s.replayGain!.fallbackGain!)} dB",
+          null
+        ),
       if (s.size != null)
-        ("Size", "${formatDouble(s.size! / 1000000.0, precision: 2)} MB")
+        ("Size", "${formatDouble(s.size! / 1000000.0, precision: 2)} MB", null)
     ];
 
     _status = FetchStatus.success;
@@ -131,24 +143,31 @@ class MediaInfoDialogViewModel extends ChangeNotifier {
     _name = a.name;
 
     _fields = [
-      ("ID", a.id),
-      if (a.musicBrainzId != null) ("MBID", a.musicBrainzId!),
-      ("Duration", formatDuration(Duration(seconds: a.duration))),
-      ("Song count", a.songCount.toString()),
-      if (a.playCount != null) ("Play count", a.playCount.toString()),
-      if (a.played != null) ("Last played", formatDateTime(a.played!)),
-      if (a.starred != null) ("Favorited", formatDateTime(a.starred!)),
-      if (a.userRating != null) ("User rating", a.userRating.toString()),
+      ("ID", a.id, null),
+      if (a.musicBrainzId != null)
+        (
+          "MBID",
+          a.musicBrainzId!,
+          _mbidToUrlIfCrossonic(a.musicBrainzId!, "release-group")
+        ),
+      ("Duration", formatDuration(Duration(seconds: a.duration)), null),
+      ("Song count", a.songCount.toString(), null),
+      if (a.playCount != null) ("Play count", a.playCount.toString(), null),
+      if (a.played != null) ("Last played", formatDateTime(a.played!), null),
+      if (a.starred != null) ("Favorited", formatDateTime(a.starred!), null),
+      if (a.userRating != null) ("User rating", a.userRating.toString(), null),
       if ((a.genres == null || a.genres!.isEmpty) && a.genre != null)
-        ("Genres", a.genre!),
+        ("Genres", a.genre!, null),
       if (a.genres != null && a.genres!.isNotEmpty)
-        ("Genres", a.genres!.map((g) => g.name).join(", ")),
-      if (a.releaseDate == null && a.year != null) ("Year", a.year.toString()),
+        ("Genres", a.genres!.map((g) => g.name).join(", "), null),
+      if (a.releaseDate == null && a.year != null)
+        ("Year", a.year.toString(), null),
       if (a.releaseDate != null)
         (
           "Release date",
           formatDate(DateTime(a.releaseDate!.year ?? 0,
-              a.releaseDate!.month ?? 1, a.releaseDate!.day ?? 1))
+              a.releaseDate!.month ?? 1, a.releaseDate!.day ?? 1)),
+          null,
         ),
       if (a.originalReleaseDate != null)
         (
@@ -157,17 +176,18 @@ class MediaInfoDialogViewModel extends ChangeNotifier {
               a.originalReleaseDate!.year ?? 0,
               a.originalReleaseDate!.month ?? 1,
               a.originalReleaseDate!.day ?? 1)),
+          null,
         ),
-      ("Compilation", formatBoolToYesNo(a.isCompilation ?? false)),
-      if (a.sortName != null) ("Sort name", a.sortName!),
+      ("Compilation", formatBoolToYesNo(a.isCompilation ?? false), null),
+      if (a.sortName != null) ("Sort name", a.sortName!, null),
       if (a.releaseTypes != null && a.releaseTypes!.isNotEmpty)
-        ("Release types", a.releaseTypes!.join(", ")),
+        ("Release types", a.releaseTypes!.join(", "), null),
       if (a.moods != null && a.moods!.isNotEmpty)
-        ("Moods", a.moods!.join(", ")),
+        ("Moods", a.moods!.join(", "), null),
       if (a.recordLabels != null && a.recordLabels!.isNotEmpty)
-        ("Record labels", a.recordLabels!.map((l) => l.name).join(", ")),
+        ("Record labels", a.recordLabels!.map((l) => l.name).join(", "), null),
       if (a.explicitStatus != null)
-        ("Explicit", formatBoolToYesNo(a.explicitStatus == "explicit")),
+        ("Explicit", formatBoolToYesNo(a.explicitStatus == "explicit"), null),
     ];
 
     _status = FetchStatus.success;
@@ -191,14 +211,19 @@ class MediaInfoDialogViewModel extends ChangeNotifier {
     _name = a.name;
 
     _fields = [
-      ("ID", a.id),
-      if (a.musicBrainzId != null) ("MBID", a.musicBrainzId!),
-      if (a.albumCount != null) ("Album count", a.albumCount.toString()),
-      if (a.starred != null) ("Favorited", formatDateTime(a.starred!)),
-      if (a.userRating != null) ("User rating", a.userRating.toString()),
-      if (a.sortName != null) ("Sort name", a.sortName!),
+      ("ID", a.id, null),
+      if (a.musicBrainzId != null)
+        (
+          "MBID",
+          a.musicBrainzId!,
+          _mbidToUrlIfCrossonic(a.musicBrainzId!, "artist")
+        ),
+      if (a.albumCount != null) ("Album count", a.albumCount.toString(), null),
+      if (a.starred != null) ("Favorited", formatDateTime(a.starred!), null),
+      if (a.userRating != null) ("User rating", a.userRating.toString(), null),
+      if (a.sortName != null) ("Sort name", a.sortName!, null),
       if (a.roles != null && a.roles!.isNotEmpty)
-        ("Roles", a.roles!.join(", ")),
+        ("Roles", a.roles!.join(", "), null),
     ];
 
     _status = FetchStatus.success;
@@ -222,16 +247,25 @@ class MediaInfoDialogViewModel extends ChangeNotifier {
     _name = p.name;
 
     _fields = [
-      ("ID", p.id),
-      ("Created", formatDateTime(p.created)),
-      ("Updated", formatDateTime(p.changed)),
-      ("Song count", p.songCount.toString()),
-      ("Duration", formatDuration(Duration(seconds: p.duration))),
-      if (p.public != null) ("Public", formatBoolToYesNo(p.public!)),
-      if (p.owner != null) ("Owner", p.owner!),
+      ("ID", p.id, null),
+      ("Created", formatDateTime(p.created), null),
+      ("Updated", formatDateTime(p.changed), null),
+      ("Song count", p.songCount.toString(), null),
+      ("Duration", formatDuration(Duration(seconds: p.duration)), null),
+      if (p.public != null) ("Public", formatBoolToYesNo(p.public!), null),
+      if (p.owner != null) ("Owner", p.owner!, null),
     ];
 
     _status = FetchStatus.success;
     notifyListeners();
+  }
+
+  Uri? _mbidToUrlIfCrossonic(String mbid, String type) {
+    if (!_auth.serverFeatures.isCrossonic) return null;
+    return Uri(
+      scheme: "https",
+      host: "musicbrainz.org",
+      pathSegments: [type, mbid],
+    );
   }
 }

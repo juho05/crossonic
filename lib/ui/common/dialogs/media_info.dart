@@ -2,6 +2,7 @@ import 'package:crossonic/ui/common/dialogs/media_info_viewmodel.dart';
 import 'package:crossonic/utils/fetch_status.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class MediaInfoDialog extends StatelessWidget {
   const MediaInfoDialog._();
@@ -113,6 +114,7 @@ class MediaInfoDialog extends StatelessWidget {
                     ...viewModel.fields.map(
                       (f) => Row(
                         spacing: 4,
+                        mainAxisAlignment: MainAxisAlignment.end,
                         children: [
                           Text(
                             "${f.$1}:",
@@ -120,11 +122,31 @@ class MediaInfoDialog extends StatelessWidget {
                                 .copyWith(fontWeight: FontWeight.w800),
                           ),
                           Expanded(
-                            child: SelectableText(
-                              f.$2,
-                              minLines: 1,
-                              maxLines: 10,
-                              textAlign: TextAlign.end,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              mainAxisSize: MainAxisSize.max,
+                              children: [
+                                if (f.$3 != null)
+                                  IconButton(
+                                    onPressed: () {
+                                      launchUrl(f.$3!);
+                                    },
+                                    icon: const Icon(
+                                      Icons.open_in_new,
+                                      size: 16,
+                                    ),
+                                    constraints: BoxConstraints.tight(
+                                        const Size(32, 32)),
+                                  ),
+                                Flexible(
+                                  child: SelectableText(
+                                    f.$2,
+                                    minLines: 1,
+                                    maxLines: 10,
+                                    textAlign: TextAlign.end,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ],
