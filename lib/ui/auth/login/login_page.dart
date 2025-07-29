@@ -1,5 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
+import 'package:crossonic/integrate_appimage.dart';
 import 'package:crossonic/routing/router.gr.dart';
 import 'package:crossonic/ui/auth/login/login_viewmodel.dart';
 import 'package:crossonic/ui/common/buttons.dart';
@@ -43,113 +44,115 @@ class _LoginPageState extends State<LoginPage> with RestorationMixin {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Sign in"),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.bug_report_outlined),
-            onPressed: () {
-              context.router.push(const DebugRoute());
-            },
-          )
-        ],
-      ),
-      body: SafeArea(
-        child: FormPageBody(
-          formKey: _formKey,
-          children: [
-            Row(
-              children: [
-                Text("Server:",
-                    style: Theme.of(context)
-                        .textTheme
-                        .labelLarge!
-                        .copyWith(fontWeight: FontWeight.bold)),
-                const SizedBox(width: 8),
-                Text(viewModel.serverURL),
-                IconButton(
-                  onPressed: () async {
-                    await viewModel.resetServerUri();
-                  },
-                  icon: const Icon(Icons.edit),
-                ),
-              ],
-            ),
-            DropdownMenu<AuthType>(
-              initialSelection: _authType.value,
-              expandedInsets: EdgeInsets.zero,
-              requestFocusOnTap: false,
-              enableSearch: false,
-              leadingIcon: const Icon(Icons.login),
-              dropdownMenuEntries: List.generate(
-                viewModel.supportedAuthTypes.length,
-                (index) {
-                  return DropdownMenuEntry(
-                    value: viewModel.supportedAuthTypes[index],
-                    label: switch (viewModel.supportedAuthTypes[index]) {
-                          AuthType.apiKey => "API Key",
-                          AuthType.token => "Token",
-                          AuthType.password => "Password",
-                        } +
-                        (index == 0 ? " (recommended)" : ""),
-                  );
-                },
-              ),
-              onSelected: (value) => setState(() {
-                _authType.value = value ?? viewModel.supportedAuthTypes[0];
-              }),
-            ),
-            if (_authType.value != AuthType.apiKey)
-              FormBuilderTextField(
-                name: "username",
-                //restorationId: "login_page_username",
-                decoration: const InputDecoration(
-                  labelText: "Username",
-                  prefixIcon: Icon(Icons.person),
-                  border: OutlineInputBorder(),
-                ),
-                autofillHints: const [AutofillHints.username],
-                validator: FormBuilderValidators.required(),
-              ),
-            if (_authType.value != AuthType.apiKey)
-              FormBuilderTextField(
-                name: "password",
-                //restorationId: "login_page_password",
-                decoration: const InputDecoration(
-                  labelText: "Password",
-                  prefixIcon: Icon(Icons.link),
-                  border: OutlineInputBorder(),
-                ),
-                obscureText: true,
-                autofillHints: const [AutofillHints.password],
-                validator: FormBuilderValidators.required(),
-                onSubmitted: (_) => _submit(),
-              ),
-            if (_authType.value == AuthType.apiKey)
-              FormBuilderTextField(
-                name: "apiKey",
-                //restorationId: "login_page_apiKey",
-                decoration: const InputDecoration(
-                  labelText: "API Key",
-                  prefixIcon: Icon(Icons.key),
-                  border: OutlineInputBorder(),
-                ),
-                autofillHints: const [AutofillHints.password],
-                validator: FormBuilderValidators.required(),
-                onSubmitted: (_) => _submit(),
-              ),
-            Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: ListenableBuilder(
-                listenable: viewModel.login,
-                builder: (context, _) => SubmitButton(
-                  onPressed: !viewModel.login.running ? _submit : null,
-                  child: const Text("Sign in"),
-                ),
-              ),
-            ),
+    return IntegrateAppImage(
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text("Sign in"),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.bug_report_outlined),
+              onPressed: () {
+                context.router.push(const DebugRoute());
+              },
+            )
           ],
+        ),
+        body: SafeArea(
+          child: FormPageBody(
+            formKey: _formKey,
+            children: [
+              Row(
+                children: [
+                  Text("Server:",
+                      style: Theme.of(context)
+                          .textTheme
+                          .labelLarge!
+                          .copyWith(fontWeight: FontWeight.bold)),
+                  const SizedBox(width: 8),
+                  Text(viewModel.serverURL),
+                  IconButton(
+                    onPressed: () async {
+                      await viewModel.resetServerUri();
+                    },
+                    icon: const Icon(Icons.edit),
+                  ),
+                ],
+              ),
+              DropdownMenu<AuthType>(
+                initialSelection: _authType.value,
+                expandedInsets: EdgeInsets.zero,
+                requestFocusOnTap: false,
+                enableSearch: false,
+                leadingIcon: const Icon(Icons.login),
+                dropdownMenuEntries: List.generate(
+                  viewModel.supportedAuthTypes.length,
+                  (index) {
+                    return DropdownMenuEntry(
+                      value: viewModel.supportedAuthTypes[index],
+                      label: switch (viewModel.supportedAuthTypes[index]) {
+                            AuthType.apiKey => "API Key",
+                            AuthType.token => "Token",
+                            AuthType.password => "Password",
+                          } +
+                          (index == 0 ? " (recommended)" : ""),
+                    );
+                  },
+                ),
+                onSelected: (value) => setState(() {
+                  _authType.value = value ?? viewModel.supportedAuthTypes[0];
+                }),
+              ),
+              if (_authType.value != AuthType.apiKey)
+                FormBuilderTextField(
+                  name: "username",
+                  //restorationId: "login_page_username",
+                  decoration: const InputDecoration(
+                    labelText: "Username",
+                    prefixIcon: Icon(Icons.person),
+                    border: OutlineInputBorder(),
+                  ),
+                  autofillHints: const [AutofillHints.username],
+                  validator: FormBuilderValidators.required(),
+                ),
+              if (_authType.value != AuthType.apiKey)
+                FormBuilderTextField(
+                  name: "password",
+                  //restorationId: "login_page_password",
+                  decoration: const InputDecoration(
+                    labelText: "Password",
+                    prefixIcon: Icon(Icons.link),
+                    border: OutlineInputBorder(),
+                  ),
+                  obscureText: true,
+                  autofillHints: const [AutofillHints.password],
+                  validator: FormBuilderValidators.required(),
+                  onSubmitted: (_) => _submit(),
+                ),
+              if (_authType.value == AuthType.apiKey)
+                FormBuilderTextField(
+                  name: "apiKey",
+                  //restorationId: "login_page_apiKey",
+                  decoration: const InputDecoration(
+                    labelText: "API Key",
+                    prefixIcon: Icon(Icons.key),
+                    border: OutlineInputBorder(),
+                  ),
+                  autofillHints: const [AutofillHints.password],
+                  validator: FormBuilderValidators.required(),
+                  onSubmitted: (_) => _submit(),
+                ),
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: ListenableBuilder(
+                  listenable: viewModel.login,
+                  builder: (context, _) => SubmitButton(
+                    onPressed: !viewModel.login.running ? _submit : null,
+                    child: const Text("Sign in"),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
