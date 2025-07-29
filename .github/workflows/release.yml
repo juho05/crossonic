@@ -91,8 +91,82 @@ jobs:
             ${{ env.APK_BUILD_DIR }}/build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
             ${{ env.APK_BUILD_DIR }}/build/app/outputs/flutter-apk/app-x86_64-release.apk
           retention-days: 2
+  build_linux_x86_64_AppImage:
+    needs: build
+    runs-on: ubuntu-22.04
 
-  build_linux_x86_64:
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get remove libunwind-*
+          sudo apt-get install -y clang cmake libgtk-3-dev ninja-build libmpv-dev libmpv1 libsecret-1-dev libjsoncpp-dev libayatana-appindicator3-dev
+          sudo apt-get install -y binutils coreutils desktop-file-utils fakeroot fuse libgdk-pixbuf2.0-dev patchelf python3-pip python3-setuptools squashfs-tools strace util-linux zsync
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: "stable"
+
+      - name: Dependencies
+        run: flutter pub get
+      - name: Build generated files
+        run: flutter pub run build_runner build
+      - name: Compile linux
+        run: flutter build linux
+
+      # AppImage
+      - name: Copy compiled linux files
+        run: |
+          mkdir AppDir
+          cp -r build/linux/x64/release/bundle/* AppDir/
+
+      - name: Copy logo to AppDir
+        run: |
+          mkdir -p AppDir/usr/share/icons/hicolor/32x32/apps
+          cp assets/icon/desktop/crossonic-32.png AppDir/usr/share/icons/hicolor/32x32/apps/crossonic.png
+          mkdir -p AppDir/usr/share/icons/hicolor/128x128/apps
+          cp assets/icon/desktop/crossonic-128.png AppDir/usr/share/icons/hicolor/128x128/apps/crossonic.png
+          mkdir -p AppDir/usr/share/icons/hicolor/256x256/apps
+          cp assets/icon/desktop/crossonic-256.png AppDir/usr/share/icons/hicolor/256x256/apps/crossonic.png
+
+      - name: Copy recipe to correct location
+        run: cp scripts/appimage/AppImageBuilder_x86_64.yml AppImageBuilder.yml
+
+      - name: Set version in recipe
+        run: |
+          sed -i 's|version: latest|version: ${{ needs.build.outputs.version }}|g' AppImageBuilder.yml
+
+      - name: Build AppImage
+        run: |
+          wget -O appimagetool.AppImage https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
+          chmod +x appimagetool.AppImage
+          wget -O appimage-builder.AppImage https://github.com/AppImageCrafters/appimage-builder/releases/download/v1.1.0/appimage-builder-1.1.0-x86_64.AppImage
+          chmod +x appimage-builder.AppImage
+          ./appimage-builder.AppImage --appimage-extract
+          sed -i 's|"https://github.com/AppImage/AppImageKit/releases/download/continuous/runtime-%s"|"https://github.com/AppImage/type2-runtime/releases/download/continuous/runtime-%s"|g' squashfs-root/usr/lib/python3.8/site-packages/appimagebuilder/modules/appimage.py
+          sed -i 's|"https://github.com/AppImage/AppImageKit/releases/download/continuous/runtime-%s"|"https://github.com/AppImage/type2-runtime/releases/download/continuous/runtime-%s"|g' squashfs-root/usr/lib/python3.8/site-packages/appimagebuilder/modules/prime/appimage_primer.py
+          sed -i 's|"xz"|"zstd"|g' squashfs-root/usr/lib/python3.8/site-packages/appimagebuilder/modules/prime/appimage_primer.py
+          ./appimagetool.AppImage squashfs-root appimage-builder.AppImage
+          ./appimage-builder.AppImage --recipe=./AppImageBuilder.yml
+          rm appimagetool.AppImage
+          rm appimage-builder.AppImage
+
+      - name: Upload AppImage file
+        uses: actions/upload-artifact@v4
+        with:
+          name: appimage-x86-64-result
+          path: ./*.AppImage
+          retention-days: 2
+      - name: Upload AppImage.zsync file
+        uses: actions/upload-artifact@v4
+        with:
+          name: appimage-zsync-x86-64-result
+          path: ./*.AppImage.zsync
+          retention-days: 2
+  build_linux_x86_64_TGZ:
     needs: build
     runs-on: ubuntu-24.04
 
@@ -104,7 +178,6 @@ jobs:
           sudo apt-get update
           sudo apt-get remove libunwind-*
           sudo apt-get install -y clang cmake libgtk-3-dev ninja-build libmpv-dev libmpv2 libsecret-1-dev libjsoncpp-dev libayatana-appindicator3-dev
-          sudo apt-get install -y binutils coreutils desktop-file-utils fakeroot fuse libgdk-pixbuf2.0-dev patchelf python3-pip python3-setuptools squashfs-tools strace util-linux zsync
 
       - uses: subosito/flutter-action@v2
         with:
@@ -129,45 +202,6 @@ jobs:
         with:
           name: tar-gz-x86-64-result
           path: ./*.tar.gz
-
-      # AppImage
-      - name: Copy compiled linux files
-        run: |
-          mkdir AppDir
-          cp -r build/linux/x64/release/bundle/* AppDir/
-
-      - name: Copy logo to AppDir
-        run: |
-          mkdir -p AppDir/usr/share/icons/hicolor/32x32/apps
-          cp assets/icon/desktop/crossonic-32.png AppDir/usr/share/icons/hicolor/32x32/apps/crossonic.png
-          mkdir -p AppDir/usr/share/icons/hicolor/128x128/apps
-          cp assets/icon/desktop/crossonic-128.png AppDir/usr/share/icons/hicolor/128x128/apps/crossonic.png
-          mkdir -p AppDir/usr/share/icons/hicolor/256x256/apps
-          cp assets/icon/desktop/crossonic-256.png AppDir/usr/share/icons/hicolor/256x256/apps/crossonic.png
-
-      - name: Copy Recipe to correct location
-        run: cp scripts/appimage/AppImageBuilder_x86_64.yml AppImageBuilder.yml
-
-      - name: Build AppImage
-        run: |
-          wget -O appimagetool.AppImage https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
-          chmod +x appimagetool.AppImage
-          wget -O appimage-builder.AppImage https://github.com/AppImageCrafters/appimage-builder/releases/download/v1.1.0/appimage-builder-1.1.0-x86_64.AppImage
-          chmod +x appimage-builder.AppImage
-          ./appimage-builder.AppImage --appimage-extract
-          sed -i 's|"https://github.com/AppImage/AppImageKit/releases/download/continuous/runtime-%s"|"https://github.com/AppImage/type2-runtime/releases/download/continuous/runtime-%s"|g' squashfs-root/usr/lib/python3.8/site-packages/appimagebuilder/modules/appimage.py
-          sed -i 's|"https://github.com/AppImage/AppImageKit/releases/download/continuous/runtime-%s"|"https://github.com/AppImage/type2-runtime/releases/download/continuous/runtime-%s"|g' squashfs-root/usr/lib/python3.8/site-packages/appimagebuilder/modules/prime/appimage_primer.py
-          sed -i 's|"xz"|"gzip"|g' squashfs-root/usr/lib/python3.8/site-packages/appimagebuilder/modules/prime/appimage_primer.py
-          ./appimagetool.AppImage squashfs-root appimage-builder.AppImage
-          ./appimage-builder.AppImage --recipe=./AppImageBuilder.yml
-          rm appimagetool.AppImage
-          rm appimage-builder.AppImage
-
-      - name: Upload AppImage file
-        uses: actions/upload-artifact@v4
-        with:
-          name: appimage-x86-64-result
-          path: ./*.AppImage
           retention-days: 2
 
   build_windows_x86_64:
@@ -294,7 +328,8 @@ jobs:
     needs:
       - build
       - build_android
-      - build_linux_x86_64
+      - build_linux_x86_64_TGZ
+      - build_linux_x86_64_AppImage
       - build_windows_x86_64
       - build_macos_dmg
       - build_web_zip
@@ -381,15 +416,19 @@ jobs:
           name: appimage-x86-64-result
           path: appimage-x86-64-result
 
-      - name: List files in appimage-directory
-        run: ls -l appimage-x86-64-result
+      - name: Download AppImage.zsync file
+        uses: actions/download-artifact@v4
+        with:
+          name: appimage-zsync-x86-64-result
+          path: appimage-zsync-x86-64-result
 
-      - name: Copy AppImage file to root
+      - name: Copy AppImage files to root
         run: |
           for file in appimage-x86-64-result/*; do
-            if [[ $file == *.AppImage && $file != *.AppImage.zsync ]]; then
-              cp "$file" result.AppImage
-            fi
+            cp "$file" result.AppImage
+          done
+          for file in appimage-zsync-x86-64-result/*; do
+            cp "$file" result.AppImage.zsync
           done
 
       - name: Upload Release Asset (AppImage)
@@ -401,6 +440,16 @@ jobs:
           asset_path: result.AppImage
           asset_name: Crossonic-${{ needs.build.outputs.version }}-linux-x86-64.AppImage
           asset_content_type: application/x-appimage
+
+      - name: Upload Release Asset (AppImage.zsync)
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.draft_release.outputs.upload_url }}
+          asset_path: result.AppImage.zsync
+          asset_name: Crossonic-${{ needs.build.outputs.version }}-linux-x86-64.AppImage.zsync
+          asset_content_type: application/x-zsync
 
       # WINDOWS ZIP (x86_64)
       - name: Download windows zip file
