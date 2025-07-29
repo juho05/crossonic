@@ -16,68 +16,62 @@ class VersionChecker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => VersionCheckerViewModel(
-        keyValue: context.read(),
-        versionRepo: context.read(),
-      )..check(),
-      child: Consumer<VersionCheckerViewModel>(
-        builder: (context, viewModel, _) {
-          bool isApple = defaultTargetPlatform == TargetPlatform.iOS ||
-              defaultTargetPlatform == TargetPlatform.macOS;
-          if (viewModel.newVersionAvailable) {
-            SchedulerBinding.instance.addPostFrameCallback((_) {
-              final actions = [
-                AdaptiveDialogAction(
-                  onPressed: () =>
-                      Navigator.pop(context, VersionDialogChoice.ignore),
-                  child: const Text("Ignore"),
-                ),
-                AdaptiveDialogAction(
-                  onPressed: () =>
-                      Navigator.pop(context, VersionDialogChoice.remind),
-                  child: const Text("Remind later"),
-                ),
-                AdaptiveDialogAction(
-                  onPressed: () =>
-                      Navigator.pop(context, VersionDialogChoice.view),
-                  child: const Text("View"),
-                )
-              ];
-              showAdaptiveDialog<VersionDialogChoice>(
-                context: context,
-                builder: (context) {
-                  return AlertDialog.adaptive(
-                    title: const Text("New version available"),
-                    content: Text(
-                        "Current: v${viewModel.current}\nLatest: v${viewModel.latest}"),
-                    actions: isApple ? actions.reversed.toList() : actions,
-                  );
-                },
-              ).then((choice) async {
-                switch (choice) {
-                  case VersionDialogChoice.ignore:
-                    await viewModel.ignoreVersion();
-                    if (context.mounted) {
-                      Toast.show(context,
-                          "You won't be reminded about this version again");
-                    }
-                    break;
-                  case VersionDialogChoice.view:
-                    launchUrl(
-                        Uri.https("github.com", "/juho05/crossonic/releases"));
-                  case null:
-                  case VersionDialogChoice.remind:
-                    // default behavior
-                    break;
-                }
-                await viewModel.displayedVersionDialog();
-              });
+    return Consumer<VersionCheckerViewModel>(
+      builder: (context, viewModel, _) {
+        bool isApple = defaultTargetPlatform == TargetPlatform.iOS ||
+            defaultTargetPlatform == TargetPlatform.macOS;
+        if (viewModel.newVersionAvailable) {
+          SchedulerBinding.instance.addPostFrameCallback((_) {
+            final actions = [
+              AdaptiveDialogAction(
+                onPressed: () =>
+                    Navigator.pop(context, VersionDialogChoice.ignore),
+                child: const Text("Ignore"),
+              ),
+              AdaptiveDialogAction(
+                onPressed: () =>
+                    Navigator.pop(context, VersionDialogChoice.remind),
+                child: const Text("Remind later"),
+              ),
+              AdaptiveDialogAction(
+                onPressed: () =>
+                    Navigator.pop(context, VersionDialogChoice.view),
+                child: const Text("View"),
+              )
+            ];
+            showAdaptiveDialog<VersionDialogChoice>(
+              context: context,
+              builder: (context) {
+                return AlertDialog.adaptive(
+                  title: const Text("New version available"),
+                  content: Text(
+                      "Current: v${viewModel.current}\nLatest: v${viewModel.latest}"),
+                  actions: isApple ? actions.reversed.toList() : actions,
+                );
+              },
+            ).then((choice) async {
+              switch (choice) {
+                case VersionDialogChoice.ignore:
+                  await viewModel.ignoreVersion();
+                  if (context.mounted) {
+                    Toast.show(context,
+                        "You won't be reminded about this version again");
+                  }
+                  break;
+                case VersionDialogChoice.view:
+                  launchUrl(
+                      Uri.https("github.com", "/juho05/crossonic/releases"));
+                case null:
+                case VersionDialogChoice.remind:
+                  // default behavior
+                  break;
+              }
+              await viewModel.displayedVersionDialog();
             });
-          }
-          return child;
-        },
-      ),
+          });
+        }
+        return child;
+      },
     );
   }
 }

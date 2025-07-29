@@ -75,7 +75,7 @@ flutter:
     - assets/icon/crossonic-tray.png
     - assets/icon/crossonic-tray.ico
     - assets/icon/crossonic-foreground-monochrome.svg
-    - assets/icon/crossonic-circle.png
+    - assets/icon/desktop/crossonic-512.png
 inno_bundle:
   id: cbe0f7d0-37fc-11f0-a197-6529278abc9e
   name: Crossonic

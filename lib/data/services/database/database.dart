@@ -5,6 +5,7 @@ import 'package:crossonic/data/services/database/tables/key_value.dart';
 import 'package:crossonic/data/services/database/tables/playlist.dart';
 import 'package:crossonic/data/services/database/tables/playlist_song.dart';
 import 'package:crossonic/data/services/database/tables/scrobble.dart';
+import 'package:crossonic/integrate_appimage_viewmodel.dart';
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:flutter/foundation.dart';
@@ -31,6 +32,14 @@ class Database extends _$Database {
     try {
       await transaction(() async {
         for (var table in allTables) {
+          if (table == keyValueTable) {
+            await managers.keyValueTable
+                .filter(
+                  (f) => f.key(IntegrateAppImageViewModel.disabledKey).not(),
+                )
+                .delete();
+            continue;
+          }
           await delete(table).go();
         }
       });

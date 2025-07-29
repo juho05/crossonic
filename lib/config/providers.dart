@@ -23,6 +23,8 @@ import 'package:crossonic/data/services/database/database.dart';
 import 'package:crossonic/data/services/github/github.dart';
 import 'package:crossonic/data/services/media_integration/media_integration.dart';
 import 'package:crossonic/data/services/opensubsonic/subsonic_service.dart';
+import 'package:crossonic/integrate_appimage_viewmodel.dart';
+import 'package:crossonic/version_checker_viewmodel.dart';
 import 'package:flutter/foundation.dart';
 import 'package:optimize_battery/optimize_battery.dart';
 import 'package:provider/provider.dart';
@@ -198,6 +200,18 @@ Future<List<SingleChildWidget>> get providers async {
     ),
     ChangeNotifierProvider.value(
       value: playlistRepository,
+    ),
+    ChangeNotifierProvider(
+      create: (context) => VersionCheckerViewModel(
+        keyValue: context.read(),
+        versionRepo: context.read(),
+      )..check(),
+    ),
+    ChangeNotifierProvider(
+      create: (context) => IntegrateAppImageViewModel(
+        keyValue: context.read(),
+        versionRepository: context.read(),
+      )..check(),
     )
   ];
 }

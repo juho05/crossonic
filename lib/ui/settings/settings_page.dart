@@ -88,7 +88,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   child: SizedBox.square(
                     dimension: 48,
                     child: Image.asset(
-                      "assets/icon/crossonic-circle.png",
+                      "assets/icon/desktop/crossonic-512.png",
                       cacheHeight: 48 * 2,
                       cacheWidth: 48 * 2,
                       isAntiAlias: true,
