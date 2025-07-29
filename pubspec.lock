@@ -1136,12 +1136,11 @@ packages:
     source: hosted
     version: "2.4.1"
   path_provider_linux:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: path_provider_linux
-      sha256: f7a1fe3a634fe7734c8d3f2766ad746ae2a2884abe22e241a8b301bf5cac3279
-      url: "https://pub.dev"
-    source: hosted
+      path: "dependency_overrides/path_provider_linux"
+      relative: true
+    source: path
     version: "2.2.1"
   path_provider_platform_interface:
     dependency: transitive
