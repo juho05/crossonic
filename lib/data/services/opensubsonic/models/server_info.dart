@@ -8,6 +8,8 @@ class ServerInfo {
   final bool isCrossonic;
   final String? crossonicVersion;
 
+  bool get isNavidrome => type != null && type == "navidrome";
+
   ServerInfo({
     required this.serverVersion,
     required this.isOpenSubsonic,

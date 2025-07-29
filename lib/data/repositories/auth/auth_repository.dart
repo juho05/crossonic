@@ -137,6 +137,7 @@ class AuthRepository extends ChangeNotifier {
     _serverFeatures = ServerFeatures(
       isOpenSubsonic: info.isOpenSubsonic,
       isCrossonic: info.isCrossonic,
+      isNavidrome: info.isNavidrome,
       supportsPasswordAuth: supportsPasswordAuth,
       supportsTokenAuth: supportsTokenAuth,
       crossonicVersion: crossonicVersion,
@@ -175,6 +176,7 @@ class AuthRepository extends ChangeNotifier {
     _serverFeatures = _serverFeatures.copyWith(
       isOpenSubsonic: info.isOpenSubsonic,
       isCrossonic: info.isCrossonic,
+      isNavidrome: info.isNavidrome,
       crossonicVersion: crossonicVersion,
     );
 

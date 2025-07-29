@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:crossonic/data/repositories/subsonic/subsonic_repository.dart';
+import 'package:crossonic/data/repositories/version/version.dart';
 import 'package:crossonic/utils/fetch_status.dart';
 import 'package:crossonic/utils/result.dart';
 import 'package:flutter/material.dart';
@@ -11,11 +12,20 @@ class ScanViewModel extends ChangeNotifier {
   FetchStatus _status = FetchStatus.initial;
   FetchStatus get status => _status;
 
-  int? _scannedCount = 0;
-  int? get scannedCount => _scannedCount;
+  bool get supportsScanType =>
+      (_subsonic.serverFeatures.crossonicVersion != null &&
+          _subsonic.serverFeatures.crossonicVersion! >=
+              const Version(major: 0, minor: 2)) ||
+      _subsonic.serverFeatures.isNavidrome;
 
-  bool _scanning = false;
-  bool get scanning => _scanning;
+  ScanStatus _scanStatus = const (
+    scanning: false,
+    isFullScan: null,
+    lastScan: null,
+    scanStart: null,
+    scanned: null
+  );
+  ScanStatus get scanStatus => _scanStatus;
 
   Timer? _refreshTimer;
 
@@ -24,20 +34,24 @@ class ScanViewModel extends ChangeNotifier {
     _loadStatus();
   }
 
-  Future<Result<void>> scan() async {
-    _scanning = true;
-    _scannedCount = 0;
+  Future<Result<void>> scan(bool fullScan) async {
+    _scanStatus = (
+      scanning: true,
+      scanned: 0,
+      isFullScan: fullScan,
+      lastScan: _scanStatus.lastScan,
+      scanStart: DateTime.now(),
+    );
     notifyListeners();
-    final result = await _subsonic.startScan();
+    final result = await _subsonic.startScan(fullScan: fullScan);
     switch (result) {
       case Err():
         return Result.error(result.error);
       case Ok():
     }
-    _scanning = result.value.scanning;
-    _scannedCount = result.value.scanned ?? 0;
+    _scanStatus = result.value;
     _refreshTimer ??=
-        Timer.periodic(const Duration(milliseconds: 500), (timer) async {
+        Timer.periodic(const Duration(milliseconds: 250), (timer) async {
       await _loadStatus();
     });
     notifyListeners();
@@ -55,11 +69,10 @@ class ScanViewModel extends ChangeNotifier {
       case Ok():
     }
     _status = FetchStatus.success;
-    _scanning = result.value.scanning;
-    _scannedCount = result.value.scanned;
-    if (_scanning) {
+    _scanStatus = result.value;
+    if (_scanStatus.scanning) {
       _refreshTimer ??=
-          Timer.periodic(const Duration(milliseconds: 500), (timer) async {
+          Timer.periodic(const Duration(milliseconds: 250), (timer) async {
         await _loadStatus();
       });
     } else {

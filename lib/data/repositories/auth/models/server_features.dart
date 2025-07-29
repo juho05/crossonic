@@ -7,6 +7,7 @@ part 'server_features.g.dart';
 class ServerFeatures {
   final bool isOpenSubsonic;
   final bool isCrossonic;
+  final bool isNavidrome;
   final bool supportsPasswordAuth;
   final bool supportsTokenAuth;
   final bool loadedExtensions;
@@ -26,6 +27,7 @@ class ServerFeatures {
   ServerFeatures({
     this.isOpenSubsonic = false,
     this.isCrossonic = false,
+    this.isNavidrome = false,
     this.supportsPasswordAuth = false,
     this.supportsTokenAuth = false,
     this.loadedExtensions = false,
@@ -39,6 +41,7 @@ class ServerFeatures {
   ServerFeatures copyWith({
     bool? isOpenSubsonic,
     bool? isCrossonic,
+    bool? isNavidrome,
     bool? supportsPasswordAuth,
     bool? supportsTokenAuth,
     bool? loadedExtensions,
@@ -51,6 +54,7 @@ class ServerFeatures {
       ServerFeatures(
         isOpenSubsonic: isOpenSubsonic ?? this.isOpenSubsonic,
         isCrossonic: isCrossonic ?? this.isCrossonic,
+        isNavidrome: isNavidrome ?? this.isNavidrome,
         supportsPasswordAuth: supportsPasswordAuth ?? this.supportsPasswordAuth,
         supportsTokenAuth: supportsTokenAuth ?? this.supportsTokenAuth,
         loadedExtensions: loadedExtensions ?? this.loadedExtensions,

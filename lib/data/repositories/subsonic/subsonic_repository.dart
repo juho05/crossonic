@@ -38,6 +38,9 @@ typedef SearchResult = ({
 typedef ScanStatus = ({
   bool scanning,
   int? scanned,
+  bool? isFullScan,
+  DateTime? scanStart,
+  DateTime? lastScan,
 });
 
 class SubsonicRepository {
@@ -156,14 +159,21 @@ class SubsonicRepository {
         ListenBrainzConfig.fromListenBrainzConfigModel(result.value));
   }
 
-  Future<Result<ScanStatus>> startScan() async {
-    final result = await _service.startScan(_auth.con);
+  Future<Result<ScanStatus>> startScan({
+    bool fullScan = false,
+  }) async {
+    final result = await _service.startScan(_auth.con, fullScan: fullScan);
     switch (result) {
       case Err():
         return Result.error(result.error);
       case Ok():
-        return Result.ok(
-            (scanning: result.value.scanning, scanned: result.value.count));
+        return Result.ok((
+          scanning: result.value.scanning,
+          scanned: result.value.count,
+          isFullScan: result.value.isFullScan,
+          lastScan: result.value.lastScan,
+          scanStart: result.value.startTime,
+        ));
     }
   }
 
@@ -173,8 +183,13 @@ class SubsonicRepository {
       case Err():
         return Result.error(result.error);
       case Ok():
-        return Result.ok(
-            (scanning: result.value.scanning, scanned: result.value.count));
+        return Result.ok((
+          scanning: result.value.scanning,
+          scanned: result.value.count,
+          isFullScan: result.value.isFullScan,
+          lastScan: result.value.lastScan,
+          scanStart: result.value.startTime,
+        ));
     }
   }
 

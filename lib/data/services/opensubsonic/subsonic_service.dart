@@ -246,9 +246,18 @@ class SubsonicService {
         "listenBrainzConfig");
   }
 
-  Future<Result<ScanStatusModel>> startScan(Connection con) async {
+  Future<Result<ScanStatusModel>> startScan(
+    Connection con, {
+    bool fullScan = false,
+  }) async {
     return await _fetchObject(
-        con, "startScan", {}, ScanStatusModel.fromJson, "scanStatus");
+        con,
+        "startScan",
+        {
+          "fullScan": [fullScan.toString()],
+        },
+        ScanStatusModel.fromJson,
+        "scanStatus");
   }
 
   Future<Result<ScanStatusModel>> getScanStatus(Connection con) async {
