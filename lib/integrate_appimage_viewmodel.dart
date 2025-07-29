@@ -44,15 +44,11 @@ class IntegrateAppImageViewModel extends ChangeNotifier {
       return;
     }
 
-    final desktopFile =
-        File(join(_desktopFileDirPath, "org.crossonic.app.desktop"));
-    if (await desktopFile.exists()) {
-      Log.debug("AppImage already integrated");
+    if (await _isAlreadyIntegrated()) {
       return;
     }
 
     _askToIntegrate = true;
-    Log.debug("AppImage not integrated, asking user...");
     notifyListeners();
   }
 
@@ -118,11 +114,49 @@ StartupNotify=true
     try {
       Log.trace("Updating desktop database...");
       Process.run("update-desktop-database", [_desktopFileDirPath]);
-    } catch (_) {}
+    } catch (e, st) {
+      Log.debug(
+        "Failed to update desktop database, update-desktop-database is probably not installed",
+        e,
+        st,
+      );
+    }
 
     await _keyValue.remove(disabledKey);
 
     Log.info("Successfully integrated AppImage into system!");
     return const Result.ok(null);
+  }
+
+  Future<bool> _isAlreadyIntegrated() async {
+    final actualAppImageFile = File(Platform.environment["APPIMAGE"]!);
+
+    Log.trace("The current AppImage path is: $actualAppImageFile");
+
+    final desiredAppImageFile = File(join(
+        Platform.environment["HOME"] ?? "~", ".local", "bin", "crossonic"));
+
+    if (!await actualAppImageFile.exists()) {
+      Log.error("APPIMAGE environment variable does not point to a valid file");
+      return true;
+    }
+
+    if (!await desiredAppImageFile.exists()) {
+      Log.debug(
+          "AppImage is not integrated because there is no AppImage at the desired system path");
+      return false;
+    }
+
+    final integrated =
+        actualAppImageFile.absolute.path == desiredAppImageFile.absolute.path;
+
+    if (integrated) {
+      Log.debug("AppImage already integrated");
+    } else {
+      Log.debug(
+          "AppImage not integrated because the current AppImage is not at the correct location");
+    }
+
+    return integrated;
   }
 }
