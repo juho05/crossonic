@@ -69,7 +69,7 @@ class AuthRepository extends ChangeNotifier {
 
     notifyListeners();
 
-    await _refreshServerFeatures();
+    _refreshServerFeatures();
   }
 
   Future<Result<void>> connect(Uri serverUri) async {
