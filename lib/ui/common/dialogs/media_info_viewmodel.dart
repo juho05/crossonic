@@ -146,9 +146,15 @@ class MediaInfoDialogViewModel extends ChangeNotifier {
       ("ID", a.id, null),
       if (a.musicBrainzId != null)
         (
-          "MBID",
+          a.releaseMbid != null ? "Release group MBID" : "MBID",
           a.musicBrainzId!,
           _mbidToUrlIfCrossonic(a.musicBrainzId!, "release-group")
+        ),
+      if (a.releaseMbid != null)
+        (
+          "Release MBID",
+          a.releaseMbid!,
+          _mbidToUrlIfCrossonic(a.releaseMbid!, "release")
         ),
       ("Duration", formatDuration(Duration(seconds: a.duration)), null),
       ("Song count", a.songCount.toString(), null),

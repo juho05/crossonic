@@ -22,6 +22,7 @@ class AlbumID3Model {
   final int? userRating;
   final List<({String name})>? recordLabels;
   final String? musicBrainzId;
+  final String? releaseMbid;
   final List<({String name})>? genres;
   final List<({String id, String name})>? artists;
   final String? displayArtist;
@@ -53,6 +54,7 @@ class AlbumID3Model {
     required this.userRating,
     required this.recordLabels,
     required this.musicBrainzId,
+    required this.releaseMbid,
     required this.genres,
     required this.artists,
     required this.displayArtist,
