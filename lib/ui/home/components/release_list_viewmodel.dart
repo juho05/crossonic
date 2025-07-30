@@ -7,7 +7,7 @@ import 'package:crossonic/utils/fetch_status.dart';
 import 'package:crossonic/utils/result.dart';
 import 'package:flutter/material.dart';
 
-class HomeAlbumListViewModel extends ChangeNotifier {
+class HomeReleaseListViewModel extends ChangeNotifier {
   final HomeComponentDataSource<Album> _dataSource;
   final SubsonicRepository _subsonic;
   final AudioHandler _audioHandler;
@@ -18,7 +18,7 @@ class HomeAlbumListViewModel extends ChangeNotifier {
   FetchStatus _status = FetchStatus.initial;
   FetchStatus get status => _status;
 
-  HomeAlbumListViewModel({
+  HomeReleaseListViewModel({
     required HomeComponentDataSource<Album> dataSource,
     required SubsonicRepository subsonicRepository,
     required AudioHandler audioHandler,
@@ -33,7 +33,7 @@ class HomeAlbumListViewModel extends ChangeNotifier {
     _albums = null;
     notifyListeners();
 
-    final result = await _dataSource.get(15);
+    final result = await _dataSource.get(20);
     switch (result) {
       case Err():
         _status = FetchStatus.failure;

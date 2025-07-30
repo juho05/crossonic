@@ -148,7 +148,7 @@ StartupNotify=true
     }
 
     final integrated =
-        actualAppImageFile.absolute.path == desiredAppImageFile.absolute.path;
+        equals(actualAppImageFile.path, desiredAppImageFile.path);
 
     if (integrated) {
       Log.debug("AppImage already integrated");

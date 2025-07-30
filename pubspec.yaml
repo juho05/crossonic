@@ -54,6 +54,7 @@ dependencies:
   dbus_secrets: ^0.0.2
   cryptography_plus: ^2.7.1
   xdg_directories: ^1.1.0
+  collection: ^1.19.1
 
 dependency_overrides:
   flutter_secure_storage_darwin:

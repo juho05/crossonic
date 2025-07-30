@@ -224,7 +224,7 @@ class MediaInfoDialogViewModel extends ChangeNotifier {
           a.musicBrainzId!,
           _mbidToUrlIfCrossonic(a.musicBrainzId!, "artist")
         ),
-      if (a.albumCount != null) ("Album count", a.albumCount.toString(), null),
+      if (a.albumCount != null) ("Releases", a.albumCount.toString(), null),
       if (a.starred != null) ("Favorited", formatDateTime(a.starred!), null),
       if (a.userRating != null) ("User rating", a.userRating.toString(), null),
       if (a.sortName != null) ("Sort name", a.sortName!, null),

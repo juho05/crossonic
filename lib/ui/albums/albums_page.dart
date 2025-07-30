@@ -142,7 +142,7 @@ class _AlbumsPageState extends State<AlbumsPage> {
                   if (_viewModel.status == FetchStatus.success &&
                       _viewModel.albums.isEmpty)
                     const SliverToBoxAdapter(
-                        child: Text("No albums available")),
+                        child: Text("No releases available")),
                   SliverPadding(
                     padding: const EdgeInsetsGeometry.symmetric(horizontal: 4),
                     sliver: SliverGrid(

@@ -3,14 +3,18 @@ import 'package:crossonic/data/repositories/subsonic/subsonic_repository.dart';
 import 'package:crossonic/ui/home/components/data_source.dart';
 import 'package:crossonic/utils/result.dart';
 
-class RecentlyAddedAlbumsDataSource implements HomeComponentDataSource<Album> {
+class ReleasesDataSource implements HomeComponentDataSource<Album> {
   final SubsonicRepository _repository;
+  final AlbumsSortMode _mode;
 
-  RecentlyAddedAlbumsDataSource({required SubsonicRepository repository})
-      : _repository = repository;
+  ReleasesDataSource({
+    required AlbumsSortMode mode,
+    required SubsonicRepository repository,
+  })  : _repository = repository,
+        _mode = mode;
 
   @override
   Future<Result<Iterable<Album>>> get(int count) async {
-    return await _repository.getAlbums(AlbumsSortMode.recentlyAdded, count);
+    return await _repository.getAlbums(_mode, count);
   }
 }
