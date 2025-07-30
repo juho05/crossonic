@@ -63,7 +63,7 @@ class LocalQueue extends ChangeNotifier implements MediaQueue {
   void setLoop(bool loop) {
     if (_looping.value == loop) return;
     _looping.add(loop);
-    if (_priorityQueue.isEmpty && _queue.isNotEmpty) {
+    if (_priorityQueue.isEmpty && _currentAndNext.value.next != null) {
       _nextChanged(_queue.elementAtOrNull(_nextIndex));
     }
     notifyListeners();
