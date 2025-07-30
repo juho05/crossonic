@@ -77,6 +77,9 @@ class NowPlayingViewModel extends ChangeNotifier {
         notifyListeners();
       },
     );
+    _onSongChanged(song);
+    _onStatusChanged(_audioHandler.playbackStatus.value);
+    _loop = _audioHandler.queue.looping.value;
   }
 
   void toggleLoop() async {

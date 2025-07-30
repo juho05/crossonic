@@ -1,5 +1,9 @@
 import 'package:crossonic/data/services/opensubsonic/models/child_model.dart';
+import 'package:json_annotation/json_annotation.dart';
 
+part 'song.g.dart';
+
+@JsonSerializable()
 class Song {
   final String id;
   final String coverId;
@@ -66,4 +70,8 @@ class Song {
       fallbackGain: child.replayGain?.fallbackGain,
     );
   }
+
+  factory Song.fromJson(Map<String, dynamic> json) => _$SongFromJson(json);
+
+  Map<String, dynamic> toJson() => _$SongToJson(this);
 }

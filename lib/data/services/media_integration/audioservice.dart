@@ -271,19 +271,6 @@ class AudioServiceIntegration extends asv.BaseAudioHandler
   }
 
   @override
-  Future<void> onTaskRemoved() async {
-    if (_onStop == null) return;
-    if (playbackState.value.playing) return;
-    await _onStop!();
-  }
-
-  @override
-  Future<void> onNotificationDeleted() async {
-    if (_onStop == null) return;
-    await _onStop!();
-  }
-
-  @override
   Future<void> setRepeatMode(asv.AudioServiceRepeatMode repeatMode) async {
     _audioHandler!.queue.setLoop(repeatMode != asv.AudioServiceRepeatMode.none);
   }

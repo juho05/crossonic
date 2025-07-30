@@ -23,12 +23,39 @@ class LocalQueue extends ChangeNotifier implements MediaQueue {
           ({Song? current, Song? next, bool currentChanged, bool fromAdvance})>
       get currentAndNext => _currentAndNext.stream;
 
-  final _priorityQueue = Queue<Song>();
-  final _queue = <Song>[];
+  final Queue<Song> _priorityQueue;
+  final List<Song> _queue;
 
-  int _currentIndex = -1;
+  int _currentIndex;
 
-  final BehaviorSubject<bool> _looping = BehaviorSubject.seeded(false);
+  LocalQueue()
+      : _priorityQueue = Queue(),
+        _queue = [],
+        _currentIndex = -1,
+        _looping = BehaviorSubject.seeded(false);
+
+  LocalQueue.withInitialData({
+    required Queue<Song> priorityQueue,
+    required List<Song> regularQueue,
+    required bool looping,
+    required int currentIndex,
+    required Song currentSong,
+  })  : _priorityQueue = priorityQueue,
+        _queue = regularQueue,
+        _currentIndex = currentIndex,
+        _looping = BehaviorSubject.seeded(looping) {
+    _current.add(currentSong);
+    _currentAndNext.add((
+      current: currentSong,
+      next: _priorityQueue.isNotEmpty
+          ? _priorityQueue.first
+          : _queue.elementAtOrNull(_nextIndex),
+      currentChanged: true,
+      fromAdvance: false,
+    ));
+  }
+
+  final BehaviorSubject<bool> _looping;
   @override
   ValueStream<bool> get looping => _looping.stream;
 
@@ -36,7 +63,7 @@ class LocalQueue extends ChangeNotifier implements MediaQueue {
   void setLoop(bool loop) {
     if (_looping.value == loop) return;
     _looping.add(loop);
-    if (_priorityQueue.isEmpty) {
+    if (_priorityQueue.isEmpty && _queue.isNotEmpty) {
       _nextChanged(_queue.elementAtOrNull(_nextIndex));
     }
     notifyListeners();
@@ -287,7 +314,7 @@ class LocalQueue extends ChangeNotifier implements MediaQueue {
   }
 
   int get _nextIndex {
-    if (!looping.value) return _currentIndex + 1;
+    if (!looping.value || _queue.isEmpty) return _currentIndex + 1;
     return (_currentIndex + 1) % _queue.length;
   }
 

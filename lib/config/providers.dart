@@ -191,6 +191,7 @@ Future<List<SingleChildWidget>> get providers async {
         subsonicService: context.read(),
         settingsRepository: context.read(),
         songDownloader: context.read(),
+        keyValueRepository: context.read(),
       ),
     ),
     Provider(

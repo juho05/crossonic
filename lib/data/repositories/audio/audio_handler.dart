@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:collection';
 import 'dart:math';
 
 import 'package:audio_player/audio_player.dart';
@@ -8,6 +9,7 @@ import 'package:crossonic/data/repositories/audio/queue/changable_queue.dart';
 import 'package:crossonic/data/repositories/audio/queue/local_queue.dart';
 import 'package:crossonic/data/repositories/audio/queue/media_queue.dart';
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
+import 'package:crossonic/data/repositories/keyvalue/key_value_repository.dart';
 import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/data/repositories/playlist/song_downloader.dart';
 import 'package:crossonic/data/repositories/settings/replay_gain.dart';
@@ -32,6 +34,7 @@ class AudioHandler {
   final SubsonicService _subsonic;
   final SettingsRepository _settings;
   final SongDownloader _downloader;
+  final KeyValueRepository _keyValue;
 
   final AudioPlayer _player;
   StreamSubscription? _playerEventSubscription;
@@ -91,6 +94,7 @@ class AudioHandler {
     required SubsonicService subsonicService,
     required SettingsRepository settingsRepository,
     required SongDownloader songDownloader,
+    required KeyValueRepository keyValueRepository,
   })  : _player = player,
         _audioSession = audioSession,
         _integration = integration,
@@ -101,7 +105,8 @@ class AudioHandler {
         _transcoding = (
           settingsRepository.transcoding.codec,
           settingsRepository.transcoding.maxBitRate
-        ) {
+        ),
+        _keyValue = keyValueRepository {
     _integration
         .ensureInitialized(
       audioHandler: this,
@@ -112,7 +117,7 @@ class AudioHandler {
       onSeek: seek,
       onStop: stop,
     )
-        .then((value) {
+        .then((value) async {
       _integration.updateMedia(null, null);
       _auth.addListener(_authChanged);
 
@@ -126,39 +131,47 @@ class AudioHandler {
       _settings.replayGain.addListener(_onReplayGainChanged);
       _settings.transcoding.addListener(_onTranscodingChanged);
       _onTranscodingChanged();
-    });
 
-    _audioSessionInterruptionStream =
-        _audioSession.interruptionEventStream.listen((event) async {
-      if (event.begin) {
-        switch (event.type) {
-          case AudioInterruptionType.duck:
-            _ducking = true;
-            // ducking is automatically handled in _setPlayerVolume
-            _setPlayerVolume(1);
-            break;
-          case AudioInterruptionType.pause:
-          case AudioInterruptionType.unknown:
-            await pause();
-            break;
+      _audioSessionInterruptionStream =
+          _audioSession.interruptionEventStream.listen((event) async {
+        if (event.begin) {
+          switch (event.type) {
+            case AudioInterruptionType.duck:
+              _ducking = true;
+              // ducking is automatically handled in _setPlayerVolume
+              _setPlayerVolume(1);
+              break;
+            case AudioInterruptionType.pause:
+            case AudioInterruptionType.unknown:
+              await pause();
+              break;
+          }
+        } else {
+          switch (event.type) {
+            case AudioInterruptionType.duck:
+              _ducking = false;
+              _setPlayerVolume(1);
+              break;
+            case AudioInterruptionType.pause:
+            case AudioInterruptionType.unknown:
+              await play();
+              break;
+          }
         }
-      } else {
-        switch (event.type) {
-          case AudioInterruptionType.duck:
-            _ducking = false;
-            _setPlayerVolume(1);
-            break;
-          case AudioInterruptionType.pause:
-          case AudioInterruptionType.unknown:
-            await play();
-            break;
-        }
-      }
-    });
+      });
 
-    _audioSessionBecomingNoisyStream =
-        _audioSession.becomingNoisyEventStream.listen((_) async {
-      await pause();
+      _audioSessionBecomingNoisyStream =
+          _audioSession.becomingNoisyEventStream.listen((_) async {
+        await pause();
+      });
+
+      await _restoreQueue();
+
+      _queue.addListener(
+        () {
+          _persistQueue();
+        },
+      );
     });
   }
 
@@ -186,6 +199,9 @@ class AudioHandler {
     _positionOffset = Duration.zero;
     _playbackStatus.add(PlaybackStatus.stopped);
     _updatePosition(Duration.zero);
+    if (_restoredQueue) {
+      await _clearPersistentQueueData();
+    }
     _queue.clear();
     await _disposePlayer();
   }
@@ -490,6 +506,76 @@ class AudioHandler {
   Future<void> changeQueue(MediaQueue queue) async {
     _playOnNextMediaChange = false;
     await _queue.change(queue);
+  }
+
+  static const String _queueCurrentSongKey = "queue_state.current_song";
+  static const String _queueSongsKey = "queue_state.regular.songs";
+  static const String _priorityQueueSongsKey = "queue_state.priority.songs";
+  static const String _queueIndexKey = "queue_state.index";
+  static const String _queueLoopingKey = "queue_state.looping";
+
+  bool _restoredQueue = false;
+  Future<void> _restoreQueue() async {
+    final regular =
+        (await _keyValue.loadObjectList(_queueSongsKey, Song.fromJson) ?? [])
+            .toList();
+    final priority = Queue<Song>.from(((await _keyValue.loadObjectList(
+            _priorityQueueSongsKey, Song.fromJson)) ??
+        []));
+    final index = await _keyValue.loadInt(_queueIndexKey);
+    final looping = (await _keyValue.loadBool(_queueLoopingKey)) ?? false;
+
+    final currentSong =
+        await _keyValue.loadObject(_queueCurrentSongKey, Song.fromJson);
+
+    if (currentSong == null || index == null) {
+      _queue.setLoop(looping);
+      await _clearPersistentQueueData();
+      _restoredQueue = true;
+      return;
+    }
+
+    final loadedQueue = LocalQueue.withInitialData(
+      regularQueue: regular.toList(),
+      priorityQueue: priority,
+      currentIndex: index,
+      currentSong: currentSong,
+      looping: looping,
+    );
+
+    await changeQueue(loadedQueue);
+
+    _restoredQueue = true;
+
+    _integration.updatePlaybackState(PlaybackStatus.paused);
+    _integration.updateMedia(currentSong,
+        _subsonic.getCoverUri(_auth.con, currentSong.coverId, size: 512));
+  }
+
+  void _persistQueue() async {
+    Future.delayed(const Duration(milliseconds: 250), () async {
+      if (_queue.current.value == null) {
+        await _clearPersistentQueueData();
+        return;
+      }
+      final looping = _queue.looping.value;
+      await Future.wait([
+        _keyValue.store(_queueSongsKey, _queue.regular.toList()),
+        _keyValue.store(_priorityQueueSongsKey, _queue.priority.toList()),
+        _keyValue.store(_queueLoopingKey, looping),
+        _keyValue.store(_queueIndexKey, _queue.currentIndex),
+        _keyValue.store(_queueCurrentSongKey, _queue.current.value),
+      ]);
+    });
+  }
+
+  Future<void> _clearPersistentQueueData() async {
+    await Future.wait([
+      _keyValue.remove(_queueCurrentSongKey),
+      _keyValue.remove(_queueSongsKey),
+      _keyValue.remove(_priorityQueueSongsKey),
+      _keyValue.remove(_queueIndexKey),
+    ]);
   }
 
   // =============== dispose ===============

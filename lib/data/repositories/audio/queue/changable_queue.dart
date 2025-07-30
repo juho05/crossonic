@@ -44,11 +44,19 @@ class ChangableQueue extends ChangeNotifier implements MediaQueue {
     _queue = queue;
 
     _queue.addListener(notifyListeners);
+
     _currentSubscription =
         _queue.current.listen((event) => _current.add(event));
     _currentAndNextSubscription =
         _queue.currentAndNext.listen((event) => _currentAndNext.add(event));
-    _loopingSubscription = _queue.looping.listen((loop) => _looping.add(loop));
+    _loopingSubscription = _queue.looping.listen((loop) {
+      _looping.add(loop);
+    });
+
+    _looping.add(_queue.looping.value);
+    _current.add(_queue.current.value);
+    _currentAndNext.add(_queue.currentAndNext.value);
+    notifyListeners();
   }
 
   @override
