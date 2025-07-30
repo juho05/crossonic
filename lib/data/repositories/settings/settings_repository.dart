@@ -1,6 +1,7 @@
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
 import 'package:crossonic/data/repositories/keyvalue/key_value_repository.dart';
 import 'package:crossonic/data/repositories/logger/log.dart';
+import 'package:crossonic/data/repositories/settings/appearance.dart';
 import 'package:crossonic/data/repositories/settings/home_page_layout.dart';
 import 'package:crossonic/data/repositories/settings/logging.dart';
 import 'package:crossonic/data/repositories/settings/replay_gain.dart';
@@ -12,6 +13,7 @@ class SettingsRepository {
   final ReplayGainSettings replayGain;
   final TranscodingSettings transcoding;
   final HomeLayoutSettings homeLayout;
+  final AppearanceSettings appearanceSettings;
 
   SettingsRepository({
     required AuthRepository authRepository,
@@ -28,6 +30,9 @@ class SettingsRepository {
           subsonicRepository: subsonic,
         ),
         homeLayout = HomeLayoutSettings(
+          keyValueRepository: keyValueRepository,
+        ),
+        appearanceSettings = AppearanceSettings(
           keyValueRepository: keyValueRepository,
         ) {
     bool wasAuthenticated = authRepository.isAuthenticated;
@@ -51,6 +56,7 @@ class SettingsRepository {
       replayGain.load(),
       transcoding.load(),
       homeLayout.load(),
+      appearanceSettings.load(),
     ]);
   }
 
@@ -58,6 +64,7 @@ class SettingsRepository {
     replayGain.dispose();
     transcoding.dispose();
     homeLayout.dispose();
+    appearanceSettings.dispose();
     logging.dispose();
   }
 }

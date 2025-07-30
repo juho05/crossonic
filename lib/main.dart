@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:crossonic/app_shortcuts.dart';
 import 'package:crossonic/config/providers.dart';
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
-import 'package:crossonic/data/repositories/linux_theme_detector/linux_theme_detector.dart';
+import 'package:crossonic/data/repositories/themeManager/theme_manager.dart';
 import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/routing/router.dart';
 import 'package:crossonic/window_listener.dart';
@@ -68,39 +68,52 @@ void main() async {
   runApp(
     MultiProvider(
       providers: await providers,
-      child: const AppShortcuts(child: MainApp()),
+      child: AppShortcuts(child: Builder(builder: (context) {
+        final routerConfig = AppRouter(authRepository: context.read()).config(
+          reevaluateListenable: context.read<AuthRepository>(),
+        );
+        return MainApp(
+          routerConfig: routerConfig,
+        );
+      })),
     ),
   );
 }
 
 class MainApp extends StatelessWidget {
-  const MainApp({super.key});
+  final RouterConfig<Object> _routerConfig;
+
+  const MainApp({super.key, required RouterConfig<Object> routerConfig})
+      : _routerConfig = routerConfig;
 
   @override
   Widget build(BuildContext context) {
-    final authRepository = context.read<AuthRepository>();
-    final linuxThemeDetector = context.read<LinuxThemeDetector>();
+    final themeManager = context.read<ThemeManager>();
     return DynamicColorBuilder(
       builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) {
         return ListenableBuilder(
-            listenable: linuxThemeDetector,
+            listenable: themeManager,
             builder: (context, _) {
+              var lightTheme = lightDynamic;
+              var darkTheme = darkDynamic;
+              if (!themeManager.enableDynamicColors) {
+                lightTheme = null;
+                darkTheme = null;
+              }
               return MaterialApp.router(
                 title: "Crossonic",
                 restorationScopeId: "crossonic_app",
                 theme: ThemeData(
                   useMaterial3: true,
-                  colorScheme: lightDynamic ?? defaultLightColorScheme,
+                  colorScheme: lightTheme ?? defaultLightColorScheme,
                 ),
                 darkTheme: ThemeData(
                   useMaterial3: true,
-                  colorScheme: darkDynamic ?? defaultDarkColorScheme,
+                  colorScheme: darkTheme ?? defaultDarkColorScheme,
                 ),
-                themeMode: linuxThemeDetector.themeMode,
+                themeMode: themeManager.themeMode,
                 debugShowCheckedModeBanner: false,
-                routerConfig: AppRouter(authRepository: authRepository).config(
-                  reevaluateListenable: authRepository,
-                ),
+                routerConfig: _routerConfig,
               );
             });
       },

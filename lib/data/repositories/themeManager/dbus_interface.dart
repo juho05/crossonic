@@ -1,4 +1,4 @@
-import 'package:crossonic/data/repositories/linux_theme_detector/org_freedesktop_portal_settings.dart';
+import 'package:crossonic/data/repositories/themeManager/org_freedesktop_portal_settings.dart';
 import 'package:dbus/dbus.dart';
 
 // Original code from

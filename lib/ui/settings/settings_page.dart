@@ -55,6 +55,11 @@ class _SettingsPageState extends State<SettingsPage> {
             onTap: () => context.router.push(const HomeLayoutRoute()),
           ),
           ListTile(
+            title: const Text("Appearance"),
+            trailing: const Icon(Icons.arrow_forward_ios),
+            onTap: () => context.router.push(const AppearanceRoute()),
+          ),
+          ListTile(
             title: const Text("Transcoding"),
             trailing: const Icon(Icons.arrow_forward_ios),
             onTap: () => context.router.push(const TranscodingRoute()),

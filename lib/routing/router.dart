@@ -154,6 +154,12 @@ class AppRouter extends RootStackRouter {
           restorationId: (match) => match.fullPath,
         ),
         AutoRoute(
+          path: "/settings/appearance",
+          page: AppearanceRoute.page,
+          title: (context, data) => "Appearance",
+          restorationId: (match) => match.fullPath,
+        ),
+        AutoRoute(
           path: "/settings/transcoding",
           page: TranscodingRoute.page,
           title: (context, data) => "Transcoding",

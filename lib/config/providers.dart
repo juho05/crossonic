@@ -9,7 +9,7 @@ import 'package:crossonic/data/repositories/audio/audio_handler.dart' as ah;
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
 import 'package:crossonic/data/repositories/cover/cover_repository.dart';
 import 'package:crossonic/data/repositories/keyvalue/key_value_repository.dart';
-import 'package:crossonic/data/repositories/linux_theme_detector/linux_theme_detector.dart';
+import 'package:crossonic/data/repositories/themeManager/theme_manager.dart';
 import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/data/repositories/playlist/downloader_storage.dart';
 import 'package:crossonic/data/repositories/playlist/playlist_repository.dart';
@@ -140,7 +140,11 @@ Future<List<SingleChildWidget>> get providers async {
 
   return [
     ChangeNotifierProvider(
-      create: (context) => LinuxThemeDetector(keyValue: keyValueRepository),
+      create: (context) => ThemeManager(
+        keyValue: keyValueRepository,
+        appearanceSettings: settings.appearanceSettings,
+      ),
+      lazy: false,
     ),
     Provider.value(
       value: database,
