@@ -80,7 +80,7 @@ class AuthRepository extends ChangeNotifier {
     final result = await _openSubsonicService.fetchServerInfo(serverUri);
     switch (result) {
       case Err<ServerInfo>():
-        if (result is UnexpectedResponseException) {
+        if (result.error is UnexpectedResponseException) {
           return Result.error(InvalidServerException(
               (result.error as UnexpectedResponseException).message));
         }
@@ -154,7 +154,7 @@ class AuthRepository extends ChangeNotifier {
     final result = await _openSubsonicService.fetchServerInfo(_serverUri!);
     switch (result) {
       case Err<ServerInfo>():
-        if (result is UnexpectedResponseException) {
+        if (result.error is UnexpectedResponseException) {
           return Result.error(InvalidServerException(
               (result.error as UnexpectedResponseException).message));
         }

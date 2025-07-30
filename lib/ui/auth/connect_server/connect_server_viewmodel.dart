@@ -1,4 +1,5 @@
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
+import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/utils/command.dart';
 import 'package:crossonic/utils/exceptions.dart';
 import 'package:crossonic/utils/result.dart';
@@ -59,6 +60,7 @@ class ConnectServerViewModel extends ChangeNotifier {
     final result = await _authRepository.connect(uri);
     switch (result) {
       case Err():
+        Log.error("Failed to connect to server", result.error);
         return Result.error(result.error);
       case Ok():
         return const Result.ok(null);
