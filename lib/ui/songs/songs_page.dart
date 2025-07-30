@@ -159,6 +159,8 @@ class _SongsPageState extends State<SongsPage> {
                             outlined: true,
                             onPressed: () {
                               _viewModel.addAllToQueue(true);
+                              Toast.show(
+                                  context, "Added songs to priority queue");
                             },
                             child: const Text("Prio. Queue"),
                           ),
@@ -167,6 +169,7 @@ class _SongsPageState extends State<SongsPage> {
                             outlined: true,
                             onPressed: () {
                               _viewModel.addAllToQueue(false);
+                              Toast.show(context, "Added songs to queue");
                             },
                             child: const Text("Queue"),
                           ),
