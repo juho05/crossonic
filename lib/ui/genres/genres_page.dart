@@ -65,6 +65,7 @@ class _GenresPageState extends State<GenresPage> {
                         DropdownMenu<GenresSortMode>(
                           initialSelection: _viewModel.sortMode,
                           leadingIcon: const Icon(Icons.sort),
+                          width: 200,
                           requestFocusOnTap: false,
                           enableSearch: false,
                           dropdownMenuEntries: [

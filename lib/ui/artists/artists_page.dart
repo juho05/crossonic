@@ -62,6 +62,8 @@ class _ArtistsPageState extends State<ArtistsPage> {
                           initialSelection: _viewModel.mode,
                           requestFocusOnTap: false,
                           leadingIcon: const Icon(Icons.sort),
+                          width:
+                              orientation == Orientation.landscape ? 200 : null,
                           expandedInsets: orientation == Orientation.portrait
                               ? EdgeInsets.zero
                               : null,

@@ -80,6 +80,9 @@ class _AlbumsPageState extends State<AlbumsPage> {
                                 initialSelection: _viewModel.mode,
                                 requestFocusOnTap: false,
                                 leadingIcon: const Icon(Icons.sort),
+                                width: orientation == Orientation.landscape
+                                    ? 240
+                                    : null,
                                 expandedInsets:
                                     orientation == Orientation.portrait
                                         ? EdgeInsets.zero

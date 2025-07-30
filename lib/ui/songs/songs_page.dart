@@ -101,6 +101,9 @@ class _SongsPageState extends State<SongsPage> {
                             requestFocusOnTap: false,
                             leadingIcon: const Icon(Icons.sort),
                             enableSearch: false,
+                            width: orientation == Orientation.landscape
+                                ? 180
+                                : null,
                             expandedInsets: orientation == Orientation.portrait
                                 ? EdgeInsets.zero
                                 : null,
