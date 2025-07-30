@@ -10,7 +10,7 @@ class AppearanceSettings extends ChangeNotifier {
   ThemeMode get themeMode => _themeMode;
 
   static const String _dynamicColorsKey = "appearance.dynamic_colors";
-  static const bool _dynamicColorsDefault = true;
+  static const bool _dynamicColorsDefault = false;
   bool _dynamicColors = _dynamicColorsDefault;
   bool get dynamicColors => _dynamicColors;
 

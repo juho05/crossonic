@@ -7,7 +7,7 @@ class AppearanceViewModel extends ChangeNotifier {
   ThemeMode _mode = ThemeMode.system;
   ThemeMode get mode => _mode;
 
-  bool _dynamicColors = true;
+  bool _dynamicColors = false;
   bool get dynamicColors => _dynamicColors;
 
   AppearanceViewModel({

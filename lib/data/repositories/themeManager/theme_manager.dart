@@ -21,7 +21,7 @@ class ThemeManager extends ChangeNotifier {
   ThemeMode get themeMode =>
       _settingsThemeMode == ThemeMode.system ? _systemMode : _settingsThemeMode;
 
-  bool _enableDynamicColors = true;
+  bool _enableDynamicColors = false;
   bool get enableDynamicColors => _enableDynamicColors;
 
   StreamSubscription? _preferenceStreamSubscription;
