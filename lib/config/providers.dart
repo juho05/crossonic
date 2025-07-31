@@ -215,7 +215,6 @@ Future<List<SingleChildWidget>> get providers async {
     ChangeNotifierProvider(
       create: (context) => IntegrateAppImageViewModel(
         keyValue: context.read(),
-        versionRepository: context.read(),
       )..check(),
     )
   ];

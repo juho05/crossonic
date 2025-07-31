@@ -14,7 +14,6 @@ class IntegrateAppImageViewModel extends ChangeNotifier {
   static const disabledKey = "integrate_appimage_disabled";
 
   final KeyValueRepository _keyValue;
-  final VersionRepository _versionRepository;
 
   final _desktopFileDirPath = join(
       Platform.environment["HOME"] ?? "~", ".local", "share", "applications");
@@ -24,9 +23,7 @@ class IntegrateAppImageViewModel extends ChangeNotifier {
 
   IntegrateAppImageViewModel({
     required KeyValueRepository keyValue,
-    required VersionRepository versionRepository,
-  })  : _keyValue = keyValue,
-        _versionRepository = versionRepository;
+  }) : _keyValue = keyValue;
 
   Future<void> check() async {
     if (kIsWeb ||
@@ -36,7 +33,7 @@ class IntegrateAppImageViewModel extends ChangeNotifier {
       return;
     }
 
-    final currentVersion = await _versionRepository.getCurrentVersion();
+    final currentVersion = await VersionRepository.getCurrentVersion();
 
     final disabled = await _keyValue.loadObject(disabledKey, Version.fromJson);
     if (disabled != null && disabled == currentVersion) {
@@ -59,7 +56,7 @@ class IntegrateAppImageViewModel extends ChangeNotifier {
   Future<void> disable() async {
     _askToIntegrate = false;
     await _keyValue.store(
-        disabledKey, await _versionRepository.getCurrentVersion());
+        disabledKey, await VersionRepository.getCurrentVersion());
     Log.debug("User disabled AppImage integration for version $disable");
   }
 

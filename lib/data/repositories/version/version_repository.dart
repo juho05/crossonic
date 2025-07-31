@@ -11,10 +11,15 @@ class VersionRepository {
   static const _keyLatestVersion = "version.latest";
   static const _minCheckInterval = Duration(hours: 3);
 
+  static PackageInfo? _packageInfo;
+
+  static Future<Version> getCurrentVersion() async {
+    _packageInfo ??= await PackageInfo.fromPlatform();
+    return Version.parse(_packageInfo!.version);
+  }
+
   final GitHubService _github;
   final KeyValueRepository _keyValue;
-
-  PackageInfo? _packageInfo;
 
   VersionRepository({
     required GitHubService github,
@@ -63,10 +68,5 @@ class VersionRepository {
     }
 
     return Result.ok(latest);
-  }
-
-  Future<Version> getCurrentVersion() async {
-    _packageInfo ??= await PackageInfo.fromPlatform();
-    return Version.parse(_packageInfo!.version);
   }
 }

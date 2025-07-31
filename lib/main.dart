@@ -5,6 +5,8 @@ import 'package:crossonic/config/providers.dart';
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
 import 'package:crossonic/data/repositories/themeManager/theme_manager.dart';
 import 'package:crossonic/data/repositories/logger/log.dart';
+import 'package:crossonic/data/repositories/version/version.dart';
+import 'package:crossonic/data/repositories/version/version_repository.dart';
 import 'package:crossonic/routing/router.dart';
 import 'package:crossonic/window_listener.dart';
 import 'package:dynamic_system_colors/dynamic_system_colors.dart';
@@ -38,6 +40,16 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   FlutterSingleInstance.onFocus = (metadata) async {
+    try {
+      Version version = Version.fromJson(metadata);
+      final currentVersion = await VersionRepository.getCurrentVersion();
+      if (currentVersion != version) {
+        Log.info(
+            "An instance with different version is trying to start, exiting...");
+        exit(0);
+      }
+    } catch (_) {}
+
     if (!(await windowManager.isVisible())) {
       await windowManager.show();
     }
@@ -45,11 +57,13 @@ void main() async {
 
   if (!(await FlutterSingleInstance().isFirstInstance())) {
     Log.info("App is already running. Trying to focus running instance...");
-    final err = await FlutterSingleInstance().focus();
-    if (err != null) {
-      Log.error("Failed to focus running instance", err);
+    final err = await FlutterSingleInstance()
+        .focus(await VersionRepository.getCurrentVersion());
+    if (err == null) {
+      exit(0);
+    } else {
+      Log.warn("Failed to focus running instance");
     }
-    exit(0);
   }
 
   if (!kIsWeb && (Platform.isWindows || Platform.isMacOS || Platform.isLinux)) {

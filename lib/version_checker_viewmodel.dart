@@ -65,7 +65,7 @@ class VersionCheckerViewModel extends ChangeNotifier {
     }
     await _keyValue.remove(_keyIgnoreVersion);
 
-    final current = await _versionRepo.getCurrentVersion();
+    final current = await VersionRepository.getCurrentVersion();
 
     Log.debug("[Version check] latest: ${latest.tryValue}; current: $current");
 

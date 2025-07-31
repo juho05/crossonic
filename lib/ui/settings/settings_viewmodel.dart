@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 
 class SettingsViewModel extends ChangeNotifier {
   final AuthRepository _authRepository;
-  final VersionRepository _versionRepository;
 
   bool _loggingOut = false;
   bool get loggingOut => _loggingOut;
@@ -12,13 +11,12 @@ class SettingsViewModel extends ChangeNotifier {
   bool get supportsListenBrainz => _authRepository.serverFeatures.isCrossonic;
 
   Future<String> get version async =>
-      "v${(await _versionRepository.getCurrentVersion())}";
+      "v${(await VersionRepository.getCurrentVersion())}";
 
   SettingsViewModel({
     required AuthRepository authRepository,
     required VersionRepository versionRepository,
-  })  : _authRepository = authRepository,
-        _versionRepository = versionRepository;
+  }) : _authRepository = authRepository;
 
   Future<void> logout() async {
     _loggingOut = true;
