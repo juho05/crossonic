@@ -112,7 +112,6 @@ To enable side-loaded apps open the *Android Auto* settings on your phone (you m
 
 - Download `Crossonic-x.x.x-linux-x86-64.AppImage` from the [releases](https://github.com/juho05/crossonic/releases/latest) page
 - Execute the *AppImage* file (you might have to make it executable first)
-- Connect and login to your server
 - When asked whether to integrate the AppImage into your system, hit *Yes*
 
 ### Windows
