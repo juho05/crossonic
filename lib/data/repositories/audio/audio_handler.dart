@@ -19,6 +19,7 @@ import 'package:crossonic/data/repositories/subsonic/models/song.dart';
 import 'package:crossonic/data/repositories/version/version.dart';
 import 'package:crossonic/data/services/media_integration/media_integration.dart';
 import 'package:crossonic/data/services/opensubsonic/subsonic_service.dart';
+import 'package:crossonic/utils/throttle.dart';
 import 'package:flutter/foundation.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -167,11 +168,9 @@ class AudioHandler {
 
       await _restoreQueue();
 
-      _queue.addListener(
-        () {
-          _persistQueue();
-        },
-      );
+      _queue.addListener(_persistQueue);
+      _queue.currentAndNext.listen((_) => _persistQueue());
+      _queue.looping.listen((_) => _persistQueue());
     });
   }
 
@@ -552,21 +551,29 @@ class AudioHandler {
         _subsonic.getCoverUri(_auth.con, currentSong.coverId, size: 512));
   }
 
+  Throttle? _persistQueueThrottle;
   void _persistQueue() async {
-    Future.delayed(const Duration(milliseconds: 250), () async {
-      if (_queue.current.value == null) {
-        await _clearPersistentQueueData();
-        return;
-      }
-      final looping = _queue.looping.value;
-      await Future.wait([
-        _keyValue.store(_queueSongsKey, _queue.regular.toList()),
-        _keyValue.store(_priorityQueueSongsKey, _queue.priority.toList()),
-        _keyValue.store(_queueLoopingKey, looping),
-        _keyValue.store(_queueIndexKey, _queue.currentIndex),
-        _keyValue.store(_queueCurrentSongKey, _queue.current.value),
-      ]);
-    });
+    if (!_restoredQueue) return;
+    _persistQueueThrottle ??= Throttle(
+      action: () async {
+        if (_queue.current.value == null) {
+          await _clearPersistentQueueData();
+          return;
+        }
+        final looping = _queue.looping.value;
+        await Future.wait([
+          _keyValue.store(_queueSongsKey, _queue.regular.toList()),
+          _keyValue.store(_priorityQueueSongsKey, _queue.priority.toList()),
+          _keyValue.store(_queueLoopingKey, looping),
+          _keyValue.store(_queueIndexKey, _queue.currentIndex),
+          _keyValue.store(_queueCurrentSongKey, _queue.current.value),
+        ]);
+      },
+      delay: const Duration(milliseconds: 500),
+      leading: false,
+      trailing: true,
+    );
+    _persistQueueThrottle?.call();
   }
 
   Future<void> _clearPersistentQueueData() async {
