@@ -24,7 +24,7 @@ See [supported platforms](#supported-platforms) for a status per platform.
 ## Features
 
 - [x] Desktop and mobile layout
-- [ ] Configurable home page
+- [x] Configurable home page
 - [x] Respects light/dark theme and accent color
 - [x] System integration (*Android media API*, *MPRIS*, *SystemMediaTransportControls*, …)
 - [x] Android Auto
@@ -99,6 +99,8 @@ The OpenSubsonic API supports some features that are out-of-scope for this appli
 
 *To update an existing installation just repeat the installation instructions again for the new version.*
 
+**Make sure that you fully exit Crossonic before trying to install a new version**.
+
 ### Android
 
 Download and execute the *APK* file for your architecture from the [releases](https://github.com/juho05/crossonic/releases/latest) page.
@@ -108,11 +110,14 @@ To enable side-loaded apps open the *Android Auto* settings on your phone (you m
 
 ### Linux
 
-Crossonic is available as an *AppImage* on the [releases](https://github.com/juho05/crossonic/releases/latest) page.
+- Download `Crossonic-x.x.x-linux-x86-64.AppImage` from the [releases](https://github.com/juho05/crossonic/releases/latest) page
+- Execute the *AppImage* file (you might have to make it executable first)
+- Connect and login to your server
+- When asked whether to integrate the AppImage into your system, hit *Yes*
 
 ### Windows
 
-- Download and execute `Crossonic-x.x.x-windows-x86-64.exe` from the [releases](https://github.com/juho05/crossonic/releases/latest) page
+Download and execute `Crossonic-x.x.x-windows-x86-64.exe` from the [releases](https://github.com/juho05/crossonic/releases/latest) page.
 
 ### macOS
 
@@ -120,7 +125,8 @@ Crossonic is available as an *AppImage* on the [releases](https://github.com/juh
 - Drag `Crossonic.app` to the `Applications` directory
 
 **NOTE:** Currently macOS binaries are not signed. If macOS prevents you from opening the `.dmg` file or starting the app, you will need to
-open *System Settings*, click on *Privacy & Security*, scroll down to *Security* where it says that Crossonic was blocked and hit *Open Anyway*. This should only be necessary once after a new version was installed.
+open *System Settings*, click on *Privacy & Security*, scroll down to *Security* where it says that Crossonic was blocked and hit *Open Anyway*.
+This should only be necessary once after a new version was installed.
 
 ### Web
 
