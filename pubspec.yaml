@@ -1,85 +1,29 @@
 name: crossonic
-description: "A music player for the OpenSubsonic API with its own server for additional features."
-publish_to: "none"
-version: 0.0.9+6
+description: "A cross-platform OpenSubsonic compatible music player."
+publish_to: 'none'
+version: 0.1.0+7
+
 environment:
-  sdk: ^3.6.2
+  sdk: ^3.9.0
 
 dependencies:
   flutter:
     sdk: flutter
-  cupertino_icons: ^1.0.8
-  audio_player:
-    path: ./plugins/audio_player/audio_player
-  provider: ^6.1.2
-  auto_route: ^9.2.1
-  flutter_secure_storage: ^10.0.0-beta.4
-  crypto: ^3.0.6
-  http: ^1.3.0
-  flutter_form_builder: ^10.0.1
-  form_builder_validators: ^11.1.1
-  json_annotation: ^4.9.0
-  rxdart: ^0.28.0
-  audio_session: ^0.2.0
-  smtc_windows: ^1.0.0
-  audio_service: ^0.18.17
-  optimize_battery:
-    git: https://github.com/juho05/optimize_battery
-  audio_service_mpris: ^0.2.0
-  audio_video_progress_bar: ^2.0.3
-  sliding_up_panel: ^2.0.0+1
-  icon_decoration: ^2.1.0
-  drift: ^2.25.1
-  drift_flutter: ^0.2.4
-  path_provider: ^2.1.5
-  flutter_cache_manager: ^3.4.1
-  connectivity_plus: ^6.1.3
-  file: ^7.0.1
-  cached_network_image: ^3.4.1
-  intl: ^0.20.2
-  background_downloader: ^9.1.1
-  path: ^1.9.0
-  image_picker: ^1.1.2
-  flutter_single_instance: ^1.5.1
-  window_manager: ^0.5.0
-  tray_manager: ^0.5.0
-  flutter_svg: ^2.0.17
-  dynamic_system_colors: ^1.8.0
-  talker_flutter: ^4.7.1
-  url_launcher: ^6.3.1
-  linkfy_text: ^1.1.6
-  file_picker: ^10.1.9
-  package_info_plus: ^8.3.0
-  dbus: ^0.7.11
-  dbus_secrets: ^0.0.2
-  cryptography_plus: ^2.7.1
-  xdg_directories: ^1.1.0
-  collection: ^1.19.1
+  flutter_riverpod: ^2.6.1
+  riverpod_annotation: ^2.6.1
 
-dependency_overrides:
-  flutter_secure_storage_darwin:
-    path: ./dependency_overrides/flutter_secure_storage/flutter_secure_storage_darwin
-  path_provider_linux:
-    path: ./dependency_overrides/path_provider_linux
-  media_kit_libs_android_audio:
-    path: ./dependency_overrides/stubs/media_kit_libs_android_audio
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^6.0.0
-  auto_route_generator: ^9.0.1
-  build_runner: ^2.4.15
-  json_serializable: ^6.9.3
-  drift_dev: ^2.28.0
+  flutter_lints: ^5.0.0
   inno_bundle: ^0.9.0
+  riverpod_generator: ^2.6.5
+  build_runner: ^2.5.4
+  custom_lint: ^0.7.6
+  riverpod_lint: ^2.6.5
 
 flutter:
   uses-material-design: true
-  assets:
-    - assets/icon/crossonic-tray.png
-    - assets/icon/crossonic-tray.ico
-    - assets/icon/crossonic-foreground-monochrome.svg
-    - assets/icon/desktop/crossonic-512.png
 inno_bundle:
   id: cbe0f7d0-37fc-11f0-a197-6529278abc9e
   name: Crossonic

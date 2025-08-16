@@ -1,6 +1,6 @@
 package org.crossonic.app;
 
-import com.ryanheise.audioservice.AudioServiceActivity;
+import io.flutter.embedding.android.FlutterActivity;
 
-public class MainActivity extends AudioServiceActivity {
+public class MainActivity extends FlutterActivity {
 }
