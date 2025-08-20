@@ -1,6 +1,5 @@
 import 'package:crossonic/data/repositories/audio/audio_handler.dart';
 import 'package:crossonic/data/repositories/subsonic/models/artist.dart';
-import 'package:crossonic/data/repositories/subsonic/models/song.dart';
 import 'package:crossonic/data/repositories/subsonic/subsonic_repository.dart';
 import 'package:crossonic/ui/home/components/data_source.dart';
 import 'package:crossonic/utils/fetch_status.dart';
@@ -42,35 +41,5 @@ class HomeArtistListViewModel extends ChangeNotifier {
         _artists = result.value.toList();
     }
     notifyListeners();
-  }
-
-  Future<Result<void>> play(Artist artist,
-      {bool shuffleAlbums = false, bool shuffleSongs = false}) async {
-    return _subsonic.incrementallyLoadArtistSongs(artist,
-        (songs, firstBatch) async {
-      if (firstBatch) {
-        _audioHandler.playOnNextMediaChange();
-        _audioHandler.queue.replace(songs);
-        return;
-      }
-      _audioHandler.queue.addAll(songs, false);
-    }, shuffleReleases: shuffleAlbums, shuffleSongs: shuffleSongs);
-  }
-
-  Future<Result<void>> addToQueue(Artist artist, bool priority) async {
-    return _subsonic.incrementallyLoadArtistSongs(
-      artist,
-      (songs, firstBatch) async => _audioHandler.queue.addAll(songs, priority),
-    );
-  }
-
-  Future<Result<List<Song>>> getArtistSongs(Artist artist) async {
-    final result = await _subsonic.getArtistSongs(artist);
-    switch (result) {
-      case Err():
-        return Result.error(result.error);
-      case Ok():
-        return Result.ok(result.value.expand((l) => l).toList());
-    }
   }
 }

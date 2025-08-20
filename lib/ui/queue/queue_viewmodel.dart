@@ -53,10 +53,6 @@ class QueueViewModel extends ChangeNotifier {
     }
   }
 
-  void addSongToQueue(Song song, bool priority) {
-    _audioHandler.queue.add(song, priority);
-  }
-
   void goto(int index) {
     _audioHandler.playOnNextMediaChange();
     if (_isPriorityQueue(index)) {

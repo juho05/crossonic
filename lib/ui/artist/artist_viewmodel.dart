@@ -130,21 +130,6 @@ class ArtistViewModel extends ChangeNotifier {
     return albums;
   }
 
-  Future<Result<void>> playAlbum(Album album, {bool shuffle = false}) async {
-    final result = await _subsonic.getAlbumSongs(album);
-    switch (result) {
-      case Err():
-        return Result.error(result.error);
-      case Ok():
-    }
-    if (shuffle) {
-      result.value.shuffle();
-    }
-    _audioHandler.playOnNextMediaChange();
-    _audioHandler.queue.replace(result.value);
-    return const Result.ok(null);
-  }
-
   Future<Result<void>> play(
       {bool shuffleReleases = false, bool shuffleSongs = false}) {
     return _queueAlbums(artist!.albums ?? [],
@@ -156,17 +141,6 @@ class ArtistViewModel extends ChangeNotifier {
   Future<Result<void>> addToQueue(bool priority) {
     return _queueAlbums(artist!.albums ?? [],
         play: false, priorityQueue: priority);
-  }
-
-  Future<Result<void>> addAlbumToQueue(Album album, bool priority) async {
-    final result = await _subsonic.getAlbumSongs(album);
-    switch (result) {
-      case Err():
-        return Result.error(result.error);
-      case Ok():
-    }
-    _audioHandler.queue.addAll(result.value, priority);
-    return const Result.ok(null);
   }
 
   Future<Result<void>> toggleFavorite() async {
@@ -211,10 +185,6 @@ class ArtistViewModel extends ChangeNotifier {
       _description = "";
     }
     notifyListeners();
-  }
-
-  Future<Result<List<Song>>> getAlbumSongs(Album album) {
-    return _subsonic.getAlbumSongs(album);
   }
 
   Future<Result<List<Song>>> getArtistSongs(Artist artist) async {

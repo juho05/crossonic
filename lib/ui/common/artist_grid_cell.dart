@@ -1,34 +1,25 @@
-import 'package:crossonic/ui/common/artist_grid_cell_viewmodel.dart';
+import 'package:auto_route/auto_route.dart';
+import 'package:crossonic/data/repositories/subsonic/models/artist.dart';
+import 'package:crossonic/routing/router.gr.dart';
+import 'package:crossonic/ui/common/artist_list_item_viewmodel.dart';
+import 'package:crossonic/ui/common/dialogs/add_to_playlist.dart';
+import 'package:crossonic/ui/common/dialogs/chooser.dart';
 import 'package:crossonic/ui/common/dialogs/media_info.dart';
 import 'package:crossonic/ui/common/grid_cell.dart';
 import 'package:crossonic/ui/common/with_context_menu.dart';
+import 'package:crossonic/utils/result.dart';
 import 'package:crossonic/utils/result_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class ArtistGridCell extends StatefulWidget {
-  final String id;
-  final String name;
-  final List<String> extraInfo;
-  final String? coverId;
-
-  final void Function()? onTap;
-  final void Function()? onPlay;
-  final void Function()? onShuffle;
-  final void Function(bool priority)? onAddToQueue;
-  final void Function()? onAddToPlaylist;
+  final Artist artist;
+  final bool showReleaseCount;
 
   const ArtistGridCell({
     super.key,
-    required this.id,
-    required this.name,
-    required this.extraInfo,
-    this.coverId,
-    this.onTap,
-    this.onPlay,
-    this.onShuffle,
-    this.onAddToQueue,
-    this.onAddToPlaylist,
+    required this.artist,
+    this.showReleaseCount = true,
   });
 
   @override
@@ -36,14 +27,16 @@ class ArtistGridCell extends StatefulWidget {
 }
 
 class _ArtistGridCellState extends State<ArtistGridCell> {
-  late final ArtistGridCellViewModel _viewModel;
+  late final ArtistListItemViewModel _viewModel;
 
   @override
   void initState() {
     super.initState();
-    _viewModel = ArtistGridCellViewModel(
+    _viewModel = ArtistListItemViewModel(
       favoritesRepository: context.read(),
-      artistId: widget.id,
+      audioHandler: context.read(),
+      subsonicRepository: context.read(),
+      artist: widget.artist,
     );
   }
 
@@ -55,34 +48,54 @@ class _ArtistGridCellState extends State<ArtistGridCell> {
 
   @override
   Widget build(BuildContext context) {
+    final a = widget.artist;
     return ListenableBuilder(
       listenable: _viewModel,
       builder: (context, _) {
         final menuOptions = [
-          if (widget.onPlay != null)
-            ContextMenuOption(
-              title: "Play",
-              icon: Icons.play_arrow,
-              onSelected: widget.onPlay,
-            ),
-          if (widget.onShuffle != null)
-            ContextMenuOption(
-              title: "Shuffle",
-              icon: Icons.shuffle,
-              onSelected: widget.onShuffle,
-            ),
-          if (widget.onAddToQueue != null)
-            ContextMenuOption(
-              title: "Add to priority queue",
-              icon: Icons.playlist_play,
-              onSelected: () => widget.onAddToQueue!(true),
-            ),
-          if (widget.onAddToQueue != null)
-            ContextMenuOption(
-              title: "Add to queue",
-              icon: Icons.playlist_add,
-              onSelected: () => widget.onAddToQueue!(false),
-            ),
+          ContextMenuOption(
+            title: "Play",
+            icon: Icons.play_arrow,
+            onSelected: () async {
+              final result = await _viewModel.play();
+              if (!context.mounted) return;
+              toastResult(context, result);
+            },
+          ),
+          ContextMenuOption(
+            title: "Shuffle",
+            icon: Icons.shuffle,
+            onSelected: () async {
+              final option = await ChooserDialog.choose(
+                  context, "Shuffle", ["Releases", "Songs"]);
+              if (option == null) return;
+              final shuffleSongs = option == 1;
+              final result = await _viewModel.play(
+                  shuffleAlbums: !shuffleSongs, shuffleSongs: shuffleSongs);
+              if (!context.mounted) return;
+              toastResult(context, result);
+            },
+          ),
+          ContextMenuOption(
+            title: "Add to priority queue",
+            icon: Icons.playlist_play,
+            onSelected: () async {
+              final result = await _viewModel.onAddToQueue(true);
+              if (!context.mounted) return;
+              toastResult(context, result,
+                  successMsg: "Added '${a.name}' to priority queue");
+            },
+          ),
+          ContextMenuOption(
+            title: "Add to queue",
+            icon: Icons.playlist_add,
+            onSelected: () async {
+              final result = await _viewModel.onAddToQueue(false);
+              if (!context.mounted) return;
+              toastResult(context, result,
+                  successMsg: "Added '${a.name}' to queue");
+            },
+          ),
           ContextMenuOption(
             icon: _viewModel.favorite ? Icons.heart_broken : Icons.favorite,
             title: _viewModel.favorite
@@ -94,29 +107,41 @@ class _ArtistGridCellState extends State<ArtistGridCell> {
               toastResult(context, result);
             },
           ),
-          if (widget.onAddToQueue != null)
-            ContextMenuOption(
-              title: "Add to playlist",
-              icon: Icons.playlist_add,
-              onSelected: widget.onAddToPlaylist,
-            ),
+          ContextMenuOption(
+            title: "Add to playlist",
+            icon: Icons.playlist_add,
+            onSelected: () async {
+              final result = await _viewModel.getSongs();
+              if (!context.mounted) return;
+              switch (result) {
+                case Err():
+                  toastResult(context, result);
+                case Ok():
+                  AddToPlaylistDialog.show(context, a.name, result.value);
+              }
+            },
+          ),
           ContextMenuOption(
             title: "Info",
             icon: Icons.info_outline,
             onSelected: () {
-              MediaInfoDialog.showArtist(context, _viewModel.artistId);
+              MediaInfoDialog.showArtist(context, a.id);
             },
           )
         ];
         return GridCell(
-          title: widget.name,
-          coverId: widget.coverId,
+          title: a.name,
+          coverId: a.coverId,
           isFavorite: _viewModel.favorite,
           menuOptions: menuOptions,
           placeholderIcon: Icons.person,
           circularCover: true,
-          extraInfo: widget.extraInfo,
-          onTap: widget.onTap,
+          extraInfo: [
+            if (widget.showReleaseCount) "Releases: ${a.albumCount ?? "?"}"
+          ],
+          onTap: () {
+            context.router.push(ArtistRoute(artistId: a.id));
+          },
         );
       },
     );

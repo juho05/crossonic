@@ -1,10 +1,6 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:crossonic/routing/router.gr.dart';
 import 'package:crossonic/ui/common/buttons.dart';
-import 'package:crossonic/ui/common/clickable_list_item.dart';
-import 'package:crossonic/ui/common/dialogs/add_to_playlist.dart';
-import 'package:crossonic/ui/common/dialogs/chooser.dart';
-import 'package:crossonic/ui/common/song_list_item.dart';
+import 'package:crossonic/ui/common/song_list_sliver.dart';
 import 'package:crossonic/ui/common/toast.dart';
 import 'package:crossonic/ui/songs/songs_viewmodel.dart';
 import 'package:crossonic/utils/fetch_status.dart';
@@ -143,7 +139,7 @@ class _SongsPageState extends State<SongsPage> {
                           Button(
                             icon: Icons.play_arrow,
                             onPressed: () {
-                              _viewModel.play(0, false);
+                              _viewModel.play();
                             },
                             child: const Text("Play"),
                           ),
@@ -177,50 +173,7 @@ class _SongsPageState extends State<SongsPage> {
                       ),
                     ),
                   ),
-                  SliverFixedExtentList.builder(
-                    itemBuilder: (context, index) {
-                      final s = _viewModel.songs[index];
-                      return SongListItem(
-                        id: s.id,
-                        title: s.title,
-                        artist: s.displayArtist,
-                        coverId: s.coverId,
-                        duration: s.duration,
-                        year: s.year,
-                        onTap: (ctrlPressed) {
-                          _viewModel.play(index, ctrlPressed);
-                        },
-                        onAddToQueue: (priority) {
-                          _viewModel.addToQueue(s, priority);
-                          Toast.show(context,
-                              "Added '${s.title}' to ${priority ? "priority " : ""}queue");
-                        },
-                        onAddToPlaylist: () {
-                          AddToPlaylistDialog.show(context, s.title, [s]);
-                        },
-                        onGoToAlbum: s.album != null
-                            ? () {
-                                context.router
-                                    .push(AlbumRoute(albumId: s.album!.id));
-                              }
-                            : null,
-                        onGoToArtist: s.artists.isNotEmpty
-                            ? () async {
-                                final artistId =
-                                    await ChooserDialog.chooseArtist(
-                                        context, s.artists.toList());
-                                if (artistId == null || !context.mounted) {
-                                  return;
-                                }
-                                context.router
-                                    .push(ArtistRoute(artistId: artistId));
-                              }
-                            : null,
-                      );
-                    },
-                    itemExtent: ClickableListItem.verticalExtent,
-                    itemCount: _viewModel.songs.length,
-                  ),
+                  SongListSliver(songs: _viewModel.songs),
                   if (_viewModel.status == FetchStatus.success &&
                       _viewModel.songs.isEmpty)
                     const SliverToBoxAdapter(child: Text("No songs available")),

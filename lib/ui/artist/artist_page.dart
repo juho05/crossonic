@@ -2,7 +2,6 @@ import 'dart:math';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:crossonic/data/repositories/subsonic/models/album.dart';
-import 'package:crossonic/routing/router.gr.dart';
 import 'package:crossonic/ui/artist/artist_viewmodel.dart';
 import 'package:crossonic/ui/common/album_grid_cell.dart';
 import 'package:crossonic/ui/common/albums_grid_delegate.dart';
@@ -217,50 +216,7 @@ class _ArtistPageState extends State<ArtistPage> {
                       gridDelegate: AlbumsGridDelegate(),
                       itemCount: gridAlbums.length,
                       itemBuilder: (context, i) => AlbumGridCell(
-                        id: gridAlbums[i].id,
-                        name: gridAlbums[i].name,
-                        coverId: gridAlbums[i].coverId,
-                        extraInfo: [
-                          gridAlbums[i].year != null
-                              ? "${gridAlbums[i].year}"
-                              : "Unknown year"
-                        ],
-                        onTap: () {
-                          context.router
-                              .push(AlbumRoute(albumId: gridAlbums[i].id));
-                        },
-                        onPlay: () async {
-                          final result =
-                              await _viewModel.playAlbum(gridAlbums[i]);
-                          if (!context.mounted) return;
-                          toastResult(context, result);
-                        },
-                        onShuffle: () async {
-                          final result = await _viewModel
-                              .playAlbum(gridAlbums[i], shuffle: true);
-                          if (!context.mounted) return;
-                          toastResult(context, result);
-                        },
-                        onAddToQueue: (priority) async {
-                          final result = await _viewModel.addAlbumToQueue(
-                              gridAlbums[i], priority);
-                          if (!context.mounted) return;
-                          toastResult(context, result,
-                              successMsg:
-                                  "Added '${gridAlbums[i].name}' to ${priority ? " priority" : ""} queue");
-                        },
-                        onAddToPlaylist: () async {
-                          final result =
-                              await _viewModel.getAlbumSongs(gridAlbums[i]);
-                          if (!context.mounted) return;
-                          switch (result) {
-                            case Err():
-                              toastResult(context, result);
-                            case Ok():
-                              AddToPlaylistDialog.show(
-                                  context, gridAlbums[i].name, result.value);
-                          }
-                        },
+                        album: gridAlbums[i],
                       ),
                     );
                   }

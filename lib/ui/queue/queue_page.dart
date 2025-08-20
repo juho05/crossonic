@@ -1,9 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:crossonic/ui/common/clickable_list_item.dart';
-import 'package:crossonic/ui/common/dialogs/add_to_playlist.dart';
 import 'package:crossonic/ui/common/dialogs/confirmation.dart';
 import 'package:crossonic/ui/common/song_list_item.dart';
-import 'package:crossonic/ui/common/toast.dart';
 import 'package:crossonic/ui/queue/queue_viewmodel.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -57,24 +55,7 @@ class _QueuePageState extends State<QueuePage> {
                   if (_viewModel.currentSong != null)
                     SongListItem(
                       key: ValueKey("current-${_viewModel.currentSong!.id}"),
-                      id: _viewModel.currentSong!.id,
-                      title: _viewModel.currentSong!.title,
-                      artist: _viewModel.currentSong!.displayArtist,
-                      coverId: _viewModel.currentSong!.coverId,
-                      duration: _viewModel.currentSong!.duration,
-                      year: _viewModel.currentSong!.year,
-                      onAddToQueue: (priority) {
-                        _viewModel.addSongToQueue(
-                            _viewModel.currentSong!, priority);
-                        Toast.show(context,
-                            "Added '${_viewModel.currentSong!.title}' to ${priority ? "priority " : ""}queue");
-                      },
-                      onAddToPlaylist: () {
-                        AddToPlaylistDialog.show(
-                            context,
-                            _viewModel.currentSong!.title,
-                            [_viewModel.currentSong!]);
-                      },
+                      song: _viewModel.currentSong!,
                     ),
                   if (_viewModel.currentSong == null)
                     const Text("Inactive playback"),
@@ -128,29 +109,16 @@ class _QueuePageState extends State<QueuePage> {
                   if (i < _viewModel.priorityQueue.length) {
                     final s = _viewModel.priorityQueue[i];
                     return SongListItem(
-                      id: s.id,
-                      title: s.title,
-                      duration: s.duration,
+                      song: s,
                       key: ValueKey("$i${s.coverId}"),
                       reorderIndex: i,
-                      disablePlaybackStatus: true,
-                      coverId: s.coverId,
-                      artist: s.displayArtist,
-                      year: s.year,
-                      removeButton: true,
+                      showPlaybackStatus: false,
+                      showRemoveButton: true,
                       onRemove: () {
                         _viewModel.remove(i);
                       },
                       onTap: (_) {
                         _viewModel.goto(i);
-                      },
-                      onAddToQueue: (priority) {
-                        _viewModel.addSongToQueue(s, priority);
-                        Toast.show(context,
-                            "Added '${s.title}' to ${priority ? "priority " : ""}queue");
-                      },
-                      onAddToPlaylist: () {
-                        AddToPlaylistDialog.show(context, s.title, [s]);
                       },
                     );
                   }
@@ -196,29 +164,16 @@ class _QueuePageState extends State<QueuePage> {
                   final s =
                       _viewModel.queue[i - 1 - _viewModel.priorityQueue.length];
                   return SongListItem(
+                    song: s,
                     key: ValueKey("$i${s.coverId}"),
                     reorderIndex: i,
-                    disablePlaybackStatus: true,
-                    id: s.id,
-                    title: s.title,
-                    artist: s.displayArtist,
-                    coverId: s.coverId,
-                    duration: s.duration,
-                    year: s.year,
-                    removeButton: true,
+                    showPlaybackStatus: false,
+                    showRemoveButton: true,
                     onRemove: () {
                       _viewModel.remove(i);
                     },
                     onTap: (_) {
                       _viewModel.goto(i);
-                    },
-                    onAddToQueue: (priority) {
-                      _viewModel.addSongToQueue(s, priority);
-                      Toast.show(context,
-                          "Added '${s.title}' to ${priority ? "priority " : ""}queue");
-                    },
-                    onAddToPlaylist: () {
-                      AddToPlaylistDialog.show(context, s.title, [s]);
                     },
                   );
                 },

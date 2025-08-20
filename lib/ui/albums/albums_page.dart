@@ -1,13 +1,8 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:crossonic/routing/router.gr.dart';
 import 'package:crossonic/ui/albums/albums_viewmodel.dart';
 import 'package:crossonic/ui/common/album_grid_cell.dart';
 import 'package:crossonic/ui/common/albums_grid_delegate.dart';
-import 'package:crossonic/ui/common/dialogs/add_to_playlist.dart';
-import 'package:crossonic/ui/common/dialogs/chooser.dart';
 import 'package:crossonic/utils/fetch_status.dart';
-import 'package:crossonic/utils/result.dart';
-import 'package:crossonic/utils/result_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -36,13 +31,11 @@ class _AlbumsPageState extends State<AlbumsPage> {
     super.initState();
     if (widget.genre != null) {
       _viewModel = AlbumsViewModel.genre(
-        audioHandler: context.read(),
         subsonic: context.read(),
         genre: widget.genre!,
       );
     } else {
       _viewModel = AlbumsViewModel(
-        audioHandler: context.read(),
         subsonic: context.read(),
         mode: AlbumsPageMode.values.firstWhere(
           (m) => m.name == widget.mode,
@@ -165,58 +158,7 @@ class _AlbumsPageState extends State<AlbumsPage> {
                           }
                           final a = _viewModel.albums[index];
                           return AlbumGridCell(
-                            id: a.id,
-                            extraInfo: [
-                              a.displayArtist,
-                              a.year?.toString() ?? "Unknown year",
-                            ],
-                            coverId: a.coverId,
-                            name: a.name,
-                            onTap: () {
-                              context.router.push(AlbumRoute(albumId: a.id));
-                            },
-                            onPlay: () async {
-                              final result = await _viewModel.play(a);
-                              if (!context.mounted) return;
-                              toastResult(context, result);
-                            },
-                            onShuffle: () async {
-                              final result =
-                                  await _viewModel.play(a, shuffle: true);
-                              if (!context.mounted) return;
-                              toastResult(context, result);
-                            },
-                            onAddToQueue: (priority) async {
-                              final result =
-                                  await _viewModel.addToQueue(a, priority);
-                              if (!context.mounted) return;
-                              toastResult(context, result,
-                                  successMsg:
-                                      "Added '${a.name}' to ${priority ? "priority " : ""}queue");
-                            },
-                            onGoToArtist: a.artists.isNotEmpty
-                                ? () async {
-                                    final artistId =
-                                        await ChooserDialog.chooseArtist(
-                                            context, a.artists.toList());
-                                    if (artistId == null || !context.mounted) {
-                                      return;
-                                    }
-                                    context.router
-                                        .push(ArtistRoute(artistId: artistId));
-                                  }
-                                : null,
-                            onAddToPlaylist: () async {
-                              final result = await _viewModel.getAlbumSongs(a);
-                              if (!context.mounted) return;
-                              switch (result) {
-                                case Err():
-                                  toastResult(context, result);
-                                case Ok():
-                                  AddToPlaylistDialog.show(
-                                      context, a.name, result.value);
-                              }
-                            },
+                            album: a,
                           );
                         },
                         childCount:

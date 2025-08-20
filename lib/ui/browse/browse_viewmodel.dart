@@ -61,72 +61,6 @@ class BrowseViewModel extends ChangeNotifier {
         const Duration(milliseconds: 500), () => _updateSearchText(search));
   }
 
-  Future<Result<void>> playArtist(
-    Artist artist, {
-    bool shuffleAlbums = false,
-    bool shuffleSongs = false,
-  }) async {
-    return _subsonic.incrementallyLoadArtistSongs(
-      artist,
-      (songs, firstBatch) async {
-        if (firstBatch) {
-          _audioHandler.playOnNextMediaChange();
-          _audioHandler.queue.replace(songs);
-          return;
-        }
-        _audioHandler.queue.addAll(songs, false);
-      },
-      shuffleReleases: shuffleAlbums,
-      shuffleSongs: shuffleSongs,
-    );
-  }
-
-  Future<Result<void>> addArtistToQueue(Artist artist, bool priority) async {
-    return _subsonic.incrementallyLoadArtistSongs(
-      artist,
-      (songs, firstBatch) async => _audioHandler.queue.addAll(songs, priority),
-    );
-  }
-
-  Future<Result<void>> playAlbum(Album album, {bool shuffle = false}) async {
-    final result = await _subsonic.getAlbumSongs(album);
-    switch (result) {
-      case Err():
-        return Result.error(result.error);
-      case Ok():
-    }
-    if (shuffle) {
-      result.value.shuffle();
-    }
-    _audioHandler.playOnNextMediaChange();
-    _audioHandler.queue.replace(result.value);
-    return const Result.ok(null);
-  }
-
-  Future<Result<void>> addAlbumToQueue(Album album, bool priority) async {
-    final result = await _subsonic.getAlbumSongs(album);
-    switch (result) {
-      case Err():
-        return Result.error(result.error);
-      case Ok():
-    }
-    _audioHandler.queue.addAll(result.value, priority);
-    return const Result.ok(null);
-  }
-
-  void playSong(int index, bool single) {
-    _audioHandler.playOnNextMediaChange();
-    if (single) {
-      _audioHandler.queue.replace([songs[index]]);
-    } else {
-      _audioHandler.queue.replace(songs, index);
-    }
-  }
-
-  void addSongToQueue(Song song, bool priority) {
-    _audioHandler.queue.add(song, priority);
-  }
-
   Future<void> _updateSearchText(String search) async {
     _searchMode = true;
     _searchStatus = FetchStatus.loading;
@@ -147,20 +81,6 @@ class BrowseViewModel extends ChangeNotifier {
         _artists = result.value.artists.toList();
     }
     notifyListeners();
-  }
-
-  Future<Result<List<Song>>> getAlbumSongs(Album album) async {
-    return await _subsonic.getAlbumSongs(album);
-  }
-
-  Future<Result<List<Song>>> getArtistSongs(Artist artist) async {
-    final result = await _subsonic.getArtistSongs(artist);
-    switch (result) {
-      case Err():
-        return Result.error(result.error);
-      case Ok():
-        return Result.ok(result.value.expand((l) => l).toList());
-    }
   }
 
   @override

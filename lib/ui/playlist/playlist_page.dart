@@ -5,7 +5,6 @@ import 'package:crossonic/ui/common/clickable_list_item.dart';
 import 'package:crossonic/ui/common/collection_page.dart';
 import 'package:crossonic/ui/common/cover_art_decorated.dart';
 import 'package:crossonic/ui/common/dialogs/add_to_playlist.dart';
-import 'package:crossonic/ui/common/dialogs/chooser.dart';
 import 'package:crossonic/ui/common/dialogs/confirmation.dart';
 import 'package:crossonic/ui/common/dialogs/media_info.dart';
 import 'package:crossonic/ui/common/song_list_item.dart';
@@ -239,38 +238,11 @@ class _PlaylistPageState extends State<PlaylistPage> {
                 final s = t.$1;
                 return SongListItem(
                   key: ValueKey("$index-${s.id}"),
-                  id: s.id,
-                  title: s.title,
+                  song: s,
                   reorderIndex: _viewModel.reorderEnabled ? index : null,
-                  artist: s.displayArtist,
-                  duration: s.duration,
-                  coverId: s.coverId,
-                  year: s.year,
                   downloadStatus:
                       playlist.download ? t.$2 : DownloadStatus.none,
-                  onAddToPlaylist: () {
-                    AddToPlaylistDialog.show(context, s.title, [s]);
-                  },
-                  onAddToQueue: (priority) {
-                    _viewModel.addSongToQueue(s, priority);
-                    Toast.show(context,
-                        "Added '${s.title}' to ${priority ? "priority " : ""}queue");
-                  },
-                  onGoToAlbum: s.album != null
-                      ? () {
-                          context.router.push(AlbumRoute(albumId: s.album!.id));
-                        }
-                      : null,
-                  onGoToArtist: s.artists.isNotEmpty
-                      ? () async {
-                          final router = context.router;
-                          final artistId = await ChooserDialog.chooseArtist(
-                              context, s.artists.toList());
-                          if (artistId == null) return;
-                          router.push(ArtistRoute(artistId: artistId));
-                        }
-                      : null,
-                  removeButton: _viewModel.reorderEnabled,
+                  showRemoveButton: _viewModel.reorderEnabled,
                   onRemove: () async {
                     final result = await _viewModel.remove(index);
                     if (!context.mounted) return;

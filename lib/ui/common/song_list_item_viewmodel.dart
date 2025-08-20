@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:crossonic/data/repositories/audio/audio_handler.dart';
 import 'package:crossonic/data/repositories/subsonic/favorites_repository.dart';
+import 'package:crossonic/data/repositories/subsonic/models/song.dart';
 import 'package:crossonic/utils/result.dart';
 import 'package:flutter/material.dart';
 
@@ -12,7 +13,7 @@ class SongListItemViewModel extends ChangeNotifier {
   StreamSubscription? _currentSubscription;
   StreamSubscription? _statusSubscription;
 
-  final String songId;
+  final Song song;
 
   bool _favorite = false;
   bool get favorite => _favorite;
@@ -20,12 +21,12 @@ class SongListItemViewModel extends ChangeNotifier {
   String? _currentSongId;
   PlaybackStatus _playbackStatus = PlaybackStatus.stopped;
   PlaybackStatus? get playbackStatus =>
-      _currentSongId == songId ? _playbackStatus : null;
+      _currentSongId == song.id ? _playbackStatus : null;
 
   SongListItemViewModel({
     required FavoritesRepository favoritesRepository,
     required AudioHandler audioHandler,
-    required this.songId,
+    required this.song,
     bool disablePlaybackStatus = false,
   })  : _favoritesRepository = favoritesRepository,
         _audioHandler = audioHandler {
@@ -38,7 +39,7 @@ class SongListItemViewModel extends ChangeNotifier {
       });
       _statusSubscription = _audioHandler.playbackStatus.listen((status) {
         _playbackStatus = status;
-        if (_currentSongId == songId) {
+        if (_currentSongId == song.id) {
           notifyListeners();
         }
       });
@@ -53,7 +54,7 @@ class SongListItemViewModel extends ChangeNotifier {
     _favorite = !favorite;
     notifyListeners();
     final result = await _favoritesRepository.setFavorite(
-        FavoriteType.song, songId, favorite);
+        FavoriteType.song, song.id, favorite);
     if (result is Err) {
       _favorite = !favorite;
       notifyListeners();
@@ -70,11 +71,16 @@ class SongListItemViewModel extends ChangeNotifier {
   }
 
   void _updateFavoriteStatus() {
-    final favorite = _favoritesRepository.isFavorite(FavoriteType.song, songId);
+    final favorite =
+        _favoritesRepository.isFavorite(FavoriteType.song, song.id);
     if (favorite != _favorite) {
       _favorite = favorite;
       notifyListeners();
     }
+  }
+
+  void addToQueue(bool priority) {
+    _audioHandler.queue.add(song, priority);
   }
 
   @override

@@ -160,10 +160,6 @@ class AlbumViewModel extends ChangeNotifier {
     _audioHandler.queue.addAll(_songs, priority);
   }
 
-  void addSongToQueue(Song song, bool priority) {
-    _audioHandler.queue.add(song, priority);
-  }
-
   Future<Result<void>> toggleFavorite() async {
     _favorite = !_favorite;
     notifyListeners();

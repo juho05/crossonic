@@ -1,6 +1,4 @@
-import 'package:crossonic/data/repositories/audio/audio_handler.dart';
 import 'package:crossonic/data/repositories/subsonic/models/album.dart';
-import 'package:crossonic/data/repositories/subsonic/models/song.dart';
 import 'package:crossonic/data/repositories/subsonic/subsonic_repository.dart';
 import 'package:crossonic/utils/fetch_status.dart';
 import 'package:crossonic/utils/result.dart';
@@ -18,7 +16,6 @@ enum AlbumsPageMode {
 
 class AlbumsViewModel extends ChangeNotifier {
   final SubsonicRepository _subsonic;
-  final AudioHandler _audioHandler;
 
   static final int _pageSize = 100;
 
@@ -44,10 +41,8 @@ class AlbumsViewModel extends ChangeNotifier {
 
   AlbumsViewModel({
     required SubsonicRepository subsonic,
-    required AudioHandler audioHandler,
     required AlbumsPageMode mode,
   })  : _subsonic = subsonic,
-        _audioHandler = audioHandler,
         _mode = mode,
         _genre = "" {
     if (mode == AlbumsPageMode.genre) {
@@ -59,10 +54,8 @@ class AlbumsViewModel extends ChangeNotifier {
 
   AlbumsViewModel.genre({
     required SubsonicRepository subsonic,
-    required AudioHandler audioHandler,
     required String genre,
   })  : _subsonic = subsonic,
-        _audioHandler = audioHandler,
         _mode = AlbumsPageMode.genre,
         _genre = genre {
     _fetch(0);
@@ -71,32 +64,6 @@ class AlbumsViewModel extends ChangeNotifier {
   Future<void> nextPage() async {
     if (_reachedEnd || _mode == AlbumsPageMode.random) return;
     return await _fetch(_nextPage);
-  }
-
-  Future<Result<void>> play(Album album, {bool shuffle = false}) async {
-    final result = await getAlbumSongs(album);
-    switch (result) {
-      case Err():
-        return Result.error(result.error);
-      case Ok():
-    }
-    if (shuffle) {
-      result.value.shuffle();
-    }
-    _audioHandler.playOnNextMediaChange();
-    _audioHandler.queue.replace(result.value);
-    return const Result.ok(null);
-  }
-
-  Future<Result<void>> addToQueue(Album album, bool priority) async {
-    final result = await getAlbumSongs(album);
-    switch (result) {
-      case Err():
-        return Result.error(result.error);
-      case Ok():
-    }
-    _audioHandler.queue.addAll(result.value, priority);
-    return const Result.ok(null);
   }
 
   Future<void> _fetch(int page) async {
@@ -137,9 +104,5 @@ class AlbumsViewModel extends ChangeNotifier {
     _reachedEnd = result.value.length < _pageSize;
     albums.addAll(result.value);
     notifyListeners();
-  }
-
-  Future<Result<List<Song>>> getAlbumSongs(Album album) async {
-    return await _subsonic.getAlbumSongs(album);
   }
 }

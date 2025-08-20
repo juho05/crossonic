@@ -8,11 +8,11 @@ import 'package:crossonic/ui/artists/artists_viewmodel.dart';
 import 'package:crossonic/ui/home/components/artist_list.dart';
 import 'package:crossonic/ui/home/components/artist_list_viewmodel.dart';
 import 'package:crossonic/ui/home/components/favorite_artists_datasource.dart';
+import 'package:crossonic/ui/home/components/favorite_songs_datasource.dart';
 import 'package:crossonic/ui/home/components/random_artists_datasource.dart';
+import 'package:crossonic/ui/home/components/random_songs_datasource.dart';
 import 'package:crossonic/ui/home/components/release_list.dart';
 import 'package:crossonic/ui/home/components/release_list_viewmodel.dart';
-import 'package:crossonic/ui/home/components/favorite_songs_datasource.dart';
-import 'package:crossonic/ui/home/components/random_songs_datasource.dart';
 import 'package:crossonic/ui/home/components/releases_datasource.dart';
 import 'package:crossonic/ui/home/components/song_list.dart';
 import 'package:crossonic/ui/home/components/song_list_viewmodel.dart';
@@ -119,8 +119,6 @@ class HomePage extends StatelessWidget {
           _ => throw Exception(
               "Unknown home content release option: ${option.name}")
         },
-        audioHandler: context.read(),
-        subsonicRepository: context.read(),
       ),
       child: HomeReleaseList(
         title: HomeLayoutSettings.optionTitle(option),

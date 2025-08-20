@@ -1,9 +1,15 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:crossonic/data/repositories/audio/audio_handler.dart';
 import 'package:crossonic/data/repositories/playlist/song_downloader.dart';
+import 'package:crossonic/data/repositories/subsonic/models/song.dart';
+import 'package:crossonic/routing/router.gr.dart';
 import 'package:crossonic/ui/common/clickable_list_item_with_context_menu.dart';
 import 'package:crossonic/ui/common/cover_art.dart';
+import 'package:crossonic/ui/common/dialogs/add_to_playlist.dart';
+import 'package:crossonic/ui/common/dialogs/chooser.dart';
 import 'package:crossonic/ui/common/dialogs/media_info.dart';
 import 'package:crossonic/ui/common/song_list_item_viewmodel.dart';
+import 'package:crossonic/ui/common/toast.dart';
 import 'package:crossonic/ui/common/with_context_menu.dart';
 import 'package:crossonic/utils/format.dart';
 import 'package:crossonic/utils/result_toast.dart';
@@ -12,48 +18,45 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 class SongListItem extends StatefulWidget {
-  final String id;
-  final String title;
-  final String? artist;
-  final String? album;
-  final int? year;
-  final int? trackNr;
-  final int? trackDigits;
-  final String? coverId;
-  final Duration? duration;
+  final Song song;
+
+  final bool showArtist;
+  final bool showAlbum;
+  final bool showYear;
+  final bool showTrackNr;
+  final int fallbackTrackNr;
+  final int trackDigits;
+  final bool showDuration;
   final int? reorderIndex;
-  final bool disablePlaybackStatus;
-  final bool removeButton;
+
+  final bool showPlaybackStatus;
+  final bool showRemoveButton;
   final DownloadStatus downloadStatus;
 
   final void Function(bool ctrlPressed)? onTap;
-  final void Function(bool priority)? onAddToQueue;
-  final void Function()? onAddToPlaylist;
-  final void Function()? onGoToAlbum;
-  final void Function()? onGoToArtist;
+  final bool disableGoToAlbum;
+  final bool disableGoToArtist;
+
   final void Function()? onRemove;
 
   const SongListItem({
     super.key,
-    required this.id,
-    required this.title,
-    this.artist,
-    this.album,
-    this.year,
-    this.trackNr,
-    this.trackDigits,
-    this.coverId,
-    this.duration,
+    required this.song,
+    this.showArtist = true,
+    this.showAlbum = false,
+    this.showYear = true,
+    this.showTrackNr = false,
+    this.fallbackTrackNr = 0,
+    this.trackDigits = 2,
+    this.showDuration = true,
+    this.showPlaybackStatus = true,
+    this.showRemoveButton = false,
+    this.downloadStatus = DownloadStatus.none,
+    this.disableGoToAlbum = false,
+    this.disableGoToArtist = false,
     this.onTap,
-    this.onAddToQueue,
-    this.onAddToPlaylist,
-    this.onGoToAlbum,
-    this.onGoToArtist,
     this.onRemove,
     this.reorderIndex,
-    this.disablePlaybackStatus = false,
-    this.removeButton = false,
-    this.downloadStatus = DownloadStatus.none,
   });
 
   @override
@@ -69,8 +72,8 @@ class _SongListItemState extends State<SongListItem> {
     viewModel = SongListItemViewModel(
       favoritesRepository: context.read(),
       audioHandler: context.read(),
-      songId: widget.id,
-      disablePlaybackStatus: widget.disablePlaybackStatus,
+      song: widget.song,
+      disablePlaybackStatus: !widget.showPlaybackStatus,
     );
   }
 
@@ -85,23 +88,26 @@ class _SongListItemState extends State<SongListItem> {
     return ListenableBuilder(
         listenable: viewModel,
         builder: (context, snapshot) {
+          final s = widget.song;
           return ClickableListItemWithContextMenu(
-            title: widget.title,
+            title: widget.song.title,
             titleBold: viewModel.playbackStatus != null,
             extraInfo: [
-              if (widget.artist != null) widget.artist!,
-              if (widget.album != null) widget.album!,
-              if (widget.year != null) widget.year!.toString(),
+              if (widget.showArtist) s.displayArtist,
+              if (widget.showAlbum) s.album?.name ?? "Unknown album",
+              if (widget.showYear) s.year?.toString() ?? "Unknown year",
             ],
             leading: SongLeadingWidget(
               viewModel: viewModel,
-              coverId: widget.coverId,
-              trackNr: widget.trackNr,
+              coverId: s.coverId,
+              trackNr: widget.showTrackNr
+                  ? s.trackNr ?? widget.fallbackTrackNr
+                  : null,
               trackDigits: widget.trackDigits,
               reorderIndex: widget.reorderIndex,
             ),
-            trailingInfo: widget.duration != null
-                ? formatDuration(widget.duration!)
+            trailingInfo: widget.showDuration
+                ? (s.duration != null ? formatDuration(s.duration!) : "??:??")
                 : null,
             onTap: widget.onTap != null
                 ? () =>
@@ -110,18 +116,22 @@ class _SongListItemState extends State<SongListItem> {
             isFavorite: viewModel.favorite,
             downloadStatus: widget.downloadStatus,
             options: [
-              if (widget.onAddToQueue != null)
-                ContextMenuOption(
-                  icon: Icons.playlist_play,
-                  title: "Add to priority queue",
-                  onSelected: () => widget.onAddToQueue!(true),
-                ),
-              if (widget.onAddToQueue != null)
-                ContextMenuOption(
-                  icon: Icons.playlist_add,
-                  title: "Add to queue",
-                  onSelected: () => widget.onAddToQueue!(false),
-                ),
+              ContextMenuOption(
+                icon: Icons.playlist_play,
+                title: "Add to priority queue",
+                onSelected: () {
+                  viewModel.addToQueue(true);
+                  Toast.show(context, "Added '${s.title}' to priority queue");
+                },
+              ),
+              ContextMenuOption(
+                icon: Icons.playlist_add,
+                title: "Add to queue",
+                onSelected: () {
+                  viewModel.addToQueue(false);
+                  Toast.show(context, "Added '${s.title}' to queue");
+                },
+              ),
               ContextMenuOption(
                 icon: viewModel.favorite ? Icons.heart_broken : Icons.favorite,
                 title: viewModel.favorite
@@ -133,32 +143,40 @@ class _SongListItemState extends State<SongListItem> {
                   toastResult(context, result);
                 },
               ),
-              if (widget.onAddToPlaylist != null)
-                ContextMenuOption(
+              ContextMenuOption(
                   icon: Icons.playlist_add,
                   title: "Add to playlist",
-                  onSelected: widget.onAddToPlaylist,
-                ),
-              if (widget.onGoToAlbum != null)
+                  onSelected: () {
+                    AddToPlaylistDialog.show(context, s.title, [s]);
+                  }),
+              if (!widget.disableGoToAlbum && s.album != null)
                 ContextMenuOption(
                   icon: Icons.album,
                   title: "Go to release",
-                  onSelected: widget.onGoToAlbum,
+                  onSelected: () {
+                    context.router.push(AlbumRoute(albumId: s.album!.id));
+                  },
                 ),
-              if (widget.onGoToArtist != null)
+              if (!widget.disableGoToArtist && s.artists.isNotEmpty)
                 ContextMenuOption(
                   icon: Icons.person,
                   title: "Go to artist",
-                  onSelected: widget.onGoToArtist,
+                  onSelected: () async {
+                    final router = context.router;
+                    final artistId = await ChooserDialog.chooseArtist(
+                        context, s.artists.toList());
+                    if (artistId == null) return;
+                    router.push(ArtistRoute(artistId: artistId));
+                  },
                 ),
               ContextMenuOption(
                 title: "Info",
                 icon: Icons.info_outline,
                 onSelected: () {
-                  MediaInfoDialog.showSong(context, widget.id);
+                  MediaInfoDialog.showSong(context, s.id);
                 },
               ),
-              if (widget.onRemove != null && !widget.removeButton)
+              if (widget.onRemove != null && !widget.showRemoveButton)
                 ContextMenuOption(
                   icon: Icons.playlist_remove,
                   title: "Remove",
@@ -166,7 +184,7 @@ class _SongListItemState extends State<SongListItem> {
                 ),
             ],
             extraTrailing: [
-              if (widget.onRemove != null && widget.removeButton)
+              if (widget.onRemove != null && widget.showRemoveButton)
                 IconButton(
                   onPressed: widget.onRemove,
                   icon: const Icon(Icons.delete_outline),

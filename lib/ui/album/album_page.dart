@@ -1,4 +1,5 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:collection/collection.dart';
 import 'package:crossonic/routing/router.gr.dart';
 import 'package:crossonic/ui/album/album_viewmodel.dart';
 import 'package:crossonic/ui/common/clickable_list_item.dart';
@@ -59,6 +60,16 @@ class _AlbumPageState extends State<AlbumPage> {
               return const Center(child: Icon(Icons.wifi_off));
             case FetchStatus.success:
           }
+
+          final maxTrackDigitCount = (_viewModel.listItems.map((e) {
+                    if (e.$1 != null) {
+                      return 0;
+                    }
+                    return e.$2!.$1.trackNr ?? e.$2!.$2;
+                  }).maxOrNull ??
+                  1)
+              .toString()
+              .length;
 
           return CollectionPage(
             name: _viewModel.name,
@@ -263,28 +274,12 @@ class _AlbumPageState extends State<AlbumPage> {
                 final s = _viewModel.listItems[index].$2!.$1;
                 final songIndex = _viewModel.listItems[index].$2!.$2;
                 return SongListItem(
-                  id: s.id,
-                  title: s.title,
-                  artist: s.displayArtist,
-                  duration: s.duration,
-                  trackNr: s.trackNr ?? songIndex + 1,
-                  onAddToPlaylist: () {
-                    AddToPlaylistDialog.show(context, s.title, [s]);
-                  },
-                  onAddToQueue: (priority) {
-                    _viewModel.addSongToQueue(s, priority);
-                    Toast.show(context,
-                        "Added '${s.title}' to ${priority ? "priority " : ""}queue");
-                  },
-                  onGoToArtist: s.artists.isNotEmpty
-                      ? () async {
-                          final router = context.router;
-                          final artistId = await ChooserDialog.chooseArtist(
-                              context, s.artists.toList());
-                          if (artistId == null) return;
-                          router.push(ArtistRoute(artistId: artistId));
-                        }
-                      : null,
+                  song: s,
+                  disableGoToAlbum: true,
+                  showTrackNr: true,
+                  fallbackTrackNr: songIndex + 1,
+                  trackDigits: maxTrackDigitCount,
+                  showYear: false,
                   onTap: (ctrlPressed) {
                     _viewModel.play(songIndex, ctrlPressed);
                   },

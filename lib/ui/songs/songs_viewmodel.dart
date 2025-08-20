@@ -77,13 +77,9 @@ class SongsViewModel extends ChangeNotifier {
     return await _fetch(_nextPage);
   }
 
-  void play(int index, bool single) async {
+  void play() async {
     _audioHandler.playOnNextMediaChange();
-    if (single) {
-      _audioHandler.queue.replace([songs[index]]);
-    } else {
-      _audioHandler.queue.replace(songs, index);
-    }
+    _audioHandler.queue.replace(songs);
   }
 
   void shuffle() async {
@@ -94,10 +90,6 @@ class SongsViewModel extends ChangeNotifier {
 
   void addAllToQueue(bool priority) async {
     _audioHandler.queue.addAll(songs, priority);
-  }
-
-  void addToQueue(Song song, bool priority) async {
-    _audioHandler.queue.add(song, priority);
   }
 
   Future<void> _fetch(int page) async {
