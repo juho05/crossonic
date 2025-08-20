@@ -126,8 +126,8 @@ class AudioHandler {
           _queue.currentAndNext.listen(_onCurrentOrNextChanged);
 
       _playerEventSubscription = _player.eventStream.listen(_playerEvent);
-      _restartPlaybackSubscription =
-          _player.restartPlayback.listen(_onRestartPlayback);
+      _restartPlaybackSubscription = _player.restartPlayback
+          .listen((pos) => _restartPlayback(pos + _positionOffset));
 
       _settings.replayGain.addListener(_onReplayGainChanged);
       _settings.transcoding.addListener(_onTranscodingChanged);
@@ -268,7 +268,17 @@ class AudioHandler {
     _audioSession.setActive(status == PlaybackStatus.playing);
 
     if (status == PlaybackStatus.stopped) {
-      await stop();
+      if (_queue.current.value == null ||
+          (_queue.currentAndNext.value.next == null &&
+              (_queue.current.value!.duration ?? Duration.zero) - position <
+                  const Duration(seconds: 5))) {
+        await stop();
+        return;
+      }
+
+      await _restartPlayback(position,
+          play: _playbackStatus.value == PlaybackStatus.playing);
+
       return;
     }
 
@@ -295,15 +305,13 @@ class AudioHandler {
     }
   }
 
-  Future<void> _onRestartPlayback(Duration pos) async {
+  Future<void> _restartPlayback(Duration pos, {bool play = true}) async {
     if (_queue.current.value == null) return;
     Log.warn("Restarting playback at position $pos");
-    pos += _positionOffset;
-    if (!_player.canSeek) {
-      pos = Duration(seconds: (pos.inMilliseconds / 1000.0).round());
-      _positionOffset = pos;
-    }
+
     _updatePosition(pos);
+
+    _seekingPos = pos;
 
     final canSeek = _downloader.getPath(_queue.current.value!.id) != null ||
         _transcoding.$1.name == "raw";
@@ -314,8 +322,18 @@ class AudioHandler {
       nextUrl: next != null ? _getStreamUri(next) : null,
       pos: canSeek ? pos : Duration.zero,
     );
+    if (canSeek) {
+      _positionOffset = Duration.zero;
+    } else {
+      _positionOffset = pos;
+    }
+    _seekingPos = null;
 
-    await _player.play();
+    if (play) {
+      await _player.play();
+    } else {
+      await _player.pause();
+    }
   }
 
   Future<void> _onCurrentOrNextChanged(
@@ -464,6 +482,8 @@ class AudioHandler {
   }
 
   Future<void> _disposePlayer() async {
+    _disposePlayerTimer?.cancel();
+    _disposePlayerTimer = null;
     if (!_player.initialized ||
         _playbackStatus.value == PlaybackStatus.playing ||
         _playbackStatus.value == PlaybackStatus.loading) {
@@ -487,10 +507,10 @@ class AudioHandler {
       "maxBitRate":
           _transcoding.$2 != null ? [_transcoding.$2!.toString()] : [],
       if (!_auth.serverFeatures
-          .isMinCrossonicVersion(const Version(major: 0, minor: 0)))
+          .isMinCrossonicVersion(const Version(major: 0, minor: 1)))
         "timeOffset": offset != null ? [offset.inSeconds.toString()] : [],
       if (_auth.serverFeatures
-          .isMinCrossonicVersion(const Version(major: 0, minor: 0)))
+          .isMinCrossonicVersion(const Version(major: 0, minor: 1)))
         "timeOffsetMs":
             offset != null ? [offset.inMilliseconds.toString()] : [],
     }, _auth.con.auth);
