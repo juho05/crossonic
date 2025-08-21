@@ -232,13 +232,19 @@ class AudioServiceIntegration extends asv.BaseAudioHandler
     switch (status) {
       case PlaybackStatus.playing:
         playbackState.add(playbackState.value.copyWith(
-            playing: true, processingState: asv.AudioProcessingState.ready));
+            playing: true,
+            processingState: asv.AudioProcessingState.ready,
+            updatePosition: _calculatePosition()));
       case PlaybackStatus.paused:
         playbackState.add(playbackState.value.copyWith(
-            playing: false, processingState: asv.AudioProcessingState.ready));
+            playing: false,
+            processingState: asv.AudioProcessingState.ready,
+            updatePosition: _calculatePosition()));
       case PlaybackStatus.loading:
         playbackState.add(playbackState.value.copyWith(
-            playing: false, processingState: asv.AudioProcessingState.loading));
+            playing: false,
+            processingState: asv.AudioProcessingState.loading,
+            updatePosition: _calculatePosition()));
       case PlaybackStatus.stopped:
         playbackState.add(playbackState.value.copyWith(
             playing: false, processingState: asv.AudioProcessingState.idle));
@@ -261,13 +267,17 @@ class AudioServiceIntegration extends asv.BaseAudioHandler
   }
 
   void _updatePosition() {
+    playbackState.add(playbackState.value.copyWith(
+      updatePosition: _calculatePosition(),
+    ));
+  }
+
+  Duration _calculatePosition() {
     Duration position = _positionUpdate.$2;
     if (playbackState.value.playing) {
       position += DateTime.now().difference(_positionUpdate.$1);
     }
-    playbackState.add(playbackState.value.copyWith(
-      updatePosition: position,
-    ));
+    return position;
   }
 
   @override
