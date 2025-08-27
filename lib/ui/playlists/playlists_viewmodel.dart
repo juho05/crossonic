@@ -124,7 +124,7 @@ class PlaylistsViewModel extends ChangeNotifier {
         if (result.error is! ConnectionException) {
           Log.error(
               "failed to refresh playlist repository before getting playlist tracks",
-              result.error);
+              e: result.error);
         }
       case Ok():
     }
@@ -144,7 +144,7 @@ class PlaylistsViewModel extends ChangeNotifier {
     final result = await _repo.getPlaylists();
     switch (result) {
       case Err():
-        Log.error("Failed to load playlists", result.error);
+        Log.error("Failed to load playlists", e: result.error);
         _playlists = [];
         notifyListeners();
         return;
@@ -162,7 +162,8 @@ class PlaylistsViewModel extends ChangeNotifier {
     final result = await _repo.getPlaylist(playlist.id);
     switch (result) {
       case Err():
-        Log.error("Failed to get playlist for download status", result.error);
+        Log.error("Failed to get playlist for download status",
+            e: result.error);
         return DownloadStatus.downloading;
       case Ok():
     }

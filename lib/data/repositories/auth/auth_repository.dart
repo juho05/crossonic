@@ -289,8 +289,8 @@ class AuthRepository extends ChangeNotifier {
         crossonicVersion: _serverFeatures.crossonicVersion,
       );
     } else {
-      Log.error(
-          "failed to load OpenSubsonic extensions", (result as Err).error);
+      Log.error("failed to load OpenSubsonic extensions",
+          e: (result as Err).error);
     }
     await _persistState();
     notifyListeners();

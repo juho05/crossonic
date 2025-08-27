@@ -45,7 +45,6 @@ dependencies:
   tray_manager: ^0.5.0
   flutter_svg: ^2.0.17
   dynamic_system_colors: ^1.8.0
-  talker_flutter: ^4.7.1
   url_launcher: ^6.3.1
   linkfy_text: ^1.1.6
   file_picker: ^10.1.9
@@ -55,6 +54,7 @@ dependencies:
   cryptography_plus: ^2.7.1
   xdg_directories: ^1.1.0
   collection: ^1.19.1
+  logger: ^2.6.1
 
 dependency_overrides:
   flutter_secure_storage_darwin:

@@ -190,12 +190,6 @@ class AppRouter extends RootStackRouter {
           restorationId: (match) => match.fullPath,
         ),
         AutoRoute(
-          path: "/settings/debug/logs",
-          page: LogsRoute.page,
-          title: (context, data) => "Logs",
-          restorationId: (match) => match.fullPath,
-        ),
-        AutoRoute(
           path: "/lyrics",
           page: LyricsRoute.page,
           title: (context, data) => "Lyrics",

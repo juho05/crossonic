@@ -1,6 +1,5 @@
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
 import 'package:crossonic/data/repositories/keyvalue/key_value_repository.dart';
-import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/data/repositories/settings/appearance.dart';
 import 'package:crossonic/data/repositories/settings/home_page_layout.dart';
 import 'package:crossonic/data/repositories/settings/logging.dart';
@@ -43,8 +42,7 @@ class SettingsRepository {
       if (authRepository.isAuthenticated) {
         load();
       } else if (wasAuthenticated) {
-        logging.reset();
-        Log.clear();
+        logging.level = logging.level;
       }
       wasAuthenticated = authRepository.isAuthenticated;
     });

@@ -93,8 +93,8 @@ class EncryptedStorageLinux implements EncryptedStorage {
 
   Future<String> _encryptValue(String value) async {
     final nonce = _fallbackEncryption.newNonce();
-    final secretBox = await _fallbackEncryption
-        .encrypt(value.codeUnits, secretKey: _fallbackKey, nonce: nonce);
+    final secretBox = await _fallbackEncryption.encrypt(value.codeUnits,
+        secretKey: _fallbackKey, nonce: nonce);
 
     final bytes = secretBox.concatenation();
 
@@ -107,8 +107,8 @@ class EncryptedStorageLinux implements EncryptedStorage {
     final bytes = base64.decode(parts[2]);
     final secretBox = SecretBox.fromConcatenation(bytes,
         nonceLength: int.parse(parts[0]), macLength: int.parse(parts[1]));
-    return await _fallbackEncryption
-        .decryptString(secretBox, secretKey: _fallbackKey);
+    return await _fallbackEncryption.decryptString(secretBox,
+        secretKey: _fallbackKey);
   }
 
   bool _migrationDone = false;
@@ -131,7 +131,7 @@ class EncryptedStorageLinux implements EncryptedStorage {
     } catch (e) {
       Log.error(
           "Failed to initialize dbus secret storage, falling back to insecure storage in database",
-          e);
+          e: e);
       _useFallback = true;
     }
 
@@ -169,7 +169,7 @@ class EncryptedStorageLinux implements EncryptedStorage {
     } catch (e) {
       Log.error(
         "Failed to migrate from flutter_secure_storage to dbus_secrets",
-        e,
+        e: e,
       );
     }
   }

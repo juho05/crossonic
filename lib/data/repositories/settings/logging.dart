@@ -1,7 +1,7 @@
 import 'package:crossonic/data/repositories/keyvalue/key_value_repository.dart';
 import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:flutter/foundation.dart';
-import 'package:talker_flutter/talker_flutter.dart';
+import 'package:logger/logger.dart';
 
 enum ReplayGainMode { disabled, track, album, auto }
 
@@ -9,16 +9,15 @@ class LoggingSettings extends ChangeNotifier {
   final KeyValueRepository _repo;
 
   static const String _levelKey = "logging.level";
-  static const LogLevel _levelDefault =
-      kDebugMode ? LogLevel.debug : LogLevel.info;
-  LogLevel _level = _levelDefault;
-  LogLevel get level => _level;
+  static const Level _levelDefault = kDebugMode ? Level.debug : Level.info;
+  Level _level = _levelDefault;
+  Level get level => _level;
 
   LoggingSettings({required KeyValueRepository keyValueRepository})
       : _repo = keyValueRepository;
 
   Future<void> load() async {
-    _level = LogLevel.values
+    _level = Level.values
         .byName(await _repo.loadString(_levelKey) ?? _levelDefault.name);
     Log.level = _level;
 
@@ -32,7 +31,7 @@ class LoggingSettings extends ChangeNotifier {
     _repo.remove(_levelKey);
   }
 
-  set level(LogLevel level) {
+  set level(Level level) {
     if (_level == level) return;
     _level = level;
     Log.level = level;

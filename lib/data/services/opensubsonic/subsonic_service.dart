@@ -627,8 +627,8 @@ class SubsonicService {
     } catch (e, st) {
       Log.error(
           "Failed to connect to server: ${post ? "POST" : "GET"} $endpointName?${Uri(queryParameters: sanitizedQuery).query}",
-          e,
-          st);
+          e: e,
+          st: st);
       return Result.error(ConnectionException());
     }
   }

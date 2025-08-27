@@ -60,7 +60,7 @@ class ConnectServerViewModel extends ChangeNotifier {
     final result = await _authRepository.connect(uri);
     switch (result) {
       case Err():
-        Log.error("Failed to connect to server", result.error);
+        Log.error("Failed to connect to server", e: result.error);
         return Result.error(result.error);
       case Ok():
         return const Result.ok(null);

@@ -49,8 +49,7 @@ class Scrobbler {
     audioHandler.playbackStatus.listen(_onPlaybackStatusChanged);
   }
 
-  Future<void> _onCurrentChanged(
-      Song? song) async {
+  Future<void> _onCurrentChanged(Song? song) async {
     await _updateCurrent();
     _current = null;
     await _submitScrobbles();
@@ -75,7 +74,7 @@ class Scrobbler {
         false,
         false);
     if (result is Err) {
-      Log.warn("Failed to upload now playing", result.error);
+      Log.warn("Failed to upload now playing", e: result.error);
     }
   }
 
@@ -152,7 +151,7 @@ class Scrobbler {
             if (r is Ok) {
               success = true;
             } else {
-              Log.error("Failed to upload scrobble: $s", (r as Err).error);
+              Log.error("Failed to upload scrobble: $s", e: (r as Err).error);
             }
           }
           if (!success) {

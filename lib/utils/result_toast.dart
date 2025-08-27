@@ -8,7 +8,7 @@ void toastResult(BuildContext context, Result result,
     {String? successMsg, bool logError = true}) {
   if (result is Err) {
     if (logError) {
-      Log.error("Toast error", result.error);
+      Log.error("error result", e: result.error, tag: "Toast");
     }
     if (context.mounted) {
       switch (result.error) {

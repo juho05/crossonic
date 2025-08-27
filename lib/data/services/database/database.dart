@@ -1,7 +1,9 @@
+import 'package:crossonic/data/services/database/converters/log_level_converter.dart';
 import 'package:crossonic/data/services/database/database.steps.dart';
 import 'package:crossonic/data/services/database/tables/download_task.dart';
 import 'package:crossonic/data/services/database/tables/favorites_table.dart';
 import 'package:crossonic/data/services/database/tables/key_value.dart';
+import 'package:crossonic/data/services/database/tables/log_message.dart';
 import 'package:crossonic/data/services/database/tables/playlist.dart';
 import 'package:crossonic/data/services/database/tables/playlist_song.dart';
 import 'package:crossonic/data/services/database/tables/scrobble.dart';
@@ -9,6 +11,7 @@ import 'package:crossonic/integrate_appimage_viewmodel.dart';
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:flutter/foundation.dart';
+import 'package:logger/logger.dart';
 import 'package:path_provider/path_provider.dart';
 
 part 'database.g.dart';
@@ -20,12 +23,13 @@ part 'database.g.dart';
   PlaylistSongTable,
   DownloadTask,
   FavoritesTable,
+  LogMessageTable,
 ])
 class Database extends _$Database {
   Database([QueryExecutor? e]) : super(e ?? _openConnection());
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   Future<void> clearAll() async {
     customStatement("PRAGMA foreign_keys = OFF");
@@ -71,6 +75,9 @@ class Database extends _$Database {
                 from4To5: (m, schema) async {
                   await m.createTable(schema.favorites);
                 },
+                from5To6: (m, schema) async {
+                  await m.createTable(schema.logMessage);
+                },
               ),
             ),
           );
@@ -100,9 +107,6 @@ class Database extends _$Database {
         web: DriftWebOptions(
             sqlite3Wasm: Uri.parse("sqlite3.wasm"),
             driftWorker: Uri.parse("drift_worker.dart.js")));
-    //if (kDebugMode) {
-    //  return db.interceptWith(LogInterceptor());
-    //}
     return db;
   }
 }

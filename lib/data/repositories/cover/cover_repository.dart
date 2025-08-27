@@ -139,7 +139,7 @@ class CoverRepository extends BaseCacheManager {
       final id = u.queryParameters["id"];
       final size = int.parse(u.queryParameters["size"] ?? "512");
       if (id == null) {
-        Log.error("Failed to extract id from coverArt url");
+        Log.error("failed to extract id from coverArt url");
         return url;
       }
       return getKey(id, size);

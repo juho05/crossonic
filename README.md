@@ -16,9 +16,6 @@ The app should support all _Subsonic_ compatible servers ([Navidrome](https://ww
 but I only regularly test with [crossonic-server](https://github.com/juho05/crossonic-server). Please [report](https://github.com/juho05/crossonic/issues/new) any
 issues you experience with other servers.
 
-There are pre-release artifacts available on the [releases](https://github.com/juho05/crossonic/releases) page
-but there is currently no auto-update mechanism and the [installation process](#installation) is sub-optimal on many platforms.
-
 See [supported platforms](#supported-platforms) for a status per platform.
 
 ## Features

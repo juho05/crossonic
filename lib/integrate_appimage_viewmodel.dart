@@ -86,7 +86,7 @@ class IntegrateAppImageViewModel extends ChangeNotifier {
         Process.run("chmod", ["+x", appImagePath]);
       } catch (e, st) {
         Log.warn("Failed to ensure that the integrated AppImage is executable",
-            e, st);
+            e: e, st: st);
       }
 
       final desktopFile =
@@ -104,7 +104,8 @@ Terminal=false
 StartupNotify=true
 """, flush: true);
     } on Exception catch (e, st) {
-      Log.error("Failed to integrate APPIMAGE into desktop environment", e, st);
+      Log.error("Failed to integrate APPIMAGE into desktop environment",
+          e: e, st: st);
       return Result.error(e);
     }
 
@@ -114,8 +115,8 @@ StartupNotify=true
     } catch (e, st) {
       Log.debug(
         "Failed to update desktop database, update-desktop-database is probably not installed",
-        e,
-        st,
+        e: e,
+        st: st,
       );
     }
 

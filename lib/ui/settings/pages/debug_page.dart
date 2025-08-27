@@ -1,10 +1,9 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:crossonic/routing/router.gr.dart';
 import 'package:crossonic/ui/common/buttons.dart';
 import 'package:crossonic/ui/settings/pages/debug_viewmodel.dart';
 import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
-import 'package:talker_flutter/talker_flutter.dart';
 
 @RoutePage()
 class DebugPage extends StatefulWidget {
@@ -44,7 +43,7 @@ class _DebugPageState extends State<DebugPage> {
               spacing: 10,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                DropdownMenu<LogLevel>(
+                DropdownMenu<Level>(
                   onSelected: (level) {
                     if (level == null) return;
                     _viewModel.update(level: level);
@@ -54,16 +53,41 @@ class _DebugPageState extends State<DebugPage> {
                   enableSearch: false,
                   initialSelection: _viewModel.level,
                   label: const Text("Log Level"),
-                  dropdownMenuEntries: logLevelPriorityList.map((level) {
-                    return DropdownMenuEntry<LogLevel>(
-                      label:
-                          level.name[0].toUpperCase() + level.name.substring(1),
-                      value: level,
-                    );
-                  }).toList(),
+                  dropdownMenuEntries: [
+                    const DropdownMenuEntry<Level>(
+                      label: "OFF",
+                      value: Level.off,
+                    ),
+                    const DropdownMenuEntry<Level>(
+                      label: "Fatal",
+                      value: Level.fatal,
+                    ),
+                    const DropdownMenuEntry<Level>(
+                      label: "Error",
+                      value: Level.error,
+                    ),
+                    const DropdownMenuEntry<Level>(
+                      label: "Warning",
+                      value: Level.warning,
+                    ),
+                    const DropdownMenuEntry<Level>(
+                      label: "Info",
+                      value: Level.info,
+                    ),
+                    const DropdownMenuEntry<Level>(
+                      label: "Debug",
+                      value: Level.debug,
+                    ),
+                    const DropdownMenuEntry<Level>(
+                      label: "Trace",
+                      value: Level.trace,
+                    )
+                  ],
                 ),
                 Button(
-                  onPressed: () => context.router.push(const LogsRoute()),
+                  onPressed: () {
+                    // TODO
+                  },
                   icon: Icons.list,
                   darkTonal: true,
                   child: const Text("View Logs"),

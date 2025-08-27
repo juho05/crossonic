@@ -3,8 +3,9 @@ import 'dart:io';
 import 'package:crossonic/app_shortcuts.dart';
 import 'package:crossonic/config/providers.dart';
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
-import 'package:crossonic/data/repositories/themeManager/theme_manager.dart';
 import 'package:crossonic/data/repositories/logger/log.dart';
+import 'package:crossonic/data/repositories/logger/log_repository.dart';
+import 'package:crossonic/data/repositories/themeManager/theme_manager.dart';
 import 'package:crossonic/data/repositories/version/version.dart';
 import 'package:crossonic/data/repositories/version/version_repository.dart';
 import 'package:crossonic/routing/router.dart';
@@ -12,9 +13,9 @@ import 'package:crossonic/window_listener.dart';
 import 'package:dynamic_system_colors/dynamic_system_colors.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_single_instance/flutter_single_instance.dart';
 import 'package:path/path.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_single_instance/flutter_single_instance.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:xdg_directories/xdg_directories.dart' as xdg;
 
@@ -24,11 +25,13 @@ final defaultDarkColorScheme =
     ColorScheme.fromSeed(seedColor: Colors.blue, brightness: Brightness.dark);
 
 void main() async {
+  LogRepository logRepository = LogRepository();
+
   if (!kIsWeb && Platform.isLinux) {
     await _migrateAppSupportDir();
   }
 
-  Log.init();
+  Log.init(logRepository);
   Log.info("App started.");
 
   if (kIsWasm) {

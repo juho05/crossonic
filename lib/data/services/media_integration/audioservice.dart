@@ -74,7 +74,7 @@ class AudioServiceIntegration extends asv.BaseAudioHandler
       final result = await _playlistRepository.getPlaylists();
       switch (result) {
         case Err():
-          Log.error("Failed to get playlists", result.error);
+          Log.error("Failed to get playlists", e: result.error);
           return [];
         case Ok():
       }

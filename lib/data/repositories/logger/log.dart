@@ -1,85 +1,130 @@
+import 'package:crossonic/data/repositories/logger/log_message.dart';
+import 'package:crossonic/data/repositories/logger/log_repository.dart';
+import 'package:crossonic/data/services/database/database.dart';
 import 'package:flutter/foundation.dart';
-import 'package:talker_flutter/talker_flutter.dart';
+import 'package:logger/logger.dart';
 
 class Log {
-  static final talker = TalkerFlutter.init(
-    logger: TalkerLogger(
-      settings: TalkerLoggerSettings(
-        level: _level,
-      ),
-    ),
-  );
+  static late final Logger _logger;
+  static late final LogRepository _repo;
+  static late final DateTime _sessionStartTime;
 
-  static void init() {
-    talker.configure(
-      settings: TalkerSettings(
-        useHistory: true,
-        maxHistoryItems: 1000,
-        useConsoleLogs: true,
-      ),
-      logger: TalkerLogger(
-        settings: TalkerLoggerSettings(
-          level: _level,
-        ),
+  static const String _excludePath =
+      "package:crossonic/data/repositories/logger/log.dart";
+
+  static void init(LogRepository repository) {
+    _sessionStartTime = DateTime.now();
+    _repo = repository;
+    Logger.level = level;
+    _logger = Logger(
+      printer: PrettyPrinter(
+        methodCount: 5,
+        errorMethodCount: 10,
+        excludePaths: [
+          _excludePath,
+        ],
+        colors: true,
+        printEmojis: true,
+        dateTimeFormat: DateTimeFormat.dateAndTime,
       ),
     );
 
     debugPrint = (String? message, {int? wrapWidth}) {
       if (message == null) return;
-      debug(message);
+      debug(message, tag: "debugPrint");
     };
 
     FlutterError.onError = (details) {
-      critical("FlutterError - Catch all", details.exception, details.stack);
+      fatal("uncaught exception",
+          e: details.exception, st: details.stack, tag: "FlutterError.onError");
     };
 
     PlatformDispatcher.instance.onError = (error, stack) {
-      critical("PlatformDispatcher - Catch all", error, stack);
+      fatal("uncaught exception",
+          e: error, st: stack, tag: "PlatformDispatcher.onError");
       return true;
     };
   }
 
-  static LogLevel _level = kDebugMode ? LogLevel.debug : LogLevel.info;
+  static Future<void> enablePersistence(Database db) {
+    return _repo.enablePersistence(db);
+  }
 
-  static set level(LogLevel level) {
+  static Level _level = kDebugMode ? Level.debug : Level.info;
+
+  static set level(Level level) {
     _level = level;
-    talker.configure(
-      logger: TalkerLogger(
-        settings: TalkerLoggerSettings(
-          level: _level,
-        ),
-      ),
-    );
+    Logger.level = _level;
   }
 
-  static LogLevel get level => _level;
+  static Level get level => _level;
 
-  static void trace(String msg, [Object? exception, StackTrace? stackTrace]) {
-    talker.verbose(msg, exception, stackTrace);
+  static void trace(String msg, {Object? e, StackTrace? st, String? tag}) {
+    _log(Level.trace, msg, e: e, st: st, tag: tag);
   }
 
-  static void debug(String msg, [Object? exception, StackTrace? stackTrace]) {
-    talker.debug(msg, exception, stackTrace);
+  static void debug(String msg, {Object? e, StackTrace? st, String? tag}) {
+    _log(Level.debug, msg, e: e, st: st, tag: tag);
   }
 
-  static void info(String msg, [Object? exception, StackTrace? stackTrace]) {
-    talker.info(msg, exception, stackTrace);
+  static void info(String msg, {Object? e, StackTrace? st, String? tag}) {
+    _log(Level.info, msg, e: e, st: st, tag: tag);
   }
 
-  static void warn(String msg, [Object? exception, StackTrace? stackTrace]) {
-    talker.warning(msg, exception, stackTrace);
+  static void warn(String msg, {Object? e, StackTrace? st, String? tag}) {
+    _log(Level.warning, msg, e: e, st: st, tag: tag);
   }
 
-  static void error(String msg, [Object? exception, StackTrace? stackTrace]) {
-    talker.error(msg, exception, stackTrace);
+  static void error(String msg, {Object? e, StackTrace? st, String? tag}) {
+    _log(Level.error, msg, e: e, st: st, tag: tag);
   }
 
-  static void critical(String msg,
-      [Object? exception, StackTrace? stackTrace]) {
-    talker.critical(msg, exception, stackTrace);
+  static void fatal(String msg, {Object? e, StackTrace? st, String? tag}) {
+    _log(Level.fatal, msg, e: e, st: st, tag: tag);
   }
 
-  static void clear() {
-    talker.cleanHistory();
+  static void _log(Level level, String msg,
+      {Object? e, StackTrace? st, String? tag}) {
+    if (Log.level > level || level >= Level.off) return;
+    tag ??= _getCallerTag(3);
+    st ??= StackTrace.current;
+    _logger.log(level, "[$tag] $msg", error: e, stackTrace: st);
+    _repo.store(LogMessage(
+      sessionStartTime: _sessionStartTime,
+      time: DateTime.now(),
+      tag: tag,
+      stackTrace: _formatFullStackTrace(st),
+      exception: e?.toString(),
+      level: level,
+      message: msg,
+    ));
+  }
+
+  static void logWithoutPersistence(Level level, String msg,
+      {Object? e, StackTrace? st, String? tag}) {
+    if (Log.level > level || level >= Level.off) return;
+    tag ??= _getCallerTag(2);
+    st ??= StackTrace.current;
+    _logger.log(level, "[$tag] $msg", error: e, stackTrace: st);
+  }
+
+  static String _getCallerTag(int traceLineIndex) {
+    try {
+      final traceString =
+          StackTrace.current.toString().split('\n')[traceLineIndex];
+      final match = RegExp(r'#' + traceLineIndex.toString() + r'\s+(\S+)')
+          .firstMatch(traceString);
+      if (match != null && match.groupCount >= 1) {
+        return match.group(1) ?? 'Unknown';
+      }
+    } catch (_) {}
+    return 'Unknown';
+  }
+
+  static String _formatFullStackTrace(StackTrace st) {
+    return PrettyPrinter(
+          excludePaths: [_excludePath],
+        ).formatStackTrace(st, null) ??
+        st.toString();
   }
 }

@@ -50,7 +50,7 @@ class VersionCheckerViewModel extends ChangeNotifier {
     final latest = await _versionRepo.getLatestVersion();
     switch (latest) {
       case Err():
-        Log.error("Check new version available", latest.error);
+        Log.error("Check new version available", e: latest.error);
       case Ok():
     }
     if (latest.tryValue == null) {

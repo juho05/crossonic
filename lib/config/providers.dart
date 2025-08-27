@@ -9,7 +9,6 @@ import 'package:crossonic/data/repositories/audio/audio_handler.dart' as ah;
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
 import 'package:crossonic/data/repositories/cover/cover_repository.dart';
 import 'package:crossonic/data/repositories/keyvalue/key_value_repository.dart';
-import 'package:crossonic/data/repositories/themeManager/theme_manager.dart';
 import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/data/repositories/playlist/downloader_storage.dart';
 import 'package:crossonic/data/repositories/playlist/playlist_repository.dart';
@@ -18,6 +17,7 @@ import 'package:crossonic/data/repositories/scrobble/scrobbler.dart';
 import 'package:crossonic/data/repositories/settings/settings_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/favorites_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/subsonic_repository.dart';
+import 'package:crossonic/data/repositories/themeManager/theme_manager.dart';
 import 'package:crossonic/data/repositories/version/version_repository.dart';
 import 'package:crossonic/data/services/database/database.dart';
 import 'package:crossonic/data/services/github/github.dart';
@@ -32,6 +32,8 @@ import 'package:provider/single_child_widget.dart';
 
 Future<List<SingleChildWidget>> get providers async {
   final database = Database();
+
+  await Log.enablePersistence(database);
 
   if (!kIsWeb) {
     await DownloaderStorage.register(database);
@@ -56,7 +58,7 @@ Future<List<SingleChildWidget>> get providers async {
     );
     await authRepository.loadState();
   } on Exception catch (e, st) {
-    Log.critical("Failed to initialize auth repository", e, st);
+    Log.fatal("Failed to initialize auth repository", e: e, st: st);
     exit(1);
   }
 

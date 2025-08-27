@@ -119,7 +119,7 @@ class PlaylistRepository extends ChangeNotifier {
           ));
       notifyListeners();
     } catch (e, st) {
-      Log.error("Failed to create playlist in DB", e, st);
+      Log.error("Failed to create playlist in DB", e: e, st: st);
       await refresh(refreshIds: {result.value.id});
     }
     return Result.ok(result.value.id);
@@ -202,7 +202,7 @@ class PlaylistRepository extends ChangeNotifier {
               mode: InsertMode.replace);
         });
       } on Exception catch (e, st) {
-        Log.error("Failed to roll-back playlist track reorder", e, st);
+        Log.error("Failed to roll-back playlist track reorder", e: e, st: st);
       } finally {
         notifyListeners();
       }

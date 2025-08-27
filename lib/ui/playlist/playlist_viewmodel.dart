@@ -174,7 +174,7 @@ class PlaylistViewModel extends ChangeNotifier {
     switch (result) {
       case Err():
         _playlist = null;
-        Log.error("Failed to get playlist '$_playlistId'", result.error);
+        Log.error("Failed to get playlist '$_playlistId'", e: result.error);
       case Ok():
         if (result.value == null) {
           _playlist = null;

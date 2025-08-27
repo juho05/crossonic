@@ -1,12 +1,12 @@
 import 'package:crossonic/data/repositories/settings/settings_repository.dart';
 import 'package:flutter/material.dart';
-import 'package:talker_flutter/talker_flutter.dart';
+import 'package:logger/logger.dart';
 
 class DebugViewModel extends ChangeNotifier {
   final SettingsRepository _settings;
 
-  LogLevel _level;
-  LogLevel get level => _level;
+  Level _level;
+  Level get level => _level;
 
   DebugViewModel({required SettingsRepository settings})
       : _settings = settings,
@@ -19,7 +19,7 @@ class DebugViewModel extends ChangeNotifier {
   }
 
   void update({
-    required LogLevel level,
+    required Level level,
   }) {
     _settings.logging.level = level;
   }
