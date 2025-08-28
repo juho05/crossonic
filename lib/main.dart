@@ -84,7 +84,7 @@ void main() async {
 
   runApp(
     MultiProvider(
-      providers: await providers,
+      providers: await createProviders(logRepository: logRepository),
       child: AppShortcuts(child: Builder(builder: (context) {
         final routerConfig = AppRouter(authRepository: context.read()).config(
           reevaluateListenable: context.read<AuthRepository>(),

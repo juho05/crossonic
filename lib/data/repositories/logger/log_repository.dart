@@ -12,6 +12,10 @@ class LogRepository {
   static final int _maxBufferSize = 50;
   static final Duration _bufferDebounceDuration = const Duration(seconds: 3);
 
+  final StreamController<LogMessage> _newMessageStream =
+      StreamController.broadcast();
+  Stream<LogMessage> get newMessageStream => _newMessageStream.stream;
+
   Database? _db;
   Queue<LogMessage> _buffer;
 
@@ -30,6 +34,8 @@ class LogRepository {
   }
 
   Future<void> store(LogMessage msg) async {
+    _newMessageStream.add(msg);
+
     if (_db == null) {
       _buffer.add(msg);
       return;
@@ -122,5 +128,35 @@ class LogRepository {
     } finally {
       _flushing = false;
     }
+  }
+
+  Future<List<LogMessage>> getMessages(DateTime sessionTime) async {
+    final result = await _db?.managers.logMessageTable
+        .filter((f) => f.sessionStartTime(sessionTime))
+        .orderBy((o) => o.time.asc())
+        .get();
+    final dbMessages = result?.map((e) => LogMessage(
+              sessionStartTime: e.sessionStartTime,
+              tag: e.tag,
+              message: e.message,
+              level: e.level,
+              exception: e.exception,
+              stackTrace: e.stackTrace,
+              time: e.time,
+            )) ??
+        [];
+    if (_buffer.isEmpty) return dbMessages.toList();
+    if (_buffer.first.time.isAfter(dbMessages.last.time)) {
+      return dbMessages.followedBy(_buffer).toList();
+    }
+
+    final dbBeforeFirstBuffer =
+        dbMessages.takeWhile((msg) => msg.time.isBefore(_buffer.first.time));
+    final remaining = dbMessages
+        .skip(dbBeforeFirstBuffer.length)
+        .followedBy(_buffer)
+        .toList();
+    remaining.sort((a, b) => a.time.compareTo(b.time));
+    return dbBeforeFirstBuffer.followedBy(remaining).toList();
   }
 }

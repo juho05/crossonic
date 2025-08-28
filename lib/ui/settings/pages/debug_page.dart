@@ -1,4 +1,5 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:crossonic/routing/router.gr.dart';
 import 'package:crossonic/ui/common/buttons.dart';
 import 'package:crossonic/ui/settings/pages/debug_viewmodel.dart';
 import 'package:flutter/material.dart';
@@ -86,7 +87,7 @@ class _DebugPageState extends State<DebugPage> {
                 ),
                 Button(
                   onPressed: () {
-                    // TODO
+                    context.pushRoute(const LogsRoute());
                   },
                   icon: Icons.list,
                   darkTonal: true,

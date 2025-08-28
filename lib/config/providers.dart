@@ -10,6 +10,7 @@ import 'package:crossonic/data/repositories/auth/auth_repository.dart';
 import 'package:crossonic/data/repositories/cover/cover_repository.dart';
 import 'package:crossonic/data/repositories/keyvalue/key_value_repository.dart';
 import 'package:crossonic/data/repositories/logger/log.dart';
+import 'package:crossonic/data/repositories/logger/log_repository.dart';
 import 'package:crossonic/data/repositories/playlist/downloader_storage.dart';
 import 'package:crossonic/data/repositories/playlist/playlist_repository.dart';
 import 'package:crossonic/data/repositories/playlist/song_downloader.dart';
@@ -30,10 +31,12 @@ import 'package:optimize_battery/optimize_battery.dart';
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
 
-Future<List<SingleChildWidget>> get providers async {
+Future<List<SingleChildWidget>> createProviders({
+  required LogRepository logRepository,
+}) async {
   final database = Database();
 
-  await Log.enablePersistence(database);
+  await logRepository.enablePersistence(database);
 
   if (!kIsWeb) {
     await DownloaderStorage.register(database);
@@ -141,6 +144,9 @@ Future<List<SingleChildWidget>> get providers async {
   await audioSession.configure(const AudioSessionConfiguration.music());
 
   return [
+    Provider.value(
+      value: logRepository,
+    ),
     ChangeNotifierProvider(
       create: (context) => ThemeManager(
         keyValue: keyValueRepository,

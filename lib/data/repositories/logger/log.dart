@@ -1,19 +1,18 @@
 import 'package:crossonic/data/repositories/logger/log_message.dart';
 import 'package:crossonic/data/repositories/logger/log_repository.dart';
-import 'package:crossonic/data/services/database/database.dart';
 import 'package:flutter/foundation.dart';
 import 'package:logger/logger.dart';
 
 class Log {
   static late final Logger _logger;
   static late final LogRepository _repo;
-  static late final DateTime _sessionStartTime;
+  static late final DateTime sessionStartTime;
 
   static const String _excludePath =
       "package:crossonic/data/repositories/logger/log.dart";
 
   static void init(LogRepository repository) {
-    _sessionStartTime = DateTime.now();
+    sessionStartTime = DateTime.now();
     _repo = repository;
     Logger.level = level;
     _logger = Logger(
@@ -44,10 +43,6 @@ class Log {
           e: error, st: stack, tag: "PlatformDispatcher.onError");
       return true;
     };
-  }
-
-  static Future<void> enablePersistence(Database db) {
-    return _repo.enablePersistence(db);
   }
 
   static Level _level = kDebugMode ? Level.debug : Level.info;
@@ -90,7 +85,7 @@ class Log {
     st ??= StackTrace.current;
     _logger.log(level, "[$tag] $msg", error: e, stackTrace: st);
     _repo.store(LogMessage(
-      sessionStartTime: _sessionStartTime,
+      sessionStartTime: sessionStartTime,
       time: DateTime.now(),
       tag: tag,
       stackTrace: _formatFullStackTrace(st),
