@@ -145,7 +145,11 @@ class LogRepository {
               time: e.time,
             )) ??
         [];
-    if (_buffer.isEmpty) return dbMessages.toList();
+
+    if (_buffer.isEmpty || sessionTime != Log.sessionStartTime) {
+      return dbMessages.toList();
+    }
+
     if (_buffer.first.time.isAfter(dbMessages.last.time)) {
       return dbMessages.followedBy(_buffer).toList();
     }
@@ -158,5 +162,19 @@ class LogRepository {
         .toList();
     remaining.sort((a, b) => a.time.compareTo(b.time));
     return dbBeforeFirstBuffer.followedBy(remaining).toList();
+  }
+
+  Future<List<DateTime>> getSessions() async {
+    final query = _db?.selectOnly(_db!.logMessageTable, distinct: true)
+      ?..addColumns([_db!.logMessageTable.sessionStartTime])
+      ..orderBy([OrderingTerm.asc(_db!.logMessageTable.sessionStartTime)]);
+    final result = (await query
+            ?.map((row) => row.read(_db!.logMessageTable.sessionStartTime)!)
+            .get()) ??
+        [];
+    if (!result.contains(Log.sessionStartTime)) {
+      return result.followedBy([Log.sessionStartTime]).toList();
+    }
+    return result;
   }
 }

@@ -47,11 +47,19 @@ class LogMessageListItem extends StatelessWidget {
                           style:
                               textStyle.copyWith(fontWeight: FontWeight.bold),
                         ),
-                        Text(
-                          formatDateTime(msg.time),
-                          style:
-                              textStyle.copyWith(fontWeight: FontWeight.bold),
-                        )
+                        Expanded(
+                          child: Text(
+                            formatDateTime(msg.time),
+                            style:
+                                textStyle.copyWith(fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        if (msg.exception != null)
+                          Icon(
+                            Icons.error_outline,
+                            color: color,
+                            size: 20,
+                          )
                       ],
                     ),
                     Text(

@@ -34,13 +34,13 @@ class Log {
     };
 
     FlutterError.onError = (details) {
-      fatal("uncaught exception",
+      error("uncaught exception: ${details.exception.toString()}",
           e: details.exception, st: details.stack, tag: "FlutterError.onError");
     };
 
-    PlatformDispatcher.instance.onError = (error, stack) {
-      fatal("uncaught exception",
-          e: error, st: stack, tag: "PlatformDispatcher.onError");
+    PlatformDispatcher.instance.onError = (err, stack) {
+      error("uncaught exception",
+          e: err, st: stack, tag: "PlatformDispatcher.onError");
       return true;
     };
   }

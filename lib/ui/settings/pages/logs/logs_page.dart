@@ -1,6 +1,9 @@
-import 'package:auto_route/annotations.dart';
+import 'package:auto_route/auto_route.dart';
+import 'package:crossonic/data/repositories/logger/log.dart';
+import 'package:crossonic/routing/router.gr.dart';
 import 'package:crossonic/ui/settings/pages/logs/log_message_list_item.dart';
 import 'package:crossonic/ui/settings/pages/logs/logs_page_viewmodel.dart';
+import 'package:crossonic/utils/format.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
@@ -57,12 +60,19 @@ class _LogsPageState extends State<LogsPage> {
                                   .copyWith(fontWeight: FontWeight.w500),
                             ),
                             const SizedBox(width: 4),
-                            const Text("Current"),
+                            Text(_viewModel.sessionTime == Log.sessionStartTime
+                                ? "Current"
+                                : formatDateTime(_viewModel.sessionTime)),
                           ],
                         ),
                         trailing: const Icon(Icons.edit),
-                        onTap: () {
-                          // TODO
+                        onTap: () async {
+                          final chosenSession = await context.router
+                              .push<DateTime>(ChooseLogSessionRoute(
+                                  highlight: _viewModel.sessionTime));
+                          if (chosenSession == null) return;
+                          await _viewModel.changeSessionTime(chosenSession);
+                          _scrollController.jumpTo(0);
                         },
                       )
                     ],

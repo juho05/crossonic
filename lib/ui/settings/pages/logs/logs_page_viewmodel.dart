@@ -59,6 +59,17 @@ class LogsPageViewModel extends ChangeNotifier {
     }
   }
 
+  Future<void> changeSessionTime(DateTime sessionTime) async {
+    if (_sessionTime == sessionTime) return;
+    _searchDebounce?.cancel();
+    _newMessageSubscription?.cancel();
+    _newMessageSubscription = null;
+    _logMessages = [];
+    _filteredMessages = [];
+    _sessionTime = sessionTime;
+    await _loadMessages();
+  }
+
   set enabledLevels(Set<Level> levels) {
     _enabledLevels = levels;
     _updateFilteredLogMessages();
@@ -93,7 +104,9 @@ class LogsPageViewModel extends ChangeNotifier {
     } else {
       _logMessages.add(msg);
     }
-    _updateFilteredLogMessages();
+    if (enabledLevels.contains(msg.level)) {
+      _updateFilteredLogMessages();
+    }
   }
 
   void clearSearch() {
