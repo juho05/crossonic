@@ -31,6 +31,7 @@ class LogRepository {
     assert(_db == null);
     _db = db;
     await _flushBuffer();
+    await _deleteOldLogs();
   }
 
   Future<void> store(LogMessage msg) async {
@@ -176,5 +177,12 @@ class LogRepository {
       return result.followedBy([Log.sessionStartTime]).toList();
     }
     return result;
+  }
+
+  Future<void> _deleteOldLogs() async {
+    await _db?.managers.logMessageTable
+        .filter((f) => f.sessionStartTime
+            .isBefore(Log.sessionStartTime.subtract(const Duration(days: 7))))
+        .delete();
   }
 }
