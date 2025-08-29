@@ -1,7 +1,9 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:crossonic/data/repositories/logger/log_message.dart';
+import 'package:crossonic/routing/router.gr.dart';
+import 'package:crossonic/ui/settings/pages/logs/colors.dart';
 import 'package:crossonic/utils/format.dart';
 import 'package:flutter/material.dart';
-import 'package:logger/logger.dart';
 
 class LogMessageListItem extends StatelessWidget {
   final LogMessage msg;
@@ -12,7 +14,7 @@ class LogMessageListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = _logLevelToColor(msg.level);
+    final color = levelColors[msg.level]!;
     final textStyle =
         Theme.of(context).textTheme.bodyMedium!.copyWith(color: color);
     return Padding(
@@ -30,7 +32,7 @@ class LogMessageListItem extends StatelessWidget {
             type: MaterialType.transparency,
             child: InkWell(
               onTap: () {
-                // TODO
+                context.pushRoute(LogDetailsRoute(msg: msg));
               },
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
@@ -81,20 +83,5 @@ class LogMessageListItem extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  Color _logLevelToColor(Level level) {
-    return switch (level) {
-      Level.trace || Level.verbose || Level.all => Colors.grey,
-      Level.debug => Colors.green,
-      Level.info => Colors.blue,
-      Level.warning => Colors.amber,
-      Level.error => Colors.red,
-      Level.fatal ||
-      Level.wtf ||
-      Level.off ||
-      Level.nothing =>
-        Colors.purpleAccent,
-    };
   }
 }
