@@ -84,7 +84,6 @@ class HomePage extends StatelessWidget {
           _ =>
             throw Exception("Unknown home content song option: ${option.name}")
         },
-        audioHandler: context.read(),
       ),
       child: HomeSongList(
         title: HomeLayoutSettings.optionTitle(option),
@@ -152,8 +151,6 @@ class HomePage extends StatelessWidget {
           _ => throw Exception(
               "Unknown home content artist option: ${option.name}")
         },
-        audioHandler: context.read(),
-        subsonicRepository: context.read(),
       ),
       child: HomeArtistList(
         title: HomeLayoutSettings.optionTitle(option),

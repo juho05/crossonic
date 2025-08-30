@@ -28,7 +28,6 @@ class _BrowsePageState extends State<BrowsePage> with RestorationMixin {
     super.initState();
     _viewModel = BrowseViewModel(
       subsonicRepository: context.read(),
-      audioHandler: context.read(),
     );
     _focusNode.addListener(() {
       if (_focusNode.hasFocus) {

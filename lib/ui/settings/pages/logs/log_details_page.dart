@@ -2,7 +2,7 @@ import 'package:auto_route/annotations.dart';
 import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/data/repositories/logger/log_message.dart';
 import 'package:crossonic/ui/common/toast.dart';
-import 'package:crossonic/ui/settings/pages/logs/colors.dart';
+import 'package:crossonic/ui/settings/pages/logs/log_colors.dart';
 import 'package:crossonic/utils/format.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';

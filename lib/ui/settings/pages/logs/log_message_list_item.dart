@@ -1,7 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:crossonic/data/repositories/logger/log_message.dart';
 import 'package:crossonic/routing/router.gr.dart';
-import 'package:crossonic/ui/settings/pages/logs/colors.dart';
+import 'package:crossonic/ui/settings/pages/logs/log_colors.dart';
 import 'package:crossonic/utils/format.dart';
 import 'package:flutter/material.dart';
 

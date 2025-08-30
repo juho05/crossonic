@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:crossonic/data/repositories/audio/audio_handler.dart';
 import 'package:crossonic/data/repositories/subsonic/models/album.dart';
 import 'package:crossonic/data/repositories/subsonic/models/artist.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
@@ -12,7 +11,6 @@ import 'package:rxdart/rxdart.dart';
 
 class BrowseViewModel extends ChangeNotifier {
   final SubsonicRepository _subsonic;
-  final AudioHandler _audioHandler;
 
   final BehaviorSubject<bool> _emptySearchStream = BehaviorSubject.seeded(true);
   ValueStream<bool> get emptySearchStream => _emptySearchStream.stream;
@@ -34,9 +32,7 @@ class BrowseViewModel extends ChangeNotifier {
 
   BrowseViewModel({
     required SubsonicRepository subsonicRepository,
-    required AudioHandler audioHandler,
-  })  : _subsonic = subsonicRepository,
-        _audioHandler = audioHandler;
+  }) : _subsonic = subsonicRepository;
 
   Timer? _searchDebounce;
   void updateSearchText(String search, {bool disableDebounce = false}) {

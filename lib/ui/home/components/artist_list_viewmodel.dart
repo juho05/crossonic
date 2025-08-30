@@ -1,6 +1,4 @@
-import 'package:crossonic/data/repositories/audio/audio_handler.dart';
 import 'package:crossonic/data/repositories/subsonic/models/artist.dart';
-import 'package:crossonic/data/repositories/subsonic/subsonic_repository.dart';
 import 'package:crossonic/ui/home/components/data_source.dart';
 import 'package:crossonic/utils/fetch_status.dart';
 import 'package:crossonic/utils/result.dart';
@@ -8,8 +6,6 @@ import 'package:flutter/material.dart';
 
 class HomeArtistListViewModel extends ChangeNotifier {
   final HomeComponentDataSource<Artist> _dataSource;
-  final SubsonicRepository _subsonic;
-  final AudioHandler _audioHandler;
 
   List<Artist>? _artists;
   List<Artist> get artists => _artists ?? [];
@@ -19,11 +15,7 @@ class HomeArtistListViewModel extends ChangeNotifier {
 
   HomeArtistListViewModel({
     required HomeComponentDataSource<Artist> dataSource,
-    required SubsonicRepository subsonicRepository,
-    required AudioHandler audioHandler,
-  })  : _dataSource = dataSource,
-        _subsonic = subsonicRepository,
-        _audioHandler = audioHandler {
+  }) : _dataSource = dataSource {
     load();
   }
 
