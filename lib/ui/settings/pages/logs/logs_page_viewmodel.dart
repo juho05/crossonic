@@ -1,11 +1,18 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 
 import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/data/repositories/logger/log_message.dart';
 import 'package:crossonic/data/repositories/logger/log_repository.dart';
 import 'package:crossonic/data/repositories/settings/settings_repository.dart';
-import 'package:flutter/material.dart';
+import 'package:crossonic/utils/format.dart';
+import 'package:crossonic/utils/result.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
+import 'package:intl/intl.dart';
 import 'package:logger/logger.dart';
+import 'package:share_plus/share_plus.dart';
 
 class LogsPageViewModel extends ChangeNotifier {
   final SettingsRepository _settings;
@@ -114,6 +121,68 @@ class LogsPageViewModel extends ChangeNotifier {
     _searchDebounce = null;
     _searchText = "";
     _updateFilteredLogMessages();
+  }
+
+  Future<Result<bool>> shareLog({
+    required bool filtered,
+  }) async {
+    final timeStr = DateFormat("yyyy-MM-dd_HH-mm-ss").format(sessionTime);
+    final bytes = utf8.encode(_exportLog(filtered: filtered));
+    final fileName = "crossonic-logs_$timeStr.txt";
+
+    final result = await SharePlus.instance.share(
+      ShareParams(
+        title: "Share logs",
+        downloadFallbackEnabled: true,
+        files: [
+          XFile.fromData(bytes, mimeType: "text/plain", name: fileName),
+        ],
+        fileNameOverrides: [fileName],
+      ),
+    );
+    if (result.status == ShareResultStatus.dismissed) {
+      return const Result.ok(false);
+    }
+    return const Result.ok(true);
+  }
+
+  Future<Result<bool>> saveLog({
+    required bool filtered,
+  }) async {
+    try {
+      final timeStr = DateFormat("yyyy-MM-dd_HH-mm-ss").format(sessionTime);
+      final bytes = utf8.encode(_exportLog(filtered: filtered));
+
+      final outputFile = await FilePicker.platform.saveFile(
+        fileName: "crossonic-logs_$timeStr.txt",
+        bytes: bytes,
+      );
+      if (outputFile == null) {
+        return const Result.ok(false);
+      }
+      // file_picker does not write the file on Linux for some reason
+      if (!kIsWeb && Platform.isLinux) {
+        await File(outputFile).writeAsBytes(bytes);
+      }
+    } on Exception catch (e) {
+      return Result.error(e);
+    }
+    return const Result.ok(true);
+  }
+
+  String _exportLog({required bool filtered}) {
+    String logStr =
+        "========================= Crossonic Logs ${formatDateTime(sessionTime)} =========================\n";
+    if (filtered) {
+      logStr += _filteredMessages
+          .map((msg) => msg.toString())
+          .join("\n--------------------------------------------------\n");
+    } else {
+      logStr += _logMessages
+          .map((msg) => msg.toString())
+          .join("\n--------------------------------------------------\n");
+    }
+    return logStr;
   }
 
   void _updateFilteredLogMessages() {

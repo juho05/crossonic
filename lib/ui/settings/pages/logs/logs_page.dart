@@ -1,9 +1,16 @@
+import 'dart:io';
+
 import 'package:auto_route/auto_route.dart';
 import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/routing/router.gr.dart';
+import 'package:crossonic/ui/common/menu_button.dart';
+import 'package:crossonic/ui/common/with_context_menu.dart';
 import 'package:crossonic/ui/settings/pages/logs/log_message_list_item.dart';
 import 'package:crossonic/ui/settings/pages/logs/logs_page_viewmodel.dart';
 import 'package:crossonic/utils/format.dart';
+import 'package:crossonic/utils/result.dart';
+import 'package:crossonic/utils/result_toast.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
@@ -38,9 +45,80 @@ class _LogsPageState extends State<LogsPage> {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
+    final shareButton =
+        !kIsWeb && (Platform.isAndroid || Platform.isIOS || Platform.isMacOS);
     return Scaffold(
       appBar: AppBar(
         title: const Text("Logs"),
+        actions: [
+          // the Android share dialog does not allow saving the file
+          if (!shareButton || (!kIsWeb && Platform.isAndroid))
+            MenuButton(
+              icon: const Icon(Icons.save_alt),
+              tooltip: "Save log",
+              options: [
+                ContextMenuOption(
+                  title: "Save full log",
+                  onSelected: () async {
+                    final result = await _viewModel.saveLog(filtered: false);
+                    if (!context.mounted) return;
+                    if (result is Ok && !result.tryValue!) {
+                      // user canceled save
+                      return;
+                    }
+                    toastResult(context, result,
+                        successMsg: "Successfully saved log!");
+                  },
+                ),
+                ContextMenuOption(
+                  title: "Save filtered log",
+                  onSelected: () async {
+                    final result = await _viewModel.saveLog(filtered: true);
+                    if (!context.mounted) return;
+                    if (result is Ok && !result.tryValue!) {
+                      // user canceled save
+                      return;
+                    }
+                    toastResult(context, result,
+                        successMsg: "Successfully saved log!");
+                  },
+                ),
+              ],
+            ),
+          if (shareButton)
+            MenuButton(
+              icon: const Icon(Icons.share),
+              tooltip: "Share log",
+              options: [
+                ContextMenuOption(
+                  title: "Share full log",
+                  onSelected: () async {
+                    final result = await _viewModel.shareLog(filtered: false);
+                    if (!context.mounted) return;
+                    if (result is Ok && !result.tryValue!) {
+                      // user canceled share
+                      return;
+                    }
+                    toastResult(context, result,
+                        successMsg: "Successfully shared log!");
+                  },
+                ),
+                ContextMenuOption(
+                  title: "Share filtered log",
+                  onSelected: () async {
+                    final result = await _viewModel.shareLog(filtered: true);
+                    if (!context.mounted) return;
+                    if (result is Ok && !result.tryValue!) {
+                      // user canceled share
+                      return;
+                    }
+                    toastResult(context, result,
+                        successMsg: "Successfully shared log!");
+                  },
+                ),
+              ],
+            ),
+        ],
       ),
       body: SafeArea(
         child: ListenableBuilder(

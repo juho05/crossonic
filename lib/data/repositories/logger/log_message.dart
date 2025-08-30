@@ -23,8 +23,17 @@ class LogMessage {
   String toString() {
     String msg = "[${level.name.toUpperCase()}] $time: $tag: $message";
     if (exception != null) {
-      msg += ": $exception";
+      msg += "\nException: $exception";
     }
-    return "$msg\n${stackTrace.toString().split("\n").take(10)}";
+    return "$msg\n${stackTrace.split("\n").take(_stackTraceLines[level] ?? 50).join("\n")}";
   }
+
+  static const Map<Level, int> _stackTraceLines = {
+    Level.trace: 3,
+    Level.debug: 5,
+    Level.info: 10,
+    Level.warning: 20,
+    Level.error: 50,
+    Level.fatal: 50,
+  };
 }
