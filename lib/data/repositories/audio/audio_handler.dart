@@ -309,6 +309,19 @@ class AudioHandler {
     if (_queue.current.value == null) return;
     Log.warn("Restarting playback at position $pos");
 
+    final songDuration = _queue.current.value!.duration;
+
+    if (songDuration != null &&
+        songDuration - pos < const Duration(seconds: 3)) {
+      Log.debug(
+          "Target position of restart playback is at end of song, skipping to next song instead");
+      if (play) {
+        playOnNextMediaChange();
+      }
+      await playNext();
+      return;
+    }
+
     _updatePosition(pos);
 
     _seekingPos = pos;
