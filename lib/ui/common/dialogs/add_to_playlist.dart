@@ -24,7 +24,10 @@ class AddToPlaylistDialog {
     return showDialog(
       context: context,
       builder: (context) => Dialog(
-        child: _AddToPlaylistDialogContent(viewModel: viewModel),
+        child: _AddToPlaylistDialogContent(
+          viewModel: viewModel,
+          collectionName: collectionName,
+        ),
       ),
     );
   }
@@ -147,6 +150,7 @@ class _AddToPlaylistDialogContent extends StatelessWidget {
                       Button(
                         onPressed: _viewModel.selectedPlaylists.isNotEmpty
                             ? () async {
+                                Navigator.pop(context);
                                 final Set<Playlist> addAll = {};
                                 final Set<Playlist> addNone = {};
                                 final successCount = await _viewModel
@@ -204,11 +208,15 @@ class _AddToPlaylistDialogContent extends StatelessWidget {
                                   return null;
                                 });
                                 if (!context.mounted) return;
-                                Navigator.pop(context);
                                 if (successCount ==
                                     _viewModel.selectedPlaylists.length) {
-                                  Toast.show(context,
-                                      "Added ${_collectionName ?? "songs"} to $successCount playlist${successCount != 1 ? "s" : ""}");
+                                  if (successCount == 1) {
+                                    Toast.show(context,
+                                        "Added ${_collectionName ?? "songs"} to ${_viewModel.selectedPlaylists.first.name}");
+                                  } else {
+                                    Toast.show(context,
+                                        "Added ${_collectionName ?? "songs"} to $successCount playlists");
+                                  }
                                 } else {
                                   Toast.show(context,
                                       "Added ${_collectionName ?? "songs"} to $successCount/${_viewModel.selectedPlaylists.length} playlists");
