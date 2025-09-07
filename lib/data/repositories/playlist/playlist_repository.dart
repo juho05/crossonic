@@ -17,6 +17,8 @@ import 'package:crossonic/utils/result.dart';
 import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart';
 
+enum PlaylistOrderBy { alphabetical, updated, created }
+
 class PlaylistRepository extends ChangeNotifier {
   final SubsonicService _subsonic;
   final FavoritesRepository _favorites;
@@ -268,9 +270,20 @@ class PlaylistRepository extends ChangeNotifier {
     return const Result.ok(null);
   }
 
-  Future<Result<List<Playlist>>> getPlaylists() async {
+  Future<Result<List<Playlist>>> getPlaylists({
+    PlaylistOrderBy orderBy = PlaylistOrderBy.alphabetical,
+  }) async {
     try {
-      final playlists = await _db.managers.playlistTable.get();
+      final playlists = await _db.managers.playlistTable.orderBy((o) {
+        switch (orderBy) {
+          case PlaylistOrderBy.alphabetical:
+            return o.name.asc();
+          case PlaylistOrderBy.updated:
+            return o.changed.desc();
+          case PlaylistOrderBy.created:
+            return o.created.desc();
+        }
+      }).get();
       return Result.ok(playlists
           .map((p) => Playlist(
                 id: p.id,
@@ -329,6 +342,17 @@ class PlaylistRepository extends ChangeNotifier {
     } on Exception catch (e) {
       return Result.error(e);
     }
+  }
+
+  Future<Result<Set<String>?>> getTrackIdsInPlaylist(String playlistId) async {
+    final playlist = await _db.managers.playlistTable
+        .filter((f) => f.id(playlistId))
+        .withReferences()
+        .getSingleOrNull();
+    if (playlist == null) return const Result.ok(null);
+    final dbSongs = await playlist.$2.playlistSongTableRefs.get();
+    final songs = dbSongs.map((s) => s.songId).toSet();
+    return Result.ok(songs);
   }
 
   Future<Result<void>> refresh(
@@ -514,5 +538,40 @@ class PlaylistRepository extends ChangeNotifier {
   void dispose() {
     _auth.removeListener(_onAuthChanged);
     super.dispose();
+  }
+
+  Future<Result<Map<String, int>>> getCountOfSongInPlaylists(String id) async {
+    try {
+      final query = _db.select(_db.playlistSongTable).join([])
+        ..addColumns([_db.playlistSongTable.id.count()])
+        ..where(_db.playlistSongTable.songId.equals(id))
+        ..groupBy([_db.playlistSongTable.playlistId]);
+      final result = await query.get();
+
+      Map<String, int> resultMap = {};
+      for (final row in result) {
+        resultMap[row.read(_db.playlistSongTable.playlistId)!] =
+            row.read(_db.playlistSongTable.id.count()) ?? 0;
+      }
+      return Result.ok(resultMap);
+    } on Exception catch (e) {
+      return Result.error(e);
+    }
+  }
+
+  Future<Result<void>> removeLastOccurrenceOfTrack(
+      String playlistId, String songId) async {
+    try {
+      final maxIndex = _db.playlistSongTable.index.max();
+      final query = _db.selectOnly(_db.playlistSongTable)
+        ..addColumns([maxIndex]);
+      query.where(_db.playlistSongTable.playlistId.equals(playlistId) &
+          _db.playlistSongTable.songId.equals(songId));
+      final index = await query.map((row) => row.read(maxIndex)).getSingle();
+      if (index == null) return const Result.ok(null);
+      return await removeTrack(playlistId, index);
+    } on Exception catch (e) {
+      return Result.error(e);
+    }
   }
 }

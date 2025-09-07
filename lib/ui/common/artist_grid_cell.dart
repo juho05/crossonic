@@ -7,7 +7,6 @@ import 'package:crossonic/ui/common/dialogs/chooser.dart';
 import 'package:crossonic/ui/common/dialogs/media_info.dart';
 import 'package:crossonic/ui/common/grid_cell.dart';
 import 'package:crossonic/ui/common/with_context_menu.dart';
-import 'package:crossonic/utils/result.dart';
 import 'package:crossonic/utils/result_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -110,15 +109,8 @@ class _ArtistGridCellState extends State<ArtistGridCell> {
           ContextMenuOption(
             title: "Add to playlist",
             icon: Icons.playlist_add,
-            onSelected: () async {
-              final result = await _viewModel.getSongs();
-              if (!context.mounted) return;
-              switch (result) {
-                case Err():
-                  toastResult(context, result);
-                case Ok():
-                  AddToPlaylistDialog.show(context, a.name, result.value);
-              }
+            onSelected: () {
+              AddToPlaylistDialog.show(context, a.name, _viewModel.getSongs);
             },
           ),
           ContextMenuOption(

@@ -6,6 +6,7 @@ import 'package:crossonic/ui/common/dialogs/media_info.dart';
 import 'package:crossonic/ui/common/toast.dart';
 import 'package:crossonic/ui/common/with_context_menu.dart';
 import 'package:crossonic/ui/main/now_playing/now_playing_viewmodel.dart';
+import 'package:crossonic/utils/result.dart';
 import 'package:flutter/material.dart';
 
 List<ContextMenuOption> getNowPlayingMenuOptions(
@@ -40,8 +41,8 @@ List<ContextMenuOption> getNowPlayingMenuOptions(
         title: "Add to playlist",
         onSelected: () {
           if (viewModel.song == null) return;
-          AddToPlaylistDialog.show(
-              context, viewModel.songTitle, [viewModel.song!]);
+          AddToPlaylistDialog.show(context, viewModel.songTitle,
+              () async => Result.ok([viewModel.song!]));
         },
         icon: Icons.playlist_add,
       ),

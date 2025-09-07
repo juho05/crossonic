@@ -6,7 +6,6 @@ import 'package:crossonic/ui/common/dialogs/add_to_playlist.dart';
 import 'package:crossonic/ui/common/dialogs/confirmation.dart';
 import 'package:crossonic/ui/common/playlist_grid_cell.dart';
 import 'package:crossonic/ui/playlists/playlists_viewmodel.dart';
-import 'package:crossonic/utils/result.dart';
 import 'package:crossonic/utils/result_toast.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -46,7 +45,7 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
         floatingActionButton: orientation == Orientation.portrait
             ? FloatingActionButton(
                 onPressed: () {
-                  context.router.push(const CreatePlaylistRoute());
+                  context.router.push(CreatePlaylistRoute());
                 },
                 tooltip: "Create Playlist",
                 child: const Icon(Icons.add),
@@ -117,8 +116,7 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
                                 Button(
                                   icon: Icons.add,
                                   onPressed: () {
-                                    context.router
-                                        .push(const CreatePlaylistRoute());
+                                    context.router.push(CreatePlaylistRoute());
                                   },
                                   outlined: true,
                                   child: const Text("Create"),
@@ -180,16 +178,9 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
                                   successMsg:
                                       "Added '${p.name}' to ${priority ? "priority " : ""}queue");
                             },
-                            onAddToPlaylist: () async {
-                              final result = await _viewModel.getTracks(p.id);
-                              if (!context.mounted) return;
-                              switch (result) {
-                                case Err():
-                                  toastResult(context, result);
-                                case Ok():
-                                  AddToPlaylistDialog.show(
-                                      context, p.name, result.value);
-                              }
+                            onAddToPlaylist: () {
+                              AddToPlaylistDialog.show(context, p.name,
+                                  () => _viewModel.getTracks(p.id));
                             },
                             onDelete: () async {
                               final confirmed =

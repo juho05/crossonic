@@ -12,6 +12,7 @@ import 'package:crossonic/ui/common/toast.dart';
 import 'package:crossonic/ui/common/with_context_menu.dart';
 import 'package:crossonic/ui/playlist/playlist_viewmodel.dart';
 import 'package:crossonic/utils/format.dart';
+import 'package:crossonic/utils/result.dart';
 import 'package:crossonic/utils/result_toast.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -103,8 +104,11 @@ class _PlaylistPageState extends State<PlaylistPage> {
                   title: "Add to playlist",
                   icon: Icons.playlist_add,
                   onSelected: () {
-                    AddToPlaylistDialog.show(context, playlist.name,
-                        _viewModel.tracks.map((t) => t.$1).toList());
+                    AddToPlaylistDialog.show(
+                        context,
+                        playlist.name,
+                        () async =>
+                            Result.ok(_viewModel.tracks.map((t) => t.$1)));
                   },
                 ),
                 ContextMenuOption(

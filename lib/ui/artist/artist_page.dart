@@ -13,7 +13,6 @@ import 'package:crossonic/ui/common/dialogs/media_info.dart';
 import 'package:crossonic/ui/common/toast.dart';
 import 'package:crossonic/ui/common/with_context_menu.dart';
 import 'package:crossonic/utils/fetch_status.dart';
-import 'package:crossonic/utils/result.dart';
 import 'package:crossonic/utils/result_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -130,15 +129,8 @@ class _ArtistPageState extends State<ArtistPage> {
                   title: "Add to playlist",
                   icon: Icons.playlist_add,
                   onSelected: () async {
-                    final result = await _viewModel.getArtistSongs(artist);
-                    if (!context.mounted) return;
-                    switch (result) {
-                      case Err():
-                        toastResult(context, result);
-                      case Ok():
-                        AddToPlaylistDialog.show(
-                            context, artist.name, result.value);
-                    }
+                    AddToPlaylistDialog.show(context, artist.name,
+                        () => _viewModel.getArtistSongs(artist));
                   },
                 ),
                 ContextMenuOption(

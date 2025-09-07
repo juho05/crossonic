@@ -20,4 +20,13 @@ class Playlist {
     required this.coverId,
     required this.download,
   });
+
+  @override
+  bool operator ==(Object other) {
+    if (other is! Playlist) return false;
+    return id == other.id;
+  }
+
+  @override
+  int get hashCode => id.hashCode;
 }

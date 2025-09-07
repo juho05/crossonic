@@ -8,7 +8,6 @@ import 'package:crossonic/ui/common/dialogs/add_to_playlist.dart';
 import 'package:crossonic/ui/common/dialogs/chooser.dart';
 import 'package:crossonic/ui/common/dialogs/media_info.dart';
 import 'package:crossonic/ui/common/with_context_menu.dart';
-import 'package:crossonic/utils/result.dart';
 import 'package:crossonic/utils/result_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -135,15 +134,8 @@ class _AlbumListItemState extends State<AlbumListItem> {
               ContextMenuOption(
                 icon: Icons.playlist_add,
                 title: "Add to playlist",
-                onSelected: () async {
-                  final result = await viewModel.getSongs();
-                  if (!context.mounted) return;
-                  switch (result) {
-                    case Err():
-                      toastResult(context, result);
-                    case Ok():
-                      AddToPlaylistDialog.show(context, a.name, result.value);
-                  }
+                onSelected: () {
+                  AddToPlaylistDialog.show(context, a.name, viewModel.getSongs);
                 },
               ),
               if (!widget.disableGoToArtist && a.artists.isNotEmpty)

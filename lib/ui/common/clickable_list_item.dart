@@ -13,6 +13,7 @@ class ClickableListItem extends StatelessWidget {
   final void Function()? onTap;
   final bool isFavorite;
   final DownloadStatus downloadStatus;
+  final bool transparent;
 
   const ClickableListItem({
     super.key,
@@ -25,6 +26,7 @@ class ClickableListItem extends StatelessWidget {
     this.onTap,
     this.isFavorite = false,
     this.downloadStatus = DownloadStatus.none,
+    this.transparent = false,
   });
 
   @override
@@ -34,6 +36,7 @@ class ClickableListItem extends StatelessWidget {
       return SizedBox(
         height: verticalExtent,
         child: Material(
+          type: transparent ? MaterialType.transparency : MaterialType.canvas,
           child: InkWell(
             onTap: onTap,
             child: Padding(
