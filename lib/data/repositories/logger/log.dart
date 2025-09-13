@@ -34,6 +34,13 @@ class Log {
     };
 
     FlutterError.onError = (details) {
+      if (details.exception.toString() == ("Exception: Invalid image data") &&
+          (details.stack?.toString() ?? "").contains(
+              "package:cached_network_image/src/image_provider/multi_image_stream_completer.dart")) {
+        // cached_network_image throws weird exceptions when an image is not available:
+        // https://github.com/Baseflow/flutter_cached_network_image/tree/0775e1f41dd6c3d1e1d0744365683390bc11a7d5?tab=readme-ov-file#my-app-crashes-when-the-image-loading-failed-i-know-this-is-not-really-a-question
+        return;
+      }
       error("uncaught exception: ${details.exception.toString()}",
           e: details.exception, st: details.stack, tag: "FlutterError.onError");
     };

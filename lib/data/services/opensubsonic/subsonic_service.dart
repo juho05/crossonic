@@ -6,6 +6,7 @@ import 'package:crossonic/data/services/opensubsonic/exceptions.dart';
 import 'package:crossonic/data/services/opensubsonic/models/album_info_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/album_list2_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/albumid3_model.dart';
+import 'package:crossonic/data/services/opensubsonic/models/appears_on_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/artist_info2_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/artistid3_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/artists_model.dart';
@@ -279,6 +280,7 @@ class SubsonicService {
     int? albumOffset,
     int? songCount,
     int? songOffset,
+    bool? onlyAlbumArtists,
   }) async {
     return _fetchObject(
       con,
@@ -291,6 +293,8 @@ class SubsonicService {
         "albumOffset": albumOffset != null ? [albumOffset.toString()] : [],
         "songCount": songCount != null ? [songCount.toString()] : [],
         "songOffset": songOffset != null ? [songOffset.toString()] : [],
+        "onlyAlbumArtists":
+            onlyAlbumArtists != null ? [onlyAlbumArtists.toString()] : [],
       },
       SearchResult3Model.fromJson,
       "searchResult3",
@@ -346,6 +350,19 @@ class SubsonicService {
       },
       ArtistID3Model.fromJson,
       "artist",
+    );
+  }
+
+  Future<Result<AppearsOnModel>> getAppearsOn(
+      Connection con, String artistId) async {
+    return _fetchObject(
+      con,
+      "crossonic/getAppearsOn",
+      {
+        "artistId": [artistId]
+      },
+      AppearsOnModel.fromJson,
+      "appearsOn",
     );
   }
 

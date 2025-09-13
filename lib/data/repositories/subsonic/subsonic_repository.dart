@@ -11,6 +11,7 @@ import 'package:crossonic/data/repositories/subsonic/models/artist_info.dart';
 import 'package:crossonic/data/repositories/subsonic/models/genre.dart';
 import 'package:crossonic/data/repositories/subsonic/models/listenbrainz_config.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
+import 'package:crossonic/data/repositories/version/version.dart';
 import 'package:crossonic/data/services/opensubsonic/exceptions.dart';
 import 'package:crossonic/data/services/opensubsonic/models/albumid3_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/artistid3_model.dart';
@@ -248,6 +249,10 @@ class SubsonicRepository {
       albumOffset: albumOffset,
       songCount: songCount,
       songOffset: songOffset,
+      onlyAlbumArtists: serverFeatures
+              .isMinCrossonicVersion(const Version(major: 0, minor: 3))
+          ? false
+          : null,
     );
     switch (result) {
       case Err():
@@ -309,6 +314,21 @@ class SubsonicRepository {
     }
     _updateArtistFavorites([result.value]);
     return Result.ok(Artist.fromArtistID3Model(result.value));
+  }
+
+  Future<Result<Iterable<Album>>> getAppearsOn(String artistId) async {
+    if (!serverFeatures
+        .isMinCrossonicVersion(const Version(major: 0, minor: 3))) {
+      return const Result.ok([]);
+    }
+    final result = await _service.getAppearsOn(_auth.con, artistId);
+    switch (result) {
+      case Err():
+        return Result.error(result.error);
+      case Ok():
+    }
+    _updateAlbumFavorites(result.value.album);
+    return Result.ok(result.value.album.map((a) => Album.fromAlbumID3Model(a)));
   }
 
   Future<Result<Album>> getAlbum(String id) async {
@@ -386,7 +406,7 @@ class SubsonicRepository {
   }
 
   Future<Result<void>> incrementallyLoadSongs(
-    List<Album> albums,
+    Iterable<Album> albums,
     Future<void> Function(List<Song> songs, bool firstBatch) songsLoaded, {
     bool shuffleAlbums = false,
     bool shuffleSongs = false,
@@ -397,11 +417,11 @@ class SubsonicRepository {
     if (albums.isEmpty) {
       return const Result.ok(null);
     }
-    albums = List.of(albums);
+    final albumList = List.of(albums);
     if (shuffleAlbums) {
-      albums.shuffle();
+      albumList.shuffle();
     }
-    final firstSongs = await getAlbumSongs(albums.first);
+    final firstSongs = await getAlbumSongs(albumList.first);
     switch (firstSongs) {
       case Err():
         return Result.error(firstSongs.error);
@@ -423,8 +443,8 @@ class SubsonicRepository {
       }
     }
 
-    if (albums.length > 1) {
-      for (final a in albums.sublist(1)) {
+    if (albumList.length > 1) {
+      for (final a in albumList.sublist(1)) {
         final result = await getAlbumSongs(a);
         switch (result) {
           case Err():

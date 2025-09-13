@@ -202,13 +202,129 @@ class _ArtistPageState extends State<ArtistPage> {
                 slivers: () {
                   final slivers = <Widget>[];
                   final currentAlbums = <Album>[];
-                  Widget createSliverGrid() {
-                    final gridAlbums = List.of(currentAlbums);
+
+                  Widget createSliverGrid([List<Album>? gridAlbums]) {
+                    gridAlbums ??= List.of(currentAlbums);
                     return SliverGrid.builder(
                       gridDelegate: AlbumsGridDelegate(),
                       itemCount: gridAlbums.length,
                       itemBuilder: (context, i) => AlbumGridCell(
-                        album: gridAlbums[i],
+                        album: gridAlbums![i],
+                      ),
+                    );
+                  }
+
+                  Widget createCategoryDivider({
+                    required bool isFirstReleaseType,
+                    ReleaseType releaseType = ReleaseType.album,
+                    bool isAppearsOn = false,
+                  }) {
+                    return SliverPadding(
+                      padding: EdgeInsets.only(
+                          top: isAppearsOn ? 0 : (isFirstReleaseType ? 4 : 12)),
+                      sliver: SliverToBoxAdapter(
+                        child: WithContextMenu(
+                          openOnTap: true,
+                          enabled: albums.isNotEmpty &&
+                              (_viewModel.appearsOn.isNotEmpty ||
+                                  albums.first.releaseType !=
+                                      albums.last.releaseType),
+                          options: [
+                            ContextMenuOption(
+                                title: "Play",
+                                icon: Icons.play_arrow,
+                                onSelected: () {
+                                  if (isAppearsOn) {
+                                    _viewModel.playAppearsOn();
+                                  } else {
+                                    _viewModel.playReleases(releaseType);
+                                  }
+                                }),
+                            ContextMenuOption(
+                              title: "Shuffle",
+                              icon: Icons.shuffle,
+                              onSelected: () async {
+                                final option = await ChooserDialog.choose(
+                                    context, "Shuffle", [
+                                  isAppearsOn
+                                      ? "Appears on"
+                                      : ArtistViewModel
+                                          .releaseTypeTitles[releaseType]!,
+                                  "Songs"
+                                ]);
+                                if (option == null) return;
+                                if (isAppearsOn) {
+                                  _viewModel.playAppearsOn(
+                                      shuffleReleases: option == 0,
+                                      shuffleSongs: option == 1);
+                                } else {
+                                  _viewModel.playReleases(releaseType,
+                                      shuffleReleases: option == 0,
+                                      shuffleSongs: option == 1);
+                                }
+                              },
+                            ),
+                            ContextMenuOption(
+                              title: "Add to priority queue",
+                              icon: Icons.playlist_play,
+                              onSelected: () {
+                                if (isAppearsOn) {
+                                  _viewModel.addAppearsOnToQueue(true);
+                                  Toast.show(context,
+                                      "Added 'Appears on' to priority queue");
+                                } else {
+                                  _viewModel.addReleasesToQueue(
+                                      releaseType, true);
+                                  Toast.show(context,
+                                      "Added '${ArtistViewModel.releaseTypeTitles[releaseType]}' to priority queue");
+                                }
+                              },
+                            ),
+                            ContextMenuOption(
+                              title: "Add to queue",
+                              icon: Icons.playlist_add,
+                              onSelected: () {
+                                if (isAppearsOn) {
+                                  _viewModel.addAppearsOnToQueue(false);
+                                  Toast.show(
+                                      context, "Added 'Appears on' to queue");
+                                } else {
+                                  _viewModel.addReleasesToQueue(
+                                      releaseType, false);
+                                  Toast.show(context,
+                                      "Added '${ArtistViewModel.releaseTypeTitles[releaseType]}' to queue");
+                                }
+                              },
+                            ),
+                          ],
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 4, vertical: 4),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: OrientationBuilder(
+                                    builder: (context, orientation) => Text(
+                                      isAppearsOn
+                                          ? "Appears on"
+                                          : ArtistViewModel
+                                              .releaseTypeTitles[releaseType]!,
+                                      textAlign: TextAlign.left,
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 1,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleMedium!
+                                          .copyWith(
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.w500),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
                       ),
                     );
                   }
@@ -220,85 +336,9 @@ class _ArtistPageState extends State<ArtistPage> {
                         slivers.add(createSliverGrid());
                         currentAlbums.clear();
                       }
-                      slivers.add(SliverPadding(
-                        padding: EdgeInsets.only(
-                            top: lastReleaseType != null ? 12 : 4),
-                        sliver: SliverToBoxAdapter(
-                          child: WithContextMenu(
-                            openOnTap: true,
-                            enabled: albums.first.releaseType !=
-                                albums.last.releaseType,
-                            options: [
-                              ContextMenuOption(
-                                title: "Play",
-                                icon: Icons.play_arrow,
-                                onSelected: () =>
-                                    _viewModel.playReleases(album.releaseType),
-                              ),
-                              ContextMenuOption(
-                                title: "Shuffle",
-                                icon: Icons.shuffle,
-                                onSelected: () async {
-                                  final option = await ChooserDialog.choose(
-                                      context, "Shuffle", [
-                                    ArtistViewModel
-                                        .releaseTypeTitles[album.releaseType]!,
-                                    "Songs"
-                                  ]);
-                                  if (option == null) return;
-                                  _viewModel.playReleases(album.releaseType,
-                                      shuffleReleases: option == 0,
-                                      shuffleSongs: option == 1);
-                                },
-                              ),
-                              ContextMenuOption(
-                                title: "Add to priority queue",
-                                icon: Icons.playlist_play,
-                                onSelected: () {
-                                  _viewModel.addReleasesToQueue(
-                                      album.releaseType, true);
-                                  Toast.show(context,
-                                      "Added '${ArtistViewModel.releaseTypeTitles[album.releaseType]}' to priority queue");
-                                },
-                              ),
-                              ContextMenuOption(
-                                title: "Add to queue",
-                                icon: Icons.playlist_add,
-                                onSelected: () {
-                                  _viewModel.addReleasesToQueue(
-                                      album.releaseType, false);
-                                  Toast.show(context,
-                                      "Added '${ArtistViewModel.releaseTypeTitles[album.releaseType]}' to queue");
-                                },
-                              ),
-                            ],
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 4, vertical: 4),
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    child: OrientationBuilder(
-                                      builder: (context, orientation) => Text(
-                                        ArtistViewModel.releaseTypeTitles[
-                                            album.releaseType]!,
-                                        textAlign: TextAlign.left,
-                                        overflow: TextOverflow.ellipsis,
-                                        maxLines: 1,
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .titleMedium!
-                                            .copyWith(
-                                                fontSize: 20,
-                                                fontWeight: FontWeight.w500),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
+                      slivers.add(createCategoryDivider(
+                        isFirstReleaseType: lastReleaseType == null,
+                        releaseType: album.releaseType,
                       ));
                       lastReleaseType = album.releaseType;
                     }
@@ -308,6 +348,20 @@ class _ArtistPageState extends State<ArtistPage> {
                     slivers.add(createSliverGrid());
                     currentAlbums.clear();
                   }
+
+                  if (_viewModel.appearsOn.isNotEmpty) {
+                    if (albums.isNotEmpty) {
+                      slivers.add(const SliverToBoxAdapter(
+                        child: Divider(),
+                      ));
+                    }
+                    slivers.add(createCategoryDivider(
+                      isFirstReleaseType: albums.isEmpty,
+                      isAppearsOn: true,
+                    ));
+                    slivers.add(createSliverGrid(_viewModel.appearsOn));
+                  }
+
                   return slivers;
                 }(),
               ),

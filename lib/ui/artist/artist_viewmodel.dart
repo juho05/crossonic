@@ -41,6 +41,9 @@ class ArtistViewModel extends ChangeNotifier {
   Artist? _artist;
   Artist? get artist => _artist;
 
+  List<Album> _appearsOn = const [];
+  List<Album> get appearsOn => _appearsOn;
+
   String? _description;
   String? get description => _description;
 
@@ -98,6 +101,7 @@ class ArtistViewModel extends ChangeNotifier {
     notifyListeners();
 
     _loadDescription(artistId);
+    _loadAppearsOn(artistId);
   }
 
   Future<Result<void>> playReleases(ReleaseType releaseType,
@@ -112,6 +116,18 @@ class ArtistViewModel extends ChangeNotifier {
       ReleaseType releaseType, bool priority) {
     return _queueAlbums(_getAlbumsByReleaseType(releaseType),
         play: false, priorityQueue: priority);
+  }
+
+  Future<Result<void>> playAppearsOn(
+      {bool shuffleReleases = false, bool shuffleSongs = false}) {
+    return _queueAlbums(_appearsOn,
+        play: true,
+        shuffleReleases: shuffleReleases,
+        shuffleSongs: shuffleSongs);
+  }
+
+  Future<Result<void>> addAppearsOnToQueue(bool priority) {
+    return _queueAlbums(_appearsOn, play: false, priorityQueue: priority);
   }
 
   List<Album> _getAlbumsByReleaseType(ReleaseType releaseType) {
@@ -132,14 +148,14 @@ class ArtistViewModel extends ChangeNotifier {
 
   Future<Result<void>> play(
       {bool shuffleReleases = false, bool shuffleSongs = false}) {
-    return _queueAlbums(artist!.albums ?? [],
+    return _queueAlbums(artist!.albums ?? _appearsOn,
         play: true,
         shuffleReleases: shuffleReleases,
         shuffleSongs: shuffleSongs);
   }
 
   Future<Result<void>> addToQueue(bool priority) {
-    return _queueAlbums(artist!.albums ?? [],
+    return _queueAlbums(artist!.albums ?? _appearsOn,
         play: false, priorityQueue: priority);
   }
 
@@ -155,7 +171,7 @@ class ArtistViewModel extends ChangeNotifier {
     return result;
   }
 
-  Future<Result<void>> _queueAlbums(List<Album> albums,
+  Future<Result<void>> _queueAlbums(Iterable<Album> albums,
       {required bool play,
       bool priorityQueue = false,
       bool shuffleReleases = false,
@@ -175,16 +191,29 @@ class ArtistViewModel extends ChangeNotifier {
     );
   }
 
-  Future<void> _loadDescription(String albumId) async {
+  Future<void> _loadDescription(String artistId) async {
     _description = null;
     notifyListeners();
-    final result = await _subsonic.getArtistInfo(albumId);
+    final result = await _subsonic.getArtistInfo(artistId);
     if (result is Ok) {
       _description = result.tryValue?.description ?? "";
     } else {
       _description = "";
     }
     notifyListeners();
+  }
+
+  Future<void> _loadAppearsOn(String artistId) async {
+    _appearsOn = const [];
+    notifyListeners();
+    final result = await _subsonic.getAppearsOn(artistId);
+    if (result is Err) {
+      return;
+    }
+    _appearsOn = result.tryValue?.toList() ?? [];
+    if (_appearsOn.isNotEmpty) {
+      notifyListeners();
+    }
   }
 
   Future<Result<List<Song>>> getArtistSongs(Artist artist) async {
