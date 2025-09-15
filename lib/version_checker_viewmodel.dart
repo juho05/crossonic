@@ -22,6 +22,10 @@ class VersionCheckerViewModel extends ChangeNotifier {
   Version? get latest => _latest;
   bool get newVersionAvailable => _current != null && _latest != null;
 
+  bool _isOpen = false;
+  bool get isOpen => _isOpen;
+  set isOpen(bool value) => _isOpen = value;
+
   VersionCheckerViewModel(
       {required KeyValueRepository keyValue,
       required VersionRepository versionRepo})
@@ -77,6 +81,7 @@ class VersionCheckerViewModel extends ChangeNotifier {
   }
 
   Future<void> displayedVersionDialog() async {
+    isOpen = false;
     _current = null;
     _latest = null;
     await _keyValue.store(_keyLastDisplayedDialog, DateTime.now());

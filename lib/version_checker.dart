@@ -1,3 +1,6 @@
+import 'package:auto_route/auto_route.dart';
+import 'package:crossonic/data/repositories/auto_update/auto_update_repository.dart';
+import 'package:crossonic/routing/router.gr.dart';
 import 'package:crossonic/ui/common/adaptive_dialog_action.dart';
 import 'package:crossonic/ui/common/toast.dart';
 import 'package:crossonic/version_checker_viewmodel.dart';
@@ -7,7 +10,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-enum VersionDialogChoice { ignore, remind, view }
+enum VersionDialogChoice { ignore, remind, view, install }
 
 class VersionChecker extends StatelessWidget {
   final Widget child;
@@ -20,7 +23,7 @@ class VersionChecker extends StatelessWidget {
       builder: (context, viewModel, _) {
         bool isApple = defaultTargetPlatform == TargetPlatform.iOS ||
             defaultTargetPlatform == TargetPlatform.macOS;
-        if (viewModel.newVersionAvailable) {
+        if (viewModel.newVersionAvailable && !viewModel.isOpen) {
           SchedulerBinding.instance.addPostFrameCallback((_) {
             final actions = [
               AdaptiveDialogAction(
@@ -37,8 +40,15 @@ class VersionChecker extends StatelessWidget {
                 onPressed: () =>
                     Navigator.pop(context, VersionDialogChoice.view),
                 child: const Text("View"),
-              )
+              ),
+              if (AutoUpdateRepository.autoUpdatesSupported)
+                AdaptiveDialogAction(
+                  onPressed: () =>
+                      Navigator.pop(context, VersionDialogChoice.install),
+                  child: const Text("Install"),
+                )
             ];
+            viewModel.isOpen = true;
             showAdaptiveDialog<VersionDialogChoice>(
               context: context,
               builder: (context) {
@@ -50,6 +60,7 @@ class VersionChecker extends StatelessWidget {
                 );
               },
             ).then((choice) async {
+              if (!context.mounted) return;
               switch (choice) {
                 case VersionDialogChoice.ignore:
                   await viewModel.ignoreVersion();
@@ -65,6 +76,8 @@ class VersionChecker extends StatelessWidget {
                 case VersionDialogChoice.remind:
                   // default behavior
                   break;
+                case VersionDialogChoice.install:
+                  context.router.push(const InstallUpdateRoute());
               }
               await viewModel.displayedVersionDialog();
             });

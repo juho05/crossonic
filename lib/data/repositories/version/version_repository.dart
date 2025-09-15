@@ -8,7 +8,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 
 class VersionRepository {
   static const _keyLastCheck = "version.last_check";
-  static const _keyLatestVersion = "version.latest";
+  static const _keyLatestVersionTag = "version.latest.tag";
   static const _minCheckInterval = Duration(hours: 3);
 
   static PackageInfo? _packageInfo;
@@ -28,13 +28,26 @@ class VersionRepository {
         _keyValue = keyValue;
 
   Future<Result<Version?>> getLatestVersion({bool force = false}) async {
+    final result = await getLatestVersionTag(force: force);
+    switch (result) {
+      case Err():
+        return Result.error(result.error);
+      case Ok():
+    }
+    if (result.value == null) {
+      return const Result.ok(null);
+    }
+    return Result.ok(Version.parse(result.value!));
+  }
+
+  Future<Result<String?>> getLatestVersionTag({bool force = false}) async {
     if (!force) {
       final lastCheck = await _keyValue.loadDateTime(_keyLastCheck);
       if (lastCheck != null &&
           DateTime.now().difference(lastCheck) < _minCheckInterval) {
-        final latest = await _keyValue.loadString(_keyLatestVersion);
+        final latest = await _keyValue.loadString(_keyLatestVersionTag);
         if (latest == null) return const Result.ok(null);
-        return Result.ok(Version.parse(latest));
+        return Result.ok(latest);
       }
     }
 
@@ -45,28 +58,31 @@ class VersionRepository {
         return Result.error(tags.error);
       case Ok():
     }
-    List<Version> versions = [];
+    List<(String, Version)> versions = [];
     for (final t in tags.value!) {
       try {
         final v = Version.parse(t.name);
         if (!v.isFullVersion) continue;
-        if (versions.isNotEmpty && v < versions.last) continue;
-        versions.add(v);
+        if (versions.isNotEmpty && v < versions.last.$2) continue;
+        versions.add((t.name, v));
       } on InvalidVersion {
         continue;
       }
     }
-    versions.sort((a, b) => b.compareTo(a));
+    versions.sort((a, b) => b.$2.compareTo(a));
     final latest = versions.firstOrNull;
     Log.trace("Fetched latest version: $latest");
 
     await _keyValue.store(_keyLastCheck, DateTime.now());
     if (latest != null) {
-      await _keyValue.store(_keyLatestVersion, latest.toString());
+      await _keyValue.store(_keyLatestVersionTag, latest.$1);
     } else {
-      await _keyValue.remove(_keyLatestVersion);
+      await _keyValue.remove(_keyLatestVersionTag);
+
+      // remove old key
+      await _keyValue.remove("version.latest");
     }
 
-    return Result.ok(latest);
+    return Result.ok(latest?.$1);
   }
 }

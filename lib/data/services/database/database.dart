@@ -1,3 +1,4 @@
+import 'package:crossonic/data/repositories/appimage/appimage_repository.dart';
 import 'package:crossonic/data/services/database/converters/log_level_converter.dart';
 import 'package:crossonic/data/services/database/database.steps.dart';
 import 'package:crossonic/data/services/database/tables/download_task.dart';
@@ -7,7 +8,6 @@ import 'package:crossonic/data/services/database/tables/log_message.dart';
 import 'package:crossonic/data/services/database/tables/playlist.dart';
 import 'package:crossonic/data/services/database/tables/playlist_song.dart';
 import 'package:crossonic/data/services/database/tables/scrobble.dart';
-import 'package:crossonic/integrate_appimage_viewmodel.dart';
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:flutter/foundation.dart';
@@ -39,7 +39,7 @@ class Database extends _$Database {
           if (table == keyValueTable) {
             await managers.keyValueTable
                 .filter(
-                  (f) => f.key(IntegrateAppImageViewModel.disabledKey).not(),
+                  (f) => f.key(AppImageRepository.integrationDisabledKey).not(),
                 )
                 .delete();
             continue;

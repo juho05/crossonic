@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:crossonic/data/repositories/logger/log.dart';
+import 'package:crossonic/data/repositories/version/version.dart';
+import 'package:crossonic/data/repositories/version/version_repository.dart';
 import 'package:crossonic/data/services/github/exceptions.dart';
 import 'package:crossonic/data/services/github/models/tag.dart';
 import 'package:crossonic/utils/result.dart';
@@ -10,10 +12,14 @@ import 'package:http/http.dart' as http;
 class GitHubService {
   final http.Client _httpClient = http.Client();
 
-  final Uri _baseUri;
+  final Uri _apiBaseUri;
+  final Uri _webBaseUri;
 
-  GitHubService({String baseUri = "https://api.github.com"})
-      : _baseUri = Uri.parse(baseUri);
+  GitHubService(
+      {String apiBaseUri = "https://api.github.com",
+      String webBaseUri = "https://github.com"})
+      : _apiBaseUri = Uri.parse(apiBaseUri),
+        _webBaseUri = Uri.parse("https://github.com");
 
   Future<Result<Iterable<GitHubTag>?>> getRepositoryTags(
       {required String owner,
@@ -70,6 +76,7 @@ class GitHubService {
     }
   }
 
+  Version? _currentVersion;
   Future<Result<String?>> _request(
     String method,
     String path, {
@@ -78,15 +85,16 @@ class GitHubService {
   }) async {
     final req = http.Request(
         method,
-        _baseUri.resolveUri(Uri(
+        _apiBaseUri.resolveUri(Uri(
           path: path,
           queryParameters: queryParameters,
         )));
+    _currentVersion ??= await VersionRepository.getCurrentVersion();
     req.headers.addAll({
       "Accept": "application/vnd.github+json",
       // https://docs.github.com/en/rest/about-the-rest-api/api-versions?apiVersion=2022-11-28#supported-api-versions
       "X-GitHub-Api-Version": "2022-11-28",
-      "User-Agent": "Crossonic",
+      "User-Agent": "Crossonic v$_currentVersion",
     });
     req.headers.addAll(headers);
     int maxRetries = 5;
@@ -128,5 +136,16 @@ class GitHubService {
     } on Exception catch (e) {
       return Result.error(e);
     }
+  }
+
+  Uri generateReleaseDownloadLink(String downloadFileName, String tag) {
+    return _webBaseUri.resolveUri(Uri(pathSegments: [
+      "juho05",
+      "crossonic",
+      "releases",
+      "download",
+      tag,
+      downloadFileName
+    ]));
   }
 }

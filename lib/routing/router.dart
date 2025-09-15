@@ -212,6 +212,12 @@ class AppRouter extends RootStackRouter {
           page: LyricsRoute.page,
           title: (context, data) => "Lyrics",
           restorationId: (match) => match.fullPath,
+        ),
+        AutoRoute(
+          path: "/installUpdate",
+          page: InstallUpdateRoute.page,
+          title: (context, data) => "Install Update",
+          restorationId: (match) => match.fullPath,
         )
       ];
 }

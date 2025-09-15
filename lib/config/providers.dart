@@ -5,8 +5,10 @@ import 'package:audio_player/audio_player.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:audio_session/audio_session.dart';
 import 'package:background_downloader/background_downloader.dart' as bd;
+import 'package:crossonic/data/repositories/appimage/appimage_repository.dart';
 import 'package:crossonic/data/repositories/audio/audio_handler.dart' as ah;
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
+import 'package:crossonic/data/repositories/auto_update/auto_update_repository.dart';
 import 'package:crossonic/data/repositories/cover/cover_repository.dart';
 import 'package:crossonic/data/repositories/keyvalue/key_value_repository.dart';
 import 'package:crossonic/data/repositories/logger/log.dart';
@@ -220,10 +222,24 @@ Future<List<SingleChildWidget>> createProviders({
         versionRepo: context.read(),
       )..check(),
     ),
-    ChangeNotifierProvider(
-      create: (context) => IntegrateAppImageViewModel(
-        keyValue: context.read(),
-      )..check(),
-    )
+    if (AppImageRepository.isAppImage)
+      Provider(
+        create: (context) => AppImageRepository(
+          keyValue: context.read(),
+        ),
+      ),
+    if (AppImageRepository.isAppImage)
+      ChangeNotifierProvider(
+        create: (context) => IntegrateAppImageViewModel(
+          appImageRepository: context.read(),
+        )..check(),
+      ),
+    if (AutoUpdateRepository.autoUpdatesSupported)
+      ChangeNotifierProvider(
+        create: (context) => AutoUpdateRepository(
+          versionRepository: context.read(),
+          github: context.read(),
+        ),
+      )
   ];
 }
