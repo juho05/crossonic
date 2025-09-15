@@ -19,11 +19,11 @@ class Restart {
   static Future<void> _restartAppImage() async {
     Log.info("Restarting application...");
 
-    Process.run("/bin/sh", [
+    Process.run("/bin/bash", [
       "-c",
-      "/bin/sh -c \"sleep 1 && ${AppImageRepository.appImageFile.path}\" & disown"
+      "/bin/bash -c \"sleep 2 && ${AppImageRepository.appImageFile.path.replaceAll(" ", "\\ ")}\" & disown"
     ]);
 
-    Future.delayed(const Duration(milliseconds: 100), () => exit(0));
+    await Future.delayed(const Duration(milliseconds: 250), () => exit(0));
   }
 }

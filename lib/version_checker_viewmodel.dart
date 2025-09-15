@@ -48,7 +48,7 @@ class VersionCheckerViewModel extends ChangeNotifier {
     final lastDisplayed = await _keyValue.loadDateTime(_keyLastDisplayedDialog);
     if (lastDisplayed != null &&
         DateTime.now().difference(lastDisplayed) < const Duration(days: 1)) {
-      return;
+      //return;
     }
 
     final latest = await _versionRepo.getLatestVersion();

@@ -9,6 +9,7 @@ import 'package:crossonic/data/services/github/github.dart';
 import 'package:crossonic/data/services/updater/updater.dart';
 import 'package:crossonic/data/services/updater/updater_android.dart';
 import 'package:crossonic/data/services/updater/updater_linux_appimage.dart';
+import 'package:crossonic/data/services/updater/updater_macos.dart';
 import 'package:crossonic/data/services/updater/updater_windows.dart';
 import 'package:crossonic/utils/result.dart';
 import 'package:flutter/foundation.dart';
@@ -35,6 +36,7 @@ class AutoUpdateRepository extends ChangeNotifier {
       !kIsWeb &&
       (Platform.isAndroid ||
           Platform.isWindows ||
+          Platform.isMacOS ||
           AppImageRepository.isAppImage) &&
       (!const bool.hasEnvironment("VERSION_CHECK") ||
           const bool.fromEnvironment("VERSION_CHECK"));
@@ -56,6 +58,8 @@ class AutoUpdateRepository extends ChangeNotifier {
       _updater = UpdaterAndroid();
     } else if (Platform.isWindows) {
       _updater = UpdaterWindows();
+    } else if (Platform.isMacOS) {
+      _updater = UpdaterMacOS();
     } else if (AppImageRepository.isAppImage) {
       _updater = UpdaterLinuxAppImage();
     } else {
