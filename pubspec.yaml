@@ -21,7 +21,7 @@ dependencies:
   json_annotation: ^4.9.0
   rxdart: ^0.28.0
   audio_session: ^0.2.0
-  smtc_windows: ^1.0.0
+  smtc_windows: 1.0.0
   audio_service: ^0.18.17
   optimize_battery:
     git: https://github.com/juho05/optimize_battery

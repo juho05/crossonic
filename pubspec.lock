@@ -562,10 +562,10 @@ packages:
     dependency: transitive
     description:
       name: flutter_rust_bridge
-      sha256: "37ef40bc6f863652e865f0b2563ea07f0d3c58d8efad803cc01933a4b2ee067e"
+      sha256: "0ad5079de35d317650fec59b26cb4d0c116ebc2ce703a29f9367513b8a91c287"
       url: "https://pub.dev"
     source: hosted
-    version: "2.11.1"
+    version: "2.5.0"
   flutter_secure_storage:
     dependency: "direct main"
     description:
@@ -1439,10 +1439,10 @@ packages:
     dependency: "direct main"
     description:
       name: smtc_windows
-      sha256: dee279b0ddf663c4c729a88bca4e57fb4861aa1b3d01e230bdbf1277b8bfe664
+      sha256: "80f7c10867da485ffdf87f842bf27e6763589933c18c11af5dc1cd1e158c3154"
       url: "https://pub.dev"
     source: hosted
-    version: "1.1.0"
+    version: "1.0.0"
   source_gen:
     dependency: transitive
     description:

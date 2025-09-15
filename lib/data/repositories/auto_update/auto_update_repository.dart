@@ -9,6 +9,7 @@ import 'package:crossonic/data/services/github/github.dart';
 import 'package:crossonic/data/services/updater/updater.dart';
 import 'package:crossonic/data/services/updater/updater_android.dart';
 import 'package:crossonic/data/services/updater/updater_linux_appimage.dart';
+import 'package:crossonic/data/services/updater/updater_windows.dart';
 import 'package:crossonic/utils/result.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
@@ -32,7 +33,9 @@ class AutoUpdateRepository extends ChangeNotifier {
 
   static bool get autoUpdatesSupported =>
       !kIsWeb &&
-      (Platform.isAndroid || AppImageRepository.isAppImage) &&
+      (Platform.isAndroid ||
+          Platform.isWindows ||
+          AppImageRepository.isAppImage) &&
       (!const bool.hasEnvironment("VERSION_CHECK") ||
           const bool.fromEnvironment("VERSION_CHECK"));
 
@@ -51,6 +54,8 @@ class AutoUpdateRepository extends ChangeNotifier {
         _github = github {
     if (Platform.isAndroid) {
       _updater = UpdaterAndroid();
+    } else if (Platform.isWindows) {
+      _updater = UpdaterWindows();
     } else if (AppImageRepository.isAppImage) {
       _updater = UpdaterLinuxAppImage();
     } else {
@@ -161,7 +166,8 @@ class AutoUpdateRepository extends ChangeNotifier {
 
       final totalBytes = (response.contentLength ?? 1).toDouble();
 
-      final outputFile = File(path.join(targetDir.path, downloadFileName));
+      final outputFile =
+          File(path.join(targetDir.path, downloadFileName)).absolute;
       final fileSink = outputFile.openWrite();
       try {
         int downloadedBytes = 0;

@@ -96,8 +96,8 @@ class InstallUpdatePage extends StatelessWidget {
                             "Click the button below to install the latest version.",
                           AutoUpdateStatus.checkingVersion =>
                             "Checking version...",
-                          AutoUpdateStatus.downloading => "Downloading...",
-                          AutoUpdateStatus.installing => "Installing...",
+                          AutoUpdateStatus.downloading => "Downloading…",
+                          AutoUpdateStatus.installing => "Installing…",
                           AutoUpdateStatus.success => "Update successful!",
                           AutoUpdateStatus.failure => "Update failed!",
                         },
@@ -120,7 +120,7 @@ class InstallUpdatePage extends StatelessWidget {
                           viewModel.status == AutoUpdateStatus.downloading ||
                           viewModel.status == AutoUpdateStatus.installing)
                         const Button(
-                          child: Text("Installing"),
+                          child: Text("Installing…"),
                         ),
                       if (viewModel.status == AutoUpdateStatus.success)
                         Button(

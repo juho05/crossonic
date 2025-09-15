@@ -46,8 +46,15 @@ class VersionRepository {
       if (lastCheck != null &&
           DateTime.now().difference(lastCheck) < _minCheckInterval) {
         final latest = await _keyValue.loadString(_keyLatestVersionTag);
-        if (latest == null) return const Result.ok(null);
-        return Result.ok(latest);
+        if (latest != null) {
+          return Result.ok(latest);
+        }
+        if (latest == null) {
+          if (await _keyValue.loadString("version.latest") == null) {
+            return const Result.ok(null);
+          }
+          await _keyValue.remove("version.latest");
+        }
       }
     }
 
@@ -78,9 +85,6 @@ class VersionRepository {
       await _keyValue.store(_keyLatestVersionTag, latest.$1);
     } else {
       await _keyValue.remove(_keyLatestVersionTag);
-
-      // remove old key
-      await _keyValue.remove("version.latest");
     }
 
     return Result.ok(latest?.$1);
