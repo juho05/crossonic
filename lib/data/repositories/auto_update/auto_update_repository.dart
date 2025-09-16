@@ -115,6 +115,8 @@ class AutoUpdateRepository extends ChangeNotifier {
 
     final file = downloadResult.value;
     Log.debug("Installing ${file.path}...");
+    _status = AutoUpdateStatus.installing;
+    notifyListeners();
     final installResult = await _updater.install(file);
 
     if (await file.exists()) {
