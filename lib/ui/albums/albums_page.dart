@@ -1,7 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:crossonic/ui/albums/albums_viewmodel.dart';
-import 'package:crossonic/ui/common/album_grid_cell.dart';
-import 'package:crossonic/ui/common/albums_grid_delegate.dart';
+import 'package:crossonic/ui/common/album_grid_sliver.dart';
 import 'package:crossonic/utils/fetch_status.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -136,36 +135,9 @@ class _AlbumsPageState extends State<AlbumsPage> {
                       _viewModel.albums.isEmpty)
                     const SliverToBoxAdapter(
                         child: Text("No releases available")),
-                  SliverPadding(
-                    padding: const EdgeInsetsGeometry.symmetric(horizontal: 4),
-                    sliver: SliverGrid(
-                      gridDelegate: AlbumsGridDelegate(),
-                      delegate: SliverChildBuilderDelegate(
-                        (context, index) {
-                          if (index > _viewModel.albums.length) {
-                            return null;
-                          }
-                          if (index == _viewModel.albums.length) {
-                            return switch (_viewModel.status) {
-                              FetchStatus.success => null,
-                              FetchStatus.failure => const Center(
-                                  child: Icon(Icons.wifi_off),
-                                ),
-                              _ => const Center(
-                                  child: CircularProgressIndicator.adaptive(),
-                                ),
-                            };
-                          }
-                          final a = _viewModel.albums[index];
-                          return AlbumGridCell(
-                            album: a,
-                          );
-                        },
-                        childCount:
-                            (_viewModel.status == FetchStatus.success ? 0 : 1) +
-                                _viewModel.albums.length,
-                      ),
-                    ),
+                  AlbumGridSliver(
+                    albums: _viewModel.albums,
+                    fetchStatus: _viewModel.status,
                   ),
                 ],
               );

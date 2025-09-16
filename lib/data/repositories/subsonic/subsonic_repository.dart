@@ -295,6 +295,26 @@ class SubsonicRepository {
     return Result.ok(result.value.album.map((a) => Album.fromAlbumID3Model(a)));
   }
 
+  Future<Result<Iterable<Album>>> getAlbumsByYears(
+      int fromYear, int toYear, int count,
+      [int offset = 0]) async {
+    final result = await _service.getAlbumList2(
+      _auth.con,
+      AlbumListType.byYear,
+      fromYear: fromYear,
+      toYear: toYear,
+      size: count,
+      offset: offset,
+    );
+    switch (result) {
+      case Err():
+        return Result.error(result.error);
+      case Ok():
+    }
+    _updateAlbumFavorites(result.value.album);
+    return Result.ok(result.value.album.map((a) => Album.fromAlbumID3Model(a)));
+  }
+
   Future<Result<ArtistInfo>> getArtistInfo(String id) async {
     final result = await _service.getArtistInfo2(_auth.con, id);
     switch (result) {

@@ -70,6 +70,12 @@ class AppRouter extends RootStackRouter {
       title: (context, data) => "Genres",
       restorationId: (match) => match.fullPath,
     ),
+    AutoRoute(
+      path: "years",
+      page: YearsRoute.page,
+      title: (context, data) => "Years",
+      restorationId: (match) => match.fullPath,
+    ),
   ];
 
   @override

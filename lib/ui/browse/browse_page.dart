@@ -130,6 +130,11 @@ class _BrowsePageState extends State<BrowsePage> with RestorationMixin {
                             text: "Genres",
                             route: GenresRoute(),
                           ),
+                          const BrowseGridButton(
+                            icon: Icons.calendar_month,
+                            text: "Years",
+                            route: YearsRoute(),
+                          ),
                         ],
                       ),
                     ),
