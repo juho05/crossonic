@@ -87,18 +87,7 @@ class TranscodingSettings extends ChangeNotifier {
   }
 
   Future<void> load() async {
-    _availableCodecs = _subsonic.serverFeatures.isCrossonic
-        ? [
-            TranscodingCodec.serverDefault,
-            TranscodingCodec.raw,
-            TranscodingCodec.mp3,
-            TranscodingCodec.opus,
-            TranscodingCodec.vorbis,
-          ]
-        : [
-            TranscodingCodec.serverDefault,
-            TranscodingCodec.raw,
-          ];
+    _availableCodecs = _subsonic.supports.transcodeCodecs;
     _supportsMobile =
         !kIsWeb && (Platform.isAndroid || Platform.isIOS || Platform.isMacOS);
 

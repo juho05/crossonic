@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:crossonic/data/repositories/subsonic/subsonic_repository.dart';
-import 'package:crossonic/data/repositories/version/version.dart';
 import 'package:crossonic/utils/fetch_status.dart';
 import 'package:crossonic/utils/result.dart';
 import 'package:flutter/material.dart';
@@ -12,11 +11,7 @@ class ScanViewModel extends ChangeNotifier {
   FetchStatus _status = FetchStatus.initial;
   FetchStatus get status => _status;
 
-  bool get supportsScanType =>
-      (_subsonic.serverFeatures.crossonicVersion != null &&
-          _subsonic.serverFeatures.crossonicVersion! >=
-              const Version(major: 0, minor: 2)) ||
-      _subsonic.serverFeatures.isNavidrome;
+  bool get supportsScanType => _subsonic.supports.scanType;
 
   ScanStatus _scanStatus = const (
     scanning: false,

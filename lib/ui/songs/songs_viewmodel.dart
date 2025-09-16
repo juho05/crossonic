@@ -18,7 +18,7 @@ class SongsViewModel extends ChangeNotifier {
 
   static final int _pageSize = 500;
 
-  bool get supportsAllMode => _subsonic.serverFeatures.isOpenSubsonic;
+  bool get supportsAllMode => _subsonic.supports.emptySearchString;
 
   SongsPageMode _mode = SongsPageMode.random;
   SongsPageMode get mode => _mode;

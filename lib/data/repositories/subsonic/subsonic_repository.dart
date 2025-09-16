@@ -1,7 +1,6 @@
 import 'dart:math';
 
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
-import 'package:crossonic/data/repositories/auth/models/server_features.dart';
 import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/data/repositories/subsonic/favorites_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/models/album.dart';
@@ -11,7 +10,7 @@ import 'package:crossonic/data/repositories/subsonic/models/artist_info.dart';
 import 'package:crossonic/data/repositories/subsonic/models/genre.dart';
 import 'package:crossonic/data/repositories/subsonic/models/listenbrainz_config.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
-import 'package:crossonic/data/repositories/version/version.dart';
+import 'package:crossonic/data/repositories/subsonic/server_support.dart';
 import 'package:crossonic/data/services/opensubsonic/exceptions.dart';
 import 'package:crossonic/data/services/opensubsonic/models/albumid3_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/artistid3_model.dart';
@@ -49,7 +48,7 @@ class SubsonicRepository {
   final SubsonicService _service;
   final FavoritesRepository _favorites;
 
-  ServerFeatures get serverFeatures => _auth.serverFeatures;
+  ServerSupport get supports => ServerSupport(features: _auth.serverFeatures);
 
   SubsonicRepository({
     required AuthRepository authRepository,
@@ -60,7 +59,7 @@ class SubsonicRepository {
         _favorites = favoritesRepository;
 
   Future<Result<List<String>>> getLyricsLines(Song song) async {
-    if (!serverFeatures.songLyrics.contains(1)) {
+    if (!supports.songLyricsById) {
       final result =
           await _service.getLyrics(_auth.con, song.displayArtist, song.title);
       switch (result) {
@@ -249,10 +248,7 @@ class SubsonicRepository {
       albumOffset: albumOffset,
       songCount: songCount,
       songOffset: songOffset,
-      onlyAlbumArtists: serverFeatures
-              .isMinCrossonicVersion(const Version(major: 0, minor: 3))
-          ? false
-          : null,
+      onlyAlbumArtists: supports.searchOnlyAlbumArtistsParam ? false : null,
     );
     switch (result) {
       case Err():
@@ -337,8 +333,7 @@ class SubsonicRepository {
   }
 
   Future<Result<Iterable<Album>>> getAppearsOn(String artistId) async {
-    if (!serverFeatures
-        .isMinCrossonicVersion(const Version(major: 0, minor: 3))) {
+    if (!supports.appearsOn) {
       return const Result.ok([]);
     }
     final result = await _service.getAppearsOn(_auth.con, artistId);
