@@ -112,6 +112,7 @@ class _QueuePageState extends State<QueuePage> {
                       song: s,
                       key: ValueKey("$i${s.coverId}"),
                       reorderIndex: i,
+                      showDragHandle: true,
                       showPlaybackStatus: false,
                       showRemoveButton: true,
                       onRemove: () {
@@ -167,6 +168,7 @@ class _QueuePageState extends State<QueuePage> {
                     song: s,
                     key: ValueKey("$i${s.coverId}"),
                     reorderIndex: i,
+                    showDragHandle: true,
                     showPlaybackStatus: false,
                     showRemoveButton: true,
                     onRemove: () {

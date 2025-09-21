@@ -59,8 +59,43 @@ class _PlaylistPageState extends State<PlaylistPage> {
           }
           final playlist = _viewModel.playlist!;
           final songs = _viewModel.tracks;
+
+          Widget songListItem({
+            required int index,
+          }) {
+            final t = songs[index];
+            final s = t.$1;
+            return SongListItem(
+              key: ValueKey("$index-${s.id}"),
+              song: s,
+              reorderIndex: index,
+              showPlaybackStatus: !_viewModel.editMode,
+              downloadStatus: playlist.download ? t.$2 : DownloadStatus.none,
+              editMode: _viewModel.editMode,
+              showDragHandle: _viewModel.editMode,
+              enableLongPressReorder: true,
+              showRemoveButton: _viewModel.editMode,
+              onRemove: () async {
+                final result = await _viewModel.remove(index);
+                if (!context.mounted) return;
+                toastResult(context, result);
+              },
+              onTap: (ctrlPressed) {
+                _viewModel.play(index, ctrlPressed);
+              },
+            );
+          }
+
           return CollectionPage(
             name: playlist.name,
+            onChangeName: _viewModel.editMode
+                ? () {
+                    context.router.push(UpdatePlaylistRoute(
+                      playlistId: playlist.id,
+                      playlistName: playlist.name,
+                    ));
+                  }
+                : null,
             cover: CoverArtDecorated(
               placeholderIcon: Icons.album,
               borderRadius: BorderRadius.circular(10),
@@ -68,113 +103,181 @@ class _PlaylistPageState extends State<PlaylistPage> {
               coverId: playlist.coverId,
               uploading: _viewModel.uploadingCover,
               downloadStatus: _viewModel.downloadStatus,
-              menuOptions: [
-                ContextMenuOption(
-                  title: "Play",
-                  icon: Icons.play_arrow,
-                  onSelected: () {
-                    _viewModel.play();
-                  },
-                ),
-                ContextMenuOption(
-                  title: "Shuffle",
-                  icon: Icons.shuffle,
-                  onSelected: () {
-                    _viewModel.shuffle();
-                  },
-                ),
-                ContextMenuOption(
-                  title: "Add to priority queue",
-                  icon: Icons.playlist_play,
-                  onSelected: () {
-                    _viewModel.addToQueue(true);
-                    Toast.show(
-                        context, "Added '${playlist.name}' to priority queue");
-                  },
-                ),
-                ContextMenuOption(
-                  title: "Add to queue",
-                  icon: Icons.playlist_add,
-                  onSelected: () {
-                    _viewModel.addToQueue(false);
-                    Toast.show(context, "Added '${playlist.name}' to queue");
-                  },
-                ),
-                ContextMenuOption(
-                  title: "Add to playlist",
-                  icon: Icons.playlist_add,
-                  onSelected: () {
-                    AddToPlaylistDialog.show(
-                        context,
-                        playlist.name,
-                        () async =>
-                            Result.ok(_viewModel.tracks.map((t) => t.$1)));
-                  },
-                ),
-                ContextMenuOption(
-                  title: "Change name",
-                  icon: Icons.edit,
-                  onSelected: () {
-                    context.router.push(UpdatePlaylistRoute(
-                      playlistId: playlist.id,
-                      playlistName: playlist.name,
-                    ));
-                  },
-                ),
-                if (_viewModel.changeCoverSupported)
-                  ContextMenuOption(
-                    title:
-                        playlist.coverId != null ? "Change Cover" : "Set Cover",
-                    icon: Icons.image_outlined,
-                    onSelected: () async {
-                      final result = await _viewModel.changeCover();
-                      if (!context.mounted) return;
-                      if (result is ImageTooLargeException) {
-                        Toast.show(
-                            context, "Image too large: max 15 MB allowed");
-                      } else {
-                        toastResult(context, result);
-                      }
-                    },
-                  ),
-                if (_viewModel.changeCoverSupported && playlist.coverId != null)
-                  ContextMenuOption(
-                    title: "Remove Cover",
-                    icon: Icons.hide_image_outlined,
-                    onSelected: () async {
-                      final result = await _viewModel.removeCover();
-                      if (!context.mounted) return;
-                      toastResult(context, result);
-                    },
-                  ),
-                if (!kIsWeb)
-                  ContextMenuOption(
-                    title: playlist.download ? "Remove Download" : "Download",
-                    icon: playlist.download ? Icons.delete : Icons.download,
-                    onSelected: () async {
-                      if (playlist.download) {
-                        final confirmation = await ConfirmationDialog.showYesNo(
-                            context,
-                            message:
-                                "You won't be able to play this playlist offline anymore.");
-                        if (!(confirmation ?? false)) return;
-                      }
-                      final result = await _viewModel.toggleDownload();
-                      if (!context.mounted) return;
-                      toastResult(context, result,
-                          successMsg: !playlist.download
-                              ? "Scheduling downloads…"
-                              : null);
-                    },
-                  ),
-                ContextMenuOption(
-                  title: "Info",
-                  icon: Icons.info_outline,
-                  onSelected: () {
-                    MediaInfoDialog.showPlaylist(context, playlist.id);
-                  },
-                ),
-              ],
+              bottomRight:
+                  _viewModel.editMode && _viewModel.changeCoverSupported
+                      ? OnCoverMenuButton(
+                          tooltip: "Change cover",
+                          menuOptions: [
+                            ContextMenuOption(
+                              title: playlist.coverId != null
+                                  ? "Change cover"
+                                  : "Set cover",
+                              icon: Icons.image_outlined,
+                              onSelected: () async {
+                                final result = await _viewModel.changeCover();
+                                if (!context.mounted) return;
+                                if (result is ImageTooLargeException) {
+                                  Toast.show(context,
+                                      "Image too large: max 15 MB allowed");
+                                } else {
+                                  toastResult(context, result);
+                                }
+                              },
+                            ),
+                            if (playlist.coverId != null)
+                              ContextMenuOption(
+                                title: "Remove cover",
+                                icon: Icons.hide_image_outlined,
+                                onSelected: () async {
+                                  final result = await _viewModel.removeCover();
+                                  if (!context.mounted) return;
+                                  toastResult(context, result);
+                                },
+                              ),
+                          ],
+                          icon: Icons.edit,
+                        )
+                      : null,
+              menuOptions: !_viewModel.editMode
+                  ? [
+                      ContextMenuOption(
+                        title: "Play",
+                        icon: Icons.play_arrow,
+                        onSelected: () {
+                          _viewModel.play();
+                        },
+                      ),
+                      ContextMenuOption(
+                        title: "Shuffle",
+                        icon: Icons.shuffle,
+                        onSelected: () {
+                          _viewModel.shuffle();
+                        },
+                      ),
+                      ContextMenuOption(
+                        title: "Add to priority queue",
+                        icon: Icons.playlist_play,
+                        onSelected: () {
+                          _viewModel.addToQueue(true);
+                          Toast.show(context,
+                              "Added '${playlist.name}' to priority queue");
+                        },
+                      ),
+                      ContextMenuOption(
+                        title: "Add to queue",
+                        icon: Icons.playlist_add,
+                        onSelected: () {
+                          _viewModel.addToQueue(false);
+                          Toast.show(
+                              context, "Added '${playlist.name}' to queue");
+                        },
+                      ),
+                      ContextMenuOption(
+                        title: "Add to playlist",
+                        icon: Icons.playlist_add,
+                        onSelected: () {
+                          AddToPlaylistDialog.show(
+                              context,
+                              playlist.name,
+                              () async => Result.ok(
+                                  _viewModel.tracks.map((t) => t.$1)));
+                        },
+                      ),
+                      if (!kIsWeb)
+                        ContextMenuOption(
+                          title: playlist.download
+                              ? "Remove Download"
+                              : "Download",
+                          icon:
+                              playlist.download ? Icons.delete : Icons.download,
+                          onSelected: () async {
+                            if (playlist.download) {
+                              final confirmation =
+                                  await ConfirmationDialog.showYesNo(context,
+                                      message:
+                                          "You won't be able to play this playlist offline anymore.");
+                              if (!(confirmation ?? false)) return;
+                            }
+                            final result = await _viewModel.toggleDownload();
+                            if (!context.mounted) return;
+                            toastResult(context, result,
+                                successMsg: !playlist.download
+                                    ? "Scheduling downloads…"
+                                    : null);
+                          },
+                        ),
+                      ContextMenuOption(
+                        title: "Info",
+                        icon: Icons.info_outline,
+                        onSelected: () {
+                          MediaInfoDialog.showPlaylist(context, playlist.id);
+                        },
+                      ),
+                      ContextMenuOption(
+                        title: "Delete",
+                        icon: Icons.delete_forever,
+                        onSelected: () async {
+                          final confirmed = await ConfirmationDialog.showYesNo(
+                              context,
+                              message: "Delete '${playlist.name}'?");
+                          if (!(confirmed ?? false) || !context.mounted) {
+                            return;
+                          }
+                          final result = await _viewModel.delete();
+                          if (!context.mounted) return;
+                          context.maybePop();
+                          toastResult(context, result,
+                              successMsg:
+                                  "Deleted playlist '${playlist.name}'!");
+                        },
+                      )
+                    ]
+                  : [
+                      ContextMenuOption(
+                        title: playlist.coverId != null
+                            ? "Change cover"
+                            : "Set cover",
+                        icon: Icons.image_outlined,
+                        onSelected: () async {
+                          final result = await _viewModel.changeCover();
+                          if (!context.mounted) return;
+                          if (result is ImageTooLargeException) {
+                            Toast.show(
+                                context, "Image too large: max 15 MB allowed");
+                          } else {
+                            toastResult(context, result);
+                          }
+                        },
+                      ),
+                      if (playlist.coverId != null)
+                        ContextMenuOption(
+                          title: "Remove cover",
+                          icon: Icons.hide_image_outlined,
+                          onSelected: () async {
+                            final result = await _viewModel.removeCover();
+                            if (!context.mounted) return;
+                            toastResult(context, result);
+                          },
+                        ),
+                      ContextMenuOption(
+                        title: "Delete",
+                        icon: Icons.delete_forever,
+                        onSelected: () async {
+                          final confirmed = await ConfirmationDialog.showYesNo(
+                              context,
+                              message: "Delete '${playlist.name}'?");
+                          if (!(confirmed ?? false) || !context.mounted) {
+                            return;
+                          }
+                          final result = await _viewModel.delete();
+                          if (!context.mounted) return;
+                          context.maybePop();
+                          toastResult(context, result,
+                              successMsg:
+                                  "Deleted playlist '${playlist.name}'!");
+                        },
+                      )
+                    ],
             ),
             extraInfo: [
               CollectionExtraInfo(
@@ -221,42 +324,29 @@ class _PlaylistPageState extends State<PlaylistPage> {
                 },
               ),
               CollectionAction(
-                title: _viewModel.reorderEnabled ? "Stop Edit" : "Edit",
-                icon: _viewModel.reorderEnabled ? Icons.edit_off : Icons.edit,
+                title: _viewModel.editMode ? "Stop Edit" : "Edit",
+                icon: _viewModel.editMode ? Icons.edit_off : Icons.edit,
+                color: _viewModel.editMode ? Colors.red : null,
                 onClick: () {
-                  _viewModel.reorderEnabled = !_viewModel.reorderEnabled;
+                  _viewModel.editMode = !_viewModel.editMode;
                 },
               ),
             ],
             contentTitle: "Tracks (${songs.length})",
             contentSliver: SliverReorderableList(
               itemExtent: ClickableListItem.verticalExtent,
+              proxyDecorator: (child, index, animation) =>
+                  songListItem(index: index),
               itemCount: songs.length,
               onReorder: (oldIndex, newIndex) async {
                 final result = await _viewModel.reorder(oldIndex, newIndex);
                 if (!context.mounted) return;
                 toastResult(context, result);
               },
-              itemBuilder: (context, index) {
-                final t = songs[index];
-                final s = t.$1;
-                return SongListItem(
-                  key: ValueKey("$index-${s.id}"),
-                  song: s,
-                  reorderIndex: _viewModel.reorderEnabled ? index : null,
-                  downloadStatus:
-                      playlist.download ? t.$2 : DownloadStatus.none,
-                  showRemoveButton: _viewModel.reorderEnabled,
-                  onRemove: () async {
-                    final result = await _viewModel.remove(index);
-                    if (!context.mounted) return;
-                    toastResult(context, result);
-                  },
-                  onTap: (ctrlPressed) {
-                    _viewModel.play(index, ctrlPressed);
-                  },
-                );
+              onReorderStart: (_) {
+                _viewModel.editMode = true;
               },
+              itemBuilder: (context, index) => songListItem(index: index),
             ),
           );
         },

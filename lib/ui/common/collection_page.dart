@@ -13,12 +13,15 @@ class CollectionAction {
   final IconData? icon;
   final bool highlighted;
   final void Function() onClick;
+  final Color? color;
 
-  CollectionAction(
-      {required this.title,
-      this.icon,
-      this.highlighted = false,
-      required this.onClick});
+  CollectionAction({
+    required this.title,
+    this.icon,
+    this.highlighted = false,
+    this.color,
+    required this.onClick,
+  });
 }
 
 class CollectionPage extends StatelessWidget {
@@ -31,6 +34,7 @@ class CollectionPage extends StatelessWidget {
   final List<CollectionAction>? actions;
   final bool loadingDescription;
   final String? description;
+  final void Function()? onChangeName;
 
   const CollectionPage({
     super.key,
@@ -43,6 +47,7 @@ class CollectionPage extends StatelessWidget {
     this.actions,
     this.loadingDescription = false,
     this.description,
+    this.onChangeName,
   });
 
   @override
@@ -58,6 +63,7 @@ class CollectionPage extends StatelessWidget {
           actions: actions,
           loadingDescription: loadingDescription,
           description: description,
+          onChangeName: onChangeName,
         );
       } else {
         return CollectionPageMobile(
@@ -69,6 +75,7 @@ class CollectionPage extends StatelessWidget {
           actions: actions,
           loadingDescription: loadingDescription,
           description: description,
+          onChangeName: onChangeName,
         );
       }
     });
@@ -84,6 +91,7 @@ class CollectionPageMobile extends StatefulWidget {
   final List<CollectionAction>? actions;
   final bool loadingDescription;
   final String? description;
+  final void Function()? onChangeName;
 
   const CollectionPageMobile({
     super.key,
@@ -95,6 +103,7 @@ class CollectionPageMobile extends StatefulWidget {
     this.actions,
     this.loadingDescription = false,
     this.description,
+    this.onChangeName,
   });
 
   @override
@@ -125,13 +134,33 @@ class _CollectionPageMobileState extends State<CollectionPageMobile> {
                 if (widget.cover != null) const SizedBox(height: 10),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: Text(
-                    widget.name,
-                    style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 22,
-                        ),
-                    textAlign: TextAlign.center,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    spacing: 4,
+                    children: [
+                      Text(
+                        widget.name,
+                        style: Theme.of(context).textTheme.bodyLarge!.copyWith(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 22,
+                            ),
+                        textAlign: TextAlign.center,
+                      ),
+                      if (widget.onChangeName != null)
+                        GestureDetector(
+                          onTap: widget.onChangeName,
+                          child: const Tooltip(
+                            message: "Change name",
+                            child: MouseRegion(
+                              cursor: SystemMouseCursors.click,
+                              child: Padding(
+                                padding: EdgeInsets.all(4),
+                                child: Icon(Icons.edit, size: 18),
+                              ),
+                            ),
+                          ),
+                        )
+                    ],
                   ),
                 ),
                 if (widget.extraInfo != null)
@@ -180,7 +209,16 @@ class _CollectionPageMobileState extends State<CollectionPageMobile> {
                             icon: element.icon,
                             onPressed: element.onClick,
                             outlined: !element.highlighted,
-                            child: Text(element.title),
+                            color: element.color,
+                            child: Text(
+                              element.title,
+                              style: element.color != null
+                                  ? Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium!
+                                      .copyWith(color: element.color)
+                                  : null,
+                            ),
                           );
                         }).toList()),
                   ),
@@ -252,6 +290,7 @@ class CollectionPageDesktop extends StatefulWidget {
   final List<CollectionAction>? actions;
   final bool loadingDescription;
   final String? description;
+  final void Function()? onChangeName;
 
   const CollectionPageDesktop({
     super.key,
@@ -263,6 +302,7 @@ class CollectionPageDesktop extends StatefulWidget {
     this.actions,
     this.loadingDescription = false,
     this.description,
+    this.onChangeName,
   });
 
   @override
@@ -292,13 +332,34 @@ class _CollectionPageDesktopState extends State<CollectionPageDesktop> {
                   if (widget.cover != null) const SizedBox(height: 10),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12),
-                    child: Text(
-                      widget.name,
-                      style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 22,
-                          ),
-                      textAlign: TextAlign.center,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      spacing: 4,
+                      children: [
+                        Text(
+                          widget.name,
+                          style:
+                              Theme.of(context).textTheme.bodyLarge!.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 22,
+                                  ),
+                          textAlign: TextAlign.center,
+                        ),
+                        if (widget.onChangeName != null)
+                          GestureDetector(
+                            onTap: widget.onChangeName,
+                            child: const Tooltip(
+                              message: "Change name",
+                              child: MouseRegion(
+                                cursor: SystemMouseCursors.click,
+                                child: Padding(
+                                  padding: EdgeInsets.all(4),
+                                  child: Icon(Icons.edit, size: 18),
+                                ),
+                              ),
+                            ),
+                          )
+                      ],
                     ),
                   ),
                   if (widget.extraInfo != null)
@@ -420,7 +481,19 @@ class _CollectionPageDesktopState extends State<CollectionPageDesktop> {
                                   icon: element.icon,
                                   onPressed: element.onClick,
                                   outlined: !element.highlighted,
-                                  child: Text(element.title),
+                                  color: element.color,
+                                  child: Text(
+                                    element.title,
+                                    style: element.color != null
+                                        ? Theme.of(context)
+                                            .textTheme
+                                            .bodyMedium!
+                                            .copyWith(
+                                                color: element.highlighted
+                                                    ? Colors.white
+                                                    : element.color)
+                                        : null,
+                                  ),
                                 );
                               }).toList()),
                         ),

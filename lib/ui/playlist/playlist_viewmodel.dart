@@ -39,8 +39,8 @@ class PlaylistViewModel extends ChangeNotifier {
   int get downloadedTracks => _downloadedTracks;
 
   bool _reorderEnabled = false;
-  bool get reorderEnabled => _reorderEnabled;
-  set reorderEnabled(bool enable) {
+  bool get editMode => _reorderEnabled;
+  set editMode(bool enable) {
     _reorderEnabled = enable;
     notifyListeners();
   }
@@ -68,6 +68,7 @@ class PlaylistViewModel extends ChangeNotifier {
   Throttle? _onDownloadStatusChangedThrottle;
 
   void _onDownloadStatusChanged() {
+    if (_deleted) return;
     void update() {
       if (_playlist == null || !_playlist!.download) return;
       bool changed = false;
@@ -123,7 +124,7 @@ class PlaylistViewModel extends ChangeNotifier {
         allowMultiple: false,
         withData: false,
         withReadStream: false,
-        allowedExtensions: ["jpg", "jpeg", "png", "gif", "bmp", "tif", "tiff"],
+        type: FileType.image,
       );
       image = result?.xFiles.firstOrNull;
     } else {
@@ -155,6 +156,7 @@ class PlaylistViewModel extends ChangeNotifier {
         };
     final r =
         await _repo.setCover(_playlistId, mimeType, await image.readAsBytes());
+    await Future.delayed(const Duration(milliseconds: 500));
     _uploadingCover = false;
     notifyListeners();
     return r;
@@ -170,6 +172,7 @@ class PlaylistViewModel extends ChangeNotifier {
   }
 
   Future<void> _load() async {
+    if (_deleted) return;
     final result = await _repo.getPlaylist(_playlistId);
     switch (result) {
       case Err():
@@ -179,6 +182,7 @@ class PlaylistViewModel extends ChangeNotifier {
         if (result.value == null) {
           _playlist = null;
           Log.error("playlist '$_playlistId' does not exist");
+          return;
         }
         _playlist = result.value!.playlist;
         _tracks = result.value!.tracks
@@ -251,6 +255,12 @@ class PlaylistViewModel extends ChangeNotifier {
     }
     notifyListeners();
     return await _repo.reorder(_playlistId, oldIndex, newIndex);
+  }
+
+  bool _deleted = false;
+  Future<Result<void>> delete() async {
+    _deleted = true;
+    return await _repo.delete(_playlistId);
   }
 
   @override

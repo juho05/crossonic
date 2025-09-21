@@ -112,7 +112,7 @@ class PlaylistRepository extends ChangeNotifier {
       case Ok():
     }
     _evictCoverFromCache((await getPlaylist(id)).tryValue?.playlist.coverId);
-    refresh(refreshIds: {id});
+    await refresh(refreshIds: {id});
     return const Result.ok(null);
   }
 
