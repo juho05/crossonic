@@ -52,3 +52,12 @@ class ServerException implements Exception {
     return "ServerException: status code: $statusCode";
   }
 }
+
+class CanceledException extends AppException {
+  const CanceledException() : super("Operation canceled");
+
+  @override
+  String toString() {
+    return "Operation canceled";
+  }
+}

@@ -6,6 +6,7 @@ import 'package:crossonic/data/repositories/auth/auth_repository.dart';
 import 'package:crossonic/data/repositories/cover/cover_repository.dart';
 import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/data/repositories/playlist/models/playlist.dart';
+import 'package:crossonic/data/repositories/playlist/sequential_request_queue.dart';
 import 'package:crossonic/data/repositories/playlist/song_downloader.dart';
 import 'package:crossonic/data/repositories/subsonic/favorites_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
@@ -26,6 +27,7 @@ class PlaylistRepository extends ChangeNotifier {
   final CoverRepository _coverRepository;
   final Database _db;
   final SongDownloader _songDownloader;
+  late final SequentialRequestQueue _requestQueue;
 
   bool get changeCoverSupported => _auth.serverFeatures.isCrossonic;
 
@@ -42,11 +44,44 @@ class PlaylistRepository extends ChangeNotifier {
         _db = db,
         _coverRepository = coverRepository,
         _songDownloader = songDownloader {
+    _requestQueue = SequentialRequestQueue(
+      onAllDone: _onRequestQueueDone,
+    );
     _auth.addListener(_onAuthChanged);
     _onAuthChanged();
     if (!kIsWeb) {
       addListener(() => _songDownloader.update());
     }
+  }
+
+  final Set<String> _playlistIdsNeedUpdate = {};
+  bool _forceUpdate = false;
+  bool _updateAll = false;
+  Completer<void> _refreshCompleter = Completer();
+  Future<void> _onRequestQueueDone() async {
+    final ids = _updateAll ? const <String>{} : Set.of(_playlistIdsNeedUpdate);
+    final force = _forceUpdate;
+    _forceUpdate = false;
+    _updateAll = false;
+    _playlistIdsNeedUpdate.clear();
+    await _refresh(forceRefresh: force, refreshIds: ids);
+    _refreshCompleter.complete();
+    _refreshCompleter = Completer();
+  }
+
+  Future<void> refresh(
+      {bool forceRefresh = false, Set<String> refreshIds = const {}}) {
+    if (refreshIds.isEmpty) {
+      _updateAll = true;
+    }
+    _playlistIdsNeedUpdate.addAll(refreshIds);
+    if (!_forceUpdate) {
+      _forceUpdate = forceRefresh;
+    }
+    if (_requestQueue.isEmpty) {
+      return _onRequestQueueDone();
+    }
+    return _refreshCompleter.future;
   }
 
   Future<Result<void>> setDownload(String id, bool download) async {
@@ -77,32 +112,45 @@ class PlaylistRepository extends ChangeNotifier {
       case Ok():
     }
     _evictCoverFromCache((await getPlaylist(id)).tryValue?.playlist.coverId);
-    return await refresh(refreshIds: {id});
+    refresh(refreshIds: {id});
+    return const Result.ok(null);
   }
 
   Future<Result<void>> delete(String id) async {
-    final result = await _subsonic.deletePlaylist(_auth.con, id);
-    switch (result) {
-      case Err():
-        return Result.error(result.error);
-      case Ok():
-    }
     try {
+      final playlist = await _db.managers.playlistTable
+          .filter((f) => f.id(id))
+          .getSingleOrNull();
       await _db.managers.playlistTable.filter((f) => f.id(id)).delete();
       notifyListeners();
-      return const Result.ok(null);
+
+      return _requestQueue.run(() => _subsonic.deletePlaylist(_auth.con, id),
+          restorePrevState: (e, [st]) async {
+        Log.error("Failed to delete remove playlist", e: e, st: st);
+        if (playlist == null) return;
+        await _db.managers.playlistTable.create(
+          (o) => o(
+            songCount: playlist.songCount,
+            id: playlist.id,
+            durationMs: playlist.durationMs,
+            created: playlist.created,
+            changed: playlist.changed,
+            name: playlist.name,
+            download: Value(playlist.download),
+            coverArt: Value(playlist.coverArt),
+            comment: Value(playlist.comment),
+          ),
+        );
+      });
     } on Exception catch (e) {
-      await refresh();
+      refresh();
       return Result.error(e);
-    } catch (e) {
-      await refresh();
-      return Result.error(Exception(e.toString()));
     }
   }
 
   Future<Result<String>> create(String name) async {
-    final result =
-        await _subsonic.createPlaylist(_auth.con, playlistName: name);
+    final result = await _requestQueue
+        .run(() => _subsonic.createPlaylist(_auth.con, playlistName: name));
     switch (result) {
       case Err():
         return Result.error(result.error);
@@ -122,7 +170,7 @@ class PlaylistRepository extends ChangeNotifier {
       notifyListeners();
     } catch (e, st) {
       Log.error("Failed to create playlist in DB", e: e, st: st);
-      await refresh(refreshIds: {result.value.id});
+      refresh(refreshIds: {result.value.id});
     }
     return Result.ok(result.value.id);
   }
@@ -175,20 +223,7 @@ class PlaylistRepository extends ChangeNotifier {
       notifyListeners();
     }
 
-    try {
-      final dbSongs = await _db.managers.playlistSongTable
-          .filter((f) => f.playlistId.id.equals(id))
-          .orderBy((o) => o.index.asc())
-          .get();
-
-      final result = await _subsonic.createPlaylist(_auth.con,
-          playlistId: id, songIds: dbSongs.map((s) => s.songId));
-      switch (result) {
-        case Err():
-          throw result.error;
-        case Ok():
-      }
-    } on Exception catch (e) {
+    Future<void> restoreBackup() async {
       try {
         await _db.transaction(() async {
           await _db.managers.playlistSongTable
@@ -208,34 +243,90 @@ class PlaylistRepository extends ChangeNotifier {
       } finally {
         notifyListeners();
       }
-      return Result.error(e);
-    } finally {
-      refresh(forceRefresh: true, refreshIds: {id});
     }
 
-    return const Result.ok(null);
+    try {
+      final dbSongs = await _db.managers.playlistSongTable
+          .filter((f) => f.playlistId.id.equals(id))
+          .orderBy((o) => o.index.asc())
+          .get();
+
+      _playlistIdsNeedUpdate.add(id);
+      return _requestQueue.run(
+        () => _subsonic.createPlaylist(_auth.con,
+            playlistId: id, songIds: dbSongs.map((s) => s.songId)),
+        restorePrevState: (e, [st]) async {
+          Log.error("Failed to create remote playlist", e: e, st: st);
+          await restoreBackup();
+        },
+      );
+    } on Exception catch (e) {
+      await restoreBackup();
+      return Result.error(e);
+    }
   }
 
   Future<Result<void>> addTracks(String id, Iterable<Song> songs) async {
-    final result = await _subsonic.updatePlaylist(_auth.con, id,
-        songIdToAdd: songs.map((s) => s.id));
-    if (result is Ok) {
-      await refresh(refreshIds: {id});
-    } else {
-      notifyListeners();
-    }
+    // TODO add song to database playlist
+    _playlistIdsNeedUpdate.add(id);
+    final result = await _requestQueue.run(() => _subsonic
+        .updatePlaylist(_auth.con, id, songIdToAdd: songs.map((s) => s.id)));
     return result;
   }
 
   Future<Result<void>> removeTrack(String id, int index) async {
-    final result = await _subsonic
-        .updatePlaylist(_auth.con, id, songIndexToRemove: [index]);
-    if (result is Ok) {
-      await refresh(refreshIds: {id});
-    } else {
+    try {
+      PlaylistSongTableData? song;
+      await _db.transaction(() async {
+        song = await _db.managers.playlistSongTable
+            .filter((f) => f.playlistId.id.equals(id) & f.index(index))
+            .getSingle();
+        await _db.managers.playlistSongTable
+            .filter((f) => f.playlistId.id.equals(id) & f.index(index))
+            .delete();
+        await _db.customUpdate(
+          "UPDATE playlist_song SET \"index\" = \"index\" - 1 WHERE playlist_id = ? AND \"index\" > ?",
+          variables: [
+            Variable.withString(id),
+            Variable.withInt(index),
+          ],
+          updates: {_db.playlistSongTable},
+        );
+      });
       notifyListeners();
+
+      _playlistIdsNeedUpdate.add(id);
+      final result = await _requestQueue.run(
+          () => _subsonic.updatePlaylist(_auth.con, id,
+              songIndexToRemove: [index]), restorePrevState: (e, [st]) async {
+        Log.error("Failed to remove song from remote playlist", e: e, st: st);
+        if (song == null) return;
+        await _db.transaction(() async {
+          await _db.customUpdate(
+            "UPDATE playlist_song SET \"index\" = \"index\" + 1 WHERE playlist_id = ? AND \"index\" >= ?",
+            variables: [
+              Variable.withString(id),
+              Variable.withInt(index),
+            ],
+            updates: {_db.playlistSongTable},
+          );
+          await _db.managers.playlistSongTable.create(
+            (o) => o(
+              childModelJson: song!.childModelJson,
+              index: song!.index,
+              playlistId: song!.playlistId,
+              songId: song!.songId,
+              id: Value(song!.id),
+            ),
+          );
+        });
+        notifyListeners();
+      });
+      return result;
+    } on Exception catch (e) {
+      refresh(forceRefresh: true, refreshIds: {id});
+      return Result.error(e);
     }
-    return result;
   }
 
   Future<Result<void>> updatePlaylistMetadata(
@@ -244,18 +335,11 @@ class PlaylistRepository extends ChangeNotifier {
     String? comment,
   }) async {
     if (name == null && comment == null) return const Result.ok(null);
-    final result = await _subsonic.updatePlaylist(
-      _auth.con,
-      id,
-      name: name,
-      comment: comment,
-    );
-    switch (result) {
-      case Err():
-        return Result.error(result.error);
-      case Ok():
-    }
     try {
+      final previous = await _db.managers.playlistTable
+          .filter((f) => f.id(id))
+          .getSingleOrNull();
+
       await _db.managers.playlistTable.filter((f) => f.id(id)).update(
             (o) => o(
               name: Value.absentIfNull(name),
@@ -264,10 +348,32 @@ class PlaylistRepository extends ChangeNotifier {
             ),
           );
       notifyListeners();
+
+      _playlistIdsNeedUpdate.add(id);
+      final result = await _requestQueue.run(
+        () => _subsonic.updatePlaylist(
+          _auth.con,
+          id,
+          name: name,
+          comment: comment,
+        ),
+        restorePrevState: (e, [st]) async {
+          Log.error("Failed to update remote playlist metadata", e: e, st: st);
+          if (previous == null) return;
+          await _db.managers.playlistTable.filter((f) => f.id(id)).update(
+                (o) => o(
+                  name: Value.absentIfNull(previous.name),
+                  comment: Value.absentIfNull(previous.comment),
+                  changed: Value(previous.changed),
+                ),
+              );
+          notifyListeners();
+        },
+      );
+      return result;
     } on Exception catch (e) {
       return Result.error(e);
     }
-    return const Result.ok(null);
   }
 
   Future<Result<List<Playlist>>> getPlaylists({
@@ -355,13 +461,16 @@ class PlaylistRepository extends ChangeNotifier {
     return Result.ok(songs);
   }
 
-  Future<Result<void>> refresh(
+  Future<Result<void>> _refresh(
       {bool forceRefresh = false, Set<String> refreshIds = const {}}) async {
     final result = await _subsonic.getPlaylists(_auth.con);
     switch (result) {
       case Err():
         return Result.error(result.error);
       case Ok():
+    }
+    if (!_requestQueue.done) {
+      return const Result.ok(null);
     }
 
     try {
@@ -415,6 +524,9 @@ class PlaylistRepository extends ChangeNotifier {
             return Result.error(r.error);
           case Ok():
         }
+      }
+      if (!_requestQueue.done) {
+        return const Result.ok(null);
       }
 
       final toUpdateIds = toUpdate.map((p) => p.id);
@@ -520,7 +632,10 @@ class PlaylistRepository extends ChangeNotifier {
     ]);
   }
 
+  bool _authenticated = false;
   void _onAuthChanged() {
+    if (_auth.isAuthenticated == _authenticated) return;
+    _authenticated = _auth.isAuthenticated;
     if (_auth.isAuthenticated) {
       refresh(forceRefresh: true);
     } else {

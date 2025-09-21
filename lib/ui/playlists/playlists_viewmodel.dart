@@ -6,7 +6,6 @@ import 'package:crossonic/data/repositories/playlist/models/playlist.dart';
 import 'package:crossonic/data/repositories/playlist/playlist_repository.dart';
 import 'package:crossonic/data/repositories/playlist/song_downloader.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
-import 'package:crossonic/utils/exceptions.dart';
 import 'package:crossonic/utils/result.dart';
 import 'package:crossonic/utils/throttle.dart';
 import 'package:flutter/material.dart';
@@ -117,17 +116,7 @@ class PlaylistsViewModel extends ChangeNotifier {
   }
 
   Future<Result<List<Song>>> getTracks(String playlistId) async {
-    final result =
-        await _repo.refresh(forceRefresh: true, refreshIds: {playlistId});
-    switch (result) {
-      case Err():
-        if (result.error is! ConnectionException) {
-          Log.error(
-              "failed to refresh playlist repository before getting playlist tracks",
-              e: result.error);
-        }
-      case Ok():
-    }
+    await _repo.refresh(forceRefresh: true, refreshIds: {playlistId});
     final r = await _repo.getPlaylist(playlistId);
     switch (r) {
       case Err():
