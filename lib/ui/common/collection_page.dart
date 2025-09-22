@@ -152,13 +152,16 @@ class _CollectionPageMobileState extends State<CollectionPageMobile> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     spacing: 4,
                     children: [
-                      Text(
-                        widget.name,
-                        style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 22,
-                            ),
-                        textAlign: TextAlign.center,
+                      Flexible(
+                        child: Text(
+                          widget.name,
+                          style:
+                              Theme.of(context).textTheme.bodyLarge!.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 22,
+                                  ),
+                          textAlign: TextAlign.center,
+                        ),
                       ),
                       if (widget.onChangeName != null)
                         GestureDetector(
@@ -389,14 +392,16 @@ class _CollectionPageDesktopState extends State<CollectionPageDesktop> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       spacing: 4,
                       children: [
-                        Text(
-                          widget.name,
-                          style:
-                              Theme.of(context).textTheme.bodyLarge!.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 22,
-                                  ),
-                          textAlign: TextAlign.center,
+                        Flexible(
+                          child: Text(
+                            widget.name,
+                            style:
+                                Theme.of(context).textTheme.bodyLarge!.copyWith(
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 22,
+                                    ),
+                            textAlign: TextAlign.center,
+                          ),
                         ),
                         if (widget.onChangeName != null)
                           GestureDetector(
