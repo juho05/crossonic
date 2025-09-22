@@ -51,11 +51,23 @@ class _CreatePlaylistPageState extends State<CreatePlaylistPage> {
             restorationId: "create_playlist_name",
             autofocus: true,
             decoration: const InputDecoration(
-              labelText: "Playlist Name",
+              labelText: "Name",
               prefixIcon: Icon(Icons.title),
               border: OutlineInputBorder(),
             ),
             validator: FormBuilderValidators.required(),
+            onSubmitted: (_) => _submit(context),
+          ),
+          FormBuilderTextField(
+            name: "description",
+            restorationId: "create_playlist_description",
+            decoration: const InputDecoration(
+              labelText: "Description",
+              prefixIcon: Icon(Icons.description_outlined),
+              border: OutlineInputBorder(),
+            ),
+            minLines: 1,
+            maxLines: 8,
             onSubmitted: (_) => _submit(context),
           ),
           ListenableBuilder(
@@ -78,7 +90,8 @@ class _CreatePlaylistPageState extends State<CreatePlaylistPage> {
       return;
     }
     final result = await _viewModel.create(_formKey.currentState!.value["name"],
-        songs: widget.songs);
+        songs: widget.songs,
+        description: _formKey.currentState!.value["description"] ?? "");
     if (context.mounted) {
       switch (result) {
         case Err():

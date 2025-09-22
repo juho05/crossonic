@@ -13,11 +13,13 @@ import 'package:provider/provider.dart';
 class UpdatePlaylistPage extends StatefulWidget {
   final String playlistId;
   final String playlistName;
+  final String playlistDescription;
 
   const UpdatePlaylistPage({
     super.key,
     @PathParam("id") required this.playlistId,
-    @QueryParam("name") this.playlistName = "",
+    this.playlistName = "",
+    this.playlistDescription = "",
   });
 
   @override
@@ -51,17 +53,30 @@ class _UpdatePlaylistPageState extends State<UpdatePlaylistPage> {
         formKey: _formKey,
         initialValues: {
           "name": widget.playlistName,
+          "description": widget.playlistDescription,
         },
         children: [
           FormBuilderTextField(
             name: "name",
             restorationId: "update_playlist_name",
             decoration: const InputDecoration(
-              labelText: "Playlist Name",
+              labelText: "Name",
               prefixIcon: Icon(Icons.title),
               border: OutlineInputBorder(),
             ),
             validator: FormBuilderValidators.required(),
+            onSubmitted: (_) => _submit(context),
+          ),
+          FormBuilderTextField(
+            name: "description",
+            restorationId: "create_playlist_description",
+            decoration: const InputDecoration(
+              labelText: "Description",
+              prefixIcon: Icon(Icons.description_outlined),
+              border: OutlineInputBorder(),
+            ),
+            minLines: 1,
+            maxLines: 8,
             onSubmitted: (_) => _submit(context),
           ),
           SubmitButton(
@@ -80,8 +95,8 @@ class _UpdatePlaylistPageState extends State<UpdatePlaylistPage> {
     if (!_formKey.currentState!.saveAndValidate()) {
       return;
     }
-    final result =
-        await _viewModel.update(_formKey.currentState!.value["name"]);
+    final result = await _viewModel.update(_formKey.currentState!.value["name"],
+        _formKey.currentState!.value["description"] ?? "");
     if (context.mounted) {
       switch (result) {
         case Err():

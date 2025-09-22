@@ -34,7 +34,9 @@ class CollectionPage extends StatelessWidget {
   final List<CollectionAction>? actions;
   final bool loadingDescription;
   final String? description;
+  final String descriptionTitle;
   final void Function()? onChangeName;
+  final void Function()? onChangeDescription;
 
   const CollectionPage({
     super.key,
@@ -47,11 +49,15 @@ class CollectionPage extends StatelessWidget {
     this.actions,
     this.loadingDescription = false,
     this.description,
+    this.descriptionTitle = "About",
     this.onChangeName,
+    this.onChangeDescription,
   });
 
   @override
   Widget build(BuildContext context) {
+    final desc =
+        description == null || description!.isEmpty ? null : description;
     return OrientationBuilder(builder: (context, orientation) {
       if (orientation == Orientation.landscape) {
         return CollectionPageDesktop(
@@ -62,8 +68,10 @@ class CollectionPage extends StatelessWidget {
           extraInfo: extraInfo,
           actions: actions,
           loadingDescription: loadingDescription,
-          description: description,
+          description: desc,
           onChangeName: onChangeName,
+          onChangeDescription: onChangeDescription,
+          descriptionTitle: descriptionTitle,
         );
       } else {
         return CollectionPageMobile(
@@ -74,8 +82,10 @@ class CollectionPage extends StatelessWidget {
           extraInfo: extraInfo,
           actions: actions,
           loadingDescription: loadingDescription,
-          description: description,
+          description: desc,
           onChangeName: onChangeName,
+          onChangeDescription: onChangeDescription,
+          descriptionTitle: descriptionTitle,
         );
       }
     });
@@ -91,7 +101,9 @@ class CollectionPageMobile extends StatefulWidget {
   final List<CollectionAction>? actions;
   final bool loadingDescription;
   final String? description;
+  final String descriptionTitle;
   final void Function()? onChangeName;
+  final void Function()? onChangeDescription;
 
   const CollectionPageMobile({
     super.key,
@@ -99,11 +111,13 @@ class CollectionPageMobile extends StatefulWidget {
     this.contentTitle,
     this.cover,
     required this.name,
+    required this.descriptionTitle,
     this.extraInfo,
     this.actions,
     this.loadingDescription = false,
     this.description,
     this.onChangeName,
+    this.onChangeDescription,
   });
 
   @override
@@ -237,16 +251,51 @@ class _CollectionPageMobileState extends State<CollectionPageMobile> {
             ),
           ),
           if (widget.contentSliver != null) widget.contentSliver!,
+          if (widget.description == null && widget.onChangeDescription != null)
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 24),
+              sliver: SliverToBoxAdapter(
+                child: Center(
+                  child: Button(
+                    icon: Icons.add,
+                    onPressed: widget.onChangeDescription,
+                    outlined: true,
+                    child: const Text("Add description"),
+                  ),
+                ),
+              ),
+            ),
           if (widget.description != null)
             SliverPadding(
               padding: const EdgeInsets.all(12),
               sliver: SliverList.list(children: [
-                Text(
-                  "About",
-                  style: Theme.of(context)
-                      .textTheme
-                      .headlineSmall!
-                      .copyWith(fontSize: 24, fontWeight: FontWeight.w500),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  spacing: 4,
+                  children: [
+                    Text(
+                      widget.descriptionTitle,
+                      textAlign: TextAlign.start,
+                      style: Theme.of(context)
+                          .textTheme
+                          .headlineSmall!
+                          .copyWith(fontSize: 24, fontWeight: FontWeight.w500),
+                    ),
+                    if (widget.onChangeDescription != null)
+                      GestureDetector(
+                        onTap: widget.onChangeDescription,
+                        child: const Tooltip(
+                          message: "Change description",
+                          child: MouseRegion(
+                            cursor: SystemMouseCursors.click,
+                            child: Padding(
+                              padding: EdgeInsets.all(4),
+                              child: Icon(Icons.edit, size: 20),
+                            ),
+                          ),
+                        ),
+                      )
+                  ],
                 ),
                 Padding(
                   padding: const EdgeInsets.only(top: 4),
@@ -290,7 +339,9 @@ class CollectionPageDesktop extends StatefulWidget {
   final List<CollectionAction>? actions;
   final bool loadingDescription;
   final String? description;
+  final String descriptionTitle;
   final void Function()? onChangeName;
+  final void Function()? onChangeDescription;
 
   const CollectionPageDesktop({
     super.key,
@@ -302,7 +353,9 @@ class CollectionPageDesktop extends StatefulWidget {
     this.actions,
     this.loadingDescription = false,
     this.description,
+    required this.descriptionTitle,
     this.onChangeName,
+    this.onChangeDescription,
   });
 
   @override
@@ -399,6 +452,17 @@ class _CollectionPageDesktopState extends State<CollectionPageDesktop> {
                       child:
                           Center(child: CircularProgressIndicator.adaptive()),
                     ),
+                  if (widget.description == null &&
+                      widget.onChangeDescription != null)
+                    Expanded(
+                        child: Center(
+                      child: Button(
+                        icon: Icons.add,
+                        onPressed: widget.onChangeDescription,
+                        outlined: true,
+                        child: const Text("Add description"),
+                      ),
+                    )),
                   if (widget.description != null)
                     Expanded(
                       child: Padding(
@@ -406,18 +470,40 @@ class _CollectionPageDesktopState extends State<CollectionPageDesktop> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              "About",
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .headlineSmall!
-                                  .copyWith(
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.w500),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              spacing: 4,
+                              children: [
+                                Text(
+                                  widget.descriptionTitle,
+                                  textAlign: TextAlign.start,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .headlineSmall!
+                                      .copyWith(
+                                          fontSize: 24,
+                                          fontWeight: FontWeight.w500),
+                                ),
+                                if (widget.onChangeDescription != null)
+                                  GestureDetector(
+                                    onTap: widget.onChangeDescription,
+                                    child: const Tooltip(
+                                      message: "Change description",
+                                      child: MouseRegion(
+                                        cursor: SystemMouseCursors.click,
+                                        child: Padding(
+                                          padding: EdgeInsets.all(4),
+                                          child: Icon(Icons.edit, size: 20),
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                              ],
                             ),
                             Expanded(
                               child: SingleChildScrollView(
                                 child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Container(
                                       constraints: _descriptionOpen

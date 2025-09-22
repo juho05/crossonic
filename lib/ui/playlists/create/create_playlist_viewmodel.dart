@@ -15,7 +15,7 @@ class CreatePlaylistViewModel extends ChangeNotifier {
   }) : _repo = playlistRepository;
 
   Future<Result<String>> create(String name,
-      {Iterable<Song> songs = const []}) async {
+      {Iterable<Song> songs = const [], String description = ""}) async {
     _loading = true;
     notifyListeners();
     try {
@@ -24,6 +24,16 @@ class CreatePlaylistViewModel extends ChangeNotifier {
         case Err():
           return result;
         case Ok():
+      }
+      if (description.isNotEmpty) {
+        final descResult = await _repo.updatePlaylistMetadata(result.value,
+            comment: description);
+        switch (descResult) {
+          case Err():
+            Log.error("Failed to set description of created playlist.",
+                e: descResult.error);
+          case Ok():
+        }
       }
       if (songs.isNotEmpty) {
         final addResult = await _repo.addTracks(result.value, songs);

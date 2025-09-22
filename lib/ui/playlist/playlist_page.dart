@@ -88,11 +88,23 @@ class _PlaylistPageState extends State<PlaylistPage> {
 
           return CollectionPage(
             name: playlist.name,
+            description: playlist.comment,
+            descriptionTitle: "Description",
             onChangeName: _viewModel.editMode
                 ? () {
                     context.router.push(UpdatePlaylistRoute(
                       playlistId: playlist.id,
                       playlistName: playlist.name,
+                      playlistDescription: playlist.comment ?? "",
+                    ));
+                  }
+                : null,
+            onChangeDescription: _viewModel.editMode
+                ? () {
+                    context.router.push(UpdatePlaylistRoute(
+                      playlistId: playlist.id,
+                      playlistName: playlist.name,
+                      playlistDescription: playlist.comment ?? "",
                     ));
                   }
                 : null,
@@ -207,6 +219,13 @@ class _PlaylistPageState extends State<PlaylistPage> {
                           },
                         ),
                       ContextMenuOption(
+                        title: "Edit",
+                        icon: Icons.edit,
+                        onSelected: () {
+                          _viewModel.editMode = true;
+                        },
+                      ),
+                      ContextMenuOption(
                         title: "Info",
                         icon: Icons.info_outline,
                         onSelected: () {
@@ -259,6 +278,13 @@ class _PlaylistPageState extends State<PlaylistPage> {
                             toastResult(context, result);
                           },
                         ),
+                      ContextMenuOption(
+                        title: "Stop Edit",
+                        icon: Icons.edit_off,
+                        onSelected: () {
+                          _viewModel.editMode = false;
+                        },
+                      ),
                       ContextMenuOption(
                         title: "Delete",
                         icon: Icons.delete_forever,
