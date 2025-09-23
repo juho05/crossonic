@@ -4,6 +4,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/routing/router.gr.dart';
 import 'package:crossonic/ui/common/menu_button.dart';
+import 'package:crossonic/ui/common/search_input.dart';
 import 'package:crossonic/ui/common/with_context_menu.dart';
 import 'package:crossonic/ui/settings/pages/logs/log_message_list_item.dart';
 import 'package:crossonic/ui/settings/pages/logs/logs_page_viewmodel.dart';
@@ -24,9 +25,6 @@ class LogsPage extends StatefulWidget {
 }
 
 class _LogsPageState extends State<LogsPage> {
-  final TextEditingController _searchController = TextEditingController();
-  final FocusNode _searchFocus = FocusNode();
-
   final ScrollController _scrollController = ScrollController();
 
   late final LogsPageViewModel _viewModel;
@@ -158,27 +156,9 @@ class _LogsPageState extends State<LogsPage> {
                   SliverPadding(
                     padding: const EdgeInsets.all(8.0),
                     sliver: SliverToBoxAdapter(
-                      child: TextField(
-                        controller: _searchController,
-                        focusNode: _searchFocus,
-                        decoration: InputDecoration(
-                          labelText: "Search",
-                          icon: const Icon(Icons.search),
-                          suffixIcon: _viewModel.searchText.isNotEmpty
-                              ? IconButton(
-                                  icon: const Icon(Icons.clear),
-                                  onPressed: () {
-                                    _searchController.clear();
-                                    _searchFocus.unfocus();
-                                    _viewModel.clearSearch();
-                                  },
-                                )
-                              : null,
-                        ),
-                        onChanged: (query) {
-                          _viewModel.search(query);
-                        },
-                        onTapOutside: (_) => _searchFocus.unfocus(),
+                      child: SearchInput(
+                        onSearch: _viewModel.search,
+                        debounce: const Duration(milliseconds: 250),
                       ),
                     ),
                   ),
@@ -245,7 +225,6 @@ class _LogsPageState extends State<LogsPage> {
 
   @override
   void dispose() {
-    _searchController.dispose();
     _scrollController.dispose();
     _viewModel.dispose();
     super.dispose();

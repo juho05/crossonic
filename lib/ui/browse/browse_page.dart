@@ -4,6 +4,7 @@ import 'package:crossonic/ui/browse/browse_grid_button.dart';
 import 'package:crossonic/ui/browse/browse_viewmodel.dart';
 import 'package:crossonic/ui/common/album_list_sliver.dart';
 import 'package:crossonic/ui/common/artist_list_sliver.dart';
+import 'package:crossonic/ui/common/search_input.dart';
 import 'package:crossonic/ui/common/song_list_sliver.dart';
 import 'package:crossonic/utils/fetch_status.dart';
 import 'package:flutter/material.dart';
@@ -17,11 +18,8 @@ class BrowsePage extends StatefulWidget {
   State<BrowsePage> createState() => _BrowsePageState();
 }
 
-class _BrowsePageState extends State<BrowsePage> with RestorationMixin {
+class _BrowsePageState extends State<BrowsePage> {
   late final BrowseViewModel _viewModel;
-
-  final _controller = RestorableTextEditingController();
-  final _focusNode = FocusNode();
 
   @override
   void initState() {
@@ -29,27 +27,10 @@ class _BrowsePageState extends State<BrowsePage> with RestorationMixin {
     _viewModel = BrowseViewModel(
       subsonicRepository: context.read(),
     );
-    _focusNode.addListener(() {
-      if (_focusNode.hasFocus) {
-        _controller.value.selection = TextSelection(
-            baseOffset: 0, extentOffset: _controller.value.text.length);
-      }
-    });
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (_controller.value.text.isNotEmpty) {
-      _viewModel.updateSearchText(_controller.value.text,
-          disableDebounce: true);
-    }
   }
 
   @override
   void dispose() {
-    _focusNode.dispose();
-    _controller.dispose();
     _viewModel.dispose();
     super.dispose();
   }
@@ -66,37 +47,13 @@ class _BrowsePageState extends State<BrowsePage> with RestorationMixin {
                 slivers: [
                   SliverPadding(
                     padding:
-                        const EdgeInsets.only(left: 8, right: 8, bottom: 12),
+                        const EdgeInsets.only(left: 15, right: 15, bottom: 12),
                     sliver: SliverToBoxAdapter(
-                      child: StreamBuilder<bool>(
-                        stream: _viewModel.emptySearchStream,
-                        builder: (context, snapshot) {
-                          return TextField(
-                            controller: _controller.value,
-                            focusNode: _focusNode,
-                            decoration: InputDecoration(
-                              labelText: "Search",
-                              icon: const Icon(Icons.search),
-                              suffixIcon: !(snapshot.data ?? false)
-                                  ? IconButton(
-                                      icon: const Icon(Icons.clear),
-                                      onPressed: () {
-                                        _controller.value.clear();
-                                        _viewModel.updateSearchText("");
-                                        _focusNode.unfocus();
-                                      },
-                                    )
-                                  : null,
-                            ),
-                            restorationId: "browse_page_search_input",
-                            onChanged: (value) {
-                              _viewModel.updateSearchText(value);
-                            },
-                            onTapOutside: (event) {
-                              _focusNode.unfocus();
-                            },
-                          );
+                      child: SearchInput(
+                        onSearch: (query) {
+                          _viewModel.updateSearchText(query);
                         },
+                        restorationId: "browse_page_search",
                       ),
                     ),
                   ),
@@ -209,14 +166,6 @@ class _BrowsePageState extends State<BrowsePage> with RestorationMixin {
         },
       ),
     );
-  }
-
-  @override
-  String? get restorationId => "browse_page";
-
-  @override
-  void restoreState(RestorationBucket? oldBucket, bool initialRestore) {
-    registerForRestoration(_controller, "browse_page_search_controller");
   }
 }
 

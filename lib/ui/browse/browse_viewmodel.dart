@@ -7,13 +7,9 @@ import 'package:crossonic/data/repositories/subsonic/subsonic_repository.dart';
 import 'package:crossonic/utils/fetch_status.dart';
 import 'package:crossonic/utils/result.dart';
 import 'package:flutter/material.dart';
-import 'package:rxdart/rxdart.dart';
 
 class BrowseViewModel extends ChangeNotifier {
   final SubsonicRepository _subsonic;
-
-  final BehaviorSubject<bool> _emptySearchStream = BehaviorSubject.seeded(true);
-  ValueStream<bool> get emptySearchStream => _emptySearchStream.stream;
 
   bool _searchMode = false;
   bool get searchMode => _searchMode;
@@ -34,35 +30,21 @@ class BrowseViewModel extends ChangeNotifier {
     required SubsonicRepository subsonicRepository,
   }) : _subsonic = subsonicRepository;
 
-  Timer? _searchDebounce;
-  void updateSearchText(String search, {bool disableDebounce = false}) {
-    if (_emptySearchStream.value != search.isEmpty) {
-      _emptySearchStream.add(search.isEmpty);
-    }
-    _searchDebounce?.cancel();
-    if (search.isEmpty) {
-      _searchMode = false;
-      _searchStatus = FetchStatus.initial;
-      _songs = [];
-      _albums = [];
-      _artists = [];
-      notifyListeners();
-      return;
-    }
-    if (disableDebounce) {
-      _updateSearchText(search);
-      return;
-    }
-    _searchDebounce = Timer(
-        const Duration(milliseconds: 500), () => _updateSearchText(search));
-  }
-
-  Future<void> _updateSearchText(String search) async {
-    _searchMode = true;
-    _searchStatus = FetchStatus.loading;
+  Future<void> updateSearchText(String search,
+      {bool disableDebounce = false}) async {
     _songs = [];
     _albums = [];
     _artists = [];
+
+    if (search.isEmpty) {
+      _searchMode = false;
+      _searchStatus = FetchStatus.initial;
+      notifyListeners();
+      return;
+    }
+
+    _searchMode = true;
+    _searchStatus = FetchStatus.loading;
     notifyListeners();
 
     final result = await _subsonic.search(search,
@@ -77,12 +59,5 @@ class BrowseViewModel extends ChangeNotifier {
         _artists = result.value.artists.toList();
     }
     notifyListeners();
-  }
-
-  @override
-  void dispose() {
-    _searchDebounce?.cancel();
-    _emptySearchStream.close();
-    super.dispose();
   }
 }

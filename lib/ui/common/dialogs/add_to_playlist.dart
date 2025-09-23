@@ -9,6 +9,7 @@ import 'package:crossonic/ui/common/clickable_list_item.dart';
 import 'package:crossonic/ui/common/cover_art.dart';
 import 'package:crossonic/ui/common/dialogs/add_to_playlist_viewmodel.dart';
 import 'package:crossonic/ui/common/dialogs/confirmation.dart';
+import 'package:crossonic/ui/common/search_input.dart';
 import 'package:crossonic/ui/common/toast.dart';
 import 'package:crossonic/utils/fetch_status.dart';
 import 'package:flutter/material.dart';
@@ -122,13 +123,15 @@ class _AddToPlaylistDialogContentState
                         }
                         return KeyEventResult.ignored;
                       },
-                      child: TextField(
-                        decoration: const InputDecoration(
-                          suffixIcon: Icon(Icons.search),
-                          labelText: "Search",
-                        ),
-                        onChanged: (value) => widget._viewModel.search(value),
-                        onTapOutside: (event) => _textFieldFocusScope.unfocus(),
+                      child: SearchInput(
+                        onSearch: (query) => widget._viewModel.search(query),
+                        debounce: const Duration(milliseconds: 100),
+                        onTapOutside: () {
+                          _textFieldFocusScope.unfocus();
+                        },
+                        onClearButtonPressed: () {
+                          _textFieldFocusScope.unfocus();
+                        },
                       ),
                     ),
                     Flexible(
