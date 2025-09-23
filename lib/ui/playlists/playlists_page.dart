@@ -6,6 +6,7 @@ import 'package:crossonic/ui/common/dialogs/add_to_playlist.dart';
 import 'package:crossonic/ui/common/dialogs/confirmation.dart';
 import 'package:crossonic/ui/common/playlist_grid_cell.dart';
 import 'package:crossonic/ui/common/search_input.dart';
+import 'package:crossonic/ui/main/layout_mode.dart';
 import 'package:crossonic/ui/playlists/playlists_viewmodel.dart';
 import 'package:crossonic/utils/result_toast.dart';
 import 'package:flutter/foundation.dart';
@@ -41,18 +42,16 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
 
   @override
   Widget build(BuildContext context) {
-    Orientation? previousOrientation;
-    return OrientationBuilder(builder: (context, orientation) {
-      if (previousOrientation != null &&
-          previousOrientation != orientation &&
-          orientation == Orientation.portrait) {
+    bool? wasDesktop;
+    return LayoutModeBuilder(builder: (context, isDesktop) {
+      if (wasDesktop != null && wasDesktop != isDesktop) {
         if (_viewModel.searchTerm.isNotEmpty || _viewModel.offline) {
           _viewModel.showFilters = true;
         }
       }
-      previousOrientation = orientation;
+      wasDesktop = isDesktop;
       return Scaffold(
-        floatingActionButton: orientation == Orientation.portrait
+        floatingActionButton: !isDesktop
             ? FloatingActionButton(
                 onPressed: () {
                   context.router.push(CreatePlaylistRoute());
@@ -68,10 +67,8 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
                 initialSelection: _viewModel.sort,
                 requestFocusOnTap: false,
                 leadingIcon: const Icon(Icons.sort),
-                width: orientation == Orientation.landscape ? 200 : null,
-                expandedInsets: orientation == Orientation.portrait
-                    ? EdgeInsets.zero
-                    : null,
+                width: isDesktop ? 200 : null,
+                expandedInsets: !isDesktop ? EdgeInsets.zero : null,
                 enableSearch: false,
                 dropdownMenuEntries: [
                   const DropdownMenuEntry(
@@ -110,7 +107,7 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: const EdgeInsets.all(8.0),
-                      child: orientation == Orientation.landscape
+                      child: isDesktop
                           ? Row(
                               spacing: 32,
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,

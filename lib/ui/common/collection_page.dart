@@ -1,4 +1,5 @@
 import 'package:crossonic/ui/common/buttons.dart';
+import 'package:crossonic/ui/main/layout_mode.dart';
 import 'package:flutter/material.dart';
 
 class CollectionExtraInfo {
@@ -58,8 +59,8 @@ class CollectionPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final desc =
         description == null || description!.isEmpty ? null : description;
-    return OrientationBuilder(builder: (context, orientation) {
-      if (orientation == Orientation.landscape) {
+    return LayoutModeBuilder(builder: (context, isDesktop) {
+      if (isDesktop) {
         return CollectionPageDesktop(
           contentSliver: contentSliver,
           contentTitle: contentTitle,

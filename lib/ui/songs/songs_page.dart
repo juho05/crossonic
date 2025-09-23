@@ -2,6 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:crossonic/ui/common/buttons.dart';
 import 'package:crossonic/ui/common/song_list_sliver.dart';
 import 'package:crossonic/ui/common/toast.dart';
+import 'package:crossonic/ui/main/layout_mode.dart';
 import 'package:crossonic/ui/songs/songs_viewmodel.dart';
 import 'package:crossonic/utils/fetch_status.dart';
 import 'package:flutter/material.dart';
@@ -64,45 +65,40 @@ class _SongsPageState extends State<SongsPage> {
       child: ListenableBuilder(
           listenable: _viewModel,
           builder: (context, _) {
-            return OrientationBuilder(builder: (context, orientation) {
-              return CustomScrollView(
-                controller: _controller,
-                slivers: [
-                  if (_viewModel.mode == SongsPageMode.genre)
-                    SliverPadding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      sliver: SliverToBoxAdapter(
-                        child: Text(
-                          "Genre: ${widget.genre}",
-                          overflow: TextOverflow.ellipsis,
-                          style:
-                              Theme.of(context).textTheme.labelLarge!.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 18,
-                                  ),
-                        ),
+            return CustomScrollView(
+              controller: _controller,
+              slivers: [
+                if (_viewModel.mode == SongsPageMode.genre)
+                  SliverPadding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    sliver: SliverToBoxAdapter(
+                      child: Text(
+                        "Genre: ${widget.genre}",
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.labelLarge!.copyWith(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                            ),
                       ),
                     ),
-                  if (_viewModel.mode != SongsPageMode.genre)
-                    SliverPadding(
-                      padding: const EdgeInsets.all(8.0),
-                      sliver: SliverToBoxAdapter(
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: DropdownMenu<SongsPageMode>(
+                  ),
+                if (_viewModel.mode != SongsPageMode.genre)
+                  SliverPadding(
+                    padding: const EdgeInsets.all(8.0),
+                    sliver: SliverToBoxAdapter(
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: LayoutModeBuilder(builder: (context, isDesktop) {
+                          return DropdownMenu<SongsPageMode>(
                             initialSelection: _viewModel.mode,
                             requestFocusOnTap: false,
                             leadingIcon: const Icon(Icons.sort),
                             enableSearch: false,
-                            width: orientation == Orientation.landscape
-                                ? 180
-                                : null,
-                            expandedInsets: orientation == Orientation.portrait
-                                ? EdgeInsets.zero
-                                : null,
+                            width: isDesktop ? 180 : null,
+                            expandedInsets: !isDesktop ? EdgeInsets.zero : null,
                             dropdownMenuEntries: [
                               if (_viewModel.supportsAllMode)
                                 const DropdownMenuEntry(
@@ -122,75 +118,74 @@ class _SongsPageState extends State<SongsPage> {
                               if (sortMode == null) return;
                               _viewModel.mode = sortMode;
                             },
-                          ),
-                        ),
-                      ),
-                    ),
-                  SliverPadding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 10,
-                    ),
-                    sliver: SliverToBoxAdapter(
-                      child: Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: [
-                          Button(
-                            icon: Icons.play_arrow,
-                            onPressed: () {
-                              _viewModel.play();
-                            },
-                            child: const Text("Play"),
-                          ),
-                          Button(
-                            icon: Icons.shuffle,
-                            onPressed: () {
-                              _viewModel.shuffle();
-                            },
-                            child: const Text("Shuffle"),
-                          ),
-                          Button(
-                            icon: Icons.playlist_play,
-                            outlined: true,
-                            onPressed: () {
-                              _viewModel.addAllToQueue(true);
-                              Toast.show(
-                                  context, "Added songs to priority queue");
-                            },
-                            child: const Text("Prio. Queue"),
-                          ),
-                          Button(
-                            icon: Icons.playlist_add,
-                            outlined: true,
-                            onPressed: () {
-                              _viewModel.addAllToQueue(false);
-                              Toast.show(context, "Added songs to queue");
-                            },
-                            child: const Text("Queue"),
-                          ),
-                        ],
+                          );
+                        }),
                       ),
                     ),
                   ),
-                  SongListSliver(songs: _viewModel.songs),
-                  if (_viewModel.status == FetchStatus.success &&
-                      _viewModel.songs.isEmpty)
-                    const SliverToBoxAdapter(child: Text("No songs available")),
-                  if (_viewModel.status == FetchStatus.failure)
-                    const SliverToBoxAdapter(
-                      child: Center(
-                        child: Icon(Icons.wifi_off),
-                      ),
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
+                  sliver: SliverToBoxAdapter(
+                    child: Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        Button(
+                          icon: Icons.play_arrow,
+                          onPressed: () {
+                            _viewModel.play();
+                          },
+                          child: const Text("Play"),
+                        ),
+                        Button(
+                          icon: Icons.shuffle,
+                          onPressed: () {
+                            _viewModel.shuffle();
+                          },
+                          child: const Text("Shuffle"),
+                        ),
+                        Button(
+                          icon: Icons.playlist_play,
+                          outlined: true,
+                          onPressed: () {
+                            _viewModel.addAllToQueue(true);
+                            Toast.show(
+                                context, "Added songs to priority queue");
+                          },
+                          child: const Text("Prio. Queue"),
+                        ),
+                        Button(
+                          icon: Icons.playlist_add,
+                          outlined: true,
+                          onPressed: () {
+                            _viewModel.addAllToQueue(false);
+                            Toast.show(context, "Added songs to queue");
+                          },
+                          child: const Text("Queue"),
+                        ),
+                      ],
                     ),
-                  if (_viewModel.status == FetchStatus.loading)
-                    const SliverToBoxAdapter(
-                      child:
-                          Center(child: CircularProgressIndicator.adaptive()),
+                  ),
+                ),
+                SongListSliver(songs: _viewModel.songs),
+                if (_viewModel.status == FetchStatus.success &&
+                    _viewModel.songs.isEmpty)
+                  const SliverToBoxAdapter(child: Text("No songs available")),
+                if (_viewModel.status == FetchStatus.failure)
+                  const SliverToBoxAdapter(
+                    child: Center(
+                      child: Icon(Icons.wifi_off),
                     ),
-                ],
-              );
-            });
+                  ),
+                if (_viewModel.status == FetchStatus.loading)
+                  const SliverToBoxAdapter(
+                    child: Center(child: CircularProgressIndicator.adaptive()),
+                  ),
+              ],
+            );
           }),
     );
   }

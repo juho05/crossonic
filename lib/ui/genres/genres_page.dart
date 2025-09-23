@@ -2,6 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:crossonic/routing/router.gr.dart';
 import 'package:crossonic/ui/albums/albums_viewmodel.dart';
 import 'package:crossonic/ui/genres/genres_viewmodel.dart';
+import 'package:crossonic/ui/main/layout_mode.dart';
 import 'package:crossonic/ui/songs/songs_viewmodel.dart';
 import 'package:crossonic/utils/fetch_status.dart';
 import 'package:flutter/material.dart';
@@ -48,68 +49,66 @@ class _GenresPageState extends State<GenresPage> {
           if (_viewModel.genres.isEmpty) {
             return const Center(child: Text("No genres available"));
           }
-          return OrientationBuilder(builder: (context, orientation) {
-            final albumTextSize =
-                _viewModel.largestAlbumCount.toString().length * 10;
-            final songTextSize =
-                _viewModel.largestSongCount.toString().length * 10;
-            return CustomScrollView(
-              slivers: [
-                SliverPadding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  sliver: SliverToBoxAdapter(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        DropdownMenu<GenresSortMode>(
-                          initialSelection: _viewModel.sortMode,
-                          leadingIcon: const Icon(Icons.sort),
-                          width: 200,
-                          requestFocusOnTap: false,
-                          enableSearch: false,
-                          dropdownMenuEntries: [
-                            const DropdownMenuEntry(
-                              value: GenresSortMode.alphabetical,
-                              label: "Alphabetical",
-                            ),
-                            const DropdownMenuEntry(
-                              value: GenresSortMode.songCount,
-                              label: "Song Count",
-                            ),
-                            const DropdownMenuEntry(
-                              value: GenresSortMode.albumCount,
-                              label: "Release Count",
-                            ),
-                            const DropdownMenuEntry(
-                              value: GenresSortMode.random,
-                              label: "Random",
-                            ),
-                          ],
-                          onSelected: (GenresSortMode? sortMode) {
-                            if (sortMode == null) return;
-                            _viewModel.sortMode = sortMode;
-                          },
-                        ),
-                        Text(
-                          "${_viewModel.genres.length} Genres",
-                          style: textTheme.labelLarge!.copyWith(
-                              fontWeight: FontWeight.bold, fontSize: 15),
-                        ),
-                      ],
-                    ),
+          final albumTextSize =
+              _viewModel.largestAlbumCount.toString().length * 10;
+          final songTextSize =
+              _viewModel.largestSongCount.toString().length * 10;
+          return CustomScrollView(
+            slivers: [
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                sliver: SliverToBoxAdapter(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      DropdownMenu<GenresSortMode>(
+                        initialSelection: _viewModel.sortMode,
+                        leadingIcon: const Icon(Icons.sort),
+                        width: 200,
+                        requestFocusOnTap: false,
+                        enableSearch: false,
+                        dropdownMenuEntries: [
+                          const DropdownMenuEntry(
+                            value: GenresSortMode.alphabetical,
+                            label: "Alphabetical",
+                          ),
+                          const DropdownMenuEntry(
+                            value: GenresSortMode.songCount,
+                            label: "Song Count",
+                          ),
+                          const DropdownMenuEntry(
+                            value: GenresSortMode.albumCount,
+                            label: "Release Count",
+                          ),
+                          const DropdownMenuEntry(
+                            value: GenresSortMode.random,
+                            label: "Random",
+                          ),
+                        ],
+                        onSelected: (GenresSortMode? sortMode) {
+                          if (sortMode == null) return;
+                          _viewModel.sortMode = sortMode;
+                        },
+                      ),
+                      Text(
+                        "${_viewModel.genres.length} Genres",
+                        style: textTheme.labelLarge!.copyWith(
+                            fontWeight: FontWeight.bold, fontSize: 15),
+                      ),
+                    ],
                   ),
                 ),
-                SliverPadding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  sliver: SliverFixedExtentList.builder(
-                    itemCount: _viewModel.genres.length,
-                    itemExtent: 48,
-                    itemBuilder: (context, index) {
-                      final g = _viewModel.genres[index];
-                      return Material(
-                        child: Row(
+              ),
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                sliver: SliverFixedExtentList.builder(
+                  itemCount: _viewModel.genres.length,
+                  itemExtent: 48,
+                  itemBuilder: (context, index) {
+                    final g = _viewModel.genres[index];
+                    return Material(
+                      child: LayoutModeBuilder(builder: (context, isDesktop) {
+                        return Row(
                           spacing: 8,
                           children: [
                             Expanded(
@@ -122,7 +121,7 @@ class _GenresPageState extends State<GenresPage> {
                               ),
                             ),
                             SizedBox(
-                              width: orientation == Orientation.landscape
+                              width: isDesktop
                                   ? albumTextSize + 100
                                   : albumTextSize + 50,
                               child: ClipRRect(
@@ -144,8 +143,7 @@ class _GenresPageState extends State<GenresPage> {
                                         spacing: 4,
                                         children: [
                                           const Icon(Icons.album),
-                                          if (orientation ==
-                                              Orientation.landscape)
+                                          if (isDesktop)
                                             Text("Releases: ${g.albumCount}")
                                           else
                                             Text("${g.albumCount}")
@@ -157,7 +155,7 @@ class _GenresPageState extends State<GenresPage> {
                               ),
                             ),
                             SizedBox(
-                                width: orientation == Orientation.landscape
+                                width: isDesktop
                                     ? songTextSize + 110
                                     : songTextSize + 60,
                                 child: ClipRRect(
@@ -179,8 +177,7 @@ class _GenresPageState extends State<GenresPage> {
                                           spacing: 4,
                                           children: [
                                             const Icon(Icons.music_note),
-                                            if (orientation ==
-                                                Orientation.landscape)
+                                            if (isDesktop)
                                               Text("Songs: ${g.songCount}")
                                             else
                                               Text("${g.songCount}")
@@ -191,14 +188,14 @@ class _GenresPageState extends State<GenresPage> {
                                   ),
                                 )),
                           ],
-                        ),
-                      );
-                    },
-                  ),
-                )
-              ],
-            );
-          });
+                        );
+                      }),
+                    );
+                  },
+                ),
+              )
+            ],
+          );
         },
       ),
     );

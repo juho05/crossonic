@@ -11,6 +11,7 @@ import 'package:crossonic/ui/common/dialogs/media_info.dart';
 import 'package:crossonic/ui/common/song_list_item.dart';
 import 'package:crossonic/ui/common/toast.dart';
 import 'package:crossonic/ui/common/with_context_menu.dart';
+import 'package:crossonic/ui/main/layout_mode.dart';
 import 'package:crossonic/utils/fetch_status.dart';
 import 'package:crossonic/utils/result.dart';
 import 'package:crossonic/utils/result_toast.dart';
@@ -245,7 +246,7 @@ class _AlbumPageState extends State<AlbumPage> {
                             const Icon(Icons.album),
                             const SizedBox(width: 8),
                             Expanded(
-                              child: OrientationBuilder(
+                              child: LayoutModeBuilder(
                                 builder: (context, orientation) => Text(
                                   _viewModel.discTitles[discNr] ??
                                       "Disc $discNr",

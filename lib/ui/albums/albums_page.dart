@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:crossonic/ui/albums/albums_viewmodel.dart';
 import 'package:crossonic/ui/common/album_grid_sliver.dart';
+import 'package:crossonic/ui/main/layout_mode.dart';
 import 'package:crossonic/utils/fetch_status.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -58,27 +59,24 @@ class _AlbumsPageState extends State<AlbumsPage> {
       child: ListenableBuilder(
           listenable: _viewModel,
           builder: (context, _) {
-            return OrientationBuilder(builder: (context, orientation) {
-              return CustomScrollView(
-                controller: _controller,
-                slivers: [
-                  SliverToBoxAdapter(
-                    child: _viewModel.mode != AlbumsPageMode.genre
-                        ? Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Align(
-                              alignment: Alignment.centerLeft,
-                              child: DropdownMenu<AlbumsPageMode>(
+            return CustomScrollView(
+              controller: _controller,
+              slivers: [
+                SliverToBoxAdapter(
+                  child: _viewModel.mode != AlbumsPageMode.genre
+                      ? Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: LayoutModeBuilder(
+                                builder: (context, isDesktop) {
+                              return DropdownMenu<AlbumsPageMode>(
                                 initialSelection: _viewModel.mode,
                                 requestFocusOnTap: false,
                                 leadingIcon: const Icon(Icons.sort),
-                                width: orientation == Orientation.landscape
-                                    ? 240
-                                    : null,
+                                width: isDesktop ? 240 : null,
                                 expandedInsets:
-                                    orientation == Orientation.portrait
-                                        ? EdgeInsets.zero
-                                        : null,
+                                    !isDesktop ? EdgeInsets.zero : null,
                                 enableSearch: false,
                                 dropdownMenuEntries: [
                                   const DropdownMenuEntry(
@@ -110,38 +108,38 @@ class _AlbumsPageState extends State<AlbumsPage> {
                                   if (mode == null) return;
                                   _viewModel.mode = mode;
                                 },
-                              ),
-                            ),
-                          )
-                        : Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            child: Text(
-                              "Genre: ${widget.genre}",
-                              overflow: TextOverflow.ellipsis,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .labelLarge!
-                                  .copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 18,
-                                  ),
-                            ),
+                              );
+                            }),
                           ),
-                  ),
-                  if (_viewModel.status == FetchStatus.success &&
-                      _viewModel.albums.isEmpty)
-                    const SliverToBoxAdapter(
-                        child: Text("No releases available")),
-                  AlbumGridSliver(
-                    albums: _viewModel.albums,
-                    fetchStatus: _viewModel.status,
-                  ),
-                ],
-              );
-            });
+                        )
+                      : Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          child: Text(
+                            "Genre: ${widget.genre}",
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelLarge!
+                                .copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18,
+                                ),
+                          ),
+                        ),
+                ),
+                if (_viewModel.status == FetchStatus.success &&
+                    _viewModel.albums.isEmpty)
+                  const SliverToBoxAdapter(
+                      child: Text("No releases available")),
+                AlbumGridSliver(
+                  albums: _viewModel.albums,
+                  fetchStatus: _viewModel.status,
+                ),
+              ],
+            );
           }),
     );
   }

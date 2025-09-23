@@ -303,22 +303,20 @@ class _ArtistPageState extends State<ArtistPage> {
                             child: Row(
                               children: [
                                 Expanded(
-                                  child: OrientationBuilder(
-                                    builder: (context, orientation) => Text(
-                                      isAppearsOn
-                                          ? "Appears on"
-                                          : ArtistViewModel
-                                              .releaseTypeTitles[releaseType]!,
-                                      textAlign: TextAlign.left,
-                                      overflow: TextOverflow.ellipsis,
-                                      maxLines: 1,
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .titleMedium!
-                                          .copyWith(
-                                              fontSize: 20,
-                                              fontWeight: FontWeight.w500),
-                                    ),
+                                  child: Text(
+                                    isAppearsOn
+                                        ? "Appears on"
+                                        : ArtistViewModel
+                                            .releaseTypeTitles[releaseType]!,
+                                    textAlign: TextAlign.left,
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 1,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium!
+                                        .copyWith(
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.w500),
                                   ),
                                 ),
                               ],
