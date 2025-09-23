@@ -5,6 +5,7 @@ import 'package:crossonic/ui/common/buttons.dart';
 import 'package:crossonic/ui/common/dialogs/add_to_playlist.dart';
 import 'package:crossonic/ui/common/dialogs/confirmation.dart';
 import 'package:crossonic/ui/common/playlist_grid_cell.dart';
+import 'package:crossonic/ui/common/search_input.dart';
 import 'package:crossonic/ui/playlists/playlists_viewmodel.dart';
 import 'package:crossonic/utils/result_toast.dart';
 import 'package:flutter/foundation.dart';
@@ -40,7 +41,16 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
 
   @override
   Widget build(BuildContext context) {
+    Orientation? previousOrientation;
     return OrientationBuilder(builder: (context, orientation) {
+      if (previousOrientation != null &&
+          previousOrientation != orientation &&
+          orientation == Orientation.portrait) {
+        if (_viewModel.searchTerm.isNotEmpty || _viewModel.offline) {
+          _viewModel.showFilters = true;
+        }
+      }
+      previousOrientation = orientation;
       return Scaffold(
         floatingActionButton: orientation == Orientation.portrait
             ? FloatingActionButton(
@@ -88,20 +98,13 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
                     value: PlaylistsSort.random,
                     label: "Random",
                   ),
-                  if (!kIsWeb)
-                    const DropdownMenuEntry(
-                      value: PlaylistsSort.downloaded,
-                      label: "Downloaded",
-                    ),
                 ],
                 onSelected: (PlaylistsSort? sort) {
                   if (sort == null) return;
                   _viewModel.sort = sort;
                 },
               );
-              final playlists = _viewModel.sort == PlaylistsSort.downloaded
-                  ? _viewModel.playlists.where((p) => p.$1.download).toList()
-                  : _viewModel.playlists;
+              final playlists = _viewModel.playlists;
               return CustomScrollView(
                 slivers: [
                   SliverToBoxAdapter(
@@ -109,23 +112,145 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
                       padding: const EdgeInsets.all(8.0),
                       child: orientation == Orientation.landscape
                           ? Row(
+                              spacing: 32,
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              spacing: 8,
                               children: [
-                                dropdown,
-                                Button(
-                                  icon: Icons.add,
-                                  onPressed: () {
-                                    context.router.push(CreatePlaylistRoute());
-                                  },
-                                  outlined: true,
-                                  child: const Text("Create"),
-                                )
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  spacing: 4,
+                                  children: [
+                                    dropdown,
+                                    if (_viewModel.sort != PlaylistsSort.random)
+                                      IconButton(
+                                        icon: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            const Icon(Icons.sort),
+                                            Icon(
+                                                _viewModel.sortAscending
+                                                    ? Icons.arrow_downward
+                                                    : Icons.arrow_upward,
+                                                size: 20),
+                                          ],
+                                        ),
+                                        onPressed: () {
+                                          _viewModel.sortAscending =
+                                              !_viewModel.sortAscending;
+                                        },
+                                      ),
+                                  ],
+                                ),
+                                Flexible(
+                                  fit: FlexFit.loose,
+                                  child: Container(
+                                    constraints:
+                                        const BoxConstraints(maxWidth: 400),
+                                    child: Row(
+                                      spacing: 8,
+                                      children: [
+                                        if (!kIsWeb)
+                                          IconButton(
+                                            icon: Icon(
+                                                _viewModel.offline
+                                                    ? Icons.wifi_off
+                                                    : Icons.wifi,
+                                                size: 20),
+                                            onPressed: () {
+                                              _viewModel.offline =
+                                                  !_viewModel.offline;
+                                            },
+                                          ),
+                                        Expanded(
+                                          child: SearchInput(
+                                            initialValue: _viewModel.searchTerm,
+                                            onSearch: (query) {
+                                              _viewModel.searchTerm = query;
+                                            },
+                                          ),
+                                        ),
+                                        Button(
+                                          icon: Icons.add,
+                                          onPressed: () {
+                                            context.router
+                                                .push(CreatePlaylistRoute());
+                                          },
+                                          outlined: true,
+                                          child: const Text("Create"),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
                               ],
                             )
-                          : Align(
-                              alignment: Alignment.centerLeft,
-                              child: dropdown,
+                          : Column(
+                              spacing: 8,
+                              children: [
+                                Row(
+                                  children: [
+                                    Expanded(child: dropdown),
+                                    if (_viewModel.sort != PlaylistsSort.random)
+                                      IconButton(
+                                        icon: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            const Icon(Icons.sort),
+                                            Icon(
+                                                _viewModel.sortAscending
+                                                    ? Icons.arrow_downward
+                                                    : Icons.arrow_upward,
+                                                size: 20),
+                                          ],
+                                        ),
+                                        onPressed: () {
+                                          _viewModel.sortAscending =
+                                              !_viewModel.sortAscending;
+                                        },
+                                      ),
+                                    IconButton(
+                                      icon: Icon(
+                                        _viewModel.showFilters
+                                            ? Icons.filter_alt
+                                            : Icons.filter_alt_outlined,
+                                      ),
+                                      onPressed: () {
+                                        if (_viewModel.showFilters) {
+                                          _viewModel.clearFilters();
+                                        }
+                                        _viewModel.showFilters =
+                                            !_viewModel.showFilters;
+                                      },
+                                    )
+                                  ],
+                                ),
+                                if (_viewModel.showFilters)
+                                  Row(
+                                    spacing: 8,
+                                    children: [
+                                      Expanded(
+                                        child: SearchInput(
+                                          initialValue: _viewModel.searchTerm,
+                                          onSearch: (query) {
+                                            _viewModel.searchTerm = query;
+                                          },
+                                          border: true,
+                                        ),
+                                      ),
+                                      if (!kIsWeb)
+                                        IconButton(
+                                          icon: Icon(
+                                              _viewModel.offline
+                                                  ? Icons.wifi_off
+                                                  : Icons.wifi,
+                                              size: 20),
+                                          onPressed: () {
+                                            _viewModel.offline =
+                                                !_viewModel.offline;
+                                          },
+                                        ),
+                                    ],
+                                  )
+                              ],
                             ),
                     ),
                   ),
@@ -133,7 +258,7 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
                     const SliverToBoxAdapter(
                         child: Padding(
                       padding: EdgeInsets.all(8.0),
-                      child: Text("No playlists available"),
+                      child: Text("No playlists found"),
                     )),
                   SliverPadding(
                     padding: const EdgeInsetsGeometry.all(4),

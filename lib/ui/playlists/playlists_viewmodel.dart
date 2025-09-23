@@ -17,7 +17,6 @@ enum PlaylistsSort {
   songCount,
   duration,
   random,
-  downloaded,
 }
 
 class PlaylistsViewModel extends ChangeNotifier {
@@ -26,15 +25,63 @@ class PlaylistsViewModel extends ChangeNotifier {
   final SongDownloader _downloader;
 
   List<(Playlist, DownloadStatus)> _playlists = [];
-  List<(Playlist, DownloadStatus)> get playlists => _playlists;
+  List<(Playlist, DownloadStatus)> _filtered = [];
+  List<(Playlist, DownloadStatus)> get playlists => _filtered;
 
   PlaylistsSort _sort = PlaylistsSort.updated;
   PlaylistsSort get sort => _sort;
   set sort(PlaylistsSort sort) {
     if (_sort == sort) return;
     _sort = sort;
-    _sortPlaylists();
+    switch (_sort) {
+      case PlaylistsSort.updated:
+      case PlaylistsSort.created:
+      case PlaylistsSort.songCount:
+      case PlaylistsSort.duration:
+        _sortAscending = false;
+      case PlaylistsSort.alphabetical:
+        _sortAscending = true;
+      case PlaylistsSort.random:
+    }
+    _updateFiltered();
+  }
+
+  bool _showFilters = false;
+  bool get showFilters => _showFilters;
+  set showFilters(bool enable) {
+    if (_showFilters == enable) return;
+    _showFilters = enable;
     notifyListeners();
+  }
+
+  void clearFilters() {
+    _searchTerm = "";
+    _offline = false;
+    _updateFiltered();
+  }
+
+  String _searchTerm = "";
+  String get searchTerm => _searchTerm;
+  set searchTerm(String search) {
+    if (search == _searchTerm) return;
+    _searchTerm = search;
+    _updateFiltered();
+  }
+
+  bool _sortAscending = false;
+  bool get sortAscending => _sortAscending;
+  set sortAscending(bool ascending) {
+    if (_sortAscending == ascending) return;
+    _sortAscending = ascending;
+    _updateFiltered();
+  }
+
+  bool _offline = false;
+  bool get offline => _offline;
+  set offline(bool offline) {
+    if (_offline == offline) return;
+    _offline = offline;
+    _updateFiltered();
   }
 
   PlaylistsViewModel({
@@ -142,8 +189,7 @@ class PlaylistsViewModel extends ChangeNotifier {
     _playlists = await Future.wait(result.value
         .map((p) async => (p, await _getPlaylistDownloadStatus(p)))
         .toList());
-    _sortPlaylists();
-    notifyListeners();
+    _updateFiltered();
   }
 
   Future<DownloadStatus> _getPlaylistDownloadStatus(Playlist playlist) async {
@@ -168,25 +214,46 @@ class PlaylistsViewModel extends ChangeNotifier {
     return status;
   }
 
-  void _sortPlaylists() {
+  void _updateFiltered() {
+    final lowerSearch = _searchTerm.toLowerCase();
+    _filtered = _playlists.where((p) {
+      if (_offline && p.$2 == DownloadStatus.none) {
+        return false;
+      }
+      if (lowerSearch.isNotEmpty &&
+          !p.$1.name.toLowerCase().contains(lowerSearch)) {
+        return false;
+      }
+      return true;
+    }).toList();
     if (sort == PlaylistsSort.random) {
-      _playlists.shuffle();
+      _filtered.shuffle();
+      notifyListeners();
       return;
     }
+    _filtered.sort((a, b) => _comparePlaylists(a.$1, b.$1));
+    notifyListeners();
+  }
+
+  int _comparePlaylists(Playlist a, Playlist b) {
+    if (!_sortAscending) {
+      final temp = a;
+      a = b;
+      b = temp;
+    }
     switch (sort) {
-      case PlaylistsSort.updated || PlaylistsSort.downloaded:
-        _playlists.sort((a, b) => b.$1.changed.compareTo(a.$1.changed));
+      case PlaylistsSort.updated:
+        return a.changed.compareTo(b.changed);
       case PlaylistsSort.created:
-        _playlists.sort((a, b) => b.$1.created.compareTo(a.$1.created));
+        return a.created.compareTo(b.created);
       case PlaylistsSort.alphabetical:
-        _playlists.sort((a, b) => a.$1.name.compareTo(b.$1.name));
+        return a.name.compareTo(b.name);
       case PlaylistsSort.songCount:
-        _playlists.sort((a, b) => b.$1.songCount.compareTo(a.$1.songCount));
+        return a.songCount.compareTo(b.songCount);
       case PlaylistsSort.duration:
-        _playlists.sort((a, b) => b.$1.duration.compareTo(a.$1.duration));
+        return a.duration.compareTo(b.duration);
       case PlaylistsSort.random:
-        // shouldn't happen
-        break;
+        return 0;
     }
   }
 

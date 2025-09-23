@@ -8,6 +8,8 @@ class SearchInput extends StatefulWidget {
   final void Function()? onClearButtonPressed;
   final Duration debounce;
   final String? restorationId;
+  final bool border;
+  final String initialValue;
 
   const SearchInput({
     super.key,
@@ -16,6 +18,8 @@ class SearchInput extends StatefulWidget {
     this.restorationId,
     this.onTapOutside,
     this.onClearButtonPressed,
+    this.border = false,
+    this.initialValue = "",
   });
 
   @override
@@ -39,9 +43,14 @@ class _SearchInputState extends State<SearchInput> with RestorationMixin {
     });
   }
 
+  bool _setInitialValue = false;
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    if (!_setInitialValue) {
+      _controller.value.text = widget.initialValue;
+      _setInitialValue = true;
+    }
     if (_controller.value.text.isNotEmpty) {
       final search = _controller.value.text;
       widget.onSearch(search);
@@ -80,11 +89,12 @@ class _SearchInputState extends State<SearchInput> with RestorationMixin {
 
   @override
   Widget build(BuildContext context) {
-    return TextField(
+    return TextFormField(
       controller: _controller.value,
       focusNode: _focusNode,
       decoration: InputDecoration(
         labelText: "Search",
+        border: widget.border ? const OutlineInputBorder() : null,
         suffixIcon: _isEmpty
             ? const Icon(Icons.search)
             : IconButton(
