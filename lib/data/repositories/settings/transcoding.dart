@@ -77,7 +77,6 @@ class TranscodingSettings extends ChangeNotifier {
   Future<(TranscodingCodec, int?)> activeTranscoding() async {
     final connectivity = await Connectivity().checkConnectivity();
     final isMobile = _supportsMobile &&
-        connectivity.contains(ConnectivityResult.mobile) &&
         !connectivity.contains(ConnectivityResult.wifi) &&
         !connectivity.contains(ConnectivityResult.ethernet);
     return (

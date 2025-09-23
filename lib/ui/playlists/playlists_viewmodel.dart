@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:crossonic/data/repositories/audio/audio_handler.dart';
 import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/data/repositories/playlist/models/playlist.dart';
@@ -8,7 +9,7 @@ import 'package:crossonic/data/repositories/playlist/song_downloader.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
 import 'package:crossonic/utils/result.dart';
 import 'package:crossonic/utils/throttle.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 
 enum PlaylistsSort {
   updated,
@@ -84,6 +85,8 @@ class PlaylistsViewModel extends ChangeNotifier {
     _updateFiltered();
   }
 
+  StreamSubscription? _connectivityStreamSub;
+
   PlaylistsViewModel({
     required PlaylistRepository playlistRepository,
     required AudioHandler audioHandler,
@@ -93,7 +96,27 @@ class PlaylistsViewModel extends ChangeNotifier {
         _downloader = songDownloader {
     _repo.addListener(_load);
     _downloader.addListener(_onDownloadStatusChanged);
+
+    if (!kIsWeb) {
+      _connectivityStreamSub = Connectivity()
+          .onConnectivityChanged
+          .listen((event) => _updateHasConnection());
+      _updateHasConnection();
+    }
     _load();
+  }
+
+  Future<void> _updateHasConnection() async {
+    final con = await Connectivity().checkConnectivity();
+    final online = con.contains(ConnectivityResult.mobile) ||
+        con.contains(ConnectivityResult.wifi) ||
+        con.contains(ConnectivityResult.ethernet) ||
+        con.contains(ConnectivityResult.vpn) ||
+        con.contains(ConnectivityResult.other);
+    if (!online != _offline) {
+      _offline = !online;
+      _updateFiltered();
+    }
   }
 
   Throttle? _onDownloadStatusChangedThrottle;
@@ -108,7 +131,7 @@ class PlaylistsViewModel extends ChangeNotifier {
         }
       }
       if (changed) {
-        notifyListeners();
+        _updateFiltered();
       }
     }
 
@@ -217,7 +240,7 @@ class PlaylistsViewModel extends ChangeNotifier {
   void _updateFiltered() {
     final lowerSearch = _searchTerm.toLowerCase();
     _filtered = _playlists.where((p) {
-      if (_offline && p.$2 == DownloadStatus.none) {
+      if (offline && p.$2 == DownloadStatus.none) {
         return false;
       }
       if (lowerSearch.isNotEmpty &&
@@ -259,6 +282,7 @@ class PlaylistsViewModel extends ChangeNotifier {
 
   @override
   void dispose() {
+    _connectivityStreamSub?.cancel();
     _repo.removeListener(_load);
     _onDownloadStatusChangedThrottle?.cancel();
     _downloader.removeListener(_onDownloadStatusChanged);
