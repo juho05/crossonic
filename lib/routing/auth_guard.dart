@@ -12,6 +12,7 @@ class AuthGuard extends AutoRouteGuard {
   void onNavigation(NavigationResolver resolver, StackRouter router) {
     if (resolver.routeName == DebugRoute.name ||
         resolver.routeName == LogsRoute.name ||
+        resolver.routeName == LogDetailsRoute.name ||
         resolver.routeName == InstallUpdateRoute.name) {
       resolver.next(true);
       return;

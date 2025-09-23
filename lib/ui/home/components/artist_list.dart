@@ -51,7 +51,7 @@ class HomeArtistList extends StatelessWidget {
               child: SizedBox(
                 height: _itemHeight,
                 child: Center(
-                  child: Text("No artists available"),
+                  child: Text("No artists found"),
                 ),
               ),
             );

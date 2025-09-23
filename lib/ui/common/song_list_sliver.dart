@@ -3,7 +3,8 @@ import 'package:crossonic/data/repositories/subsonic/models/song.dart';
 import 'package:crossonic/ui/common/clickable_list_item.dart';
 import 'package:crossonic/ui/common/song_list_item.dart';
 import 'package:crossonic/ui/common/song_list_sliver_viewmodel.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:crossonic/utils/fetch_status.dart';
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class SongListSliver extends StatelessWidget {
@@ -16,9 +17,12 @@ class SongListSliver extends StatelessWidget {
   final bool disableGoToAlbum;
   final bool disableGoToArtist;
 
+  final FetchStatus? fetchStatus;
+
   const SongListSliver({
     super.key,
     required this.songs,
+    this.fetchStatus,
     this.showArtist = true,
     this.showAlbum = false,
     this.showYear = true,
@@ -30,6 +34,22 @@ class SongListSliver extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (fetchStatus == FetchStatus.success && songs.isEmpty) {
+      return const SliverToBoxAdapter(
+          child: Center(child: Text("No songs found")));
+    }
+    if (fetchStatus == FetchStatus.failure) {
+      const SliverToBoxAdapter(
+        child: Center(
+          child: Icon(Icons.wifi_off),
+        ),
+      );
+    }
+    if (fetchStatus == FetchStatus.loading) {
+      return const SliverToBoxAdapter(
+        child: Center(child: CircularProgressIndicator.adaptive()),
+      );
+    }
     return Provider(
       create: (context) =>
           SongListSliverViewModel(audioHandler: context.read()),

@@ -51,7 +51,7 @@ class HomeReleaseList extends StatelessWidget {
               child: SizedBox(
                 height: _itemHeight,
                 child: Center(
-                  child: Text("No releases available"),
+                  child: Text("No releases found"),
                 ),
               ),
             );

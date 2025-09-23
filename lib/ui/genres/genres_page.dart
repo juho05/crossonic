@@ -40,15 +40,6 @@ class _GenresPageState extends State<GenresPage> {
       child: ListenableBuilder(
         listenable: _viewModel,
         builder: (context, child) {
-          if (_viewModel.status == FetchStatus.failure) {
-            return const Center(child: Icon(Icons.wifi_off));
-          }
-          if (_viewModel.status != FetchStatus.success) {
-            return const Center(child: CircularProgressIndicator.adaptive());
-          }
-          if (_viewModel.genres.isEmpty) {
-            return const Center(child: Text("No genres available"));
-          }
           final albumTextSize =
               _viewModel.largestAlbumCount.toString().length * 10;
           final songTextSize =
@@ -193,7 +184,21 @@ class _GenresPageState extends State<GenresPage> {
                     );
                   },
                 ),
-              )
+              ),
+              if (_viewModel.status == FetchStatus.success &&
+                  _viewModel.genres.isEmpty)
+                const SliverToBoxAdapter(
+                    child: Center(child: Text("No genres found"))),
+              if (_viewModel.status == FetchStatus.failure)
+                const SliverToBoxAdapter(
+                  child: Center(
+                    child: Icon(Icons.wifi_off),
+                  ),
+                ),
+              if (_viewModel.status == FetchStatus.loading)
+                const SliverToBoxAdapter(
+                  child: Center(child: CircularProgressIndicator.adaptive()),
+                ),
             ],
           );
         },

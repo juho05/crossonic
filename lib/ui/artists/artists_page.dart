@@ -85,7 +85,8 @@ class _ArtistsPageState extends State<ArtistsPage> {
                 ),
                 if (_viewModel.status == FetchStatus.success &&
                     _viewModel.artists.isEmpty)
-                  const SliverToBoxAdapter(child: Text("No artists available")),
+                  const SliverToBoxAdapter(
+                      child: Center(child: Text("No artists found"))),
                 SliverPadding(
                   padding: const EdgeInsetsGeometry.all(4),
                   sliver: SliverGrid(

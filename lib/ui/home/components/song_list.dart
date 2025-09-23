@@ -50,7 +50,7 @@ class HomeSongList extends StatelessWidget {
               child: SizedBox(
                 height: ClickableListItem.verticalExtent,
                 child: Center(
-                  child: Text("No songs available"),
+                  child: Text("No songs found"),
                 ),
               ),
             );

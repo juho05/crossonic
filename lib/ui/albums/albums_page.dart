@@ -2,7 +2,6 @@ import 'package:auto_route/auto_route.dart';
 import 'package:crossonic/ui/albums/albums_viewmodel.dart';
 import 'package:crossonic/ui/common/album_grid_sliver.dart';
 import 'package:crossonic/ui/main/layout_mode.dart';
-import 'package:crossonic/utils/fetch_status.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -130,10 +129,6 @@ class _AlbumsPageState extends State<AlbumsPage> {
                           ),
                         ),
                 ),
-                if (_viewModel.status == FetchStatus.success &&
-                    _viewModel.albums.isEmpty)
-                  const SliverToBoxAdapter(
-                      child: Text("No releases available")),
                 AlbumGridSliver(
                   albums: _viewModel.albums,
                   fetchStatus: _viewModel.status,

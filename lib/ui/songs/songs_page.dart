@@ -4,7 +4,6 @@ import 'package:crossonic/ui/common/song_list_sliver.dart';
 import 'package:crossonic/ui/common/toast.dart';
 import 'package:crossonic/ui/main/layout_mode.dart';
 import 'package:crossonic/ui/songs/songs_viewmodel.dart';
-import 'package:crossonic/utils/fetch_status.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -170,20 +169,10 @@ class _SongsPageState extends State<SongsPage> {
                     ),
                   ),
                 ),
-                SongListSliver(songs: _viewModel.songs),
-                if (_viewModel.status == FetchStatus.success &&
-                    _viewModel.songs.isEmpty)
-                  const SliverToBoxAdapter(child: Text("No songs available")),
-                if (_viewModel.status == FetchStatus.failure)
-                  const SliverToBoxAdapter(
-                    child: Center(
-                      child: Icon(Icons.wifi_off),
-                    ),
-                  ),
-                if (_viewModel.status == FetchStatus.loading)
-                  const SliverToBoxAdapter(
-                    child: Center(child: CircularProgressIndicator.adaptive()),
-                  ),
+                SongListSliver(
+                  songs: _viewModel.songs,
+                  fetchStatus: _viewModel.status,
+                ),
               ],
             );
           }),

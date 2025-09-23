@@ -13,6 +13,10 @@ class AlbumGridSliver extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (fetchStatus == FetchStatus.success && albums.isEmpty) {
+      return const SliverToBoxAdapter(
+          child: Center(child: Text("No releases found")));
+    }
     return SliverPadding(
       padding: const EdgeInsetsGeometry.symmetric(horizontal: 4),
       sliver: SliverGrid(
