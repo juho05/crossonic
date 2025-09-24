@@ -247,6 +247,21 @@ class SubsonicService {
         "listenBrainzConfig");
   }
 
+  Future<Result<ListenBrainzConfigModel>> updateListenBrainzConfig(
+      Connection con,
+      {bool? scrobble,
+      bool? syncFeedback}) async {
+    return await _fetchObject(
+        con,
+        "crossonic/updateListenBrainzConfig",
+        {
+          if (scrobble != null) "scrobble": [scrobble.toString()],
+          if (syncFeedback != null) "syncFeedback": [syncFeedback.toString()],
+        },
+        ListenBrainzConfigModel.fromJson,
+        "listenBrainzConfig");
+  }
+
   Future<Result<ScanStatusModel>> startScan(
     Connection con, {
     bool fullScan = false,

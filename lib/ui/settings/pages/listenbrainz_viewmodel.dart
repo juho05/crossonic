@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 class ListenBrainzViewModel extends ChangeNotifier {
   final SubsonicRepository _subsonic;
 
+  bool get settingsSupported => _subsonic.supports.listenBrainzSettings;
+
   FetchStatus _status = FetchStatus.initial;
   FetchStatus get status => _status;
 
@@ -14,6 +16,11 @@ class ListenBrainzViewModel extends ChangeNotifier {
 
   bool _submitting = false;
   bool get submitting => _submitting;
+
+  bool _scrobbleEnabled = false;
+  bool get scrobbleEnabled => _scrobbleEnabled;
+  bool _syncFavorites = false;
+  bool get syncFavorites => _syncFavorites;
 
   ListenBrainzViewModel({required SubsonicRepository subsonicRepository})
       : _subsonic = subsonicRepository;
@@ -32,6 +39,8 @@ class ListenBrainzViewModel extends ChangeNotifier {
       case Ok():
     }
     _username = result.value.username;
+    _scrobbleEnabled = result.value.scrobble;
+    _syncFavorites = result.value.syncFeedback;
     _status = FetchStatus.success;
     notifyListeners();
   }
@@ -48,6 +57,33 @@ class ListenBrainzViewModel extends ChangeNotifier {
       case Ok():
     }
     _username = result.value.username;
+    _scrobbleEnabled = result.value.scrobble;
+    _syncFavorites = result.value.syncFeedback;
+    notifyListeners();
+    return const Result.ok(null);
+  }
+
+  Future<Result<void>> updateSettings({
+    bool? scrobbleEnabled,
+    bool? syncFavorites,
+  }) async {
+    bool oldScrobble = _scrobbleEnabled;
+    bool oldSyncFavorites = _syncFavorites;
+    _scrobbleEnabled = scrobbleEnabled ?? _scrobbleEnabled;
+    _syncFavorites = syncFavorites ?? _syncFavorites;
+    notifyListeners();
+    final result = await _subsonic.updateListenBrainzConfig(
+        scrobble: scrobbleEnabled, syncFeedback: syncFavorites);
+    switch (result) {
+      case Err():
+        _scrobbleEnabled = oldScrobble;
+        _syncFavorites = oldSyncFavorites;
+        notifyListeners();
+        return Result.error(result.error);
+      case Ok():
+    }
+    _scrobbleEnabled = result.value.scrobble;
+    _syncFavorites = result.value.syncFeedback;
     notifyListeners();
     return const Result.ok(null);
   }

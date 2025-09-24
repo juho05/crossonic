@@ -144,6 +144,19 @@ class SubsonicRepository {
         ListenBrainzConfig.fromListenBrainzConfigModel(result.value));
   }
 
+  Future<Result<ListenBrainzConfig>> updateListenBrainzConfig(
+      {bool? scrobble, bool? syncFeedback}) async {
+    final result = await _service.updateListenBrainzConfig(_auth.con,
+        scrobble: scrobble, syncFeedback: syncFeedback);
+    switch (result) {
+      case Err():
+        return Result.error(result.error);
+      case Ok():
+    }
+    return Result.ok(
+        ListenBrainzConfig.fromListenBrainzConfigModel(result.value));
+  }
+
   Future<Result<ListenBrainzConfig>> disconnectListenBrainz() async {
     return connectListenBrainz("");
   }
