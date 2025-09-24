@@ -64,6 +64,8 @@ dependencies:
 dependency_overrides:
   flutter_secure_storage_darwin:
     path: ./dependency_overrides/flutter_secure_storage/flutter_secure_storage_darwin
+  flutter_secure_storage_linux:
+    path: ./dependency_overrides/stubs/flutter_secure_storage_linux
   path_provider_linux:
     path: ./dependency_overrides/path_provider_linux
   media_kit_libs_android_audio:

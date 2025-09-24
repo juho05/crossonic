@@ -32,8 +32,6 @@ AppDir:
       - libgtk-3-0
       - libayatana-appindicator3-1:amd64
       - libmpv1
-      - libsecret-1-0
-      - libjsoncpp25
     exclude:
       - adwaita-icon-theme:*
   runtime:

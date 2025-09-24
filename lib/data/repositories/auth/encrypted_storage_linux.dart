@@ -6,7 +6,6 @@ import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:cryptography_plus/cryptography_plus.dart';
 import 'package:dbus_secrets/dbus_secrets.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class EncryptedStorageLinux implements EncryptedStorage {
   // login secrets will be encrypted with this key if dbus secret service does not work
@@ -111,7 +110,6 @@ class EncryptedStorageLinux implements EncryptedStorage {
         secretKey: _fallbackKey);
   }
 
-  bool _migrationDone = false;
   Future<void> _ensureInitialized() async {
     if (_initialized) return;
     _initialized = true;
@@ -135,42 +133,29 @@ class EncryptedStorageLinux implements EncryptedStorage {
       _useFallback = true;
     }
 
-    await _migrate();
-  }
-
-  // migration from flutter_secure_storage or fallback to dbus_secrets
-  Future<void> _migrate() async {
-    if (_migrationDone) return;
-    _migrationDone = true;
-
     if (!_useFallback) {
-      final keys = await _keyValue.keys();
-      for (final k in keys) {
-        if (k.startsWith("$_keyValuePrefix.")) {
-          final key = k.substring(_keyValuePrefix.length + 1);
-          final value = await _keyValue.loadString(k);
-          Log.debug(
-              "Migrating $key from fallback encrypted database storage to dbus secret service");
-          await write(key, await _decryptValue(value!));
-          await _keyValue.remove(k);
-        }
+      try {
+        await _migrateFallbackToDbus();
+      } catch (e, st) {
+        Log.error(
+            "Failed to migrate fallback encrypted storage to dbus secret storage",
+            e: e,
+            st: st);
       }
     }
+  }
 
-    try {
-      final storage = const FlutterSecureStorage();
-      final oldData = await storage.readAll();
-      for (final kv in oldData.entries) {
-        await write(kv.key, kv.value);
+  Future<void> _migrateFallbackToDbus() async {
+    final keys = await _keyValue.keys();
+    for (final k in keys) {
+      if (k.startsWith("$_keyValuePrefix.")) {
+        final key = k.substring(_keyValuePrefix.length + 1);
+        final value = await _keyValue.loadString(k);
         Log.debug(
-            "Migrating ${kv.key} from flutter_secure_storage to new encrypted storage");
+            "Migrating $key from fallback encrypted database storage to dbus secret service");
+        await write(key, await _decryptValue(value!));
+        await _keyValue.remove(k);
       }
-      await storage.deleteAll();
-    } catch (e) {
-      Log.error(
-        "Failed to migrate from flutter_secure_storage to dbus_secrets",
-        e: e,
-      );
     }
   }
 }

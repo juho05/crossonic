@@ -14,10 +14,8 @@ import 'package:dynamic_system_colors/dynamic_system_colors.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_single_instance/flutter_single_instance.dart';
-import 'package:path/path.dart';
 import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
-import 'package:xdg_directories/xdg_directories.dart' as xdg;
 
 final defaultLightColorScheme =
     ColorScheme.fromSeed(seedColor: Colors.blue, brightness: Brightness.light);
@@ -26,10 +24,6 @@ final defaultDarkColorScheme =
 
 void main() async {
   LogRepository logRepository = LogRepository();
-
-  if (!kIsWeb && Platform.isLinux) {
-    await _migrateAppSupportDir();
-  }
 
   Log.init(logRepository);
   Log.info("App started.");
@@ -135,20 +129,5 @@ class MainApp extends StatelessWidget {
             });
       },
     );
-  }
-}
-
-Future<void> _migrateAppSupportDir() async {
-  final oldDir = Directory(join(xdg.dataHome.path, "Crossonic"));
-  final newDir = Directory(join(xdg.dataHome.path, "org.crossonic.app"));
-  if (!await oldDir.exists() || await newDir.exists()) {
-    return;
-  }
-
-  try {
-    await oldDir.rename(newDir.path);
-  } catch (e) {
-    print(
-        "Failed to move old application support directory to new location: $e");
   }
 }
