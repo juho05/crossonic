@@ -39,6 +39,7 @@ class CoverRepository extends BaseCacheManager {
     _auth.addListener(_onAuthChanged);
     _onAuthChanged();
     _cleanup();
+    _deleteOldCacheFile();
   }
 
   Future<void> downloadCovers(Iterable<String?> coverIds) async {
@@ -407,5 +408,20 @@ class CoverRepository extends BaseCacheManager {
       return false;
     }
     return true;
+  }
+
+  // removes the cover cache file that was used in <=v0.0.9
+  // TODO remove in next version
+  Future<void> _deleteOldCacheFile() async {
+    final file = io.File(path.join(
+        (await getApplicationSupportDirectory()).path,
+        "crossonic_cover_cache.json"));
+    if (await file.exists()) {
+      try {
+        await file.delete();
+      } on Exception catch (e, st) {
+        Log.warn("Failed to remove old cover cache file", e: e, st: st);
+      }
+    }
   }
 }
