@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:collection';
 import 'dart:io' as io;
+import 'dart:isolate';
 
 import 'package:crossonic/data/repositories/cover/cover_repository.dart';
 import 'package:crossonic/data/repositories/cover/not_found_response.dart';
@@ -112,34 +113,38 @@ class WebHelper {
 
   Future<FileResponse?> _resizeExistingCover(
       String coverId, int size, DateTime validTill, int targetSize) async {
-    if (!await _coverRepo.cacheFileExists(coverId, size)) {
-      return null;
-    }
     final file = await _coverRepo.cacheFile(coverId, size);
-    final fileContent = await file.readAsBytes();
-    Decoder? decoder = findDecoderForData(fileContent);
-    if (decoder == null) {
-      Log.warn(
-          "Failed to determine decoder to downsize existing cover image: ${file.path}");
-      return null;
-    }
-    Image? image = decoder.decode(fileContent);
-    if (image == null) {
-      Log.warn("Failed to decode existing cover image: ${file.path}");
-      return null;
-    }
-    Image newImage;
-    if (image.width > image.height) {
-      newImage = resize(image,
-          height: targetSize,
-          width: targetSize * (image.width / image.height).round());
-    } else {
-      newImage = resize(image,
-          width: targetSize,
-          height: targetSize * (image.height / image.width).round());
-    }
+    if (!await file.exists()) return null;
+
+    final newImage = await Isolate.run<Uint8List?>(() async {
+      final fileContent = await file.readAsBytes();
+      Decoder? decoder = findDecoderForData(fileContent);
+      if (decoder == null) {
+        Log.warn(
+            "Failed to determine decoder to downsize existing cover image: ${file.path}");
+        return null;
+      }
+      Image? image = decoder.decode(fileContent);
+      if (image == null) {
+        Log.warn("Failed to decode existing cover image: ${file.path}");
+        return null;
+      }
+      Image newImage;
+      if (image.width > image.height) {
+        newImage = resize(image,
+            height: targetSize,
+            width: targetSize * (image.width / image.height).round());
+      } else {
+        newImage = resize(image,
+            width: targetSize,
+            height: targetSize * (image.height / image.width).round());
+      }
+      return encodeJpg(newImage, quality: 85);
+    });
+    if (newImage == null) return null;
+
     var newFile = await _coverRepo.cacheFile(coverId, targetSize);
-    newFile = await newFile.writeAsBytes(encodeJpg(newImage, quality: 85));
+    newFile = await newFile.writeAsBytes(newImage);
     return FileInfo(newFile, FileSource.Cache, validTill,
         CoverRepository.getKey(coverId, targetSize));
   }

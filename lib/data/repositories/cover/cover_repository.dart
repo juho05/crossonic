@@ -72,9 +72,11 @@ class CoverRepository extends BaseCacheManager {
   Future<void> emptyCache() async {
     _cleanupTimer?.cancel();
     _cleanupTimer = null;
-    final count = await _db.managers.coverCacheTable.delete();
-    if (count == 0) return;
-    await (await _cacheDir()).delete(recursive: true);
+    await _db.managers.coverCacheTable.delete();
+    final cacheDir = await _cacheDir();
+    if (await cacheDir.exists()) {
+      await cacheDir.delete(recursive: true);
+    }
   }
 
   @override
@@ -239,7 +241,7 @@ class CoverRepository extends BaseCacheManager {
   }
 
   Future<void> _onAuthChanged() async {
-    if (!_auth.hasServer) {
+    if (!_auth.isAuthenticated) {
       await emptyCache();
     }
   }

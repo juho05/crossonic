@@ -13,6 +13,7 @@ class AuthGuard extends AutoRouteGuard {
     if (resolver.routeName == DebugRoute.name ||
         resolver.routeName == LogsRoute.name ||
         resolver.routeName == LogDetailsRoute.name ||
+        resolver.routeName == ChooseLogSessionRoute.name ||
         resolver.routeName == InstallUpdateRoute.name) {
       resolver.next(true);
       return;
