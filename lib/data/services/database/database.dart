@@ -1,6 +1,7 @@
 import 'package:crossonic/data/repositories/appimage/appimage_repository.dart';
 import 'package:crossonic/data/services/database/converters/log_level_converter.dart';
 import 'package:crossonic/data/services/database/database.steps.dart';
+import 'package:crossonic/data/services/database/tables/cover_cache.dart';
 import 'package:crossonic/data/services/database/tables/download_task.dart';
 import 'package:crossonic/data/services/database/tables/favorites_table.dart';
 import 'package:crossonic/data/services/database/tables/key_value.dart';
@@ -9,6 +10,7 @@ import 'package:crossonic/data/services/database/tables/playlist.dart';
 import 'package:crossonic/data/services/database/tables/playlist_song.dart';
 import 'package:crossonic/data/services/database/tables/scrobble.dart';
 import 'package:drift/drift.dart';
+import 'package:drift/extensions/json1.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:flutter/foundation.dart';
 import 'package:logger/logger.dart';
@@ -24,12 +26,13 @@ part 'database.g.dart';
   DownloadTask,
   FavoritesTable,
   LogMessageTable,
+  CoverCacheTable,
 ])
 class Database extends _$Database {
   Database([QueryExecutor? e]) : super(e ?? _openConnection());
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   Future<void> clearAll() async {
     customStatement("PRAGMA foreign_keys = OFF");
@@ -77,6 +80,15 @@ class Database extends _$Database {
                 },
                 from5To6: (m, schema) async {
                   await m.createTable(schema.logMessage);
+                },
+                from6To7: (m, schema) async {
+                  await m.createTable(schema.coverCache);
+                  await m.alterTable(
+                      TableMigration(schema.playlistSong, columnTransformer: {
+                    schema.playlistSong.coverId: schema
+                        .playlistSong.childModelJson
+                        .jsonExtract("\$.coverArt")
+                  }));
                 },
               ),
             ),

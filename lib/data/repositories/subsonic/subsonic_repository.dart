@@ -392,8 +392,9 @@ class SubsonicRepository {
         (result.value.song ?? []).map((c) => Song.fromChildModel(c)).toList());
   }
 
-  Uri getCoverUri(String id, {bool constantSalt = false}) {
-    return _service.getCoverUri(_auth.con, id, constantSalt: constantSalt);
+  Uri getCoverUri(String id, {int? size, bool constantSalt = false}) {
+    return _service.getCoverUri(_auth.con, id,
+        size: size, constantSalt: constantSalt);
   }
 
   Future<Result<List<List<Song>>>> getAlbumsSongs(List<Album> albums) async {

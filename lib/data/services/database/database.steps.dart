@@ -698,12 +698,229 @@ i1.GeneratedColumn<String> _column_31(String aliasedName) =>
 i1.GeneratedColumn<String> _column_32(String aliasedName) =>
     i1.GeneratedColumn<String>('exception', aliasedName, true,
         type: i1.DriftSqlType.string);
+
+final class Schema7 extends i0.VersionedSchema {
+  Schema7({required super.database}) : super(version: 7);
+  @override
+  late final List<i1.DatabaseSchemaEntity> entities = [
+    keyValue,
+    scrobble,
+    playlist,
+    playlistSong,
+    downloadTask,
+    favorites,
+    logMessage,
+    coverCache,
+  ];
+  late final Shape0 keyValue = Shape0(
+      source: i0.VersionedTable(
+        entityName: 'key_value',
+        withoutRowId: false,
+        isStrict: false,
+        tableConstraints: [
+          'PRIMARY KEY("key")',
+        ],
+        columns: [
+          _column_0,
+          _column_1,
+        ],
+        attachedDatabase: database,
+      ),
+      alias: null);
+  late final Shape1 scrobble = Shape1(
+      source: i0.VersionedTable(
+        entityName: 'scrobble',
+        withoutRowId: false,
+        isStrict: false,
+        tableConstraints: [
+          'PRIMARY KEY(song_id, start_time)',
+        ],
+        columns: [
+          _column_2,
+          _column_3,
+          _column_4,
+          _column_5,
+        ],
+        attachedDatabase: database,
+      ),
+      alias: null);
+  late final Shape2 playlist = Shape2(
+      source: i0.VersionedTable(
+        entityName: 'playlist',
+        withoutRowId: false,
+        isStrict: false,
+        tableConstraints: [
+          'PRIMARY KEY(id)',
+        ],
+        columns: [
+          _column_6,
+          _column_7,
+          _column_8,
+          _column_9,
+          _column_10,
+          _column_11,
+          _column_12,
+          _column_13,
+          _column_14,
+        ],
+        attachedDatabase: database,
+      ),
+      alias: null);
+  late final Shape7 playlistSong = Shape7(
+      source: i0.VersionedTable(
+        entityName: 'playlist_song',
+        withoutRowId: false,
+        isStrict: false,
+        tableConstraints: [],
+        columns: [
+          _column_15,
+          _column_16,
+          _column_17,
+          _column_2,
+          _column_33,
+          _column_18,
+        ],
+        attachedDatabase: database,
+      ),
+      alias: null);
+  late final Shape4 downloadTask = Shape4(
+      source: i0.VersionedTable(
+        entityName: 'download_task',
+        withoutRowId: false,
+        isStrict: false,
+        tableConstraints: [
+          'PRIMARY KEY(task_id, type)',
+        ],
+        columns: [
+          _column_19,
+          _column_20,
+          _column_21,
+          _column_22,
+          _column_23,
+          _column_24,
+        ],
+        attachedDatabase: database,
+      ),
+      alias: null);
+  late final Shape5 favorites = Shape5(
+      source: i0.VersionedTable(
+        entityName: 'favorites',
+        withoutRowId: false,
+        isStrict: false,
+        tableConstraints: [
+          'PRIMARY KEY(id, type)',
+        ],
+        columns: [
+          _column_6,
+          _column_25,
+          _column_20,
+        ],
+        attachedDatabase: database,
+      ),
+      alias: null);
+  late final Shape6 logMessage = Shape6(
+      source: i0.VersionedTable(
+        entityName: 'log_message',
+        withoutRowId: false,
+        isStrict: false,
+        tableConstraints: [],
+        columns: [
+          _column_15,
+          _column_26,
+          _column_27,
+          _column_28,
+          _column_29,
+          _column_30,
+          _column_31,
+          _column_32,
+        ],
+        attachedDatabase: database,
+      ),
+      alias: null);
+  late final Shape8 coverCache = Shape8(
+      source: i0.VersionedTable(
+        entityName: 'cover_cache',
+        withoutRowId: false,
+        isStrict: false,
+        tableConstraints: [
+          'PRIMARY KEY(cover_id, size)',
+        ],
+        columns: [
+          _column_34,
+          _column_35,
+          _column_36,
+          _column_37,
+          _column_38,
+          _column_39,
+        ],
+        attachedDatabase: database,
+      ),
+      alias: null);
+}
+
+class Shape7 extends i0.VersionedTable {
+  Shape7({required super.source, required super.alias}) : super.aliased();
+  i1.GeneratedColumn<int> get id =>
+      columnsByName['id']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<String> get playlistId =>
+      columnsByName['playlist_id']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<int> get index =>
+      columnsByName['index']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<String> get songId =>
+      columnsByName['song_id']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get coverId =>
+      columnsByName['cover_id']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get childModelJson =>
+      columnsByName['child_model_json']! as i1.GeneratedColumn<String>;
+}
+
+i1.GeneratedColumn<String> _column_33(String aliasedName) =>
+    i1.GeneratedColumn<String>('cover_id', aliasedName, true,
+        type: i1.DriftSqlType.string);
+
+class Shape8 extends i0.VersionedTable {
+  Shape8({required super.source, required super.alias}) : super.aliased();
+  i1.GeneratedColumn<String> get coverId =>
+      columnsByName['cover_id']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<int> get size =>
+      columnsByName['size']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<bool> get fileFullyWritten =>
+      columnsByName['file_fully_written']! as i1.GeneratedColumn<bool>;
+  i1.GeneratedColumn<DateTime> get downloadTime =>
+      columnsByName['download_time']! as i1.GeneratedColumn<DateTime>;
+  i1.GeneratedColumn<DateTime> get validTill =>
+      columnsByName['valid_till']! as i1.GeneratedColumn<DateTime>;
+  i1.GeneratedColumn<int> get fileSizeKB =>
+      columnsByName['file_size_k_b']! as i1.GeneratedColumn<int>;
+}
+
+i1.GeneratedColumn<String> _column_34(String aliasedName) =>
+    i1.GeneratedColumn<String>('cover_id', aliasedName, false,
+        type: i1.DriftSqlType.string);
+i1.GeneratedColumn<int> _column_35(String aliasedName) =>
+    i1.GeneratedColumn<int>('size', aliasedName, false,
+        type: i1.DriftSqlType.int);
+i1.GeneratedColumn<bool> _column_36(String aliasedName) =>
+    i1.GeneratedColumn<bool>('file_fully_written', aliasedName, false,
+        type: i1.DriftSqlType.bool,
+        defaultConstraints: i1.GeneratedColumn.constraintIsAlways(
+            'CHECK ("file_fully_written" IN (0, 1))'));
+i1.GeneratedColumn<DateTime> _column_37(String aliasedName) =>
+    i1.GeneratedColumn<DateTime>('download_time', aliasedName, false,
+        type: i1.DriftSqlType.dateTime);
+i1.GeneratedColumn<DateTime> _column_38(String aliasedName) =>
+    i1.GeneratedColumn<DateTime>('valid_till', aliasedName, false,
+        type: i1.DriftSqlType.dateTime);
+i1.GeneratedColumn<int> _column_39(String aliasedName) =>
+    i1.GeneratedColumn<int>('file_size_k_b', aliasedName, false,
+        type: i1.DriftSqlType.int);
 i0.MigrationStepWithVersion migrationSteps({
   required Future<void> Function(i1.Migrator m, Schema2 schema) from1To2,
   required Future<void> Function(i1.Migrator m, Schema3 schema) from2To3,
   required Future<void> Function(i1.Migrator m, Schema4 schema) from3To4,
   required Future<void> Function(i1.Migrator m, Schema5 schema) from4To5,
   required Future<void> Function(i1.Migrator m, Schema6 schema) from5To6,
+  required Future<void> Function(i1.Migrator m, Schema7 schema) from6To7,
 }) {
   return (currentVersion, database) async {
     switch (currentVersion) {
@@ -732,6 +949,11 @@ i0.MigrationStepWithVersion migrationSteps({
         final migrator = i1.Migrator(database, schema);
         await from5To6(migrator, schema);
         return 6;
+      case 6:
+        final schema = Schema7(database: database);
+        final migrator = i1.Migrator(database, schema);
+        await from6To7(migrator, schema);
+        return 7;
       default:
         throw ArgumentError.value('Unknown migration from $currentVersion');
     }
@@ -744,6 +966,7 @@ i1.OnUpgrade stepByStep({
   required Future<void> Function(i1.Migrator m, Schema4 schema) from3To4,
   required Future<void> Function(i1.Migrator m, Schema5 schema) from4To5,
   required Future<void> Function(i1.Migrator m, Schema6 schema) from5To6,
+  required Future<void> Function(i1.Migrator m, Schema7 schema) from6To7,
 }) =>
     i0.VersionedSchema.stepByStepHelper(
         step: migrationSteps(
@@ -752,4 +975,5 @@ i1.OnUpgrade stepByStep({
       from3To4: from3To4,
       from4To5: from4To5,
       from5To6: from5To6,
+      from6To7: from6To7,
     ));

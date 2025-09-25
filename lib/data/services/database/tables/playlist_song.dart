@@ -7,6 +7,7 @@ class PlaylistSongTable extends Table {
       text().references(PlaylistTable, #id, onDelete: KeyAction.cascade)();
   late final index = integer()();
   late final songId = text()();
+  late final coverId = text().nullable()();
   late final childModelJson = text()();
 
   @override

@@ -100,7 +100,8 @@ Future<List<SingleChildWidget>> createProviders({
 
   final coverRepository = CoverRepository(
     authRepository: authRepository,
-    subsonicService: subsonicService,
+    subsonicRepository: subsonicRepository,
+    database: database,
   );
 
   final playlistRepository = PlaylistRepository(
