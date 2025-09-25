@@ -36,9 +36,7 @@ class _CoverArtState extends State<CoverArt> {
 
     int resolution(BuildContext context, double size) {
       size *= MediaQuery.of(context).devicePixelRatio;
-      if (size > 1024) {
-        return 2048;
-      } else if (size > 512) {
+      if (size > 512) {
         return 1024;
       } else if (size > 256) {
         return 512;

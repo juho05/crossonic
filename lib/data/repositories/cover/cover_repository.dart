@@ -41,11 +41,16 @@ class CoverRepository extends BaseCacheManager {
     _cleanup();
   }
 
-  Future<void> downloadCovers(List<String?> coverIds) async {
+  Future<void> downloadCovers(Iterable<String?> coverIds) async {
+    coverIds = coverIds.where((id) => id != null);
+    if (coverIds.isEmpty) return;
     await Future.wait(
-      coverIds
-          .where((id) => id != null)
-          .map((id) => downloadFile(getKey(id!, 1024))),
+      coverIds.map<Future>((id) async {
+        if (await cacheFileExists(id!, 1024)) {
+          return SynchronousFuture(null);
+        }
+        return downloadFile(getKey(id, 1024));
+      }),
     );
   }
 
@@ -58,7 +63,7 @@ class CoverRepository extends BaseCacheManager {
     final fileResponse = await _webHelper
         .downloadFile(_idFromKey(key), _sizeFromKey(key))
         .firstWhere((r) => r is FileInfo);
-    _ensureCleanupScheduled();
+    ensureCleanupScheduled();
     return fileResponse as FileInfo;
   }
 
@@ -210,7 +215,7 @@ class CoverRepository extends BaseCacheManager {
             streamController.add(response);
           }
         }
-        _ensureCleanupScheduled();
+        ensureCleanupScheduled();
       } on Object catch (e) {
         cacheLogger.log(
             'CacheManager: Failed to download file from $key with error:\n$e',
@@ -356,7 +361,7 @@ class CoverRepository extends BaseCacheManager {
     }
   }
 
-  void _ensureCleanupScheduled() {
+  void ensureCleanupScheduled() {
     if (_cleanupTimer != null) return;
     Log.debug("Scheduling cover cache cleanup in 15 min.");
     _cleanupTimer = Timer(const Duration(minutes: 15), () => _cleanup());

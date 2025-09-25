@@ -1,6 +1,8 @@
 import 'package:crossonic/data/repositories/appimage/appimage_repository.dart';
+import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/data/services/database/converters/log_level_converter.dart';
 import 'package:crossonic/data/services/database/database.steps.dart';
+import 'package:crossonic/data/services/database/log_interceptor.dart';
 import 'package:crossonic/data/services/database/tables/cover_cache.dart';
 import 'package:crossonic/data/services/database/tables/download_task.dart';
 import 'package:crossonic/data/services/database/tables/favorites_table.dart';
@@ -59,7 +61,7 @@ class Database extends _$Database {
   MigrationStrategy get migration => MigrationStrategy(
         onUpgrade: (m, from, to) async {
           await customStatement("PRAGMA foreign_keys = OFF");
-
+          Log.info("Migrating database from schema version $from to $to");
           await transaction(
             () async => m.runMigrationSteps(
               from: from,
@@ -112,13 +114,15 @@ class Database extends _$Database {
 
   static QueryExecutor _openConnection() {
     final db = driftDatabase(
-        name: "crossonic_database",
-        native: const DriftNativeOptions(
-          databaseDirectory: getApplicationSupportDirectory,
-        ),
-        web: DriftWebOptions(
-            sqlite3Wasm: Uri.parse("sqlite3.wasm"),
-            driftWorker: Uri.parse("drift_worker.dart.js")));
+      name: "crossonic_database",
+      native: const DriftNativeOptions(
+        databaseDirectory: getApplicationSupportDirectory,
+      ),
+      web: DriftWebOptions(
+        sqlite3Wasm: Uri.parse("sqlite3.wasm"),
+        driftWorker: Uri.parse("drift_worker.dart.js"),
+      ),
+    ).interceptWith(LogInterceptor());
     return db;
   }
 }

@@ -3,12 +3,14 @@ import 'dart:collection';
 import 'dart:io' as io;
 
 import 'package:crossonic/data/repositories/cover/cover_repository.dart';
+import 'package:crossonic/data/repositories/cover/not_found_response.dart';
 import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/data/repositories/subsonic/subsonic_repository.dart';
 import 'package:crossonic/data/services/database/database.dart';
 import 'package:drift/drift.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:http/http.dart' as http;
+import 'package:image/image.dart';
 import 'package:rxdart/rxdart.dart';
 
 class WebHelper {
@@ -81,15 +83,65 @@ class WebHelper {
   ///Download the file from the url
   Stream<FileResponse> _updateFile(String coverId, int size) async* {
     DateTime? lastDownload;
-    if (!await _coverRepo.cacheFileExists(coverId, size)) {
+    if (await _coverRepo.cacheFileExists(coverId, size)) {
       final cacheObj = await _db.managers.coverCacheTable
           .filter((f) => f.coverId(coverId) & f.size(size))
           .getSingleOrNull();
       lastDownload = cacheObj?.downloadTime;
+    } else {
+      final largerCacheObj = await _db.managers.coverCacheTable
+          .filter((f) => f.coverId(coverId) & f.size.isBiggerThan(size))
+          .orderBy((o) => o.size.asc())
+          .limit(1)
+          .getSingleOrNull();
+      if (largerCacheObj != null) {
+        final response = await _resizeExistingCover(largerCacheObj.coverId,
+            largerCacheObj.size, largerCacheObj.validTill, size);
+        if (response != null) {
+          yield response;
+          if (largerCacheObj.validTill.isAfter(DateTime.now())) {
+            return;
+          }
+        }
+      }
     }
     final uri = _subsonic.getCoverUri(coverId, size: size);
     final response = await _download(uri, lastDownload: lastDownload);
     yield* _manageResponse(coverId, size, uri, response);
+  }
+
+  Future<FileResponse?> _resizeExistingCover(
+      String coverId, int size, DateTime validTill, int targetSize) async {
+    if (!await _coverRepo.cacheFileExists(coverId, size)) {
+      return null;
+    }
+    final file = await _coverRepo.cacheFile(coverId, size);
+    final fileContent = await file.readAsBytes();
+    Decoder? decoder = findDecoderForData(fileContent);
+    if (decoder == null) {
+      Log.warn(
+          "Failed to determine decoder to downsize existing cover image: ${file.path}");
+      return null;
+    }
+    Image? image = decoder.decode(fileContent);
+    if (image == null) {
+      Log.warn("Failed to decode existing cover image: ${file.path}");
+      return null;
+    }
+    Image newImage;
+    if (image.width > image.height) {
+      newImage = resize(image,
+          height: targetSize,
+          width: targetSize * (image.width / image.height).round());
+    } else {
+      newImage = resize(image,
+          width: targetSize,
+          height: targetSize * (image.height / image.width).round());
+    }
+    var newFile = await _coverRepo.cacheFile(coverId, targetSize);
+    newFile = await newFile.writeAsBytes(encodeJpg(newImage, quality: 85));
+    return FileInfo(newFile, FileSource.Cache, validTill,
+        CoverRepository.getKey(coverId, targetSize));
   }
 
   Future<FileServiceResponse> _download(
@@ -106,6 +158,10 @@ class WebHelper {
     final req = http.Request("GET", uri);
     req.headers.addAll(headers);
     final httpResponse = await _http.send(req);
+    if (httpResponse.headers["content-type"]?.startsWith("application/") ??
+        true) {
+      return NotFoundResponse();
+    }
     return HttpGetResponse(httpResponse);
   }
 
@@ -201,9 +257,11 @@ class WebHelper {
     }
     await receivedBytesResultController.close();
     if (success) {
-      await _db.managers.coverCacheTable.update((o) => o(
-          fileFullyWritten: const Value(true),
-          fileSizeKB: Value((receivedBytes / 1000).floor())));
+      await _db.managers.coverCacheTable
+          .filter((f) => f.coverId(coverId) & f.size(size))
+          .update((o) => o(
+              fileFullyWritten: const Value(true),
+              fileSizeKB: Value((receivedBytes / 1000).floor())));
     }
   }
 }

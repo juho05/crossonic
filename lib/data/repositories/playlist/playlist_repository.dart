@@ -93,7 +93,20 @@ class PlaylistRepository extends ChangeNotifier {
         _songDownloader.update(true);
         notifyListeners();
         if (!download) {
+          _coverRepository.ensureCleanupScheduled();
           Timer(const Duration(seconds: 10), () => _songDownloader.update());
+        } else {
+          final playlistCover = await (_db.selectOnly(_db.playlistTable)
+                ..addColumns([_db.playlistTable.coverArt])
+                ..where(_db.playlistTable.id.equals(id)))
+              .map((p) => p.read(_db.playlistTable.coverArt))
+              .getSingleOrNull();
+          _coverRepository.downloadCovers([playlistCover]);
+          final songs = await _db.managers.playlistSongTable
+              .filter((f) => f.playlistId.id(id) & f.coverId.isNotNull())
+              .map((p) => p.coverId)
+              .get();
+          _coverRepository.downloadCovers(songs);
         }
       }
       return const Result.ok(null);
@@ -271,6 +284,12 @@ class PlaylistRepository extends ChangeNotifier {
     _playlistIdsNeedUpdate.add(id);
     final result = await _requestQueue.run(() => _subsonic
         .updatePlaylist(_auth.con, id, songIdToAdd: songs.map((s) => s.id)));
+    final downloaded = await _db.managers.playlistTable
+        .filter((f) => f.id(id) & f.download.isTrue() & f.coverArt.isNotNull())
+        .exists();
+    if (downloaded) {
+      _coverRepository.downloadCovers(songs.map((s) => s.coverId));
+    }
     return result;
   }
 
@@ -586,6 +605,7 @@ class PlaylistRepository extends ChangeNotifier {
               (i) => o(
                 playlistId: p.id,
                 songId: songs[i].id,
+                coverId: Value(songs[i].coverArt),
                 childModelJson: jsonEncode(songs[i]),
                 index: i,
               ),
@@ -594,11 +614,52 @@ class PlaylistRepository extends ChangeNotifier {
         }));
       });
 
+      _downloadCovers();
+
       notifyListeners();
       return const Result.ok(null);
     } on Exception catch (e) {
       return Result.error(e);
     }
+  }
+
+  Future<void> _downloadCovers() async {
+    final playlistCovers = await (_db.selectOnly(_db.playlistTable)
+          ..addColumns([_db.playlistTable.coverArt])
+          ..join([
+            leftOuterJoin(
+                _db.coverCacheTable,
+                _db.coverCacheTable.coverId
+                        .equalsExp(_db.playlistTable.coverArt) &
+                    _db.coverCacheTable.size.equals(1024))
+          ])
+          ..where(_db.playlistTable.download &
+              _db.playlistTable.coverArt.isNotNull() &
+              _db.coverCacheTable.coverId.isNull()))
+        .map((p) => p.read(_db.playlistTable.coverArt))
+        .get();
+    await _coverRepository.downloadCovers(playlistCovers);
+
+    final downloadCoverIdsQuery = _db.selectOnly(_db.playlistSongTable,
+        distinct: true)
+      ..addColumns([_db.playlistSongTable.coverId]);
+    downloadCoverIdsQuery.join([
+      innerJoin(_db.playlistTable,
+          _db.playlistTable.id.equalsExp(_db.playlistSongTable.playlistId)),
+      leftOuterJoin(
+          _db.coverCacheTable,
+          _db.coverCacheTable.coverId.equalsExp(_db.playlistSongTable.coverId) &
+              _db.coverCacheTable.size.equals(1024))
+    ]);
+    downloadCoverIdsQuery.where(
+      _db.playlistSongTable.coverId.isNotNull() &
+          _db.playlistTable.download &
+          _db.coverCacheTable.coverId.isNull(),
+    );
+    final downloadCoverIds = await downloadCoverIdsQuery
+        .map((row) => row.read(_db.playlistSongTable.coverId))
+        .get();
+    await _coverRepository.downloadCovers(downloadCoverIds);
   }
 
   Future<Result<List<ChildModel>>> _loadPlaylistSongs(String playlistId) async {
@@ -628,7 +689,6 @@ class PlaylistRepository extends ChangeNotifier {
       evict(coverId, 256),
       evict(coverId, 512),
       evict(coverId, 1024),
-      evict(coverId, 2048),
     ]);
   }
 
