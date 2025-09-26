@@ -38,18 +38,6 @@ class SongListSliver extends StatelessWidget {
       return const SliverToBoxAdapter(
           child: Center(child: Text("No songs found")));
     }
-    if (fetchStatus == FetchStatus.failure) {
-      const SliverToBoxAdapter(
-        child: Center(
-          child: Icon(Icons.wifi_off),
-        ),
-      );
-    }
-    if (fetchStatus == FetchStatus.loading) {
-      return const SliverToBoxAdapter(
-        child: Center(child: CircularProgressIndicator.adaptive()),
-      );
-    }
     return Provider(
       create: (context) =>
           SongListSliverViewModel(audioHandler: context.read()),
@@ -63,9 +51,23 @@ class SongListSliver extends StatelessWidget {
                 .length
             : 1;
         return SliverFixedExtentList.builder(
-          itemCount: songs.length,
+          itemCount: (fetchStatus != null && fetchStatus != FetchStatus.success
+                  ? 1
+                  : 0) +
+              songs.length,
           itemExtent: ClickableListItem.verticalExtent,
           itemBuilder: (context, index) {
+            if (index == songs.length) {
+              return switch (fetchStatus) {
+                FetchStatus.success => null,
+                FetchStatus.failure => const Center(
+                    child: Icon(Icons.wifi_off),
+                  ),
+                _ => const Center(
+                    child: CircularProgressIndicator.adaptive(),
+                  ),
+              };
+            }
             final s = songs[index];
             return SongListItem(
               song: s,
