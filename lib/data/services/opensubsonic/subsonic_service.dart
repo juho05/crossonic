@@ -85,10 +85,16 @@ class SubsonicService {
       if (response.statusCode != 200 && response.statusCode != 201) {
         return Result.error(ServerException(response.statusCode));
       }
+      final result = await _parseJsonResponse(response, null);
+      switch (result) {
+        case Err():
+          return Result.error(result.error);
+        case Ok():
+          return const Result.ok(null);
+      }
     } catch (e) {
       return Result.error(ConnectionException());
     }
-    return const Result.ok(null);
   }
 
   Future<Result<PlaylistsModel>> getPlaylists(Connection con) async {
@@ -571,49 +577,52 @@ class SubsonicService {
           return Result.error(result.error);
         case Ok<http.Response>():
       }
-      final response = result.value;
-      final json =
-          response.headers["content-type"]?.contains("charset") ?? false
-              ? response.body
-              : utf8.decode(response.bodyBytes);
-      Map<String, dynamic> body = jsonDecode(json);
-      if (!body.containsKey("subsonic-response")) {
-        return const Result.error(
-            UnexpectedResponseException("subsonic-response object missing"));
-      }
-      final res = body["subsonic-response"] as Map<String, dynamic>;
-      if (!res.containsKey("status")) {
-        return const Result.error(
-            UnexpectedResponseException("status field missing"));
-      }
-      if (res["status"] != "ok") {
-        if (!res.containsKey("error")) {
-          return const Result.error(
-              UnexpectedResponseException("status not ok (no error message)"));
-        }
-        final error = res["error"] as Map<String, dynamic>;
-        final code = error["code"] as int;
-        final message =
-            error.containsKey("message") ? error["message"] as String : null;
-        if (code == SubsonicErrorCode.incorrectCredentials.code ||
-            code == SubsonicErrorCode.invalidAPIKey.code) {
-          return Result.error(UnauthenticatedException());
-        } else {
-          return Result.error(SubsonicException(
-              SubsonicErrorCode.fromCode(code), message ?? "no error message"));
-        }
-      }
-      if (responseKey != null) {
-        if (!res.containsKey(responseKey)) {
-          return Result.error(UnexpectedResponseException(
-              "response does not contain expected field: $responseKey"));
-        }
-        return Result.ok(res[responseKey]);
-      }
-      return const Result.ok(null);
+      return _parseJsonResponse(result.value, responseKey);
     } catch (e) {
       return Result.error(UnexpectedResponseException(e.toString()));
     }
+  }
+
+  Future<Result<dynamic>> _parseJsonResponse(
+      http.Response response, String? responseKey) async {
+    final json = response.headers["content-type"]?.contains("charset") ?? false
+        ? response.body
+        : utf8.decode(response.bodyBytes);
+    Map<String, dynamic> body = jsonDecode(json);
+    if (!body.containsKey("subsonic-response")) {
+      return const Result.error(
+          UnexpectedResponseException("subsonic-response object missing"));
+    }
+    final res = body["subsonic-response"] as Map<String, dynamic>;
+    if (!res.containsKey("status")) {
+      return const Result.error(
+          UnexpectedResponseException("status field missing"));
+    }
+    if (res["status"] != "ok") {
+      if (!res.containsKey("error")) {
+        return const Result.error(
+            UnexpectedResponseException("status not ok (no error message)"));
+      }
+      final error = res["error"] as Map<String, dynamic>;
+      final code = error["code"] as int;
+      final message =
+          error.containsKey("message") ? error["message"] as String : null;
+      if (code == SubsonicErrorCode.incorrectCredentials.code ||
+          code == SubsonicErrorCode.invalidAPIKey.code) {
+        return Result.error(UnauthenticatedException());
+      } else {
+        return Result.error(SubsonicException(
+            SubsonicErrorCode.fromCode(code), message ?? "no error message"));
+      }
+    }
+    if (responseKey != null) {
+      if (!res.containsKey(responseKey)) {
+        return Result.error(UnexpectedResponseException(
+            "response does not contain expected field: $responseKey"));
+      }
+      return Result.ok(res[responseKey]);
+    }
+    return const Result.ok(null);
   }
 
   Future<Result<http.Response>> _request(

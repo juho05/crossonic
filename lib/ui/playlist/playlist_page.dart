@@ -1,5 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:crossonic/data/repositories/playlist/song_downloader.dart';
+import 'package:crossonic/data/services/opensubsonic/exceptions.dart';
 import 'package:crossonic/routing/router.gr.dart';
 import 'package:crossonic/ui/common/clickable_list_item.dart';
 import 'package:crossonic/ui/common/collection_page.dart';
@@ -260,11 +261,20 @@ class _PlaylistPageState extends State<PlaylistPage> {
                         onSelected: () async {
                           final result = await _viewModel.changeCover();
                           if (!context.mounted) return;
-                          if (result is ImageTooLargeException) {
-                            Toast.show(
-                                context, "Image too large: max 15 MB allowed");
-                          } else {
-                            toastResult(context, result);
+                          switch (result) {
+                            case Err():
+                              if (result.error is ImageTooLargeException) {
+                                Toast.show(context,
+                                    "Image too large: max 15 MB allowed");
+                                return;
+                              }
+                              if (result.error is SubsonicException) {
+                                Toast.show(context,
+                                    "Failed to change cover: ${(result.error as SubsonicException).message}");
+                                return;
+                              }
+                              toastResult(context, result);
+                            case Ok():
                           }
                         },
                       ),

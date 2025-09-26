@@ -677,6 +677,11 @@ class PlaylistRepository extends ChangeNotifier {
   Future<void> _evictCoverFromCache(String? coverId) async {
     if (coverId == null) return;
     Future<void> evict(String id, int resolution) async {
+      if (kIsWeb) {
+        await CachedNetworkImage.evictFromCache(
+            _subsonic.getCoverUri(_auth.con, id, size: resolution).toString());
+        return;
+      }
       await CachedNetworkImage.evictFromCache(
         CoverRepository.getKey(id, resolution),
         cacheManager: _coverRepository,

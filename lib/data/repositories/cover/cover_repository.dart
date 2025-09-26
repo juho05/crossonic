@@ -36,6 +36,7 @@ class CoverRepository extends BaseCacheManager {
       db: database,
       coverRepo: this,
     );
+    if (kIsWeb) return;
     _auth.addListener(_onAuthChanged);
     _onAuthChanged();
     _cleanup();
@@ -43,6 +44,7 @@ class CoverRepository extends BaseCacheManager {
   }
 
   Future<void> downloadCovers(Iterable<String?> coverIds) async {
+    if (kIsWeb) return;
     coverIds = coverIds.where((id) => id != null);
     if (coverIds.isEmpty) return;
     await Future.wait(
@@ -70,6 +72,7 @@ class CoverRepository extends BaseCacheManager {
 
   @override
   Future<void> emptyCache() async {
+    if (kIsWeb) return;
     _cleanupTimer?.cancel();
     _cleanupTimer = null;
     await _db.managers.coverCacheTable.delete();
@@ -177,6 +180,7 @@ class CoverRepository extends BaseCacheManager {
   }
 
   Future<void> invalidateCover(String coverId) async {
+    if (kIsWeb) return;
     await _db.managers.coverCacheTable
         .filter((f) => f.coverId(coverId))
         .delete();
@@ -279,6 +283,7 @@ class CoverRepository extends BaseCacheManager {
   Future<void> _cleanup() async {
     _cleanupTimer?.cancel();
     _cleanupTimer = null;
+    if (kIsWeb) return;
     Log.trace("Cleaning cover cache...");
     final startTime = DateTime.now();
     // delete old unfinished files
@@ -365,7 +370,7 @@ class CoverRepository extends BaseCacheManager {
   }
 
   void ensureCleanupScheduled() {
-    if (_cleanupTimer != null) return;
+    if (_cleanupTimer != null || kIsWeb) return;
     Log.debug("Scheduling cover cache cleanup in 15 min.");
     _cleanupTimer = Timer(const Duration(minutes: 15), () => _cleanup());
   }
@@ -415,6 +420,7 @@ class CoverRepository extends BaseCacheManager {
   // removes the cover cache file that was used in <=v0.0.9
   // TODO remove in next version
   Future<void> _deleteOldCacheFile() async {
+    if (kIsWeb) return;
     final file = io.File(path.join(
         (await getApplicationSupportDirectory()).path,
         "crossonic_cover_cache.json"));

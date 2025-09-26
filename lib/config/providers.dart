@@ -138,7 +138,7 @@ Future<List<SingleChildWidget>> createProviders({
         androidStopForegroundOnPause: androidBackgroundAvailable,
         androidNotificationChannelDescription: "Playback notification",
       ),
-      cacheManager: coverRepository,
+      cacheManager: kIsWeb ? null : coverRepository,
     );
     mediaIntegration = audioService;
   }
