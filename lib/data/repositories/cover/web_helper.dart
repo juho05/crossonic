@@ -163,9 +163,11 @@ class WebHelper {
     final req = http.Request("GET", uri);
     req.headers.addAll(headers);
     final httpResponse = await _http.send(req);
-    if (httpResponse.headers["content-type"]?.startsWith("application/") ??
-        true) {
-      return NotFoundResponse();
+    if (statusCodesNewFile.contains(httpResponse.statusCode)) {
+      if (httpResponse.headers["content-type"]?.startsWith("application/") ??
+          false) {
+        return NotFoundResponse();
+      }
     }
     return HttpGetResponse(httpResponse);
   }
