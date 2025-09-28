@@ -76,6 +76,12 @@ class AppRouter extends RootStackRouter {
       title: (context, data) => "Years",
       restorationId: (match) => match.fullPath,
     ),
+    AutoRoute(
+      path: "bpm",
+      page: BpmRoute.page,
+      title: (context, data) => "BPM",
+      restorationId: (match) => match.fullPath,
+    ),
   ];
 
   @override

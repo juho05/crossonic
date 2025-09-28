@@ -24,6 +24,8 @@ class ServerSupport {
       _features.isMinCrossonicVersion(const Version(major: 0, minor: 3));
   bool get listenBrainzSettings =>
       _features.isMinCrossonicVersion(const Version(major: 0, minor: 3));
+  bool get getSongs =>
+      _features.isMinCrossonicVersion(const Version(major: 0, minor: 3));
 
   bool get scanType =>
       _features.isMinCrossonicVersion(const Version(major: 0, minor: 2)) ||

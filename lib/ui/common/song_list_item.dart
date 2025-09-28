@@ -24,6 +24,7 @@ class SongListItem extends StatefulWidget {
   final bool showArtist;
   final bool showAlbum;
   final bool showYear;
+  final bool showBpm;
   final bool showTrackNr;
   final int fallbackTrackNr;
   final int trackDigits;
@@ -49,6 +50,7 @@ class SongListItem extends StatefulWidget {
     this.showArtist = true,
     this.showAlbum = false,
     this.showYear = true,
+    this.showBpm = false,
     this.showTrackNr = false,
     this.fallbackTrackNr = 0,
     this.trackDigits = 2,
@@ -107,6 +109,8 @@ class _SongListItemState extends State<SongListItem> {
                 if (widget.showArtist) s.displayArtist,
                 if (widget.showAlbum) s.album?.name ?? "Unknown album",
                 if (widget.showYear) s.year?.toString() ?? "Unknown year",
+                if (widget.showBpm)
+                  s.bpm != null ? "${s.bpm} BPM" : "Unknown bpm",
               ],
               leading: SongLeadingWidget(
                 viewModel: viewModel,

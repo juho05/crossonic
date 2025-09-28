@@ -14,6 +14,7 @@ class Song {
   final Iterable<String> genres;
   final Duration? duration;
   final int? year;
+  final int? bpm;
   final int? trackNr;
   final int? discNr;
   final double? trackGain;
@@ -30,6 +31,7 @@ class Song {
     required this.genres,
     required this.duration,
     required this.year,
+    required this.bpm,
     required this.trackNr,
     required this.discNr,
     required this.trackGain,
@@ -63,6 +65,7 @@ class Song {
       duration:
           child.duration != null ? Duration(seconds: child.duration!) : null,
       year: child.year,
+      bpm: child.bpm,
       trackNr: child.track,
       discNr: child.discNumber,
       trackGain: child.replayGain?.trackGain,

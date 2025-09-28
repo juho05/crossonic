@@ -104,6 +104,49 @@ class SubsonicRepository {
     return Result.ok(result.value.album.map((a) => Album.fromAlbumID3Model(a)));
   }
 
+  Future<Result<List<Song>>> getSongs({
+    String? search,
+    bool onlyFavorites = false,
+    int? minBpm,
+    int? maxBpm,
+    int? fromYear,
+    int? toYear,
+    List<String> genres = const [],
+    List<String> artistIds = const [],
+    List<String> albumIds = const [],
+    SongsSortMode? sort,
+    bool orderDesc = false,
+    String? seed,
+    int? count,
+    int? offset,
+  }) async {
+    final result = await _service.getSongs(
+      _auth.con,
+      search: search,
+      starred: onlyFavorites,
+      minBpm: minBpm,
+      maxBpm: maxBpm,
+      fromYear: fromYear,
+      toYear: toYear,
+      genres: genres,
+      artistIds: artistIds,
+      albumIds: albumIds,
+      orderBy: sort,
+      orderDesc: orderDesc,
+      seed: seed,
+      count: count,
+      offset: offset,
+    );
+    switch (result) {
+      case Err():
+        return Result.error(result.error);
+      case Ok():
+    }
+    _updateSongFavorites(result.value.song);
+    return Result.ok(
+        (result.value.song ?? []).map((c) => Song.fromChildModel(c)).toList());
+  }
+
   Future<Result<List<Song>>> getSongsByGenre(
     String genre, {
     int? count,

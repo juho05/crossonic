@@ -30,8 +30,9 @@ class BrowseViewModel extends ChangeNotifier {
     required SubsonicRepository subsonicRepository,
   }) : _subsonic = subsonicRepository;
 
-  Future<void> updateSearchText(String search,
-      {bool disableDebounce = false}) async {
+  bool get supportBPM => _subsonic.supports.getSongs;
+
+  Future<void> updateSearchText(String search) async {
     _songs = [];
     _albums = [];
     _artists = [];

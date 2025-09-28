@@ -12,6 +12,7 @@ class SongListSliver extends StatelessWidget {
   final bool showArtist;
   final bool showAlbum;
   final bool showYear;
+  final bool showBpm;
   final bool showTrackNr;
   final bool showDuration;
   final bool disableGoToAlbum;
@@ -26,6 +27,7 @@ class SongListSliver extends StatelessWidget {
     this.showArtist = true,
     this.showAlbum = false,
     this.showYear = true,
+    this.showBpm = false,
     this.showTrackNr = false,
     this.showDuration = true,
     this.disableGoToAlbum = false,
@@ -74,6 +76,7 @@ class SongListSliver extends StatelessWidget {
               showArtist: showArtist,
               showAlbum: showAlbum,
               showYear: showYear,
+              showBpm: showBpm,
               showTrackNr: showTrackNr,
               fallbackTrackNr: index + 1,
               trackDigits: trackDigits,

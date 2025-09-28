@@ -22,7 +22,7 @@ import 'package:crossonic/data/services/opensubsonic/models/random_songs_model.d
 import 'package:crossonic/data/services/opensubsonic/models/scan_status_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/search_result3_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/server_info.dart';
-import 'package:crossonic/data/services/opensubsonic/models/songs_by_genre_model.dart';
+import 'package:crossonic/data/services/opensubsonic/models/songs_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/starred2_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/token_info_model.dart';
 import 'package:crossonic/utils/exceptions.dart';
@@ -41,6 +41,17 @@ enum AlbumListType {
   starred,
   byYear,
   byGenre,
+}
+
+enum SongsSortMode {
+  title,
+  random,
+  release,
+  added,
+  lastPlayed,
+  playCount,
+  starred,
+  bpm,
 }
 
 class SubsonicService {
@@ -161,7 +172,48 @@ class SubsonicService {
     );
   }
 
-  Future<Result<SongsByGenreModel>> getSongsByGenre(
+  Future<Result<SongsModel>> getSongs(
+    Connection con, {
+    String? search,
+    bool starred = false,
+    int? minBpm,
+    int? maxBpm,
+    int? fromYear,
+    int? toYear,
+    List<String> genres = const [],
+    List<String> artistIds = const [],
+    List<String> albumIds = const [],
+    SongsSortMode? orderBy,
+    bool orderDesc = false,
+    String? seed,
+    int? count,
+    int? offset,
+  }) async {
+    return await _fetchObject(
+      con,
+      "crossonic/getSongs",
+      {
+        if (search != null) "search": [search],
+        if (starred) "starred": [starred.toString()],
+        if (minBpm != null) "minBpm": [minBpm.toString()],
+        if (maxBpm != null) "maxBpm": [maxBpm.toString()],
+        if (fromYear != null) "fromYear": [fromYear.toString()],
+        if (toYear != null) "toYear": [toYear.toString()],
+        "genre": genres,
+        "artistId": artistIds,
+        "albumId": albumIds,
+        if (orderBy != null) "orderBy": [orderBy.name],
+        if (orderDesc) "orderByDesc": [orderDesc.toString()],
+        if (seed != null) "seed": [seed],
+        if (count != null) "count": [count.toString()],
+        if (offset != null) "offset": [offset.toString()],
+      },
+      SongsModel.fromJson,
+      "songs",
+    );
+  }
+
+  Future<Result<SongsModel>> getSongsByGenre(
     Connection con,
     String genre, {
     int? count,
@@ -175,7 +227,7 @@ class SubsonicService {
           "count": count != null ? [count.toString()] : [],
           "offset": offset != null ? [offset.toString()] : [],
         },
-        SongsByGenreModel.fromJson,
+        SongsModel.fromJson,
         "songsByGenre");
   }
 

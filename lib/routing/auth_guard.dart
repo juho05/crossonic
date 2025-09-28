@@ -19,7 +19,7 @@ class AuthGuard extends AutoRouteGuard {
       return;
     }
     if (resolver.routeName == ConnectServerRoute.name) {
-      resolver.next(!_authRepository.hasServer);
+      resolver.nextOrBack(!_authRepository.hasServer);
       return;
     }
     if (!_authRepository.hasServer) {
@@ -29,7 +29,7 @@ class AuthGuard extends AutoRouteGuard {
     }
 
     if (resolver.routeName == LoginRoute.name) {
-      resolver.next(!_authRepository.isAuthenticated);
+      resolver.nextOrBack(!_authRepository.isAuthenticated);
       return;
     }
 

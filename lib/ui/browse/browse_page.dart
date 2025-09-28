@@ -92,6 +92,12 @@ class _BrowsePageState extends State<BrowsePage> {
                             text: "Years",
                             route: YearsRoute(),
                           ),
+                          if (_viewModel.supportBPM)
+                            const BrowseGridButton(
+                              icon: Icons.speed,
+                              text: "BPM",
+                              route: BpmRoute(),
+                            ),
                         ],
                       ),
                     ),
