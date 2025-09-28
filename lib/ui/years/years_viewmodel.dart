@@ -13,7 +13,7 @@ class YearsViewModel extends ChangeNotifier {
     _toYear += year - _fromYear;
     _fromYear = year;
     _status = FetchStatus.initial;
-    _fetch(0);
+    refresh();
   }
 
   int _toYear;
@@ -21,7 +21,7 @@ class YearsViewModel extends ChangeNotifier {
   set toYear(int year) {
     _toYear = year;
     _status = FetchStatus.initial;
-    _fetch(0);
+    refresh();
   }
 
   YearsViewModel({required SubsonicRepository subsonic})
@@ -42,6 +42,10 @@ class YearsViewModel extends ChangeNotifier {
   Future<void> nextPage() async {
     if (_reachedEnd) return;
     return await _fetch(_nextPage);
+  }
+
+  Future<void> refresh() async {
+    return await _fetch(0);
   }
 
   Future<void> _fetch(int page) async {

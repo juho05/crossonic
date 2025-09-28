@@ -26,7 +26,7 @@ class AlbumsViewModel extends ChangeNotifier {
       throw Exception("genre mode can only be set via constructor");
     }
     _mode = mode;
-    _fetch(0);
+    refresh();
   }
 
   final List<Album> albums = [];
@@ -64,6 +64,10 @@ class AlbumsViewModel extends ChangeNotifier {
   Future<void> nextPage() async {
     if (_reachedEnd || _mode == AlbumsPageMode.random) return;
     return await _fetch(_nextPage);
+  }
+
+  Future<void> refresh() async {
+    return await _fetch(0);
   }
 
   Future<void> _fetch(int page) async {

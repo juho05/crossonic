@@ -67,7 +67,7 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
                 initialSelection: _viewModel.sort,
                 requestFocusOnTap: false,
                 leadingIcon: const Icon(Icons.sort),
-                width: isDesktop ? 200 : null,
+                width: isDesktop ? 210 : null,
                 expandedInsets: !isDesktop ? EdgeInsets.zero : null,
                 enableSearch: false,
                 dropdownMenuEntries: [

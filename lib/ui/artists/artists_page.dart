@@ -45,81 +45,95 @@ class _ArtistsPageState extends State<ArtistsPage> {
       child: ListenableBuilder(
           listenable: _viewModel,
           builder: (context, _) {
-            return CustomScrollView(
-              slivers: [
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Align(
-                      alignment: Alignment.centerLeft,
+            return RefreshIndicator.adaptive(
+              onRefresh: () => _viewModel.load(),
+              child: CustomScrollView(
+                slivers: [
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
                       child: LayoutModeBuilder(builder: (context, isDesktop) {
-                        return DropdownMenu<ArtistsPageMode>(
-                          initialSelection: _viewModel.mode,
-                          requestFocusOnTap: false,
-                          leadingIcon: const Icon(Icons.sort),
-                          width: isDesktop ? 200 : null,
-                          expandedInsets: !isDesktop ? EdgeInsets.zero : null,
-                          enableSearch: false,
-                          dropdownMenuEntries: [
-                            const DropdownMenuEntry(
-                              value: ArtistsPageMode.alphabetical,
-                              label: "Alphabetical",
+                        return Row(
+                          spacing: 8,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: DropdownMenu<ArtistsPageMode>(
+                                initialSelection: _viewModel.mode,
+                                requestFocusOnTap: false,
+                                leadingIcon: const Icon(Icons.sort),
+                                width: isDesktop ? 210 : null,
+                                expandedInsets:
+                                    !isDesktop ? EdgeInsets.zero : null,
+                                enableSearch: false,
+                                dropdownMenuEntries: [
+                                  const DropdownMenuEntry(
+                                    value: ArtistsPageMode.alphabetical,
+                                    label: "Alphabetical",
+                                  ),
+                                  const DropdownMenuEntry(
+                                    value: ArtistsPageMode.favorites,
+                                    label: "Favorites",
+                                  ),
+                                  const DropdownMenuEntry(
+                                    value: ArtistsPageMode.random,
+                                    label: "Random",
+                                  )
+                                ],
+                                onSelected: (ArtistsPageMode? sortMode) {
+                                  if (sortMode == null) return;
+                                  _viewModel.mode = sortMode;
+                                },
+                              ),
                             ),
-                            const DropdownMenuEntry(
-                              value: ArtistsPageMode.favorites,
-                              label: "Favorites",
-                            ),
-                            const DropdownMenuEntry(
-                              value: ArtistsPageMode.random,
-                              label: "Random",
-                            )
+                            if (isDesktop)
+                              IconButton(
+                                onPressed: () => _viewModel.load(),
+                                icon: const Icon(Icons.refresh),
+                              )
                           ],
-                          onSelected: (ArtistsPageMode? sortMode) {
-                            if (sortMode == null) return;
-                            _viewModel.mode = sortMode;
-                          },
                         );
                       }),
                     ),
                   ),
-                ),
-                if (_viewModel.status == FetchStatus.success &&
-                    _viewModel.artists.isEmpty)
-                  const SliverToBoxAdapter(
-                      child: Center(child: Text("No artists found"))),
-                SliverPadding(
-                  padding: const EdgeInsetsGeometry.all(4),
-                  sliver: SliverGrid(
-                    gridDelegate: AlbumsGridDelegate(),
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                        if (index > _viewModel.artists.length) {
-                          return null;
-                        }
-                        if (index == _viewModel.artists.length) {
-                          return switch (_viewModel.status) {
-                            FetchStatus.success => null,
-                            FetchStatus.failure => const Center(
-                                child: Icon(Icons.wifi_off),
-                              ),
-                            _ => const Center(
-                                child: CircularProgressIndicator.adaptive(),
-                              ),
-                          };
-                        }
-                        final a = _viewModel.artists[index];
-                        return ArtistGridCell(
-                          artist: a,
-                          key: ValueKey(a.id),
-                        );
-                      },
-                      childCount:
-                          (_viewModel.status == FetchStatus.success ? 0 : 1) +
-                              _viewModel.artists.length,
+                  if (_viewModel.status == FetchStatus.success &&
+                      _viewModel.artists.isEmpty)
+                    const SliverToBoxAdapter(
+                        child: Center(child: Text("No artists found"))),
+                  SliverPadding(
+                    padding: const EdgeInsetsGeometry.all(4),
+                    sliver: SliverGrid(
+                      gridDelegate: AlbumsGridDelegate(),
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          if (index > _viewModel.artists.length) {
+                            return null;
+                          }
+                          if (index == _viewModel.artists.length) {
+                            return switch (_viewModel.status) {
+                              FetchStatus.success => null,
+                              FetchStatus.failure => const Center(
+                                  child: Icon(Icons.wifi_off),
+                                ),
+                              _ => const Center(
+                                  child: CircularProgressIndicator.adaptive(),
+                                ),
+                            };
+                          }
+                          final a = _viewModel.artists[index];
+                          return ArtistGridCell(
+                            artist: a,
+                            key: ValueKey(a.id),
+                          );
+                        },
+                        childCount:
+                            (_viewModel.status == FetchStatus.success ? 0 : 1) +
+                                _viewModel.artists.length,
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             );
           }),
     );

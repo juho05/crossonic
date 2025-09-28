@@ -64,116 +64,147 @@ class _SongsPageState extends State<SongsPage> {
       child: ListenableBuilder(
           listenable: _viewModel,
           builder: (context, _) {
-            return CustomScrollView(
-              controller: _controller,
-              slivers: [
-                if (_viewModel.mode == SongsPageMode.genre)
-                  SliverPadding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    sliver: SliverToBoxAdapter(
-                      child: Text(
-                        "Genre: ${widget.genre}",
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.labelLarge!.copyWith(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                            ),
-                      ),
-                    ),
-                  ),
-                if (_viewModel.mode != SongsPageMode.genre)
-                  SliverPadding(
-                    padding: const EdgeInsets.all(8.0),
-                    sliver: SliverToBoxAdapter(
-                      child: Align(
-                        alignment: Alignment.centerLeft,
-                        child: LayoutModeBuilder(builder: (context, isDesktop) {
-                          return DropdownMenu<SongsPageMode>(
-                            initialSelection: _viewModel.mode,
-                            requestFocusOnTap: false,
-                            leadingIcon: const Icon(Icons.sort),
-                            enableSearch: false,
-                            width: isDesktop ? 180 : null,
-                            expandedInsets: !isDesktop ? EdgeInsets.zero : null,
-                            dropdownMenuEntries: [
-                              if (_viewModel.supportsAllMode)
-                                const DropdownMenuEntry(
-                                  value: SongsPageMode.all,
-                                  label: "All",
+            return RefreshIndicator.adaptive(
+              onRefresh: () => _viewModel.refresh(),
+              child: LayoutModeBuilder(builder: (context, isDesktop) {
+                return CustomScrollView(
+                  controller: _controller,
+                  slivers: [
+                    if (_viewModel.mode == SongsPageMode.genre)
+                      SliverPadding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        sliver: SliverToBoxAdapter(
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  "Genre: ${widget.genre}",
+                                  overflow: TextOverflow.ellipsis,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .labelLarge!
+                                      .copyWith(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 18,
+                                      ),
                                 ),
-                              const DropdownMenuEntry(
-                                value: SongsPageMode.favorites,
-                                label: "Favorites",
                               ),
-                              const DropdownMenuEntry(
-                                value: SongsPageMode.random,
-                                label: "Random",
-                              ),
+                              if (isDesktop)
+                                IconButton(
+                                  onPressed: () => _viewModel.refresh(),
+                                  icon: const Icon(Icons.refresh),
+                                )
                             ],
-                            onSelected: (SongsPageMode? sortMode) {
-                              if (sortMode == null) return;
-                              _viewModel.mode = sortMode;
-                            },
-                          );
-                        }),
+                          ),
+                        ),
+                      ),
+                    if (_viewModel.mode != SongsPageMode.genre)
+                      SliverPadding(
+                        padding: const EdgeInsets.all(8.0),
+                        sliver: SliverToBoxAdapter(
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: Row(
+                              spacing: 8,
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: DropdownMenu<SongsPageMode>(
+                                    initialSelection: _viewModel.mode,
+                                    requestFocusOnTap: false,
+                                    leadingIcon: const Icon(Icons.sort),
+                                    enableSearch: false,
+                                    width: isDesktop ? 190 : null,
+                                    expandedInsets:
+                                        !isDesktop ? EdgeInsets.zero : null,
+                                    dropdownMenuEntries: [
+                                      if (_viewModel.supportsAllMode)
+                                        const DropdownMenuEntry(
+                                          value: SongsPageMode.all,
+                                          label: "All",
+                                        ),
+                                      const DropdownMenuEntry(
+                                        value: SongsPageMode.favorites,
+                                        label: "Favorites",
+                                      ),
+                                      const DropdownMenuEntry(
+                                        value: SongsPageMode.random,
+                                        label: "Random",
+                                      ),
+                                    ],
+                                    onSelected: (SongsPageMode? sortMode) {
+                                      if (sortMode == null) return;
+                                      _viewModel.mode = sortMode;
+                                    },
+                                  ),
+                                ),
+                                if (isDesktop)
+                                  IconButton(
+                                    onPressed: () => _viewModel.refresh(),
+                                    icon: const Icon(Icons.refresh),
+                                  )
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    SliverPadding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
+                      sliver: SliverToBoxAdapter(
+                        child: Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            Button(
+                              icon: Icons.play_arrow,
+                              onPressed: () {
+                                _viewModel.play();
+                              },
+                              child: const Text("Play"),
+                            ),
+                            Button(
+                              icon: Icons.shuffle,
+                              onPressed: () {
+                                _viewModel.shuffle();
+                              },
+                              child: const Text("Shuffle"),
+                            ),
+                            Button(
+                              icon: Icons.playlist_play,
+                              outlined: true,
+                              onPressed: () {
+                                _viewModel.addAllToQueue(true);
+                                Toast.show(
+                                    context, "Added songs to priority queue");
+                              },
+                              child: const Text("Prio. Queue"),
+                            ),
+                            Button(
+                              icon: Icons.playlist_add,
+                              outlined: true,
+                              onPressed: () {
+                                _viewModel.addAllToQueue(false);
+                                Toast.show(context, "Added songs to queue");
+                              },
+                              child: const Text("Queue"),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                SliverPadding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 10,
-                  ),
-                  sliver: SliverToBoxAdapter(
-                    child: Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        Button(
-                          icon: Icons.play_arrow,
-                          onPressed: () {
-                            _viewModel.play();
-                          },
-                          child: const Text("Play"),
-                        ),
-                        Button(
-                          icon: Icons.shuffle,
-                          onPressed: () {
-                            _viewModel.shuffle();
-                          },
-                          child: const Text("Shuffle"),
-                        ),
-                        Button(
-                          icon: Icons.playlist_play,
-                          outlined: true,
-                          onPressed: () {
-                            _viewModel.addAllToQueue(true);
-                            Toast.show(
-                                context, "Added songs to priority queue");
-                          },
-                          child: const Text("Prio. Queue"),
-                        ),
-                        Button(
-                          icon: Icons.playlist_add,
-                          outlined: true,
-                          onPressed: () {
-                            _viewModel.addAllToQueue(false);
-                            Toast.show(context, "Added songs to queue");
-                          },
-                          child: const Text("Queue"),
-                        ),
-                      ],
+                    SongListSliver(
+                      songs: _viewModel.songs,
+                      fetchStatus: _viewModel.status,
                     ),
-                  ),
-                ),
-                SongListSliver(
-                  songs: _viewModel.songs,
-                  fetchStatus: _viewModel.status,
-                ),
-              ],
+                  ],
+                );
+              }),
             );
           }),
     );

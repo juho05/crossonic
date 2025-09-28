@@ -30,7 +30,7 @@ class SongsViewModel extends ChangeNotifier {
       mode = SongsPageMode.random;
     }
     _mode = mode;
-    _fetch(0);
+    refresh();
   }
 
   final List<Song> songs = [];
@@ -75,6 +75,10 @@ class SongsViewModel extends ChangeNotifier {
       return;
     }
     return await _fetch(_nextPage);
+  }
+
+  Future<void> refresh() async {
+    return await _fetch(0);
   }
 
   void play() async {

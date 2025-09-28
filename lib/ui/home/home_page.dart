@@ -1,6 +1,5 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:crossonic/data/repositories/settings/home_page_layout.dart';
-import 'package:crossonic/data/repositories/settings/settings_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/subsonic_repository.dart';
 import 'package:crossonic/routing/router.gr.dart';
 import 'package:crossonic/ui/albums/albums_viewmodel.dart';
@@ -27,55 +26,63 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-        create: (context) => HomeViewModel(
-            settings: context.read<SettingsRepository>().homeLayout),
-        builder: (context, _) {
-          return Consumer<HomeViewModel>(builder: (context, viewModel, _) {
-            return Material(
-              child: viewModel.content.isNotEmpty
-                  ? CustomScrollView(
-                      slivers: viewModel.content
-                          .map((o) => SliverPadding(
-                                padding: const EdgeInsets.only(bottom: 4),
-                                sliver: _optionToWidget(o),
-                              ))
-                          .toList(),
-                    )
-                  : const Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(12),
-                        child: Text(
-                          "Visit Settings‑>Home Layout to configure the content of this page.",
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    ),
-            );
-          });
-        });
+    return Consumer<HomeViewModel>(builder: (context, viewModel, _) {
+      return Material(
+        child: viewModel.content.isNotEmpty
+            ? RefreshIndicator.adaptive(
+                onRefresh: () async {
+                  viewModel.refresh(true);
+                  await Future.delayed(const Duration(milliseconds: 500));
+                },
+                child: CustomScrollView(
+                  slivers: viewModel.content
+                      .map((o) => SliverPadding(
+                            padding: const EdgeInsets.only(bottom: 4),
+                            sliver: _optionToWidget(o, viewModel.refreshStream),
+                          ))
+                      .toList(),
+                ),
+              )
+            : const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(12),
+                  child: Text(
+                    "Visit Settings‑>Home Layout to configure the content of this page.",
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ),
+      );
+    });
   }
 
-  Widget _optionToWidget(HomeContentOption option) {
+  Widget _optionToWidget(HomeContentOption option, Stream refreshStream) {
     switch (option) {
-      case HomeContentOption.randomSongs:
       case HomeContentOption.favoriteSongs:
-        return _songsWidget(option);
+        return _songsWidget(option, refreshStream);
+      case HomeContentOption.randomSongs:
+        return _songsWidget(
+            option, refreshStream.where((refreshRandom) => refreshRandom));
       case HomeContentOption.recentlyAddedReleases:
-      case HomeContentOption.randomReleases:
       case HomeContentOption.favoriteReleases:
       case HomeContentOption.recentlyPlayedReleases:
       case HomeContentOption.frequentlyPlayedReleases:
-        return _releasesWidget(option);
-      case HomeContentOption.randomArtists:
+        return _releasesWidget(option, refreshStream);
+      case HomeContentOption.randomReleases:
+        return _releasesWidget(
+            option, refreshStream.where((refreshRandom) => refreshRandom));
       case HomeContentOption.favoriteArtists:
-        return _artistsWidget(option);
+        return _artistsWidget(option, refreshStream);
+      case HomeContentOption.randomArtists:
+        return _artistsWidget(
+            option, refreshStream.where((refreshRandom) => refreshRandom));
     }
   }
 
-  Widget _songsWidget(HomeContentOption option) {
+  Widget _songsWidget(HomeContentOption option, Stream? refreshStream) {
     return ChangeNotifierProvider(
       create: (context) => HomeSongListViewModel(
+        refreshStream: refreshStream,
         dataSource: switch (option) {
           HomeContentOption.randomSongs =>
             RandomSongsDataSource(repository: context.read()),
@@ -100,9 +107,10 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  Widget _releasesWidget(HomeContentOption option) {
+  Widget _releasesWidget(HomeContentOption option, Stream? refreshStream) {
     return ChangeNotifierProvider(
       create: (context) => HomeReleaseListViewModel(
+        refreshStream: refreshStream,
         dataSource: switch (option) {
           HomeContentOption.recentlyAddedReleases => ReleasesDataSource(
               mode: AlbumsSortMode.recentlyAdded, repository: context.read()),
@@ -140,9 +148,10 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  Widget _artistsWidget(HomeContentOption option) {
+  Widget _artistsWidget(HomeContentOption option, Stream? refreshStream) {
     return ChangeNotifierProvider(
       create: (context) => HomeArtistListViewModel(
+        refreshStream: refreshStream,
         dataSource: switch (option) {
           HomeContentOption.randomArtists =>
             RandomArtistsDataSource(repository: context.read()),

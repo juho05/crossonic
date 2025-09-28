@@ -1,5 +1,6 @@
 import 'package:auto_route/annotations.dart';
 import 'package:crossonic/ui/common/album_grid_sliver.dart';
+import 'package:crossonic/ui/main/layout_mode.dart';
 import 'package:crossonic/ui/years/year_selector_field.dart';
 import 'package:crossonic/ui/years/years_viewmodel.dart';
 import 'package:flutter/material.dart';
@@ -41,44 +42,58 @@ class _YearsPageState extends State<YearsPage> {
       child: ListenableBuilder(
         listenable: _viewModel,
         builder: (context, _) {
-          return CustomScrollView(
-            controller: _controller,
-            slivers: [
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Row(
-                    spacing: 12,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        "Years:",
-                        style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
-                      ),
-                      YearSelectorField(
-                        year: _viewModel.fromYear,
-                        maxYear: DateTime.now().year,
-                        onChanged: (year) => _viewModel.fromYear = year,
-                      ),
-                      const Text("to"),
-                      YearSelectorField(
-                        year: _viewModel.toYear,
-                        minYear: _viewModel.fromYear,
-                        onChanged: (year) => _viewModel.toYear = year,
-                      ),
-                    ],
+          return RefreshIndicator.adaptive(
+            onRefresh: () => _viewModel.refresh(),
+            child: CustomScrollView(
+              controller: _controller,
+              slivers: [
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: LayoutModeBuilder(builder: (context, isDesktop) {
+                      return Row(
+                        spacing: 12,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            "Years:",
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium!
+                                .copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                          ),
+                          YearSelectorField(
+                            year: _viewModel.fromYear,
+                            maxYear: DateTime.now().year,
+                            onChanged: (year) => _viewModel.fromYear = year,
+                          ),
+                          const Text("to"),
+                          YearSelectorField(
+                            year: _viewModel.toYear,
+                            minYear: _viewModel.fromYear,
+                            onChanged: (year) => _viewModel.toYear = year,
+                          ),
+                          if (isDesktop) const Spacer(),
+                          if (isDesktop)
+                            IconButton(
+                              onPressed: () => _viewModel.refresh(),
+                              icon: const Icon(Icons.refresh),
+                            )
+                        ],
+                      );
+                    }),
                   ),
                 ),
-              ),
-              AlbumGridSliver(
-                albums: _viewModel.albums,
-                fetchStatus: _viewModel.status,
-              ),
-            ],
+                AlbumGridSliver(
+                  albums: _viewModel.albums,
+                  fetchStatus: _viewModel.status,
+                ),
+              ],
+            ),
           );
         },
       ),
