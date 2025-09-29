@@ -4,7 +4,6 @@ import 'package:crossonic/routing/router.gr.dart';
 import 'package:crossonic/ui/common/adaptive_dialog_action.dart';
 import 'package:crossonic/ui/common/toast.dart';
 import 'package:crossonic/version_checker_viewmodel.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:provider/provider.dart';
@@ -21,8 +20,6 @@ class VersionChecker extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<VersionCheckerViewModel>(
       builder: (context, viewModel, _) {
-        bool isApple = defaultTargetPlatform == TargetPlatform.iOS ||
-            defaultTargetPlatform == TargetPlatform.macOS;
         if (viewModel.newVersionAvailable && !viewModel.isOpen) {
           SchedulerBinding.instance.addPostFrameCallback((_) {
             final actions = [
@@ -56,7 +53,7 @@ class VersionChecker extends StatelessWidget {
                   title: const Text("New version available"),
                   content: Text(
                       "Current: v${viewModel.current}\nLatest: v${viewModel.latest}"),
-                  actions: isApple ? actions.reversed.toList() : actions,
+                  actions: actions,
                 );
               },
             ).then((choice) async {
