@@ -684,31 +684,19 @@ class SubsonicService {
       SubsonicAuth auth,
       bool post) async {
     queryParams = generateQuery(queryParams, auth);
-    final queryStr = Uri(queryParameters: queryParams).query;
-    final sanitizedQuery = Map<String, Iterable<String>>.from(queryParams);
-    if (sanitizedQuery.containsKey("p")) {
-      sanitizedQuery["p"] = ["xxx"];
-    }
-    if (sanitizedQuery.containsKey("t")) {
-      sanitizedQuery["t"] = ["xxx"];
-    }
-    if (sanitizedQuery.containsKey("s")) {
-      sanitizedQuery["s"] = ["xxx"];
-    }
-    if (sanitizedQuery.containsKey("apiKey")) {
-      sanitizedQuery["apiKey"] = ["xxx"];
-    }
+    final queryUri = Uri(queryParameters: queryParams);
+    final sanitizedQueryUri = sanitizeUrl(queryUri);
     Log.debug(
-        "${post ? "POST" : "GET"} $endpointName?${Uri(queryParameters: sanitizedQuery).query}");
+        "${post ? "POST" : "GET"} $endpointName?${sanitizedQueryUri!.query}");
     try {
       final response = post
           ? await _httpClient.post(Uri.parse('$baseUri/rest/$endpointName'),
-              body: queryStr,
+              body: queryUri.query,
               headers: {
                   "Content-Type": "application/x-www-form-urlencoded"
                 }).timeout(const Duration(seconds: 15))
           : await _httpClient
-              .get(Uri.parse('$baseUri/rest/$endpointName?$queryStr'))
+              .get(Uri.parse('$baseUri/rest/$endpointName?${queryUri.query}'))
               .timeout(const Duration(seconds: 15));
       if (response.statusCode != 200 && response.statusCode != 201) {
         if (response.statusCode == 401) {
@@ -719,7 +707,7 @@ class SubsonicService {
       return Result.ok(response);
     } catch (e, st) {
       Log.error(
-          "Failed to connect to server: ${post ? "POST" : "GET"} $endpointName?${Uri(queryParameters: sanitizedQuery).query}",
+          "Failed to connect to server: ${post ? "POST" : "GET"} $endpointName?${sanitizedQueryUri.query}.query}",
           e: e,
           st: st);
       return Result.error(ConnectionException());
@@ -748,5 +736,30 @@ class SubsonicService {
     }, con.auth, constantSalt: constantSalt);
     return Uri.parse(
         '${con.baseUri}/rest/getCoverArt${Uri(queryParameters: query)}');
+  }
+
+  static Uri? sanitizeUrl(Uri? url) {
+    if (url == null) return null;
+    final query = Map.of(url.queryParametersAll);
+    if (query.containsKey("p")) {
+      query["p"] = ["xxx"];
+    }
+    if (query.containsKey("t")) {
+      query["t"] = ["xxx"];
+    }
+    if (query.containsKey("s")) {
+      query["s"] = ["xxx"];
+    }
+    if (query.containsKey("apiKey")) {
+      query["apiKey"] = ["xxx"];
+    }
+
+    final userInfoParts = url.userInfo.split(":");
+    for (var i = 1; i < userInfoParts.length; i++) {
+      userInfoParts[i] = "xxx";
+    }
+
+    return url.replace(
+        queryParameters: query, userInfo: userInfoParts.join(":"));
   }
 }

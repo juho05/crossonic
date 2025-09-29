@@ -1,6 +1,8 @@
 import 'package:crossonic/data/repositories/audio/audio_handler.dart';
+import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
 import 'package:crossonic/data/services/media_integration/media_integration.dart';
+import 'package:crossonic/data/services/opensubsonic/subsonic_service.dart';
 import 'package:flutter/material.dart';
 import 'package:smtc_windows/smtc_windows.dart' as smtc;
 
@@ -21,6 +23,7 @@ class SMTCIntegration implements MediaIntegration {
     if (_initialized) return;
     _initialized = true;
 
+    Log.debug("initializing SMTC...");
     await smtc.SMTCWindows.initialize();
 
     _smtc = smtc.SMTCWindows(
@@ -37,6 +40,7 @@ class SMTCIntegration implements MediaIntegration {
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       _smtc.buttonPressStream.listen((event) async {
+        Log.debug("received SMTC action: ${event.name}");
         switch (event) {
           case smtc.PressedButton.play:
             await onPlay();
@@ -57,6 +61,8 @@ class SMTCIntegration implements MediaIntegration {
 
   @override
   void updateMedia(Song? song, Uri? coverArt) {
+    Log.trace(
+        "setting SMTC media to song ${song?.id} with cover: ${SubsonicService.sanitizeUrl(coverArt)}");
     if (song == null) {
       _smtc.clearMetadata();
     } else {
@@ -71,6 +77,7 @@ class SMTCIntegration implements MediaIntegration {
 
   @override
   void updatePlaybackState(PlaybackStatus status) {
+    Log.trace("setting SMTC playback state to ${status.name}");
     switch (status) {
       case PlaybackStatus.playing:
         _smtc.setPlaybackStatus(smtc.PlaybackStatus.playing);

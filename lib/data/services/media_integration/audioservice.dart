@@ -7,6 +7,7 @@ import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/data/repositories/playlist/playlist_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
 import 'package:crossonic/data/services/media_integration/media_integration.dart';
+import 'package:crossonic/data/services/opensubsonic/subsonic_service.dart';
 import 'package:crossonic/utils/result.dart';
 import 'package:flutter/foundation.dart';
 
@@ -58,6 +59,7 @@ class AudioServiceIntegration extends asv.BaseAudioHandler
   @override
   Future<List<asv.MediaItem>> getChildren(String parentMediaId,
       [Map<String, dynamic>? options]) async {
+    Log.trace("Android Auto requested media children: $parentMediaId");
     if (parentMediaId == "root") {
       return [
         const asv.MediaItem(
@@ -105,6 +107,7 @@ class AudioServiceIntegration extends asv.BaseAudioHandler
   @override
   Future<void> playFromMediaId(String mediaId,
       [Map<String, dynamic>? extras]) async {
+    Log.debug("Android Auto requested to play media by id: $mediaId");
     if (mediaId.startsWith("playlist;")) {
       final parts = mediaId.split(";");
       final result = await _playlistRepository.getPlaylist(parts[2]);
@@ -128,6 +131,8 @@ class AudioServiceIntegration extends asv.BaseAudioHandler
 
   @override
   Future<void> play() async {
+    Log.debug(
+        "audio_service received play action, current status: ${_audioHandler!.playbackStatus.value.name}");
     if (_audioHandler!.playbackStatus.value == PlaybackStatus.stopped) {
       playbackState.add(playbackState.value.copyWith(
         controls: [],
@@ -143,31 +148,39 @@ class AudioServiceIntegration extends asv.BaseAudioHandler
 
   @override
   Future<void> pause() async {
+    Log.debug(
+        "audio_service received pause action, current status: ${_audioHandler!.playbackStatus.value.name}");
     await _onPause!();
   }
 
   @override
   Future<void> seek(Duration position) async {
+    Log.debug("audio_service received seek action to position $position");
     await _onSeek!(position);
   }
 
   @override
   Future<void> skipToNext() async {
+    Log.trace("audio_service received skipToNext action");
     await _onPlayNext!();
   }
 
   @override
   Future<void> skipToPrevious() async {
+    Log.debug("audio_service received skipToPrevious action");
     await _onPlayPrev!();
   }
 
   @override
   Future<void> stop() async {
+    Log.debug("audio_service received stop action");
     await _onStop!();
   }
 
   @override
   void updateMedia(Song? song, Uri? coverArt) {
+    Log.trace(
+        "setting audio_service media to song ${song?.id} with cover: ${SubsonicService.sanitizeUrl(coverArt)}");
     if (song == null) {
       if (!kIsWeb && Platform.isAndroid) {
         mediaItem.add(const asv.MediaItem(id: "", title: "No media"));
@@ -229,6 +242,7 @@ class AudioServiceIntegration extends asv.BaseAudioHandler
 
   @override
   void updatePlaybackState(PlaybackStatus status) {
+    Log.trace("setting audio_service playback state to ${status.name}");
     switch (status) {
       case PlaybackStatus.playing:
         playbackState.add(playbackState.value.copyWith(
@@ -262,6 +276,7 @@ class AudioServiceIntegration extends asv.BaseAudioHandler
 
   @override
   void updatePosition(Duration position) {
+    Log.trace("updating audio_service position to $position");
     _positionUpdate = (DateTime.now(), position);
     _updatePosition();
   }
@@ -282,6 +297,9 @@ class AudioServiceIntegration extends asv.BaseAudioHandler
 
   @override
   Future<void> setRepeatMode(asv.AudioServiceRepeatMode repeatMode) async {
-    _audioHandler!.queue.setLoop(repeatMode != asv.AudioServiceRepeatMode.none);
+    final loop = repeatMode != asv.AudioServiceRepeatMode.none;
+    Log.trace(
+        "received audio_service repeat mode ${repeatMode.name}, setting loop to $loop");
+    _audioHandler!.queue.setLoop(loop);
   }
 }
