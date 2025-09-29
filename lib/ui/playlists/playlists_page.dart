@@ -85,7 +85,7 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
                   ),
                   const DropdownMenuEntry(
                     value: PlaylistsSort.songCount,
-                    label: "Song Count",
+                    label: "Song count",
                   ),
                   const DropdownMenuEntry(
                     value: PlaylistsSort.duration,

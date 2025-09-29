@@ -68,11 +68,11 @@ class _GenresPageState extends State<GenresPage> {
                             ),
                             const DropdownMenuEntry(
                               value: GenresSortMode.songCount,
-                              label: "Song Count",
+                              label: "Song count",
                             ),
                             const DropdownMenuEntry(
                               value: GenresSortMode.albumCount,
-                              label: "Release Count",
+                              label: "Release count",
                             ),
                             const DropdownMenuEntry(
                               value: GenresSortMode.random,

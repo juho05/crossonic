@@ -58,7 +58,7 @@ class _TranscodingPageState extends State<TranscodingPage> {
                       .map((codec) => DropdownMenuEntry(
                             label: switch (codec) {
                               TranscodingCodec.serverDefault =>
-                                "Server Default",
+                                "Server default",
                               TranscodingCodec.raw => "Original",
                               TranscodingCodec.mp3 => "MP3",
                               TranscodingCodec.opus => "OGG/Opus",
@@ -86,7 +86,7 @@ class _TranscodingPageState extends State<TranscodingPage> {
                               value: option,
                               label: option != null
                                   ? '$option kbps'
-                                  : "Server Default",
+                                  : "Server default",
                             ))
                         .toList(),
                   ),
@@ -106,7 +106,7 @@ class _TranscodingPageState extends State<TranscodingPage> {
                         .map((codec) => DropdownMenuEntry(
                               label: switch (codec) {
                                 TranscodingCodec.serverDefault =>
-                                  "Server Default",
+                                  "Server default",
                                 TranscodingCodec.raw => "Original",
                                 TranscodingCodec.mp3 => "MP3",
                                 TranscodingCodec.opus => "OGG/Opus",
@@ -135,7 +135,7 @@ class _TranscodingPageState extends State<TranscodingPage> {
                               value: option,
                               label: option != null
                                   ? '$option kbps'
-                                  : "Server Default",
+                                  : "Server default",
                             ))
                         .toList(),
                   ),

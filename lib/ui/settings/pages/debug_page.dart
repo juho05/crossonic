@@ -53,7 +53,7 @@ class _DebugPageState extends State<DebugPage> {
                   requestFocusOnTap: false,
                   enableSearch: false,
                   initialSelection: _viewModel.level,
-                  label: const Text("Log Level"),
+                  label: const Text("Log level"),
                   dropdownMenuEntries: [
                     const DropdownMenuEntry<Level>(
                       label: "OFF",
