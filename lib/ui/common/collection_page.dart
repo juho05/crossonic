@@ -186,11 +186,39 @@ class _CollectionPageMobileState extends State<CollectionPageMobile> {
                     (i) => Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       child: i.onClick != null
-                          ? TextButton(
-                              onPressed: i.onClick,
+                          ? Align(
+                              alignment: Alignment.center,
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(10),
+                                child: Material(
+                                  child: InkWell(
+                                    onTap: i.onClick,
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 4, horizontal: 32),
+                                      child: Text(
+                                        i.text,
+                                        overflow: TextOverflow.ellipsis,
+                                        textAlign: TextAlign.center,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyLarge!
+                                            .copyWith(
+                                              fontWeight: FontWeight.w400,
+                                              fontSize: 15,
+                                            ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            )
+                          : Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 4),
                               child: Text(
                                 i.text,
                                 overflow: TextOverflow.ellipsis,
+                                textAlign: TextAlign.center,
                                 style: Theme.of(context)
                                     .textTheme
                                     .bodyLarge!
@@ -199,18 +227,6 @@ class _CollectionPageMobileState extends State<CollectionPageMobile> {
                                       fontSize: 15,
                                     ),
                               ),
-                            )
-                          : Text(
-                              i.text,
-                              overflow: TextOverflow.ellipsis,
-                              textAlign: TextAlign.center,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyLarge!
-                                  .copyWith(
-                                    fontWeight: FontWeight.w400,
-                                    fontSize: 15,
-                                  ),
                             ),
                     ),
                   ),

@@ -55,6 +55,15 @@ class _AlbumListItemState extends State<AlbumListItem> {
   @override
   Widget build(BuildContext context) {
     final a = widget.album;
+
+    String year = "Unknown year";
+    if (a.originalDate != null) {
+      year = a.originalDate!.year.toString();
+    }
+    if (a.releaseDate != null && a.releaseDate!.year != a.originalDate!.year) {
+      year += "/${a.releaseDate!.year}";
+    }
+
     return ListenableBuilder(
         listenable: viewModel,
         builder: (context, snapshot) {
@@ -62,8 +71,7 @@ class _AlbumListItemState extends State<AlbumListItem> {
             title: a.name,
             extraInfo: [
               if (widget.showArtist) a.displayArtist,
-              if (widget.showYear)
-                a.originalDate?.year.toString() ?? "Unknown year",
+              if (widget.showYear) year,
             ],
             leading: Padding(
               padding: const EdgeInsets.only(left: 8),

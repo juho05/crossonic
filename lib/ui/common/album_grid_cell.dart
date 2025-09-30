@@ -4,6 +4,7 @@ import 'package:crossonic/routing/router.gr.dart';
 import 'package:crossonic/ui/common/album_list_item_viewmodel.dart';
 import 'package:crossonic/ui/common/album_release_badge.dart';
 import 'package:crossonic/ui/common/dialogs/add_to_playlist.dart';
+import 'package:crossonic/ui/common/dialogs/album_release_dialog.dart';
 import 'package:crossonic/ui/common/dialogs/chooser.dart';
 import 'package:crossonic/ui/common/dialogs/media_info.dart';
 import 'package:crossonic/ui/common/grid_cell.dart';
@@ -153,6 +154,16 @@ class _AlbumGridCellState extends State<AlbumGridCell> {
                   albumId: a.id,
                   releaseDate: a.releaseDate!,
                   albumVersion: a.version,
+                  onTap: () {
+                    AlbumReleaseDialog.show(
+                      context,
+                      albumId: a.id,
+                      albumName: a.name,
+                      originalDate: a.originalDate,
+                      releaseDate: a.releaseDate,
+                      albumVersion: a.version,
+                    );
+                  },
                 )
               : null,
         );

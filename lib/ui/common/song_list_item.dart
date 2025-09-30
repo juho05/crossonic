@@ -98,6 +98,14 @@ class _SongListItemState extends State<SongListItem> {
         listenable: viewModel,
         builder: (context, snapshot) {
           final s = widget.song;
+          String year = "Unknown year";
+          if (s.originalDate != null) {
+            year = s.originalDate!.year.toString();
+          }
+          if (s.releaseDate != null &&
+              s.releaseDate!.year != s.originalDate!.year) {
+            year += "/${s.releaseDate!.year}";
+          }
           return ReorderableDelayedDragStartListener(
             index: widget.reorderIndex ?? 0,
             enabled:
@@ -108,8 +116,7 @@ class _SongListItemState extends State<SongListItem> {
               extraInfo: [
                 if (widget.showArtist) s.displayArtist,
                 if (widget.showAlbum) s.album?.name ?? "Unknown album",
-                if (widget.showYear)
-                  s.originalDate?.year.toString() ?? "Unknown year",
+                if (widget.showYear) year,
                 if (widget.showBpm)
                   s.bpm != null ? "${s.bpm} BPM" : "Unknown bpm",
               ],

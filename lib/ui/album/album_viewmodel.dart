@@ -1,5 +1,6 @@
 import 'package:crossonic/data/repositories/audio/audio_handler.dart';
 import 'package:crossonic/data/repositories/subsonic/favorites_repository.dart';
+import 'package:crossonic/data/repositories/subsonic/models/date.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
 import 'package:crossonic/data/repositories/subsonic/subsonic_repository.dart';
 import 'package:crossonic/utils/fetch_status.dart';
@@ -26,8 +27,14 @@ class AlbumViewModel extends ChangeNotifier {
   String _displayArtist = "";
   String get displayArtist => _displayArtist;
 
-  int? _year;
-  int? get year => _year;
+  Date? _originalDate;
+  Date? get originalDate => _originalDate;
+
+  Date? _releaseDate;
+  Date? get releaseDate => _releaseDate;
+
+  String? _version;
+  String? get version => _version;
 
   List<Song> _songs = [];
   List<Song> get songs => _songs;
@@ -85,9 +92,11 @@ class AlbumViewModel extends ChangeNotifier {
         _coverId = album.coverId;
         _artists = album.artists.toList();
         _displayArtist = album.displayArtist;
-        _year = album.originalDate?.year;
         _songs = album.songs ?? [];
         _discTitles = album.discTitles;
+        _originalDate = album.originalDate;
+        _releaseDate = album.releaseDate;
+        _version = album.version;
 
         final discCount = _songs.map((s) => s.discNr ?? 1).toSet().length;
         if (_discTitles.isNotEmpty || discCount > 1) {

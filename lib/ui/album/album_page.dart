@@ -6,6 +6,7 @@ import 'package:crossonic/ui/common/clickable_list_item.dart';
 import 'package:crossonic/ui/common/collection_page.dart';
 import 'package:crossonic/ui/common/cover_art_decorated.dart';
 import 'package:crossonic/ui/common/dialogs/add_to_playlist.dart';
+import 'package:crossonic/ui/common/dialogs/album_release_dialog.dart';
 import 'package:crossonic/ui/common/dialogs/chooser.dart';
 import 'package:crossonic/ui/common/dialogs/media_info.dart';
 import 'package:crossonic/ui/common/song_list_item.dart';
@@ -159,7 +160,9 @@ class _AlbumPageState extends State<AlbumPage> {
             extraInfo: [
               CollectionExtraInfo(
                 text: _viewModel.displayArtist +
-                    (_viewModel.year != null ? ' • ${_viewModel.year}' : ''),
+                    (_viewModel.originalDate != null
+                        ? ' • ${_viewModel.originalDate!.year}'
+                        : ''),
                 onClick: () async {
                   final router = context.router;
                   final artistId = await ChooserDialog.chooseArtist(
@@ -168,6 +171,27 @@ class _AlbumPageState extends State<AlbumPage> {
                   router.push(ArtistRoute(artistId: artistId));
                 },
               ),
+              if (_viewModel.releaseDate != null || _viewModel.version != null)
+                CollectionExtraInfo(
+                  text: _viewModel.releaseDate == null ||
+                          (_viewModel.version?.contains(
+                                  _viewModel.releaseDate!.year.toString()) ??
+                              false)
+                      ? _viewModel.version!
+                      : (_viewModel.version == null
+                          ? "Release: ${_viewModel.releaseDate!.toString()}"
+                          : "${_viewModel.version} • ${_viewModel.originalDate?.year == _viewModel.releaseDate?.year ? _viewModel.releaseDate : _viewModel.releaseDate?.year}"),
+                  onClick: () {
+                    AlbumReleaseDialog.show(
+                      context,
+                      albumId: _viewModel.id,
+                      albumName: _viewModel.name,
+                      albumVersion: _viewModel.version,
+                      originalDate: _viewModel.originalDate,
+                      releaseDate: _viewModel.releaseDate,
+                    );
+                  },
+                ),
             ],
             actions: [
               CollectionAction(

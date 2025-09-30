@@ -5,12 +5,14 @@ class AlbumReleaseBadge extends StatelessWidget {
   final String albumId;
   final Date releaseDate;
   final String? albumVersion;
+  final void Function()? onTap;
 
   const AlbumReleaseBadge({
     super.key,
     required this.albumId,
     required this.releaseDate,
     required this.albumVersion,
+    this.onTap,
   });
 
   @override
@@ -37,9 +39,7 @@ class AlbumReleaseBadge extends StatelessWidget {
           child: Tooltip(
             message: albumVersion ?? "${releaseDate.year} release",
             child: InkWell(
-              onTap: () {
-                // TODO
-              },
+              onTap: onTap,
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
                 child: Text(releaseDate.year.toString(),
