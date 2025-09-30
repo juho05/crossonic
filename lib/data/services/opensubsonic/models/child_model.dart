@@ -1,4 +1,5 @@
 import 'package:crossonic/data/services/opensubsonic/models/contributor_model.dart';
+import 'package:crossonic/data/services/opensubsonic/models/item_date_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/replay_gain_model.dart';
 import 'package:json_annotation/json_annotation.dart';
 
@@ -56,6 +57,8 @@ class ChildModel {
   final List<String>? moods;
   final ReplayGainModel? replayGain;
   final String? explicitStatus;
+  final ItemDateModel? originalReleaseDate;
+  final ItemDateModel? releaseDate;
 
   ChildModel({
     required this.id,
@@ -108,6 +111,8 @@ class ChildModel {
     required this.moods,
     required this.replayGain,
     required this.explicitStatus,
+    required this.originalReleaseDate,
+    required this.releaseDate,
   });
 
   factory ChildModel.fromJson(Map<String, dynamic> json) =>

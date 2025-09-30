@@ -108,7 +108,8 @@ class _SongListItemState extends State<SongListItem> {
               extraInfo: [
                 if (widget.showArtist) s.displayArtist,
                 if (widget.showAlbum) s.album?.name ?? "Unknown album",
-                if (widget.showYear) s.year?.toString() ?? "Unknown year",
+                if (widget.showYear)
+                  s.originalDate?.year.toString() ?? "Unknown year",
                 if (widget.showBpm)
                   s.bpm != null ? "${s.bpm} BPM" : "Unknown bpm",
               ],

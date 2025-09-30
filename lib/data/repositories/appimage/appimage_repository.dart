@@ -32,10 +32,13 @@ class AppImageRepository {
 
   Future<bool> shouldIntegrate() async {
     if (!isAppImage) {
+      Log.trace("Skipping AppImage integration check: not an AppImage");
       return false;
     }
 
     if (Platform.environment["CROSSONIC_DISABLE_APPIMAGE_INTEGRATION"] == "1") {
+      Log.trace(
+          "Skipping AppImage integration check: disabled by env variable");
       return false;
     }
 

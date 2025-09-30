@@ -1,6 +1,7 @@
 import 'dart:collection';
 
 import 'package:crossonic/data/repositories/audio/queue/media_queue.dart';
+import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
 import 'package:flutter/material.dart';
 import 'package:rxdart/rxdart.dart';
@@ -62,6 +63,7 @@ class LocalQueue extends ChangeNotifier implements MediaQueue {
   @override
   void setLoop(bool loop) {
     if (_looping.value == loop) return;
+    Log.trace("loop: $loop");
     _looping.add(loop);
     if (_priorityQueue.isEmpty && _currentAndNext.value.next != null) {
       _nextChanged(_queue.elementAtOrNull(_nextIndex));
@@ -201,6 +203,8 @@ class LocalQueue extends ChangeNotifier implements MediaQueue {
 
   void _insert(int index, Iterable<Song> songs) {
     if (songs.isEmpty) return;
+    Log.trace(
+        "insert ${songs.length} songs into regular queue at position $index/${_queue.length}");
     if (index < 0 || index > _queue.length) {
       throw IndexError.withLength(index, _queue.length,
           message: "index out of bounds");
@@ -217,7 +221,8 @@ class LocalQueue extends ChangeNotifier implements MediaQueue {
 
   void _insertPrio(int index, Iterable<Song> songs) {
     if (songs.isEmpty) return;
-
+    Log.trace(
+        "insert ${songs.length} songs into priority queue at position $index/${_priorityQueue.length}");
     if (index == _priorityQueue.length) {
       _priorityQueue.addAll(songs);
     } else {
@@ -241,7 +246,11 @@ class LocalQueue extends ChangeNotifier implements MediaQueue {
 
   @override
   void shuffleFollowing() {
-    if (_currentIndex >= _queue.length - 1) return;
+    Log.trace("shuffle following songs in queue");
+    if (_currentIndex >= _queue.length - 1) {
+      Log.warn("no following songs to shuffle");
+      return;
+    }
     final following = _queue.sublist(_currentIndex + 1);
     following.shuffle();
     _queue.removeRange(_currentIndex + 1, _queue.length);
@@ -255,6 +264,7 @@ class LocalQueue extends ChangeNotifier implements MediaQueue {
   @override
   void shufflePriority() {
     if (_priorityQueue.isEmpty) return;
+    Log.trace("shuffle songs in priority queue");
     final newQueue = _priorityQueue.toList()..shuffle();
     _priorityQueue.clear();
     _priorityQueue.addAll(newQueue);

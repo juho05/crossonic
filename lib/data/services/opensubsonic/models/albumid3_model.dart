@@ -8,6 +8,7 @@ part 'albumid3_model.g.dart';
 class AlbumID3Model {
   final String id;
   final String name;
+  final String? version;
   final String? artist;
   final String? artistId;
   final String? coverArt;
@@ -40,6 +41,7 @@ class AlbumID3Model {
   AlbumID3Model({
     required this.id,
     required this.name,
+    required this.version,
     required this.artist,
     required this.artistId,
     required this.coverArt,

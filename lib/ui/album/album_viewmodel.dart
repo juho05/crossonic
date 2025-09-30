@@ -85,7 +85,7 @@ class AlbumViewModel extends ChangeNotifier {
         _coverId = album.coverId;
         _artists = album.artists.toList();
         _displayArtist = album.displayArtist;
-        _year = album.year;
+        _year = album.originalDate?.year;
         _songs = album.songs ?? [];
         _discTitles = album.discTitles;
 

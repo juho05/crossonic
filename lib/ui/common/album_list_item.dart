@@ -62,7 +62,8 @@ class _AlbumListItemState extends State<AlbumListItem> {
             title: a.name,
             extraInfo: [
               if (widget.showArtist) a.displayArtist,
-              if (widget.showYear) a.year?.toString() ?? "Unknown year",
+              if (widget.showYear)
+                a.originalDate?.year.toString() ?? "Unknown year",
             ],
             leading: Padding(
               padding: const EdgeInsets.only(left: 8),

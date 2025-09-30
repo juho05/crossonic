@@ -1,3 +1,4 @@
+import 'package:crossonic/data/repositories/subsonic/models/date.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
 import 'package:crossonic/data/services/opensubsonic/models/albumid3_model.dart';
 
@@ -7,25 +8,29 @@ class Album {
   final String id;
   final String name;
   final String coverId;
-  final int? year;
   final List<Song>? songs;
   final int songCount;
   final String displayArtist;
   final Iterable<({String id, String name})> artists;
   final Map<int, String> discTitles;
   final ReleaseType releaseType;
+  final Date? releaseDate;
+  final Date? originalDate;
+  final String? version;
 
   Album({
     required this.id,
     required this.name,
     required this.coverId,
-    required this.year,
+    required this.releaseDate,
+    required this.originalDate,
     required this.songs,
     required this.songCount,
     required this.displayArtist,
     required this.artists,
     required this.discTitles,
     required this.releaseType,
+    required this.version,
   });
 
   factory Album.fromAlbumID3Model(AlbumID3Model album) {
@@ -38,6 +43,36 @@ class Album {
         releaseType = t;
       }
     }
+
+    Date? originalDate;
+    if (album.originalReleaseDate != null &&
+        album.originalReleaseDate!.year != null) {
+      originalDate = Date.fromItemDateModel(album.originalReleaseDate!);
+    } else if (album.year != null) {
+      originalDate = Date(year: album.year!, month: null, day: null);
+    }
+
+    Date? releaseDate;
+    if (album.releaseDate != null && album.releaseDate!.year != null) {
+      releaseDate = Date.fromItemDateModel(album.releaseDate!);
+    } else if (album.year != null) {
+      releaseDate = Date(year: album.year!, month: null, day: null);
+    }
+
+    if (releaseDate != null) {
+      if (originalDate != null) {
+        if (originalDate > releaseDate) {
+          releaseDate = null;
+        }
+      } else {
+        originalDate = releaseDate;
+      }
+    }
+
+    if (originalDate == releaseDate) {
+      releaseDate = null;
+    }
+
     return Album(
       id: album.id,
       name: album.name,
@@ -50,7 +85,8 @@ class Album {
           (album.artist != null && album.artistId != null
               ? [(id: album.artistId!, name: album.artist!)]
               : []),
-      year: album.year,
+      originalDate: originalDate,
+      releaseDate: releaseDate,
       songs: album.song?.map((c) => Song.fromChildModel(c)).toList(),
       songCount: album.songCount,
       discTitles: {
@@ -58,6 +94,7 @@ class Album {
           d.disc: d.title
       },
       releaseType: releaseType,
+      version: album.version,
     );
   }
 }

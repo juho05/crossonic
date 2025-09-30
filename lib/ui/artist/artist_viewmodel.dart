@@ -2,6 +2,7 @@ import 'package:crossonic/data/repositories/audio/audio_handler.dart';
 import 'package:crossonic/data/repositories/subsonic/favorites_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/models/album.dart';
 import 'package:crossonic/data/repositories/subsonic/models/artist.dart';
+import 'package:crossonic/data/repositories/subsonic/models/date.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
 import 'package:crossonic/data/repositories/subsonic/subsonic_repository.dart';
 import 'package:crossonic/utils/fetch_status.dart';
@@ -94,7 +95,13 @@ class ArtistViewModel extends ChangeNotifier {
           return (_releaseTypeOrder[a.releaseType] ?? 0)
               .compareTo(_releaseTypeOrder[b.releaseType] ?? 0);
         }
-        return (b.year ?? 0).compareTo(a.year ?? 0);
+        final result = (b.originalDate ?? Date(year: 0))
+            .compareTo(a.originalDate ?? Date(year: 0));
+        if (result != 0) {
+          return result;
+        }
+        return (b.releaseDate ?? Date(year: 0))
+            .compareTo(a.releaseDate ?? Date(year: 0));
       });
     }
 

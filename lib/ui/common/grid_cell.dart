@@ -1,8 +1,8 @@
 import 'package:crossonic/data/repositories/playlist/song_downloader.dart';
 import 'package:crossonic/ui/common/cover_art_decorated.dart';
-import 'package:crossonic/ui/common/menu_button.dart';
 import 'package:crossonic/ui/common/with_context_menu.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class GridCell extends StatelessWidget {
   final Iterable<ContextMenuOption> menuOptions;
@@ -15,6 +15,11 @@ class GridCell extends StatelessWidget {
   final void Function()? onTap;
   final DownloadStatus downloadStatus;
 
+  final Widget? topLeft;
+  final Widget? topRight;
+  final Widget? bottomLeft;
+  final Widget? bottomRight;
+
   const GridCell({
     super.key,
     required this.title,
@@ -26,6 +31,10 @@ class GridCell extends StatelessWidget {
     this.circularCover = false,
     this.isFavorite = false,
     this.downloadStatus = DownloadStatus.none,
+    this.topLeft,
+    this.topRight,
+    this.bottomLeft,
+    this.bottomRight,
   });
 
   @override
@@ -85,38 +94,57 @@ class GridCell extends StatelessWidget {
           ),
           AspectRatio(
             aspectRatio: 1,
-            child: LayoutBuilder(builder: (context, constraints) {
-              final largeLayout = constraints.maxHeight > 256;
-              return Padding(
-                padding: EdgeInsets.all(4 + (largeLayout ? 10 : 6)),
-                child: Align(
-                  alignment: Alignment.bottomRight,
-                  child: Material(
-                    type: MaterialType.transparency,
-                    child: Ink(
-                      decoration: ShapeDecoration(
-                        color: Colors.black.withAlpha(90),
-                        shape: const CircleBorder(),
-                      ),
-                      child: SizedBox(
-                        width: largeLayout ? 40 : 30,
-                        height: largeLayout ? 40 : 30,
-                        child: MenuButton(
-                          options: menuOptions,
-                          padding: const EdgeInsets.all(0),
-                          icon: Icon(
-                            Icons.more_vert,
-                            size: largeLayout ? 26 : 20,
-                            color: Colors.white,
-                          ),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return Provider<OnCoverIconButtonSize>.value(
+                    value: constraints.maxHeight >= 256
+                        ? OnCoverIconButtonSize.large
+                        : OnCoverIconButtonSize.normal,
+                    builder: (context, _) {
+                      final size = context.read<OnCoverIconButtonSize>();
+                      final largeLayout = size == OnCoverIconButtonSize.large;
+                      return Padding(
+                        padding: EdgeInsets.all(largeLayout ? 10 : 6),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Visibility(
+                                  visible: topLeft != null,
+                                  child: topLeft ?? const SizedBox.shrink(),
+                                ),
+                                Visibility(
+                                  visible: topRight != null,
+                                  child: topRight ?? const SizedBox.shrink(),
+                                ),
+                              ],
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Visibility(
+                                  visible: bottomLeft != null,
+                                  child: bottomLeft ?? const SizedBox.shrink(),
+                                ),
+                                Visibility(
+                                  visible: menuOptions.isNotEmpty ||
+                                      bottomRight != null,
+                                  child: bottomRight ??
+                                      OnCoverMenuButton(
+                                        menuOptions: menuOptions,
+                                      ),
+                                ),
+                              ],
+                            )
+                          ],
                         ),
-                      ),
-                    ),
-                  ),
-                ),
-              );
-            }),
-          ),
+                      );
+                    });
+              },
+            ),
+          )
         ],
       ),
     );

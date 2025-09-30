@@ -1,3 +1,4 @@
+import 'package:crossonic/data/repositories/subsonic/models/date.dart';
 import 'package:crossonic/data/services/opensubsonic/models/child_model.dart';
 import 'package:json_annotation/json_annotation.dart';
 
@@ -13,13 +14,14 @@ class Song {
   final ({String id, String name})? album;
   final Iterable<String> genres;
   final Duration? duration;
-  final int? year;
   final int? bpm;
   final int? trackNr;
   final int? discNr;
   final double? trackGain;
   final double? albumGain;
   final double? fallbackGain;
+  final Date? originalDate;
+  final Date? releaseDate;
 
   Song({
     required this.id,
@@ -30,16 +32,46 @@ class Song {
     required this.album,
     required this.genres,
     required this.duration,
-    required this.year,
     required this.bpm,
     required this.trackNr,
     required this.discNr,
     required this.trackGain,
     required this.albumGain,
     required this.fallbackGain,
+    required this.originalDate,
+    required this.releaseDate,
   });
 
   factory Song.fromChildModel(ChildModel child) {
+    Date? originalDate;
+    if (child.originalReleaseDate != null &&
+        child.originalReleaseDate!.year != null) {
+      originalDate = Date.fromItemDateModel(child.originalReleaseDate!);
+    } else if (child.year != null) {
+      originalDate = Date(year: child.year!, month: null, day: null);
+    }
+
+    Date? releaseDate;
+    if (child.releaseDate != null && child.releaseDate!.year != null) {
+      releaseDate = Date.fromItemDateModel(child.releaseDate!);
+    } else if (child.year != null) {
+      releaseDate = Date(year: child.year!, month: null, day: null);
+    }
+
+    if (releaseDate != null) {
+      if (originalDate != null) {
+        if (originalDate > releaseDate) {
+          releaseDate = null;
+        }
+      } else {
+        originalDate = releaseDate;
+      }
+    }
+
+    if (originalDate == releaseDate) {
+      releaseDate = null;
+    }
+
     return Song(
       id: child.id,
       coverId: child.coverArt ?? child.id,
@@ -64,7 +96,8 @@ class Song {
           : (child.genre != null ? [child.genre!] : []),
       duration:
           child.duration != null ? Duration(seconds: child.duration!) : null,
-      year: child.year,
+      releaseDate: releaseDate,
+      originalDate: originalDate,
       bpm: child.bpm,
       trackNr: child.track,
       discNr: child.discNumber,

@@ -138,23 +138,34 @@ class AudioHandler {
         if (event.begin) {
           switch (event.type) {
             case AudioInterruptionType.duck:
+              Log.debug(
+                  "received volume duck begin request from audio_session");
               _ducking = true;
               // ducking is automatically handled in _setPlayerVolume
               _setPlayerVolume(1);
               break;
             case AudioInterruptionType.pause:
+              Log.debug("received pause begin request from audio_session");
+              await pause();
+              break;
             case AudioInterruptionType.unknown:
+              Log.debug("received unknown begin request from audio_session");
               await pause();
               break;
           }
         } else {
           switch (event.type) {
             case AudioInterruptionType.duck:
+              Log.debug("received volume duck end request from audio_session");
               _ducking = false;
               _setPlayerVolume(1);
               break;
             case AudioInterruptionType.pause:
+              Log.debug("received pause begin end from audio_session");
+              await play();
+              break;
             case AudioInterruptionType.unknown:
+              Log.debug("received unknown end request from audio_session");
               await play();
               break;
           }
@@ -163,6 +174,7 @@ class AudioHandler {
 
       _audioSessionBecomingNoisyStream =
           _audioSession.becomingNoisyEventStream.listen((_) async {
+        Log.debug("received becoming noisy event from audio_session");
         await pause();
       });
 
@@ -178,19 +190,23 @@ class AudioHandler {
 
   void playOnNextMediaChange() {
     _playOnNextMediaChange = true;
+    Log.trace("enabling playOnNextMediaChange");
   }
 
   Future<void> play() async {
+    Log.trace("play");
     await _ensurePlayerLoaded();
     await _player.play();
   }
 
   Future<void> pause() async {
+    Log.trace("pause");
     await _ensurePlayerLoaded();
     await _player.pause();
   }
 
   Future<void> stop() async {
+    Log.trace("stop");
     _playOnNextMediaChange = false;
     _integration.updateMedia(null, null);
     _integration.updatePosition(Duration.zero);
@@ -208,6 +224,7 @@ class AudioHandler {
   Duration? _seekingPos;
 
   Future<void> seek(Duration pos) async {
+    Log.trace("seek to $pos");
     final song = _queue.current.value;
     if (song == null) return;
     await _ensurePlayerLoaded();
@@ -230,27 +247,46 @@ class AudioHandler {
   Future<void> _updatePosition([Duration? pos]) async {
     pos ??= _seekingPos;
     pos ??= await _player.position + _positionOffset;
+    Log.trace("updating current position: $pos");
     _positionUpdate = (DateTime.now(), pos);
     _integration.updatePosition(pos);
   }
 
   Future<void> playNext() async {
-    if (!_queue.canAdvance) return;
+    Log.trace("play next");
+    if (!_queue.canAdvance) {
+      Log.warn("ignoring play next request because there is not next song");
+      return;
+    }
     _queue.skipNext();
   }
 
   Future<void> playPrev() async {
+    Log.trace("play prev");
     if (position.inSeconds > 3 || !_queue.canGoBack) {
+      if (!_queue.canGoBack) {
+        Log.trace(
+            "seeking back to beginning of current song because there is no previous song");
+      } else {
+        Log.trace(
+            "seeking back to beginning of current song because the current position is >3 s into the song: ${position.inSeconds}");
+      }
       await seek(Duration.zero);
       return;
     }
+    Log.trace("going back one song in the queue");
     _queue.skipPrev();
   }
 
   // ================ callbacks ================
 
   Future<void> _playerEvent(AudioPlayerEvent event) async {
-    if (!_player.initialized) return;
+    if (!_player.initialized) {
+      Log.warn(
+          "ignoring a player event because the player is not initialized: ${event.name}");
+      return;
+    }
+    Log.trace("player event received: ${event.name}");
     if (event == AudioPlayerEvent.advance) {
       _queue.advance();
       return;
@@ -265,16 +301,23 @@ class AudioHandler {
     };
     if (status == _playbackStatus.value) return;
 
-    _audioSession.setActive(status == PlaybackStatus.playing);
+    Log.debug("new player status: $status");
+
+    _enableAudioSession(status == PlaybackStatus.playing);
 
     if (status == PlaybackStatus.stopped) {
       if (_queue.current.value == null ||
           (_queue.currentAndNext.value.next == null &&
               (_queue.current.value!.duration ?? Duration.zero) - position <
                   const Duration(seconds: 5))) {
+        Log.debug(
+            "stopping playback; current: ${_queue.current.value?.id}, next: ${_queue.currentAndNext.value.next?.id}, time to end of song: ${_queue.current.value?.duration ?? Duration.zero - position}");
         await stop();
         return;
       }
+
+      Log.warn(
+          "received player status stop but there should still be a song playing");
 
       await _restartPlayback(position,
           play: _playbackStatus.value == PlaybackStatus.playing);
@@ -296,10 +339,14 @@ class AudioHandler {
     if (status != PlaybackStatus.playing && status != PlaybackStatus.loading) {
       // web browsers stop media os integration without active player
       if (!kIsWeb && _auth.serverFeatures.transcodeOffset.contains(1)) {
-        _disposePlayerTimer ??=
-            Timer(const Duration(minutes: 1), _disposePlayer);
+        if (_disposePlayerTimer == null) {
+          Log.debug("enabling dispose player timer (1 minute)");
+          _disposePlayerTimer =
+              Timer(const Duration(minutes: 1), _disposePlayer);
+        }
       }
-    } else {
+    } else if (_disposePlayerTimer != null) {
+      Log.debug("canceling dispose player timer");
       _disposePlayerTimer?.cancel();
       _disposePlayerTimer = null;
     }
@@ -307,7 +354,7 @@ class AudioHandler {
 
   Future<void> _restartPlayback(Duration pos, {bool play = true}) async {
     if (_queue.current.value == null) return;
-    Log.warn("Restarting playback at position $pos");
+    Log.warn("Restarting playback at position $pos, play after restore: $play");
 
     final songDuration = _queue.current.value!.duration;
 
@@ -359,11 +406,14 @@ class AudioHandler {
     final playAfterChange = _playOnNextMediaChange;
     _playOnNextMediaChange = false;
     if (event.current == null) {
+      Log.trace("current song changed to null, calling stop...");
       await stop();
       return;
     }
     await _ensurePlayerLoaded(false);
     if (event.currentChanged) {
+      Log.trace(
+          "current song changed: ${event.current?.id}, from advance: ${event.fromAdvance}");
       _positionOffset = Duration.zero;
       _updatePosition(Duration.zero);
       await _applyReplayGain();
@@ -376,6 +426,7 @@ class AudioHandler {
         await _player.play();
       }
     } else {
+      Log.trace("next song changed: ${event.next?.id}");
       await _player
           .setNext(event.next != null ? _getStreamUri(event.next!) : null);
     }
@@ -386,6 +437,7 @@ class AudioHandler {
   Future<void> _authChanged() async {
     if (_auth.isAuthenticated) return;
     if (playbackStatus.value != PlaybackStatus.stopped) {
+      Log.debug("stopping playback because user logged out");
       await stop();
     }
   }
@@ -396,7 +448,10 @@ class AudioHandler {
 
   Future<void> _onTranscodingChanged() async {
     _transcoding = await _settings.transcoding.activeTranscoding();
+    Log.debug(
+        "current active transcoding profile: ${_transcoding.$1.name} ${_transcoding.$2} kbps");
     if (_queue.currentAndNext.value.next != null) {
+      Log.trace("changing next url because transcoding profile changed");
       await _player.setNext(_getStreamUri(_queue.currentAndNext.value.next!));
     }
   }
@@ -411,6 +466,8 @@ class AudioHandler {
       await _setPlayerVolume(1);
       return;
     }
+
+    Log.trace("applying replay gain, mode: ${mode.name}");
 
     double gain = _settings.replayGain.fallbackGain;
 
@@ -441,7 +498,11 @@ class AudioHandler {
       gain = media.albumGain!;
     } else if (_settings.replayGain.preferServerFallbackGain) {
       gain = media.fallbackGain ?? gain;
+      Log.warn(
+          "using fallback gain because ${_queue.current.value?.id} has not replay gain metadata");
     }
+
+    Log.debug("replay gain of current song: $gain dB");
 
     double volume = pow(10, gain / 20) as double;
     await _setPlayerVolume(volume);
@@ -458,6 +519,7 @@ class AudioHandler {
 
   Future<void> _ensurePlayerLoaded([bool restorePlayerState = true]) async {
     if (_player.initialized) return;
+    Log.debug("reactivating player (restore state: $restorePlayerState)...");
     await _player.init();
     await _applyReplayGain();
     if (restorePlayerState) {
@@ -470,6 +532,7 @@ class AudioHandler {
     final next = _queue.currentAndNext.value.next;
     if (current != null) {
       if (_downloader.getPath(current.id) != null) {
+        Log.trace("restoring position with player seek");
         await _player.setCurrent(
           _getStreamUri(current),
           nextUrl: next != null ? _getStreamUri(next) : null,
@@ -477,6 +540,7 @@ class AudioHandler {
         );
         _positionOffset = Duration.zero;
       } else {
+        Log.trace("restoring position with timeOffset seek");
         _positionOffset = position;
         await _player.setCurrent(
           _getStreamUri(current, _positionOffset),
@@ -502,6 +566,7 @@ class AudioHandler {
         _playbackStatus.value == PlaybackStatus.loading) {
       return;
     }
+    Log.debug("disposing player");
     _player.setVolume(1);
     await _player.dispose();
     await _audioSession.setActive(false);
@@ -536,6 +601,7 @@ class AudioHandler {
   MediaQueue get queue => _queue;
 
   Future<void> changeQueue(MediaQueue queue) async {
+    Log.trace("changing queue");
     _playOnNextMediaChange = false;
     await _queue.change(queue);
   }
@@ -548,6 +614,7 @@ class AudioHandler {
 
   bool _restoredQueue = false;
   Future<void> _restoreQueue() async {
+    Log.trace("restoring queue");
     final regular =
         (await _keyValue.loadObjectList(_queueSongsKey, Song.fromJson) ?? [])
             .toList();
@@ -561,12 +628,14 @@ class AudioHandler {
         await _keyValue.loadObject(_queueCurrentSongKey, Song.fromJson);
 
     if (currentSong == null || index == null) {
+      Log.debug("no queue to restore, initializing empty queue");
       _queue.setLoop(looping);
       await _clearPersistentQueueData();
       _restoredQueue = true;
       return;
     }
 
+    Log.debug("restoring queue from database");
     final loadedQueue = LocalQueue.withInitialData(
       regularQueue: regular.toList(),
       priorityQueue: priority,
@@ -590,9 +659,12 @@ class AudioHandler {
     _persistQueueThrottle ??= Throttle(
       action: () async {
         if (_queue.current.value == null) {
+          Log.trace(
+              "clearing queue in database because current queue is empty");
           await _clearPersistentQueueData();
           return;
         }
+        Log.trace("storing current queue state in database");
         final looping = _queue.looping.value;
         await Future.wait([
           _keyValue.store(_queueSongsKey, _queue.regular.toList()),
@@ -618,8 +690,18 @@ class AudioHandler {
     ]);
   }
 
+  Future<void> _enableAudioSession(bool enable) async {
+    if (enable) {
+      Log.debug("activating audio session");
+    } else {
+      Log.debug("deactivating audio session");
+    }
+    await _audioSession.setActive(enable);
+  }
+
   // =============== dispose ===============
   Future<void> dispose() async {
+    Log.trace("disposing audio handler");
     await stop();
     // dispose queue
     await _queueCurrentSubscription?.cancel();

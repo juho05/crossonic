@@ -2,6 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:crossonic/data/repositories/subsonic/models/album.dart';
 import 'package:crossonic/routing/router.gr.dart';
 import 'package:crossonic/ui/common/album_list_item_viewmodel.dart';
+import 'package:crossonic/ui/common/album_release_badge.dart';
 import 'package:crossonic/ui/common/dialogs/add_to_playlist.dart';
 import 'package:crossonic/ui/common/dialogs/chooser.dart';
 import 'package:crossonic/ui/common/dialogs/media_info.dart';
@@ -139,11 +140,21 @@ class _AlbumGridCellState extends State<AlbumGridCell> {
           title: a.name,
           extraInfo: [
             if (widget.showArtist) a.displayArtist,
-            if (widget.showYear) a.year?.toString() ?? "Unknown year",
+            if (widget.showYear)
+              a.originalDate?.year.toString() ?? "Unknown year",
           ],
           onTap: () {
             context.router.push(AlbumRoute(albumId: a.id));
           },
+          topRight: a.releaseDate != null &&
+                  (a.originalDate!.year != a.releaseDate!.year ||
+                      a.version != null)
+              ? AlbumReleaseBadge(
+                  albumId: a.id,
+                  releaseDate: a.releaseDate!,
+                  albumVersion: a.version,
+                )
+              : null,
         );
       },
     );
