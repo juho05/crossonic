@@ -42,7 +42,8 @@ class AlbumReleaseDialog extends StatelessWidget {
                 maxHeight: 194 +
                     viewModel.alternatives.length *
                         ClickableListItem.verticalExtent +
-                    (viewModel.status != FetchStatus.success
+                    (viewModel.status != FetchStatus.success ||
+                            viewModel.alternatives.isEmpty
                         ? ClickableListItem.verticalExtent
                         : 0)),
             child: CustomScrollView(
@@ -74,14 +75,12 @@ class AlbumReleaseDialog extends StatelessWidget {
                     onNavigate: () => Navigator.of(context).pop(),
                   ),
                 ),
-                if (viewModel.alternatives.isNotEmpty ||
-                    viewModel.status != FetchStatus.success)
-                  SliverPadding(
-                    padding: const EdgeInsets.only(left: 12, right: 12, top: 6),
-                    sliver: SliverToBoxAdapter(
-                      child: Text("Other", style: textTheme.titleMedium),
-                    ),
+                SliverPadding(
+                  padding: const EdgeInsets.only(left: 12, right: 12, top: 6),
+                  sliver: SliverToBoxAdapter(
+                    child: Text("Other", style: textTheme.titleMedium),
                   ),
+                ),
                 if (viewModel.alternatives.isNotEmpty)
                   SliverFixedExtentList.builder(
                     itemCount: viewModel.alternatives.length,
@@ -109,6 +108,22 @@ class AlbumReleaseDialog extends StatelessWidget {
                       height: ClickableListItem.verticalExtent,
                       child: Center(
                         child: Icon(Icons.wifi_off),
+                      ),
+                    ),
+                  ),
+                if (viewModel.status == FetchStatus.success &&
+                    viewModel.alternatives.isEmpty)
+                  const SliverPadding(
+                    padding: EdgeInsets.symmetric(horizontal: 12),
+                    sliver: SliverToBoxAdapter(
+                      child: SizedBox(
+                        height: ClickableListItem.verticalExtent,
+                        child: Center(
+                          child: Text(
+                            "No alternatives found",
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
                       ),
                     ),
                   ),

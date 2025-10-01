@@ -17,6 +17,7 @@ class Album {
   final Date? releaseDate;
   final Date? originalDate;
   final String? version;
+  final String? musicBrainzId;
 
   Album({
     required this.id,
@@ -31,6 +32,7 @@ class Album {
     required this.discTitles,
     required this.releaseType,
     required this.version,
+    required this.musicBrainzId,
   });
 
   factory Album.fromAlbumID3Model(AlbumID3Model album) {
@@ -91,6 +93,7 @@ class Album {
       },
       releaseType: releaseType,
       version: album.version,
+      musicBrainzId: album.musicBrainzId,
     );
   }
 }

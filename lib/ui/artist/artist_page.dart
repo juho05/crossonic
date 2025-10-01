@@ -2,6 +2,8 @@ import 'dart:math';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:crossonic/data/repositories/subsonic/models/album.dart';
+import 'package:crossonic/data/repositories/subsonic/models/date.dart';
+import 'package:crossonic/data/repositories/subsonic/subsonic_repository.dart';
 import 'package:crossonic/ui/artist/artist_viewmodel.dart';
 import 'package:crossonic/ui/common/album_grid_cell.dart';
 import 'package:crossonic/ui/common/albums_grid_delegate.dart';
@@ -205,11 +207,13 @@ class _ArtistPageState extends State<ArtistPage> {
 
                   Widget createSliverGrid([List<Album>? gridAlbums]) {
                     gridAlbums ??= List.of(currentAlbums);
+                    final collapsedAlbums = _collapseAlbums(gridAlbums);
                     return SliverGrid.builder(
                       gridDelegate: AlbumsGridDelegate(),
-                      itemCount: gridAlbums.length,
+                      itemCount: collapsedAlbums.length,
                       itemBuilder: (context, i) => AlbumGridCell(
-                        album: gridAlbums![i],
+                        album: collapsedAlbums[i].$1,
+                        alternatives: collapsedAlbums[i].$2,
                       ),
                     );
                   }
@@ -368,5 +372,37 @@ class _ArtistPageState extends State<ArtistPage> {
         },
       ),
     );
+  }
+
+  List<(Album, List<Album>)> _collapseAlbums(List<Album> gridAlbums) {
+    if (!context
+        .read<SubsonicRepository>()
+        .supports
+        .getAlternateAlbumVersions) {
+      return gridAlbums.map((a) => (a, const <Album>[])).toList();
+    }
+    String? lastMBID;
+    Date? lastOriginalDate;
+    String? lastName;
+    final result = <(Album, List<Album>)>[];
+    for (final a in gridAlbums.reversed) {
+      if (lastMBID != null && a.musicBrainzId == lastMBID) {
+        lastName = a.name;
+        result[result.length - 1].$2.add(a);
+        continue;
+      }
+      lastMBID = a.musicBrainzId;
+      if (lastName != null &&
+          a.name == lastName &&
+          lastOriginalDate != null &&
+          a.originalDate == lastOriginalDate) {
+        result[result.length - 1].$2.add(a);
+        continue;
+      }
+      lastName = a.name;
+      lastOriginalDate = a.originalDate;
+      result.add((a, []));
+    }
+    return result.reversed.toList();
   }
 }

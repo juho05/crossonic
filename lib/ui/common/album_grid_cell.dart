@@ -18,6 +18,7 @@ class AlbumGridCell extends StatefulWidget {
   final bool showArtist;
   final bool showYear;
   final bool disableGoToArtist;
+  final List<Album>? alternatives;
 
   const AlbumGridCell({
     super.key,
@@ -25,6 +26,7 @@ class AlbumGridCell extends StatefulWidget {
     this.showArtist = true,
     this.showYear = true,
     this.disableGoToArtist = false,
+    this.alternatives,
   });
 
   @override
@@ -133,6 +135,7 @@ class _AlbumGridCellState extends State<AlbumGridCell> {
             onSelected: () => MediaInfoDialog.showAlbum(context, a.id),
           )
         ];
+
         return GridCell(
           menuOptions: menuOptions,
           coverId: a.coverId,
@@ -142,22 +145,24 @@ class _AlbumGridCellState extends State<AlbumGridCell> {
           extraInfo: [
             if (widget.showArtist) a.displayArtist,
             if (widget.showYear)
-              a.originalDate?.year.toString() ?? "Unknown year",
+              a.originalDate?.year.toString() ?? "Unknown year"
           ],
           onTap: () {
             context.router.push(AlbumRoute(albumId: a.id));
           },
-          topRight: a.releaseDate != null &&
+          topRight: (a.releaseDate != null &&
                   (a.originalDate!.year != a.releaseDate!.year ||
-                      a.version != null)
+                      a.version != null))
               ? AlbumReleaseBadge(
                   albumId: a.id,
-                  releaseDate: a.releaseDate!,
+                  releaseDate: a.releaseDate,
                   albumVersion: a.version,
+                  alternativeCount: widget.alternatives?.length,
                   onTap: () {
                     AlbumReleaseDialog.show(
                       context,
                       album: a,
+                      alternatives: widget.alternatives,
                     );
                   },
                 )

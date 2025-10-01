@@ -28,6 +28,8 @@ class AlbumReleaseDialogViewModel extends ChangeNotifier {
             alternatives != null ? FetchStatus.success : FetchStatus.initial {
     if (alternatives == null) {
       _loadAlternatives();
+    } else {
+      _sortAlternatives();
     }
   }
 
@@ -52,7 +54,33 @@ class AlbumReleaseDialogViewModel extends ChangeNotifier {
     }
 
     _alternatives = result.value.toList();
+    _sortAlternatives();
     _status = FetchStatus.success;
     notifyListeners();
+  }
+
+  void _sortAlternatives() {
+    if (_alternatives.isEmpty) return;
+    _alternatives.sort((a, b) {
+      if (a.releaseDate != null && b.releaseDate != null) {
+        return a.releaseDate!.compareTo(b.releaseDate!);
+      }
+      if (a.releaseDate != null) {
+        return -1;
+      }
+      if (b.releaseDate != null) {
+        return 1;
+      }
+      if (a.version != null && b.version != null) {
+        return a.version!.compareTo(b.version!);
+      }
+      if (a.version != null) {
+        return -1;
+      }
+      if (b.version != null) {
+        return 1;
+      }
+      return a.id.compareTo(b.id);
+    });
   }
 }
