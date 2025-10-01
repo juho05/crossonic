@@ -61,15 +61,11 @@ class Song {
     if (releaseDate != null) {
       if (originalDate != null) {
         if (originalDate > releaseDate) {
-          releaseDate = null;
+          releaseDate = originalDate;
         }
       } else {
         originalDate = releaseDate;
       }
-    }
-
-    if (originalDate == releaseDate) {
-      releaseDate = null;
     }
 
     return Song(

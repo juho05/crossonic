@@ -94,7 +94,25 @@ class MediaInfoDialogViewModel extends ChangeNotifier {
         ("Genres", s.genre!, null),
       if (s.genres != null && s.genres!.isNotEmpty)
         ("Genres", s.genres!.map((g) => g.name).join(", "), null),
-      if (s.year != null) ("Year", s.year.toString(), null),
+      if (s.releaseDate == null ||
+          s.originalReleaseDate == null && s.year != null)
+        ("Year", s.year.toString(), null),
+      if (s.releaseDate != null)
+        (
+          "Release date",
+          formatDate(DateTime(s.releaseDate!.year ?? 0,
+              s.releaseDate!.month ?? 1, s.releaseDate!.day ?? 1)),
+          null,
+        ),
+      if (s.originalReleaseDate != null)
+        (
+          "Original release date",
+          formatDate(DateTime(
+              s.originalReleaseDate!.year ?? 0,
+              s.originalReleaseDate!.month ?? 1,
+              s.originalReleaseDate!.day ?? 1)),
+          null,
+        ),
       if (s.sortName != null) ("Sort name", s.sortName!, null),
       if (s.moods != null && s.moods!.isNotEmpty)
         ("Moods", s.moods!.join(", "), null),
@@ -166,7 +184,8 @@ class MediaInfoDialogViewModel extends ChangeNotifier {
         ("Genres", a.genre!, null),
       if (a.genres != null && a.genres!.isNotEmpty)
         ("Genres", a.genres!.map((g) => g.name).join(", "), null),
-      if (a.releaseDate == null && a.year != null)
+      if (a.releaseDate == null ||
+          a.originalReleaseDate == null && a.year != null)
         ("Year", a.year.toString(), null),
       if (a.releaseDate != null)
         (
@@ -184,7 +203,8 @@ class MediaInfoDialogViewModel extends ChangeNotifier {
               a.originalReleaseDate!.day ?? 1)),
           null,
         ),
-      ("Compilation", formatBoolToYesNo(a.isCompilation ?? false), null),
+      if (a.isCompilation ?? false)
+        ("Compilation", formatBoolToYesNo(a.isCompilation!), null),
       if (a.sortName != null) ("Sort name", a.sortName!, null),
       if (a.releaseTypes != null && a.releaseTypes!.isNotEmpty)
         ("Release types", a.releaseTypes!.join(", "), null),
