@@ -203,6 +203,7 @@ class MediaInfoDialogViewModel extends ChangeNotifier {
               a.originalReleaseDate!.day ?? 1)),
           null,
         ),
+      if (a.version != null) ("Version", a.version!, null),
       if (a.isCompilation ?? false)
         ("Compilation", formatBoolToYesNo(a.isCompilation!), null),
       if (a.sortName != null) ("Sort name", a.sortName!, null),
