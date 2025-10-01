@@ -1,5 +1,8 @@
-import 'package:crossonic/data/repositories/subsonic/models/date.dart';
+import 'package:crossonic/data/repositories/subsonic/models/album.dart';
+import 'package:crossonic/ui/common/album_list_item.dart';
+import 'package:crossonic/ui/common/clickable_list_item.dart';
 import 'package:crossonic/ui/common/dialogs/album_release_viewmodel.dart';
+import 'package:crossonic/utils/fetch_status.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -8,21 +11,17 @@ class AlbumReleaseDialog extends StatelessWidget {
 
   static Future<void> show(
     BuildContext context, {
-    required String albumId,
-    required String albumName,
-    required Date? originalDate,
-    required Date? releaseDate,
-    required String? albumVersion,
+    required Album album,
+    List<Album>? alternatives,
   }) async {
     await showAdaptiveDialog(
       context: context,
       builder: (context) {
         return ChangeNotifierProvider(
           create: (context) => AlbumReleaseDialogViewModel(
-            albumName: albumName,
-            albumVersion: albumVersion,
-            releaseDate: releaseDate,
-            originalDate: originalDate,
+            subsonicRepository: context.read(),
+            album: album,
+            alternatives: alternatives,
           ),
           builder: (context, child) => const AlbumReleaseDialog._(),
         );
@@ -38,83 +37,85 @@ class AlbumReleaseDialog extends StatelessWidget {
         constraints: BoxConstraints.loose(const Size.fromWidth(450)),
         child: Consumer<AlbumReleaseDialogViewModel>(
             builder: (context, viewModel, _) {
-          return SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                spacing: 8,
-                children: [
-                  Text(
-                    viewModel.albumName,
-                    textAlign: TextAlign.center,
-                    style: textTheme.headlineSmall,
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 3,
+          return Container(
+            constraints: BoxConstraints(
+                maxHeight: 194 +
+                    viewModel.alternatives.length *
+                        ClickableListItem.verticalExtent +
+                    (viewModel.status != FetchStatus.success
+                        ? ClickableListItem.verticalExtent
+                        : 0)),
+            child: CustomScrollView(
+              slivers: [
+                SliverPadding(
+                  padding: const EdgeInsets.only(
+                      left: 12, right: 12, top: 24, bottom: 8),
+                  sliver: SliverToBoxAdapter(
+                    child: Text(
+                      "Release Versions",
+                      textAlign: TextAlign.center,
+                      style: textTheme.headlineSmall,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
-                  const SizedBox(height: 8),
-                  if (viewModel.albumVersion != null)
-                    Row(
-                      spacing: 4,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          "Version:",
-                          style: textTheme.bodyMedium!
-                              .copyWith(fontWeight: FontWeight.w800),
-                        ),
-                        Flexible(
-                          child: Text(
-                            viewModel.albumVersion!,
-                            textAlign: TextAlign.end,
-                          ),
-                        ),
-                      ],
+                ),
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  sliver: SliverToBoxAdapter(
+                    child: Text("Current", style: textTheme.titleMedium),
+                  ),
+                ),
+                SliverToBoxAdapter(
+                  child: AlbumListItem(
+                    album: viewModel.album,
+                    transparent: true,
+                    showArtist: false,
+                    showReleaseVersion: true,
+                    onNavigate: () => Navigator.of(context).pop(),
+                  ),
+                ),
+                if (viewModel.alternatives.isNotEmpty ||
+                    viewModel.status != FetchStatus.success)
+                  SliverPadding(
+                    padding: const EdgeInsets.only(left: 12, right: 12, top: 6),
+                    sliver: SliverToBoxAdapter(
+                      child: Text("Other", style: textTheme.titleMedium),
                     ),
-                  if (viewModel.releaseDate != null)
-                    Row(
-                      spacing: 4,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          "Released:",
-                          style: textTheme.bodyMedium!
-                              .copyWith(fontWeight: FontWeight.w800),
-                        ),
-                        Flexible(
-                          child: Text(
-                            viewModel.releaseDate.toString(),
-                            textAlign: TextAlign.end,
-                          ),
-                        ),
-                      ],
+                  ),
+                if (viewModel.alternatives.isNotEmpty)
+                  SliverFixedExtentList.builder(
+                    itemCount: viewModel.alternatives.length,
+                    itemExtent: ClickableListItem.verticalExtent,
+                    itemBuilder: (context, index) => AlbumListItem(
+                      album: viewModel.alternatives[index],
+                      transparent: true,
+                      showArtist: false,
+                      showReleaseVersion: true,
+                      onNavigate: () => Navigator.of(context).pop(),
                     ),
-                  if (viewModel.originalDate != null)
-                    Row(
-                      spacing: 4,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          "Original release:",
-                          style: textTheme.bodyMedium!
-                              .copyWith(fontWeight: FontWeight.w800),
-                        ),
-                        Flexible(
-                          child: Text(
-                            viewModel.originalDate.toString(),
-                            textAlign: TextAlign.end,
-                          ),
-                        ),
-                      ],
+                  ),
+                if (viewModel.status == FetchStatus.loading)
+                  const SliverToBoxAdapter(
+                    child: SizedBox(
+                      height: ClickableListItem.verticalExtent,
+                      child: Center(
+                        child: CircularProgressIndicator.adaptive(),
+                      ),
                     ),
-                  const SizedBox(height: 8),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    child: const Text("Close"),
-                  )
-                ],
-              ),
+                  ),
+                if (viewModel.status == FetchStatus.failure)
+                  const SliverToBoxAdapter(
+                    child: SizedBox(
+                      height: ClickableListItem.verticalExtent,
+                      child: Center(
+                        child: Icon(Icons.wifi_off),
+                      ),
+                    ),
+                  ),
+                const SliverToBoxAdapter(
+                  child: SizedBox(height: 24),
+                )
+              ],
             ),
           );
         }),

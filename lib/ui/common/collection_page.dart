@@ -4,9 +4,10 @@ import 'package:flutter/material.dart';
 
 class CollectionExtraInfo {
   final String text;
+  final String? badgeText;
   final void Function()? onClick;
 
-  CollectionExtraInfo({required this.text, this.onClick});
+  CollectionExtraInfo({required this.text, this.onClick, this.badgeText});
 }
 
 class CollectionAction {
@@ -183,52 +184,7 @@ class _CollectionPageMobileState extends State<CollectionPageMobile> {
                 ),
                 if (widget.extraInfo != null)
                   ...widget.extraInfo!.map(
-                    (i) => Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      child: i.onClick != null
-                          ? Align(
-                              alignment: Alignment.center,
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(10),
-                                child: Material(
-                                  child: InkWell(
-                                    onTap: i.onClick,
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          vertical: 4, horizontal: 32),
-                                      child: Text(
-                                        i.text,
-                                        overflow: TextOverflow.ellipsis,
-                                        textAlign: TextAlign.center,
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodyLarge!
-                                            .copyWith(
-                                              fontWeight: FontWeight.w400,
-                                              fontSize: 15,
-                                            ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            )
-                          : Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 4),
-                              child: Text(
-                                i.text,
-                                overflow: TextOverflow.ellipsis,
-                                textAlign: TextAlign.center,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyLarge!
-                                    .copyWith(
-                                      fontWeight: FontWeight.w400,
-                                      fontSize: 15,
-                                    ),
-                              ),
-                            ),
-                    ),
+                    (i) => _ExtraInfoWidget(extraInfo: i),
                   ),
                 if (widget.actions != null)
                   Padding(
@@ -439,35 +395,7 @@ class _CollectionPageDesktopState extends State<CollectionPageDesktop> {
                   ),
                   if (widget.extraInfo != null)
                     ...widget.extraInfo!.map(
-                      (i) => Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        child: i.onClick != null
-                            ? TextButton(
-                                onPressed: i.onClick,
-                                child: Text(
-                                  i.text,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodyLarge!
-                                      .copyWith(
-                                        fontWeight: FontWeight.w400,
-                                        fontSize: 15,
-                                      ),
-                                ),
-                              )
-                            : Text(
-                                i.text,
-                                overflow: TextOverflow.ellipsis,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyLarge!
-                                    .copyWith(
-                                      fontWeight: FontWeight.w400,
-                                      fontSize: 15,
-                                    ),
-                              ),
-                      ),
+                      (i) => _ExtraInfoWidget(extraInfo: i),
                     ),
                   if (widget.loadingDescription)
                     const Expanded(
@@ -615,5 +543,85 @@ class _CollectionPageDesktopState extends State<CollectionPageDesktop> {
         ],
       );
     });
+  }
+}
+
+class _ExtraInfoWidget extends StatelessWidget {
+  final CollectionExtraInfo _extraInfo;
+
+  const _ExtraInfoWidget({required CollectionExtraInfo extraInfo})
+      : _extraInfo = extraInfo;
+
+  @override
+  Widget build(BuildContext context) {
+    Widget text = Text(
+      _extraInfo.text,
+      overflow: TextOverflow.ellipsis,
+      textAlign: TextAlign.center,
+      style: Theme.of(context).textTheme.bodyLarge!.copyWith(
+            fontWeight: FontWeight.w400,
+            fontSize: 15,
+          ),
+    );
+
+    final badgeColor = Theme.of(context).colorScheme.secondaryContainer;
+    final badgeForeground = Theme.of(context).colorScheme.onSecondaryContainer;
+
+    if (_extraInfo.badgeText != null) {
+      text = Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        spacing: 6,
+        children: [
+          text,
+          Container(
+            decoration: BoxDecoration(
+              color: badgeColor.withAlpha(120),
+              border: Border.all(color: badgeColor),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: Text(
+                  _extraInfo.badgeText!,
+                  style: Theme.of(context).textTheme.bodyLarge!.copyWith(
+                        fontWeight: FontWeight.w500,
+                        fontSize: 13,
+                        color: badgeForeground,
+                      ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      child: _extraInfo.onClick != null
+          ? Align(
+              alignment: Alignment.center,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: Material(
+                  child: InkWell(
+                    onTap: _extraInfo.onClick,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 4, horizontal: 32),
+                      child: text,
+                    ),
+                  ),
+                ),
+              ),
+            )
+          : Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: text,
+            ),
+    );
   }
 }

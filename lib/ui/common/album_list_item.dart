@@ -18,6 +18,10 @@ class AlbumListItem extends StatefulWidget {
   final bool showYear;
   final bool showSongCount;
   final bool disableGoToArtist;
+  final bool transparent;
+  final bool showReleaseVersion;
+
+  final void Function()? onNavigate;
 
   const AlbumListItem({
     super.key,
@@ -26,6 +30,9 @@ class AlbumListItem extends StatefulWidget {
     this.showYear = true,
     this.showSongCount = true,
     this.disableGoToArtist = false,
+    this.transparent = false,
+    this.showReleaseVersion = false,
+    this.onNavigate,
   });
 
   @override
@@ -57,11 +64,18 @@ class _AlbumListItemState extends State<AlbumListItem> {
     final a = widget.album;
 
     String year = "Unknown year";
-    if (a.originalDate != null) {
-      year = a.originalDate!.year.toString();
-    }
-    if (a.releaseDate != null && a.releaseDate!.year != a.originalDate!.year) {
-      year += "/${a.releaseDate!.year}";
+    if (widget.showReleaseVersion) {
+      year = a.releaseDate?.toString() ??
+          a.originalDate?.toString() ??
+          "Unknown date";
+    } else {
+      if (a.originalDate != null) {
+        year = a.originalDate!.year.toString();
+      }
+      if (a.releaseDate != null &&
+          a.releaseDate!.year != a.originalDate!.year) {
+        year += "/${a.releaseDate!.year}";
+      }
     }
 
     return ListenableBuilder(
@@ -69,8 +83,10 @@ class _AlbumListItemState extends State<AlbumListItem> {
         builder: (context, snapshot) {
           return ClickableListItemWithContextMenu(
             title: a.name,
+            transparent: widget.transparent,
             extraInfo: [
               if (widget.showArtist) a.displayArtist,
+              if (widget.showReleaseVersion && a.version != null) a.version!,
               if (widget.showYear) year,
             ],
             leading: Padding(
@@ -87,6 +103,9 @@ class _AlbumListItemState extends State<AlbumListItem> {
             ),
             trailingInfo: widget.showSongCount ? a.songCount.toString() : null,
             onTap: () {
+              if (widget.onNavigate != null) {
+                widget.onNavigate!();
+              }
               context.router.push(AlbumRoute(albumId: a.id));
             },
             isFavorite: viewModel.favorite,
@@ -144,6 +163,9 @@ class _AlbumListItemState extends State<AlbumListItem> {
                 icon: Icons.playlist_add,
                 title: "Add to playlist",
                 onSelected: () {
+                  if (widget.onNavigate != null) {
+                    widget.onNavigate!();
+                  }
                   AddToPlaylistDialog.show(context, a.name, viewModel.getSongs);
                 },
               ),
@@ -156,6 +178,9 @@ class _AlbumListItemState extends State<AlbumListItem> {
                         context, a.artists.toList());
                     if (artistId == null || !context.mounted) {
                       return;
+                    }
+                    if (widget.onNavigate != null) {
+                      widget.onNavigate!();
                     }
                     context.router.push(ArtistRoute(artistId: artistId));
                   },

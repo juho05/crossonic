@@ -1,6 +1,6 @@
 import 'package:crossonic/data/repositories/audio/audio_handler.dart';
 import 'package:crossonic/data/repositories/subsonic/favorites_repository.dart';
-import 'package:crossonic/data/repositories/subsonic/models/date.dart';
+import 'package:crossonic/data/repositories/subsonic/models/album.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
 import 'package:crossonic/data/repositories/subsonic/subsonic_repository.dart';
 import 'package:crossonic/utils/fetch_status.dart';
@@ -13,31 +13,11 @@ class AlbumViewModel extends ChangeNotifier {
   final AudioHandler _audioHandler;
 
   String? _albumId;
-  String get id => _albumId ?? "";
 
-  String _name = "";
-  String get name => _name;
+  Album? _album;
+  Album get album => _album!;
 
-  String _coverId = "";
-  String get coverId => _coverId;
-
-  List<({String id, String name})> _artists = [];
-  List<({String id, String name})> get artists => _artists;
-
-  String _displayArtist = "";
-  String get displayArtist => _displayArtist;
-
-  Date? _originalDate;
-  Date? get originalDate => _originalDate;
-
-  Date? _releaseDate;
-  Date? get releaseDate => _releaseDate;
-
-  String? _version;
-  String? get version => _version;
-
-  List<Song> _songs = [];
-  List<Song> get songs => _songs;
+  List<Song> get _songs => _album?.songs ?? [];
 
   // either disc nr or song
   List<(int?, (Song, int)?)> _listItems = [];
@@ -55,6 +35,9 @@ class AlbumViewModel extends ChangeNotifier {
 
   bool _favorite = false;
   bool get favorite => _favorite;
+
+  Iterable<Album> _alternatives = [];
+  Iterable<Album> get alternatives => _alternatives;
 
   AlbumViewModel(
       {required FavoritesRepository favoritesRepository,
@@ -87,16 +70,8 @@ class AlbumViewModel extends ChangeNotifier {
       case Err():
         _status = FetchStatus.failure;
       case Ok():
-        final album = result.value;
-        _name = album.name;
-        _coverId = album.coverId;
-        _artists = album.artists.toList();
-        _displayArtist = album.displayArtist;
-        _songs = album.songs ?? [];
-        _discTitles = album.discTitles;
-        _originalDate = album.originalDate;
-        _releaseDate = album.releaseDate;
-        _version = album.version;
+        _album = result.value;
+        _discTitles = album!.discTitles;
 
         final discCount = _songs.map((s) => s.discNr ?? 1).toSet().length;
         if (_discTitles.isNotEmpty || discCount > 1) {
@@ -124,6 +99,7 @@ class AlbumViewModel extends ChangeNotifier {
     }
     notifyListeners();
 
+    _loadAlternatives(albumId);
     _loadDescription(albumId);
   }
 
@@ -187,6 +163,18 @@ class AlbumViewModel extends ChangeNotifier {
       _description = result.tryValue?.description ?? "";
     } else {
       _description = "";
+    }
+    notifyListeners();
+  }
+
+  Future<void> _loadAlternatives(String albumId) async {
+    if (!_subsonic.supports.getAlternateAlbumVersions) return;
+    final result = await _subsonic.getAlternateAlbumVersions(albumId);
+    switch (result) {
+      case Err():
+        _alternatives = const [];
+      case Ok():
+        _alternatives = result.value;
     }
     notifyListeners();
   }

@@ -75,7 +75,7 @@ class _AlbumPageState extends State<AlbumPage> {
               .length;
 
           return CollectionPage(
-            name: _viewModel.name,
+            name: _viewModel.album.name,
             loadingDescription: _viewModel.description == null,
             description: (_viewModel.description ?? "").isNotEmpty
                 ? _viewModel.description
@@ -84,7 +84,7 @@ class _AlbumPageState extends State<AlbumPage> {
               placeholderIcon: Icons.album,
               borderRadius: BorderRadius.circular(10),
               isFavorite: _viewModel.favorite,
-              coverId: _viewModel.coverId,
+              coverId: _viewModel.album.coverId,
               menuOptions: [
                 ContextMenuOption(
                   title: "Play",
@@ -106,7 +106,7 @@ class _AlbumPageState extends State<AlbumPage> {
                   onSelected: () {
                     _viewModel.addToQueue(true);
                     Toast.show(context,
-                        "Added '${_viewModel.name}' to priority queue");
+                        "Added '${_viewModel.album.name}' to priority queue");
                   },
                 ),
                 ContextMenuOption(
@@ -114,7 +114,8 @@ class _AlbumPageState extends State<AlbumPage> {
                   icon: Icons.playlist_add,
                   onSelected: () {
                     _viewModel.addToQueue(false);
-                    Toast.show(context, "Added '${_viewModel.name}' to queue");
+                    Toast.show(
+                        context, "Added '${_viewModel.album.name}' to queue");
                   },
                 ),
                 ContextMenuOption(
@@ -133,8 +134,8 @@ class _AlbumPageState extends State<AlbumPage> {
                   title: "Add to playlist",
                   icon: Icons.playlist_add,
                   onSelected: () {
-                    AddToPlaylistDialog.show(context, _viewModel.name,
-                        () async => Result.ok(_viewModel.songs));
+                    AddToPlaylistDialog.show(context, _viewModel.album.name,
+                        () async => Result.ok(_viewModel.album.songs ?? []));
                   },
                 ),
                 ContextMenuOption(
@@ -143,7 +144,7 @@ class _AlbumPageState extends State<AlbumPage> {
                   onSelected: () async {
                     final router = context.router;
                     final artistId = await ChooserDialog.chooseArtist(
-                        context, _viewModel.artists);
+                        context, _viewModel.album.artists.toList());
                     if (artistId == null) return;
                     router.push(ArtistRoute(artistId: artistId));
                   },
@@ -152,45 +153,50 @@ class _AlbumPageState extends State<AlbumPage> {
                   title: "Info",
                   icon: Icons.info_outline,
                   onSelected: () {
-                    MediaInfoDialog.showAlbum(context, _viewModel.id);
+                    MediaInfoDialog.showAlbum(context, _viewModel.album.id);
                   },
                 )
               ],
             ),
             extraInfo: [
               CollectionExtraInfo(
-                text: _viewModel.displayArtist +
-                    (_viewModel.originalDate != null
-                        ? ' • ${_viewModel.originalDate!.year}'
+                text: _viewModel.album.displayArtist +
+                    (_viewModel.album.originalDate != null
+                        ? ' • ${_viewModel.album.originalDate!.year}'
                         : ''),
                 onClick: () async {
                   final router = context.router;
                   final artistId = await ChooserDialog.chooseArtist(
-                      context, _viewModel.artists);
+                      context, _viewModel.album.artists.toList());
                   if (artistId == null) return;
                   router.push(ArtistRoute(artistId: artistId));
                 },
               ),
-              if (_viewModel.releaseDate != null || _viewModel.version != null)
+              if (_viewModel.album.releaseDate != null ||
+                  _viewModel.album.version != null ||
+                  _viewModel.alternatives.isNotEmpty)
                 CollectionExtraInfo(
-                  text: _viewModel.releaseDate == null ||
-                          (_viewModel.version?.contains(
-                                  _viewModel.releaseDate!.year.toString()) ??
+                  text: _viewModel.album.releaseDate == null ||
+                          (_viewModel.album.version?.contains(_viewModel
+                                  .album.releaseDate!.year
+                                  .toString()) ??
                               false)
-                      ? _viewModel.version!
-                      : (_viewModel.version == null
-                          ? "Release: ${_viewModel.releaseDate!.toString()}"
-                          : "${_viewModel.version} • ${_viewModel.originalDate?.year == _viewModel.releaseDate?.year ? _viewModel.releaseDate : _viewModel.releaseDate?.year}"),
-                  onClick: () {
-                    AlbumReleaseDialog.show(
-                      context,
-                      albumId: _viewModel.id,
-                      albumName: _viewModel.name,
-                      albumVersion: _viewModel.version,
-                      originalDate: _viewModel.originalDate,
-                      releaseDate: _viewModel.releaseDate,
-                    );
-                  },
+                      ? _viewModel.album.version!
+                      : (_viewModel.album.version == null
+                          ? "Release: ${_viewModel.album.releaseDate!.toString()}"
+                          : "${_viewModel.album.version} • ${_viewModel.album.originalDate?.year == _viewModel.album.releaseDate?.year ? _viewModel.album.releaseDate : _viewModel.album.releaseDate?.year}"),
+                  badgeText: _viewModel.alternatives.isNotEmpty
+                      ? "+${_viewModel.alternatives.length}"
+                      : null,
+                  onClick: _viewModel.alternatives.isNotEmpty
+                      ? () {
+                          AlbumReleaseDialog.show(
+                            context,
+                            album: _viewModel.album,
+                            alternatives: _viewModel.alternatives.toList(),
+                          );
+                        }
+                      : null,
                 ),
             ],
             actions: [
@@ -207,8 +213,8 @@ class _AlbumPageState extends State<AlbumPage> {
                 icon: Icons.playlist_play,
                 onClick: () {
                   _viewModel.addToQueue(true);
-                  Toast.show(
-                      context, "Added '${_viewModel.name}' to priority queue");
+                  Toast.show(context,
+                      "Added '${_viewModel.album.name}' to priority queue");
                 },
               ),
               CollectionAction(
@@ -216,11 +222,12 @@ class _AlbumPageState extends State<AlbumPage> {
                 icon: Icons.playlist_add,
                 onClick: () {
                   _viewModel.addToQueue(false);
-                  Toast.show(context, "Added '${_viewModel.name}' to queue");
+                  Toast.show(
+                      context, "Added '${_viewModel.album.name}' to queue");
                 },
               ),
             ],
-            contentTitle: "Tracks (${_viewModel.songs.length})",
+            contentTitle: "Tracks (${_viewModel.album.songs?.length ?? 0})",
             contentSliver: SliverVariedExtentList.builder(
               itemCount: _viewModel.listItems.length,
               itemBuilder: (context, index) {
@@ -271,7 +278,7 @@ class _AlbumPageState extends State<AlbumPage> {
                             const SizedBox(width: 8),
                             Expanded(
                               child: LayoutModeBuilder(
-                                builder: (context, orientation) => Text(
+                                builder: (context, isDesktop) => Text(
                                   _viewModel.discTitles[discNr] ??
                                       "Disc $discNr",
                                   textAlign: TextAlign.center,
@@ -281,10 +288,9 @@ class _AlbumPageState extends State<AlbumPage> {
                                       .textTheme
                                       .titleMedium!
                                       .copyWith(
-                                        fontWeight:
-                                            orientation == Orientation.portrait
-                                                ? FontWeight.w800
-                                                : FontWeight.bold,
+                                        fontWeight: isDesktop
+                                            ? FontWeight.bold
+                                            : FontWeight.w800,
                                       ),
                                 ),
                               ),

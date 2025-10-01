@@ -388,6 +388,21 @@ class SubsonicRepository {
     return Result.ok(Artist.fromArtistID3Model(result.value));
   }
 
+  Future<Result<Iterable<Album>>> getAlternateAlbumVersions(
+      String albumId) async {
+    if (!supports.getAlternateAlbumVersions) {
+      return const Result.ok([]);
+    }
+    final result = await _service.getAlternateAlbumVersions(_auth.con, albumId);
+    switch (result) {
+      case Err():
+        return Result.error(result.error);
+      case Ok():
+    }
+    _updateAlbumFavorites(result.value.album);
+    return Result.ok(result.value.album.map((a) => Album.fromAlbumID3Model(a)));
+  }
+
   Future<Result<Iterable<Album>>> getAppearsOn(String artistId) async {
     if (!supports.appearsOn) {
       return const Result.ok([]);

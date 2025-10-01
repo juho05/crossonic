@@ -157,11 +157,7 @@ class _AlbumGridCellState extends State<AlbumGridCell> {
                   onTap: () {
                     AlbumReleaseDialog.show(
                       context,
-                      albumId: a.id,
-                      albumName: a.name,
-                      originalDate: a.originalDate,
-                      releaseDate: a.releaseDate,
-                      albumVersion: a.version,
+                      album: a,
                     );
                   },
                 )

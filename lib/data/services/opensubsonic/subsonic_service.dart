@@ -5,6 +5,7 @@ import 'package:crossonic/data/services/opensubsonic/auth.dart';
 import 'package:crossonic/data/services/opensubsonic/exceptions.dart';
 import 'package:crossonic/data/services/opensubsonic/models/album_info_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/album_list2_model.dart';
+import 'package:crossonic/data/services/opensubsonic/models/album_versions_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/albumid3_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/appears_on_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/artist_info2_model.dart';
@@ -436,6 +437,19 @@ class SubsonicService {
       },
       AppearsOnModel.fromJson,
       "appearsOn",
+    );
+  }
+
+  Future<Result<AlbumVersionsModel>> getAlternateAlbumVersions(
+      Connection con, String albumId) async {
+    return _fetchObject(
+      con,
+      "crossonic/getAlternateAlbumVersions",
+      {
+        "albumId": [albumId]
+      },
+      AlbumVersionsModel.fromJson,
+      "albumVersions",
     );
   }
 
