@@ -18,19 +18,10 @@ class LogInterceptor extends QueryInterceptor {
       return result;
     } on Object catch (e) {
       Log.trace(
-          'description\n=> failed after ${stopwatch.elapsedMilliseconds}ms');
+          'description\n=> failed after ${stopwatch.elapsedMilliseconds}ms',
+          e: e);
       rethrow;
     }
-  }
-
-  @override
-  Future<void> commitTransaction(TransactionExecutor inner) {
-    return _run('commit', () => inner.send());
-  }
-
-  @override
-  Future<void> rollbackTransaction(TransactionExecutor inner) {
-    return _run('rollback', () => inner.rollback());
   }
 
   @override

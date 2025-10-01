@@ -282,8 +282,10 @@ class AudioHandler {
 
   Future<void> _playerEvent(AudioPlayerEvent event) async {
     if (!_player.initialized) {
-      Log.warn(
-          "ignoring a player event because the player is not initialized: ${event.name}");
+      if (event != AudioPlayerEvent.stopped) {
+        Log.warn(
+            "ignoring a player event because the player is not initialized: ${event.name}");
+      }
       return;
     }
     Log.trace("player event received: ${event.name}");

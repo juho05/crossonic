@@ -9,8 +9,7 @@ import 'package:logger/logger.dart';
 import 'log.dart';
 
 class LogRepository {
-  static final int _maxBufferSize = 50;
-  static final Duration _bufferDebounceDuration = const Duration(seconds: 3);
+  static final Duration _bufferDebounceDuration = const Duration(seconds: 2);
 
   final StreamController<LogMessage> _newMessageStream =
       StreamController.broadcast();
@@ -48,11 +47,6 @@ class LogRepository {
     }
 
     _buffer.add(msg);
-
-    if (!_flushing && _buffer.length >= _maxBufferSize) {
-      await _flushBuffer();
-      return;
-    }
 
     _debounceTimer?.cancel();
     _debounceTimer = Timer(_bufferDebounceDuration, () async {
