@@ -63,7 +63,7 @@ class AlbumReleaseDialogViewModel extends ChangeNotifier {
     if (_alternatives.isEmpty) return;
     _alternatives.sort((a, b) {
       if (a.releaseDate != null && b.releaseDate != null) {
-        return a.releaseDate!.compareTo(b.releaseDate!);
+        return b.releaseDate!.compareTo(a.releaseDate!);
       }
       if (a.releaseDate != null) {
         return -1;

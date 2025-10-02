@@ -385,7 +385,7 @@ class _ArtistPageState extends State<ArtistPage> {
     Date? lastOriginalDate;
     String? lastName;
     final result = <(Album, List<Album>)>[];
-    for (final a in gridAlbums.reversed) {
+    for (final a in gridAlbums) {
       if (lastMBID != null && a.musicBrainzId == lastMBID) {
         lastName = a.name;
         result[result.length - 1].$2.add(a);
@@ -403,6 +403,6 @@ class _ArtistPageState extends State<ArtistPage> {
       lastOriginalDate = a.originalDate;
       result.add((a, []));
     }
-    return result.reversed.toList();
+    return result;
   }
 }
