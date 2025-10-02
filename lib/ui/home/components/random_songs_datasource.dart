@@ -10,7 +10,8 @@ class RandomSongsDataSource implements HomeComponentDataSource<Song> {
       : _repository = repository;
 
   @override
-  Future<Result<Iterable<Song>>> get(int count) async {
-    return await _repository.getRandomSongs(count: count);
+  Future<Result<Iterable<Song>>> get(int count, {String? seed}) async {
+    if (!_repository.supports.randomSeed) seed = null;
+    return await _repository.getRandomSongs(count: count, seed: seed);
   }
 }

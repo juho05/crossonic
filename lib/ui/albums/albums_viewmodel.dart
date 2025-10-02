@@ -40,13 +40,19 @@ class AlbumsViewModel extends ChangeNotifier {
   FetchStatus get status => _status;
 
   final String _genre;
+  final String? _initialSeed;
 
   AlbumsViewModel({
     required SubsonicRepository subsonic,
     required AlbumsPageMode mode,
+    String? initialSeed,
   })  : _subsonic = subsonic,
         _mode = mode,
-        _genre = "" {
+        _genre = "",
+        _initialSeed =
+            subsonic.supports.randomSeed && mode == AlbumsPageMode.random
+                ? initialSeed
+                : null {
     if (mode == AlbumsPageMode.genre) {
       throw Exception(
           "cannot set genre mode in default constructor, use genre constructor instead");
@@ -59,7 +65,8 @@ class AlbumsViewModel extends ChangeNotifier {
     required String genre,
   })  : _subsonic = subsonic,
         _mode = AlbumsPageMode.genre,
-        _genre = genre {
+        _genre = genre,
+        _initialSeed = null {
     _fetch(0);
   }
 
@@ -81,7 +88,11 @@ class AlbumsViewModel extends ChangeNotifier {
     _status = FetchStatus.loading;
 
     if (page == 0 && _subsonic.supports.randomSeed) {
-      _seed = Random().nextDouble().toString();
+      if (_seed == null && _initialSeed != null) {
+        _seed = _initialSeed;
+      } else {
+        _seed = Random().nextDouble().toString();
+      }
     }
 
     if (page * _pageSize < albums.length) {

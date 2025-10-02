@@ -44,14 +44,20 @@ class SongsViewModel extends ChangeNotifier {
   FetchStatus get status => _status;
 
   final String _genre;
+  final String? _initialSeed;
 
   SongsViewModel({
     required SubsonicRepository subsonic,
     required AudioHandler audioHandler,
     required SongsPageMode mode,
+    String? initialSeed,
   })  : _subsonic = subsonic,
         _audioHandler = audioHandler,
-        _genre = "" {
+        _genre = "",
+        _initialSeed =
+            subsonic.supports.randomSeed && mode == SongsPageMode.random
+                ? initialSeed
+                : null {
     if (mode == SongsPageMode.genre) {
       throw Exception(
           "cannot set genre page mode via default constructor, use genre constructor instead");
@@ -65,7 +71,8 @@ class SongsViewModel extends ChangeNotifier {
     required String genre,
   })  : _subsonic = subsonic,
         _audioHandler = audioHandler,
-        _genre = genre {
+        _genre = genre,
+        _initialSeed = null {
     _mode = SongsPageMode.genre;
     _fetch(0);
   }
@@ -104,7 +111,11 @@ class SongsViewModel extends ChangeNotifier {
     _status = FetchStatus.loading;
 
     if (page == 0 && _subsonic.supports.randomSeed) {
-      _seed = Random().nextDouble().toString();
+      if (_seed == null && _initialSeed != null) {
+        _seed = _initialSeed;
+      } else {
+        _seed = Random().nextDouble().toString();
+      }
     }
 
     if (page * _pageSize < songs.length) {

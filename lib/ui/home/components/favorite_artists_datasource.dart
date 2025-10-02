@@ -11,7 +11,7 @@ class FavoriteArtistsDataSource implements HomeComponentDataSource<Artist> {
   }) : _repository = repository;
 
   @override
-  Future<Result<Iterable<Artist>>> get(int count) async {
+  Future<Result<Iterable<Artist>>> get(int count, {String? seed}) async {
     final result = await _repository.getStarredArtists();
     switch (result) {
       case Err():

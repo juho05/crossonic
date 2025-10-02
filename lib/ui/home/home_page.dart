@@ -38,7 +38,8 @@ class HomePage extends StatelessWidget {
                   slivers: viewModel.content
                       .map((o) => SliverPadding(
                             padding: const EdgeInsets.only(bottom: 4),
-                            sliver: _optionToWidget(o, viewModel.refreshStream),
+                            sliver: _optionToWidget(
+                                o, viewModel.refreshStream, viewModel.seed),
                           ))
                       .toList(),
                 ),
@@ -56,30 +57,41 @@ class HomePage extends StatelessWidget {
     });
   }
 
-  Widget _optionToWidget(HomeContentOption option, Stream refreshStream) {
+  Widget _optionToWidget(
+      HomeContentOption option, Stream refreshStream, String? seed) {
     switch (option) {
       case HomeContentOption.favoriteSongs:
-        return _songsWidget(option, refreshStream);
+        return _songsWidget(option, refreshStream, null);
       case HomeContentOption.randomSongs:
         return _songsWidget(
-            option, refreshStream.where((refreshRandom) => refreshRandom));
+            option,
+            refreshStream
+                .where((refreshRandom) => refreshRandom || seed != null),
+            seed);
       case HomeContentOption.recentlyAddedReleases:
       case HomeContentOption.favoriteReleases:
       case HomeContentOption.recentlyPlayedReleases:
       case HomeContentOption.frequentlyPlayedReleases:
-        return _releasesWidget(option, refreshStream);
+        return _releasesWidget(option, refreshStream, null);
       case HomeContentOption.randomReleases:
         return _releasesWidget(
-            option, refreshStream.where((refreshRandom) => refreshRandom));
+            option,
+            refreshStream
+                .where((refreshRandom) => refreshRandom || seed != null),
+            seed);
       case HomeContentOption.favoriteArtists:
-        return _artistsWidget(option, refreshStream);
+        return _artistsWidget(option, refreshStream, null);
       case HomeContentOption.randomArtists:
         return _artistsWidget(
-            option, refreshStream.where((refreshRandom) => refreshRandom));
+            option,
+            refreshStream
+                .where((refreshRandom) => refreshRandom || seed != null),
+            seed);
     }
   }
 
-  Widget _songsWidget(HomeContentOption option, Stream? refreshStream) {
+  Widget _songsWidget(
+      HomeContentOption option, Stream? refreshStream, String? seed) {
     return ChangeNotifierProvider(
       create: (context) => HomeSongListViewModel(
         refreshStream: refreshStream,
@@ -91,6 +103,7 @@ class HomePage extends StatelessWidget {
           _ =>
             throw Exception("Unknown home content song option: ${option.name}")
         },
+        homeViewModel: context.read(),
       ),
       child: HomeSongList(
         title: HomeLayoutSettings.optionTitle(option),
@@ -102,12 +115,14 @@ class HomePage extends StatelessWidget {
                 "Unknown home content song option: ${option.name}"),
           }
               .name,
+          initialSeed: seed,
         ),
       ),
     );
   }
 
-  Widget _releasesWidget(HomeContentOption option, Stream? refreshStream) {
+  Widget _releasesWidget(
+      HomeContentOption option, Stream? refreshStream, String? seed) {
     return ChangeNotifierProvider(
       create: (context) => HomeReleaseListViewModel(
         refreshStream: refreshStream,
@@ -126,6 +141,7 @@ class HomePage extends StatelessWidget {
           _ => throw Exception(
               "Unknown home content release option: ${option.name}")
         },
+        homeViewModel: context.read(),
       ),
       child: HomeReleaseList(
         title: HomeLayoutSettings.optionTitle(option),
@@ -143,12 +159,14 @@ class HomePage extends StatelessWidget {
                 "Unknown home content release option: ${option.name}")
           }
               .name,
+          initialSeed: seed,
         ),
       ),
     );
   }
 
-  Widget _artistsWidget(HomeContentOption option, Stream? refreshStream) {
+  Widget _artistsWidget(
+      HomeContentOption option, Stream? refreshStream, String? seed) {
     return ChangeNotifierProvider(
       create: (context) => HomeArtistListViewModel(
         refreshStream: refreshStream,
@@ -160,6 +178,7 @@ class HomePage extends StatelessWidget {
           _ => throw Exception(
               "Unknown home content artist option: ${option.name}")
         },
+        homeViewModel: context.read(),
       ),
       child: HomeArtistList(
         title: HomeLayoutSettings.optionTitle(option),
@@ -171,6 +190,7 @@ class HomePage extends StatelessWidget {
                 "Unknown home content artist option: ${option.name}")
           }
               .name,
+          initialSeed: seed,
         ),
       ),
     );

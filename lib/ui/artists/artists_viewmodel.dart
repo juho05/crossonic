@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:crossonic/data/repositories/subsonic/models/artist.dart';
 import 'package:crossonic/data/repositories/subsonic/subsonic_repository.dart';
 import 'package:crossonic/utils/fetch_status.dart';
@@ -28,11 +30,18 @@ class ArtistsViewModel extends ChangeNotifier {
   FetchStatus _status = FetchStatus.initial;
   FetchStatus get status => _status;
 
+  String? _initialSeed;
+
   ArtistsViewModel({
     required SubsonicRepository subsonic,
     required ArtistsPageMode mode,
+    String? initialSeed,
   })  : _subsonic = subsonic,
-        _mode = mode;
+        _mode = mode,
+        _initialSeed =
+            subsonic.supports.randomSeed && mode == ArtistsPageMode.random
+                ? initialSeed
+                : null;
 
   Future<void> load() async {
     return await _fetch();
@@ -71,7 +80,12 @@ class ArtistsViewModel extends ChangeNotifier {
       case ArtistsPageMode.alphabetical:
         artists.sort((a, b) => a.name.compareTo(b.name));
       case ArtistsPageMode.random:
-        artists.shuffle();
+        if (_initialSeed != null) {
+          artists.shuffle(Random(_initialSeed.hashCode));
+          _initialSeed = null;
+        } else {
+          artists.shuffle();
+        }
       default:
     }
   }

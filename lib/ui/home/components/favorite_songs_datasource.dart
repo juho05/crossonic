@@ -10,7 +10,7 @@ class FavoriteSongsDataSource implements HomeComponentDataSource<Song> {
       : _repository = repository;
 
   @override
-  Future<Result<Iterable<Song>>> get(int count) async {
+  Future<Result<Iterable<Song>>> get(int count, {String? seed}) async {
     final result = await _repository.getStarredSongs();
     switch (result) {
       case Err():

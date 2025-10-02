@@ -10,9 +10,13 @@ import 'package:provider/provider.dart';
 @RoutePage()
 class ArtistsPage extends StatefulWidget {
   final String initialSort;
+  final String? initialSeed;
 
-  const ArtistsPage(
-      {super.key, @QueryParam("sort") this.initialSort = "alphabetical"});
+  const ArtistsPage({
+    super.key,
+    @QueryParam("sort") this.initialSort = "alphabetical",
+    this.initialSeed,
+  });
 
   @override
   State<ArtistsPage> createState() => _ArtistsPageState();
@@ -30,6 +34,7 @@ class _ArtistsPageState extends State<ArtistsPage> {
         (m) => m.name == widget.initialSort,
         orElse: () => ArtistsPageMode.alphabetical,
       ),
+      initialSeed: widget.initialSeed,
     )..load();
   }
 

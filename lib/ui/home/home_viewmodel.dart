@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:crossonic/data/repositories/settings/home_page_layout.dart';
 import 'package:flutter/foundation.dart';
@@ -12,12 +13,20 @@ class HomeViewModel extends ChangeNotifier {
   List<HomeContentOption> _content = [];
   List<HomeContentOption> get content => _content;
 
+  String _seed = "";
+  String get seed => _seed;
+
   HomeViewModel({required HomeLayoutSettings settings}) : _settings = settings {
+    _seed = Random().nextDouble().toString();
     _settings.addListener(_onChanged);
     _onChanged();
   }
 
   void refresh(bool refreshRandom) async {
+    if (refreshRandom) {
+      _seed = Random().nextDouble().toString();
+      notifyListeners();
+    }
     _refreshStream.add(refreshRandom);
   }
 

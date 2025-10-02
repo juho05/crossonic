@@ -11,11 +11,13 @@ import 'package:provider/provider.dart';
 class SongsPage extends StatefulWidget {
   final String mode;
   final String? genre;
+  final String? initialSeed;
 
   const SongsPage({
     super.key,
     @QueryParam("mode") this.mode = "all",
     @QueryParam("genre") this.genre,
+    this.initialSeed,
   });
 
   @override
@@ -46,6 +48,7 @@ class _SongsPageState extends State<SongsPage> {
               (m) => m.name == widget.mode,
               orElse: () => SongsPageMode.all,
             ),
+        initialSeed: widget.initialSeed,
       )..nextPage();
     }
     _controller.addListener(_onScroll);

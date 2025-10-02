@@ -48,7 +48,8 @@ class _MainPageState extends State<MainPage> {
       child: IntegrateAppImage(
         child: ChangeNotifierProvider(
             create: (context) => HomeViewModel(
-                settings: context.read<SettingsRepository>().homeLayout),
+                  settings: context.read<SettingsRepository>().homeLayout,
+                ),
             builder: (context, _) {
               return AutoTabsRouter(
                 routes: const [
@@ -210,6 +211,22 @@ class _MainPageState extends State<MainPage> {
                                     leading: tabsRouter.activeRouterCanPop()
                                         ? const AutoLeadingButton()
                                         : null,
+                                    actions: [
+                                      if (!tabsRouter.activeRouterCanPop() &&
+                                          tabsRouter.activeIndex == 0)
+                                        Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 4),
+                                          child: IconButton(
+                                            onPressed: () {
+                                              context
+                                                  .read<HomeViewModel>()
+                                                  .refresh(true);
+                                            },
+                                            icon: const Icon(Icons.refresh),
+                                          ),
+                                        )
+                                    ],
                                   ),
                                   body: Column(
                                     children: [

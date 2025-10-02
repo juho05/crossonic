@@ -9,11 +9,13 @@ import 'package:provider/provider.dart';
 class AlbumsPage extends StatefulWidget {
   final String mode;
   final String? genre;
+  final String? initialSeed;
 
   const AlbumsPage({
     super.key,
     @QueryParam("mode") this.mode = "alphabetical",
     @QueryParam("genre") this.genre,
+    this.initialSeed,
   });
 
   @override
@@ -40,6 +42,7 @@ class _AlbumsPageState extends State<AlbumsPage> {
           (m) => m.name == widget.mode,
           orElse: () => AlbumsPageMode.alphabetical,
         ),
+        initialSeed: widget.initialSeed,
       );
     }
     _controller.addListener(_onScroll);

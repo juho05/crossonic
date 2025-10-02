@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:crossonic/data/repositories/subsonic/models/album.dart';
 import 'package:crossonic/ui/home/components/data_source.dart';
+import 'package:crossonic/ui/home/home_viewmodel.dart';
 import 'package:crossonic/utils/fetch_status.dart';
 import 'package:crossonic/utils/result.dart';
 import 'package:flutter/material.dart';
@@ -17,10 +18,14 @@ class HomeReleaseListViewModel extends ChangeNotifier {
 
   StreamSubscription? _refreshStreamSub;
 
+  final HomeViewModel _homeViewModel;
+
   HomeReleaseListViewModel({
     Stream? refreshStream,
     required HomeComponentDataSource<Album> dataSource,
-  }) : _dataSource = dataSource {
+    required HomeViewModel homeViewModel,
+  })  : _dataSource = dataSource,
+        _homeViewModel = homeViewModel {
     load().then((_) {
       _refreshStreamSub = refreshStream?.listen((_) => load());
     });
@@ -37,7 +42,7 @@ class HomeReleaseListViewModel extends ChangeNotifier {
       notifyListeners();
     }
 
-    final result = await _dataSource.get(20);
+    final result = await _dataSource.get(20, seed: _homeViewModel.seed);
     switch (result) {
       case Err():
         _status = FetchStatus.failure;

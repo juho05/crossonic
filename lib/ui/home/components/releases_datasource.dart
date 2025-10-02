@@ -14,7 +14,9 @@ class ReleasesDataSource implements HomeComponentDataSource<Album> {
         _mode = mode;
 
   @override
-  Future<Result<Iterable<Album>>> get(int count) async {
-    return await _repository.getAlbums(_mode, count);
+  Future<Result<Iterable<Album>>> get(int count, {String? seed}) async {
+    if (!_repository.supports.randomSeed) seed = null;
+    return await _repository.getAlbums(
+        _mode, count, 0, _mode == AlbumsSortMode.random ? seed : null);
   }
 }
