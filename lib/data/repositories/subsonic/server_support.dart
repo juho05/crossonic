@@ -28,6 +28,8 @@ class ServerSupport {
       _features.isMinCrossonicVersion(const Version(major: 0, minor: 3));
   bool get getAlternateAlbumVersions =>
       _features.isMinCrossonicVersion(const Version(major: 0, minor: 3));
+  bool get randomSeed =>
+      _features.isMinCrossonicVersion(const Version(major: 0, minor: 3));
 
   bool get scanType =>
       _features.isMinCrossonicVersion(const Version(major: 0, minor: 2)) ||

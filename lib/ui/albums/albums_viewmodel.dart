@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:crossonic/data/repositories/subsonic/models/album.dart';
 import 'package:crossonic/data/repositories/subsonic/subsonic_repository.dart';
 import 'package:crossonic/utils/fetch_status.dart';
@@ -62,7 +64,10 @@ class AlbumsViewModel extends ChangeNotifier {
   }
 
   Future<void> nextPage() async {
-    if (_reachedEnd || _mode == AlbumsPageMode.random) return;
+    if (_reachedEnd ||
+        (_mode == AlbumsPageMode.random && !_subsonic.supports.randomSeed)) {
+      return;
+    }
     return await _fetch(_nextPage);
   }
 
@@ -70,9 +75,15 @@ class AlbumsViewModel extends ChangeNotifier {
     return await _fetch(0);
   }
 
+  String? _seed;
   Future<void> _fetch(int page) async {
     if (_status == FetchStatus.loading) return;
     _status = FetchStatus.loading;
+
+    if (page == 0 && _subsonic.supports.randomSeed) {
+      _seed = Random().nextDouble().toString();
+    }
+
     if (page * _pageSize < albums.length) {
       albums.removeRange(page * _pageSize, albums.length);
     }
@@ -93,8 +104,11 @@ class AlbumsViewModel extends ChangeNotifier {
           AlbumsPageMode.genre =>
             AlbumsSortMode.alphabetical, // shouldn't happen
         },
-        _mode == AlbumsPageMode.random ? 500 : _pageSize,
+        _mode == AlbumsPageMode.random && !_subsonic.supports.randomSeed
+            ? 500
+            : _pageSize,
         page * _pageSize,
+        _seed,
       );
     }
     switch (result) {

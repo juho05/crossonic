@@ -323,7 +323,7 @@ class SubsonicRepository {
   }
 
   Future<Result<Iterable<Album>>> getAlbums(AlbumsSortMode sort, int count,
-      [int offset = 0]) async {
+      [int offset = 0, String? seed]) async {
     final result = await _service.getAlbumList2(
       _auth.con,
       switch (sort) {
@@ -337,6 +337,7 @@ class SubsonicRepository {
       },
       size: count,
       offset: offset,
+      seed: seed,
     );
     switch (result) {
       case Err():
@@ -438,8 +439,10 @@ class SubsonicRepository {
     return Result.ok(AlbumInfo.fromAlbumInfoModel(result.value));
   }
 
-  Future<Result<Iterable<Song>>> getRandomSongs({int? count}) async {
-    final result = await _service.getRandomSongs(_auth.con, size: count);
+  Future<Result<Iterable<Song>>> getRandomSongs(
+      {int? count, int? offset, String? seed}) async {
+    final result = await _service.getRandomSongs(_auth.con,
+        size: count, offset: offset, seed: seed);
     switch (result) {
       case Err():
         return Result.error(result.error);

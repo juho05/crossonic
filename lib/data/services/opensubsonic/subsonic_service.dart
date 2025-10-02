@@ -383,6 +383,7 @@ class SubsonicService {
     int? fromYear,
     int? toYear,
     String? genre,
+    String? seed,
   }) async {
     return await _fetchObject(
         con,
@@ -394,6 +395,7 @@ class SubsonicService {
           "fromYear": fromYear != null ? [fromYear.toString()] : [],
           "toYear": toYear != null ? [toYear.toString()] : [],
           "genre": genre != null ? [genre] : [],
+          "seed": seed != null ? [seed] : [],
         },
         AlbumList2Model.fromJson,
         "albumList2");
@@ -518,6 +520,8 @@ class SubsonicService {
   Future<Result<RandomSongsModel>> getRandomSongs(
     Connection con, {
     int? size,
+    int? offset,
+    String? seed,
     String? genre,
     int? fromYear,
     int? toYear,
@@ -527,6 +531,8 @@ class SubsonicService {
       "getRandomSongs",
       {
         if (size != null) "size": [size.toString()],
+        if (offset != null) "offset": [offset.toString()],
+        if (seed != null) "seed": [seed],
         if (genre != null) "genre": [genre],
         if (fromYear != null) "fromYear": [fromYear.toString()],
         if (toYear != null) "toYear": [toYear.toString()],

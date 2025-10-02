@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:crossonic/data/repositories/audio/audio_handler.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
 import 'package:crossonic/data/repositories/subsonic/subsonic_repository.dart';
@@ -70,7 +72,7 @@ class SongsViewModel extends ChangeNotifier {
 
   Future<void> nextPage() async {
     if (_reachedEnd ||
-        _mode == SongsPageMode.random ||
+        (_mode == SongsPageMode.random && !_subsonic.supports.randomSeed) ||
         _mode == SongsPageMode.favorites) {
       return;
     }
@@ -96,9 +98,15 @@ class SongsViewModel extends ChangeNotifier {
     _audioHandler.queue.addAll(songs, priority);
   }
 
+  String? _seed;
   Future<void> _fetch(int page) async {
     if (_status == FetchStatus.loading) return;
     _status = FetchStatus.loading;
+
+    if (page == 0 && _subsonic.supports.randomSeed) {
+      _seed = Random().nextDouble().toString();
+    }
+
     if (page * _pageSize < songs.length) {
       songs.removeRange(page * _pageSize, songs.length);
     }
@@ -106,7 +114,8 @@ class SongsViewModel extends ChangeNotifier {
     final Result<Iterable<Song>> result;
     switch (_mode) {
       case SongsPageMode.random:
-        result = await _subsonic.getRandomSongs(count: _pageSize);
+        result = await _subsonic.getRandomSongs(
+            count: _pageSize, offset: page * _pageSize, seed: _seed);
       case SongsPageMode.all:
         final r = await _subsonic.search(
           "",
