@@ -68,6 +68,7 @@ class HomeArtistList extends StatelessWidget {
                   itemBuilder: (context, index) {
                     final a = artists[index];
                     return AspectRatio(
+                      key: ValueKey("${a.id}-$index"),
                       aspectRatio: 4.0 / 5,
                       child: ArtistGridCell(
                         artist: a,

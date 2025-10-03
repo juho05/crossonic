@@ -72,6 +72,7 @@ class SongListSliver extends StatelessWidget {
             }
             final s = songs[index];
             return SongListItem(
+              key: ValueKey("${s.id}-$index"),
               song: s,
               showArtist: showArtist,
               showAlbum: showAlbum,

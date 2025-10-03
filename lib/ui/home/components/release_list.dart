@@ -68,6 +68,7 @@ class HomeReleaseList extends StatelessWidget {
                   itemBuilder: (context, index) {
                     final a = albums[index];
                     return AspectRatio(
+                      key: ValueKey("${a.id}-$index"),
                       aspectRatio: 4.0 / 5,
                       child: AlbumGridCell(
                         album: a,
