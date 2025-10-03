@@ -199,7 +199,7 @@ Future<List<SingleChildWidget>> createProviders({
         audioSession: audioSession,
         integration: mediaIntegration,
         authRepository: context.read(),
-        subsonicService: context.read(),
+        subsonicRepository: context.read(),
         settingsRepository: context.read(),
         songDownloader: context.read(),
         keyValueRepository: context.read(),

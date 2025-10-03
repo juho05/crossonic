@@ -16,9 +16,8 @@ import 'package:crossonic/data/repositories/settings/replay_gain.dart';
 import 'package:crossonic/data/repositories/settings/settings_repository.dart';
 import 'package:crossonic/data/repositories/settings/transcoding.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
-import 'package:crossonic/data/repositories/version/version.dart';
+import 'package:crossonic/data/repositories/subsonic/subsonic_repository.dart';
 import 'package:crossonic/data/services/media_integration/media_integration.dart';
-import 'package:crossonic/data/services/opensubsonic/subsonic_service.dart';
 import 'package:crossonic/utils/throttle.dart';
 import 'package:flutter/foundation.dart';
 import 'package:rxdart/rxdart.dart';
@@ -32,7 +31,7 @@ enum PlaybackStatus {
 
 class AudioHandler {
   final AuthRepository _auth;
-  final SubsonicService _subsonic;
+  final SubsonicRepository _subsonic;
   final SettingsRepository _settings;
   final SongDownloader _downloader;
   final KeyValueRepository _keyValue;
@@ -92,7 +91,7 @@ class AudioHandler {
     required AudioSession audioSession,
     required MediaIntegration integration,
     required AuthRepository authRepository,
-    required SubsonicService subsonicService,
+    required SubsonicRepository subsonicRepository,
     required SettingsRepository settingsRepository,
     required SongDownloader songDownloader,
     required KeyValueRepository keyValueRepository,
@@ -100,7 +99,7 @@ class AudioHandler {
         _audioSession = audioSession,
         _integration = integration,
         _auth = authRepository,
-        _subsonic = subsonicService,
+        _subsonic = subsonicRepository,
         _settings = settingsRepository,
         _downloader = songDownloader,
         _transcoding = (
@@ -230,8 +229,7 @@ class AudioHandler {
     await _ensurePlayerLoaded();
     _seekingPos = pos;
     _updatePosition();
-    if ((!_auth.serverFeatures.transcodeOffset.contains(1) ||
-            _player.canSeek) &&
+    if ((!_subsonic.supports.transcodeOffset || _player.canSeek) &&
         _positionOffset == Duration.zero) {
       await _player.seek(pos);
       _seekingPos = null;
@@ -340,7 +338,7 @@ class AudioHandler {
 
     if (status != PlaybackStatus.playing && status != PlaybackStatus.loading) {
       // web browsers stop media os integration without active player
-      if (!kIsWeb && _auth.serverFeatures.transcodeOffset.contains(1)) {
+      if (!kIsWeb && _subsonic.supports.transcodeOffset) {
         if (_disposePlayerTimer == null) {
           Log.debug("enabling dispose player timer (1 minute)");
           _disposePlayerTimer =
@@ -433,7 +431,7 @@ class AudioHandler {
           .setNext(event.next != null ? _getStreamUri(event.next!) : null);
     }
     _integration.updateMedia(event.current,
-        _subsonic.getCoverUri(_auth.con, event.current!.coverId, size: 512));
+        _subsonic.getCoverUri(event.current!.coverId, size: 512));
   }
 
   Future<void> _authChanged() async {
@@ -586,11 +584,9 @@ class AudioHandler {
           : [],
       "maxBitRate":
           _transcoding.$2 != null ? [_transcoding.$2!.toString()] : [],
-      if (!_auth.serverFeatures
-          .isMinCrossonicVersion(const Version(major: 0, minor: 1)))
+      if (!_subsonic.supports.timeOffsetMs)
         "timeOffset": offset != null ? [offset.inSeconds.toString()] : [],
-      if (_auth.serverFeatures
-          .isMinCrossonicVersion(const Version(major: 0, minor: 1)))
+      if (_subsonic.supports.timeOffsetMs)
         "timeOffsetMs":
             offset != null ? [offset.inMilliseconds.toString()] : [],
     }, _auth.con.auth);
@@ -651,8 +647,8 @@ class AudioHandler {
     _restoredQueue = true;
 
     _integration.updatePlaybackState(PlaybackStatus.paused);
-    _integration.updateMedia(currentSong,
-        _subsonic.getCoverUri(_auth.con, currentSong.coverId, size: 512));
+    _integration.updateMedia(
+        currentSong, _subsonic.getCoverUri(currentSong.coverId, size: 512));
   }
 
   Throttle? _persistQueueThrottle;

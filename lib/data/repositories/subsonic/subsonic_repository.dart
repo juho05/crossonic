@@ -11,6 +11,7 @@ import 'package:crossonic/data/repositories/subsonic/models/genre.dart';
 import 'package:crossonic/data/repositories/subsonic/models/listenbrainz_config.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
 import 'package:crossonic/data/repositories/subsonic/server_support.dart';
+import 'package:crossonic/data/services/opensubsonic/auth.dart';
 import 'package:crossonic/data/services/opensubsonic/exceptions.dart';
 import 'package:crossonic/data/services/opensubsonic/models/albumid3_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/artistid3_model.dart';
@@ -600,5 +601,11 @@ class SubsonicRepository {
   void _updateSongFavorites(Iterable<ChildModel>? songs) {
     _favorites.updateAll((songs ?? [])
         .map((c) => (type: FavoriteType.song, id: c.id, starred: c.starred)));
+  }
+
+  Map<String, Iterable<String>> generateQuery(
+      Map<String, Iterable<String>> query, SubsonicAuth auth,
+      {bool constantSalt = false}) {
+    return _service.generateQuery(query, auth);
   }
 }

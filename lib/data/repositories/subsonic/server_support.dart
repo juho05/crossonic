@@ -18,6 +18,8 @@ class ServerSupport {
   bool get changePlaylistCover => _features.isCrossonic;
   bool get scrobbleDuration => _features.isCrossonic;
   bool get listenBrainzConfig => _features.isCrossonic;
+  bool get timeOffsetMs =>
+      _features.isMinCrossonicVersion(const Version(major: 0, minor: 1));
   bool get searchOnlyAlbumArtistsParam =>
       _features.isMinCrossonicVersion(const Version(major: 0, minor: 3));
   bool get appearsOn =>
