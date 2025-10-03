@@ -19,15 +19,15 @@ class Artist {
   });
 
   factory Artist.fromArtistID3Model(ArtistID3Model a) {
-    final genreOccurences = <String, int>{};
+    final genreOccurrences = <String, int>{};
     a.album
         ?.expand((a) =>
             a.genres?.map((g) => g.name).toList() ??
-            (a.genre != null ? [a.genre!] : <String>[]))
+            (a.genre != null && a.genre!.isNotEmpty ? [a.genre!] : <String>[]))
         .forEach(
-          (g) => genreOccurences[g] = (genreOccurences[g] ?? 0) + 1,
+          (g) => genreOccurrences[g] = (genreOccurrences[g] ?? 0) + 1,
         );
-    final genres = (genreOccurences.entries.toList()
+    final genres = (genreOccurrences.entries.toList()
           ..sort((a, b) => b.value.compareTo(a.value)))
         .map((entry) => entry.key)
         .toList();

@@ -1,3 +1,4 @@
+import 'package:crossonic/data/repositories/subsonic/models/helpers.dart';
 import 'package:crossonic/data/services/opensubsonic/models/album_info_model.dart';
 
 class AlbumInfo {
@@ -7,7 +8,7 @@ class AlbumInfo {
 
   factory AlbumInfo.fromAlbumInfoModel(AlbumInfoModel a) {
     return AlbumInfo(
-      description: a.notes,
+      description: emptyToNull(a.notes),
     );
   }
 }

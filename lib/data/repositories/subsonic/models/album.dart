@@ -1,4 +1,5 @@
 import 'package:crossonic/data/repositories/subsonic/models/date.dart';
+import 'package:crossonic/data/repositories/subsonic/models/helpers.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
 import 'package:crossonic/data/services/opensubsonic/models/albumid3_model.dart';
 
@@ -75,7 +76,7 @@ class Album {
       id: album.id,
       name: album.name,
       coverId: album.coverArt ?? album.id,
-      displayArtist: album.displayArtist ??
+      displayArtist: emptyToNull(album.displayArtist) ??
           album.artists?.map((a) => a.name).join(", ") ??
           album.artist ??
           "Unknown artist",
@@ -92,8 +93,8 @@ class Album {
           d.disc: d.title
       },
       releaseType: releaseType,
-      version: album.version,
-      musicBrainzId: album.musicBrainzId,
+      version: emptyToNull(album.version),
+      musicBrainzId: emptyToNull(album.musicBrainzId),
     );
   }
 }

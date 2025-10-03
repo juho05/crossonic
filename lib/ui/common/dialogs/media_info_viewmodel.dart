@@ -72,7 +72,7 @@ class MediaInfoDialogViewModel extends ChangeNotifier {
 
     _fields = [
       ("ID", s.id, null),
-      if (s.musicBrainzId != null)
+      if (_exists(s.musicBrainzId))
         (
           "MBID",
           s.musicBrainzId!,
@@ -90,35 +90,36 @@ class MediaInfoDialogViewModel extends ChangeNotifier {
           formatDouble(s.averageRating!),
           null,
         ),
-      if ((s.genres == null || s.genres!.isEmpty) && s.genre != null)
+      if ((s.genres == null || s.genres!.isEmpty) && _exists(s.genre))
         ("Genres", s.genre!, null),
       if (s.genres != null && s.genres!.isNotEmpty)
         ("Genres", s.genres!.map((g) => g.name).join(", "), null),
-      if (s.releaseDate == null ||
-          s.originalReleaseDate == null && s.year != null)
+      if ((s.releaseDate?.year == null ||
+              s.originalReleaseDate?.year == null) &&
+          s.year != null)
         ("Year", s.year.toString(), null),
-      if (s.releaseDate != null)
+      if (s.releaseDate?.year != null)
         (
           "Release date",
-          formatDate(DateTime(s.releaseDate!.year ?? 0,
-              s.releaseDate!.month ?? 1, s.releaseDate!.day ?? 1)),
+          formatDate(DateTime(s.releaseDate!.year!, s.releaseDate!.month ?? 1,
+              s.releaseDate!.day ?? 1)),
           null,
         ),
-      if (s.originalReleaseDate != null)
+      if (s.originalReleaseDate?.year != null)
         (
           "Original release date",
           formatDate(DateTime(
-              s.originalReleaseDate!.year ?? 0,
+              s.originalReleaseDate!.year!,
               s.originalReleaseDate!.month ?? 1,
               s.originalReleaseDate!.day ?? 1)),
           null,
         ),
-      if (s.sortName != null) ("Sort name", s.sortName!, null),
+      if (_exists(s.sortName)) ("Sort name", s.sortName!, null),
       if (s.moods != null && s.moods!.isNotEmpty)
         ("Moods", s.moods!.join(", "), null),
-      if (s.explicitStatus != null)
+      if (_exists(s.explicitStatus))
         ("Explicit", formatBoolToYesNo(s.explicitStatus == "explicit"), null),
-      if (s.contentType != null) ("Content type", s.contentType!, null),
+      if (_exists(s.contentType)) ("Content type", s.contentType!, null),
       if (s.bitRate != null) ("Bitrate", "${s.bitRate!} kbps", null),
       if (s.samplingRate != null)
         ("Sample rate", "${s.samplingRate!} Hz", null),
@@ -162,13 +163,13 @@ class MediaInfoDialogViewModel extends ChangeNotifier {
 
     _fields = [
       ("ID", a.id, null),
-      if (a.musicBrainzId != null)
+      if (_exists(a.musicBrainzId))
         (
           a.releaseMbid != null ? "Release group MBID" : "MBID",
           a.musicBrainzId!,
           _mbidToUrlIfCrossonic(a.musicBrainzId!, "release-group")
         ),
-      if (a.releaseMbid != null)
+      if (_exists(a.releaseMbid))
         (
           "Release MBID",
           a.releaseMbid!,
@@ -180,21 +181,22 @@ class MediaInfoDialogViewModel extends ChangeNotifier {
       if (a.played != null) ("Last played", formatDateTime(a.played!), null),
       if (a.starred != null) ("Favorited", formatDateTime(a.starred!), null),
       if (a.userRating != null) ("User rating", a.userRating.toString(), null),
-      if ((a.genres == null || a.genres!.isEmpty) && a.genre != null)
+      if ((a.genres == null || a.genres!.isEmpty) && _exists(a.genre))
         ("Genres", a.genre!, null),
       if (a.genres != null && a.genres!.isNotEmpty)
         ("Genres", a.genres!.map((g) => g.name).join(", "), null),
-      if (a.releaseDate == null ||
-          a.originalReleaseDate == null && a.year != null)
+      if ((a.releaseDate?.year == null ||
+              a.originalReleaseDate?.year == null) &&
+          a.year != null)
         ("Year", a.year.toString(), null),
-      if (a.releaseDate != null)
+      if (a.releaseDate?.year != null)
         (
           "Release date",
           formatDate(DateTime(a.releaseDate!.year ?? 0,
               a.releaseDate!.month ?? 1, a.releaseDate!.day ?? 1)),
           null,
         ),
-      if (a.originalReleaseDate != null)
+      if (a.originalReleaseDate?.year != null)
         (
           "Original release date",
           formatDate(DateTime(
@@ -203,17 +205,17 @@ class MediaInfoDialogViewModel extends ChangeNotifier {
               a.originalReleaseDate!.day ?? 1)),
           null,
         ),
-      if (a.version != null) ("Version", a.version!, null),
+      if (_exists(a.version)) ("Version", a.version!, null),
       if (a.isCompilation ?? false)
         ("Compilation", formatBoolToYesNo(a.isCompilation!), null),
-      if (a.sortName != null) ("Sort name", a.sortName!, null),
+      if (_exists(a.sortName)) ("Sort name", a.sortName!, null),
       if (a.releaseTypes != null && a.releaseTypes!.isNotEmpty)
         ("Release types", a.releaseTypes!.join(", "), null),
       if (a.moods != null && a.moods!.isNotEmpty)
         ("Moods", a.moods!.join(", "), null),
       if (a.recordLabels != null && a.recordLabels!.isNotEmpty)
         ("Record labels", a.recordLabels!.map((l) => l.name).join(", "), null),
-      if (a.explicitStatus != null)
+      if (_exists(a.explicitStatus))
         ("Explicit", formatBoolToYesNo(a.explicitStatus == "explicit"), null),
     ];
 
@@ -239,7 +241,7 @@ class MediaInfoDialogViewModel extends ChangeNotifier {
 
     _fields = [
       ("ID", a.id, null),
-      if (a.musicBrainzId != null)
+      if (_exists(a.musicBrainzId))
         (
           "MBID",
           a.musicBrainzId!,
@@ -248,7 +250,7 @@ class MediaInfoDialogViewModel extends ChangeNotifier {
       if (a.albumCount != null) ("Releases", a.albumCount.toString(), null),
       if (a.starred != null) ("Favorited", formatDateTime(a.starred!), null),
       if (a.userRating != null) ("User rating", a.userRating.toString(), null),
-      if (a.sortName != null) ("Sort name", a.sortName!, null),
+      if (_exists(a.sortName)) ("Sort name", a.sortName!, null),
       if (a.roles != null && a.roles!.isNotEmpty)
         ("Roles", a.roles!.join(", "), null),
     ];
@@ -280,7 +282,7 @@ class MediaInfoDialogViewModel extends ChangeNotifier {
       ("Song count", p.songCount.toString(), null),
       ("Duration", formatDuration(Duration(seconds: p.duration)), null),
       if (p.public != null) ("Public", formatBoolToYesNo(p.public!), null),
-      if (p.owner != null) ("Owner", p.owner!, null),
+      if (_exists(p.owner)) ("Owner", p.owner!, null),
     ];
 
     _status = FetchStatus.success;
@@ -294,5 +296,11 @@ class MediaInfoDialogViewModel extends ChangeNotifier {
       host: "musicbrainz.org",
       pathSegments: [type, mbid],
     );
+  }
+
+  bool _exists(String? str) {
+    if (str == null) return false;
+    if (str.isEmpty) return false;
+    return true;
   }
 }

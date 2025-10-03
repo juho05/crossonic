@@ -1,4 +1,5 @@
 import 'package:crossonic/data/repositories/subsonic/models/date.dart';
+import 'package:crossonic/data/repositories/subsonic/models/helpers.dart';
 import 'package:crossonic/data/services/opensubsonic/models/child_model.dart';
 import 'package:json_annotation/json_annotation.dart';
 
@@ -72,7 +73,7 @@ class Song {
       id: child.id,
       coverId: child.coverArt ?? child.id,
       title: child.title,
-      displayArtist: child.displayArtist ??
+      displayArtist: emptyToNull(child.displayArtist) ??
           child.artists?.map((a) => a.name).join(", ") ??
           child.artist ??
           child.displayAlbumArtist ??
@@ -80,16 +81,20 @@ class Song {
           "Unknown artist",
       artists: child.artists ??
           child.albumArtists ??
-          (child.artistId == null && child.artist == null
+          (emptyToNull(child.artistId) != null &&
+                  emptyToNull(child.artist) != null
               ? [(id: child.artistId!, name: child.artist!)]
               : null) ??
           [],
-      album: child.albumId != null && child.album != null
-          ? (id: child.albumId!, name: child.album!)
-          : null,
+      album:
+          emptyToNull(child.albumId) != null && emptyToNull(child.album) != null
+              ? (id: child.albumId!, name: child.album!)
+              : null,
       genres: child.genres != null
           ? child.genres!.map((g) => g.name)
-          : (child.genre != null ? [child.genre!] : []),
+          : (child.genre != null && child.genre!.isNotEmpty
+              ? [child.genre!]
+              : []),
       duration:
           child.duration != null ? Duration(seconds: child.duration!) : null,
       releaseDate: releaseDate,
