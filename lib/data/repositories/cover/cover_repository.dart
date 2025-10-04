@@ -47,6 +47,7 @@ class CoverRepository extends BaseCacheManager {
     if (kIsWeb) return;
     coverIds = coverIds.where((id) => id != null);
     if (coverIds.isEmpty) return;
+    Log.debug("explicitly requested download of ${coverIds.length} covers");
     await Future.wait(
       coverIds.map<Future>((id) async {
         if (await cacheFileExists(id!, 1024)) {
@@ -63,6 +64,7 @@ class CoverRepository extends BaseCacheManager {
       Map<String, String>? authHeaders,
       bool force = false}) async {
     key = _urlToKey(url);
+    Log.trace("download cover: $key");
     final fileResponse = await _webHelper
         .downloadFile(_idFromKey(key), _sizeFromKey(key))
         .firstWhere((r) => r is FileInfo);
@@ -73,6 +75,7 @@ class CoverRepository extends BaseCacheManager {
   @override
   Future<void> emptyCache() async {
     if (kIsWeb) return;
+    Log.debug("clearing cover cache...");
     _cleanupTimer?.cancel();
     _cleanupTimer = null;
     await _db.managers.coverCacheTable.delete();
@@ -96,6 +99,7 @@ class CoverRepository extends BaseCacheManager {
   Future<FileInfo?> getFileFromCache(String key,
       {bool ignoreMemCache = false}) async {
     key = _urlToKey(key);
+    Log.trace("loading cover from cache: $key");
     final id = _idFromKey(key);
     final size = _sizeFromKey(key);
     final obj = await _db.managers.coverCacheTable
@@ -103,6 +107,7 @@ class CoverRepository extends BaseCacheManager {
         .getSingleOrNull();
     final ready = await cacheFileIsReady(obj);
     if (!ready) {
+      Log.trace("cache file not ready, returning null...");
       return null;
     }
     return FileInfo(
@@ -115,14 +120,15 @@ class CoverRepository extends BaseCacheManager {
 
   @override
   Future<FileInfo?> getFileFromMemory(String key) {
-    key = _urlToKey(key);
-    return SynchronousFuture(null);
+    Log.trace("getFileFromMemory called, redirecting to getFileFromCache");
+    return getFileFromCache(key);
   }
 
   @override
   Stream<FileResponse> getFileStream(String url,
       {String? key, Map<String, String>? headers, bool withProgress = false}) {
     key = _urlToKey(url);
+    Log.trace("cover file stream requested: $key");
     final streamController = StreamController<FileResponse>();
     _pushFileToStream(streamController, key, withProgress);
     return streamController.stream;
@@ -132,6 +138,7 @@ class CoverRepository extends BaseCacheManager {
   Future<File> getSingleFile(String url,
       {String? key, Map<String, String>? headers}) async {
     key = _urlToKey(url);
+    Log.trace("get single cover file: $key");
     final cacheFile = await getFileFromCache(key);
     if (cacheFile != null && cacheFile.validTill.isAfter(DateTime.now())) {
       return cacheFile.file;
@@ -168,6 +175,7 @@ class CoverRepository extends BaseCacheManager {
   @override
   Future<void> removeFile(String key) async {
     key = _urlToKey(key);
+    Log.trace("removing cover file: $key");
     final id = _idFromKey(key);
     final size = _sizeFromKey(key);
     await _db.managers.coverCacheTable
@@ -181,6 +189,7 @@ class CoverRepository extends BaseCacheManager {
 
   Future<void> invalidateCover(String coverId) async {
     if (kIsWeb) return;
+    Log.trace("removing all cache objects for cover: $coverId");
     await _db.managers.coverCacheTable
         .filter((f) => f.coverId(coverId))
         .delete();
@@ -204,6 +213,7 @@ class CoverRepository extends BaseCacheManager {
     try {
       cacheFile = await getFileFromCache(key);
       if (cacheFile != null) {
+        Log.trace("cover file for $key found in cache, pushing to stream...");
         streamController.add(cacheFile);
         withProgress = false;
       }
@@ -213,6 +223,8 @@ class CoverRepository extends BaseCacheManager {
     }
     if (cacheFile == null || cacheFile.validTill.isBefore(DateTime.now())) {
       try {
+        Log.trace(
+            "cover file for $key does not exist or is no longer valid, downloading latest version...");
         await for (final response
             in _webHelper.downloadFile(_idFromKey(key), _sizeFromKey(key))) {
           if (response is DownloadProgress && withProgress) {
@@ -223,10 +235,8 @@ class CoverRepository extends BaseCacheManager {
           }
         }
         ensureCleanupScheduled();
-      } on Object catch (e) {
-        cacheLogger.log(
-            'CacheManager: Failed to download file from $key with error:\n$e',
-            CacheManagerLogLevel.debug);
+      } on Object catch (e, st) {
+        Log.warn("failed to download cover file $key", e: e, st: st);
         if (cacheFile == null && streamController.hasListener) {
           streamController.addError(e);
         }
@@ -241,11 +251,13 @@ class CoverRepository extends BaseCacheManager {
         }
       }
     }
+    Log.trace("closing cover file stream for $key");
     streamController.close();
   }
 
   Future<void> _onAuthChanged() async {
     if (!_auth.isAuthenticated) {
+      Log.trace("user not authenticated, calling emptyCache()");
       await emptyCache();
     }
   }
