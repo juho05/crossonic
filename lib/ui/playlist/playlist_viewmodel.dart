@@ -254,7 +254,7 @@ class PlaylistViewModel extends ChangeNotifier {
       tracks.insert(newIndex, s);
     }
     notifyListeners();
-    return await _repo.reorder(_playlistId, oldIndex, newIndex);
+    return await _repo.reorder(_playlist!, oldIndex, newIndex);
   }
 
   bool _deleted = false;

@@ -188,25 +188,28 @@ class PlaylistRepository extends ChangeNotifier {
     return Result.ok(result.value.id);
   }
 
-  Future<Result<void>> reorder(String id, int oldIndex, int newIndex) async {
+  Future<Result<void>> reorder(
+      Playlist playlist, int oldIndex, int newIndex) async {
     final backup = await _db.managers.playlistSongTable
-        .filter((f) => f.playlistId.id.equals(id))
+        .filter((f) => f.playlistId.id.equals(playlist.id))
         .orderBy((o) => o.index.asc())
         .get();
     try {
       await _db.transaction(() async {
         final song = await _db.managers.playlistSongTable
-            .filter((f) => f.playlistId.id.equals(id) & f.index(oldIndex))
+            .filter(
+                (f) => f.playlistId.id.equals(playlist.id) & f.index(oldIndex))
             .getSingle();
         await _db.managers.playlistSongTable
-            .filter((f) => f.playlistId.id.equals(id) & f.index(oldIndex))
+            .filter(
+                (f) => f.playlistId.id.equals(playlist.id) & f.index(oldIndex))
             .delete();
         if (newIndex > oldIndex) {
           newIndex--;
           await _db.customUpdate(
             "UPDATE playlist_song SET \"index\" = \"index\" - 1 WHERE playlist_id = ? AND \"index\" > ? AND \"index\" <= ?",
             variables: [
-              Variable.withString(id),
+              Variable.withString(playlist.id),
               Variable.withInt(oldIndex),
               Variable.withInt(newIndex)
             ],
@@ -216,7 +219,7 @@ class PlaylistRepository extends ChangeNotifier {
           await _db.customUpdate(
             "UPDATE playlist_song SET \"index\" = \"index\" + 1 WHERE playlist_id = ? AND \"index\" < ? AND \"index\" >= ?",
             variables: [
-              Variable.withString(id),
+              Variable.withString(playlist.id),
               Variable.withInt(oldIndex),
               Variable.withInt(newIndex)
             ],
@@ -224,7 +227,7 @@ class PlaylistRepository extends ChangeNotifier {
           );
         }
         await _db.managers.playlistSongTable.create((o) => o(
-              playlistId: id,
+              playlistId: playlist.id,
               songId: song.songId,
               index: newIndex,
               childModelJson: song.childModelJson,
@@ -240,7 +243,7 @@ class PlaylistRepository extends ChangeNotifier {
       try {
         await _db.transaction(() async {
           await _db.managers.playlistSongTable
-              .filter((f) => f.playlistId.id.equals(id))
+              .filter((f) => f.playlistId.id.equals(playlist.id))
               .delete();
           await _db.managers.playlistSongTable.bulkCreate(
               (o) => backup.map((s) => o(
@@ -260,14 +263,16 @@ class PlaylistRepository extends ChangeNotifier {
 
     try {
       final dbSongs = await _db.managers.playlistSongTable
-          .filter((f) => f.playlistId.id.equals(id))
+          .filter((f) => f.playlistId.id.equals(playlist.id))
           .orderBy((o) => o.index.asc())
           .get();
 
-      _playlistIdsNeedUpdate.add(id);
+      _playlistIdsNeedUpdate.add(playlist.id);
       return _requestQueue.run(
         () => _subsonic.createPlaylist(_auth.con,
-            playlistId: id, songIds: dbSongs.map((s) => s.songId)),
+            playlistId: playlist.id,
+            playlistName: playlist.name,
+            songIds: dbSongs.map((s) => s.songId)),
         restorePrevState: (e, [st]) async {
           Log.error("Failed to create remote playlist", e: e, st: st);
           await restoreBackup();
