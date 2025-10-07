@@ -5,7 +5,7 @@ part 'lyrics_list_model.g.dart';
 
 @JsonSerializable()
 class LyricsListModel {
-  final List<StructuredLyricsModel> structuredLyrics;
+  final List<StructuredLyricsModel>? structuredLyrics;
 
   LyricsListModel({
     required this.structuredLyrics,

@@ -83,8 +83,9 @@ class MediaInfoDialogViewModel extends ChangeNotifier {
       if (s.playCount != null) ("Play count", s.playCount.toString(), null),
       if (s.played != null) ("Last played", formatDateTime(s.played!), null),
       if (s.starred != null) ("Favorited", formatDateTime(s.starred!), null),
-      if (s.userRating != null) ("User rating", s.userRating.toString(), null),
-      if (s.averageRating != null)
+      if (s.userRating != null && s.userRating != 0)
+        ("User rating", s.userRating.toString(), null),
+      if (s.averageRating != null && s.averageRating != 0)
         (
           "Average rating",
           formatDouble(s.averageRating!),
@@ -126,7 +127,7 @@ class MediaInfoDialogViewModel extends ChangeNotifier {
       if (s.bitDepth != null) ("Bit depth", "${s.bitDepth!} bit", null),
       if (s.channelCount != null)
         ("Channels", s.channelCount!.toString(), null),
-      if (s.bpm != null) ("BPM", s.bpm!.toString(), null),
+      if (s.bpm != null && s.bpm != 0) ("BPM", s.bpm!.toString(), null),
       if (s.replayGain != null && s.replayGain!.trackGain != null)
         ("Track gain", "${formatDouble(s.replayGain!.trackGain!)} dB", null),
       if (s.replayGain != null && s.replayGain!.trackGain != null)
@@ -180,7 +181,14 @@ class MediaInfoDialogViewModel extends ChangeNotifier {
       if (a.playCount != null) ("Play count", a.playCount.toString(), null),
       if (a.played != null) ("Last played", formatDateTime(a.played!), null),
       if (a.starred != null) ("Favorited", formatDateTime(a.starred!), null),
-      if (a.userRating != null) ("User rating", a.userRating.toString(), null),
+      if (a.userRating != null && a.userRating != 0)
+        ("User rating", a.userRating.toString(), null),
+      if (a.averageRating != null && a.averageRating != 0)
+        (
+          "Average rating",
+          formatDouble(a.averageRating!),
+          null,
+        ),
       if ((a.genres == null || a.genres!.isEmpty) && _exists(a.genre))
         ("Genres", a.genre!, null),
       if (a.genres != null && a.genres!.isNotEmpty)
@@ -249,7 +257,14 @@ class MediaInfoDialogViewModel extends ChangeNotifier {
         ),
       if (a.albumCount != null) ("Releases", a.albumCount.toString(), null),
       if (a.starred != null) ("Favorited", formatDateTime(a.starred!), null),
-      if (a.userRating != null) ("User rating", a.userRating.toString(), null),
+      if (a.userRating != null && a.userRating != 0)
+        ("User rating", a.userRating.toString(), null),
+      if (a.averageRating != null && a.averageRating != 0)
+        (
+          "Average rating",
+          formatDouble(a.averageRating!),
+          null,
+        ),
       if (_exists(a.sortName)) ("Sort name", a.sortName!, null),
       if (a.roles != null && a.roles!.isNotEmpty)
         ("Roles", a.roles!.join(", "), null),

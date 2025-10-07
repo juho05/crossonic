@@ -253,32 +253,34 @@ class _PlaylistPageState extends State<PlaylistPage> {
                       )
                     ]
                   : [
-                      ContextMenuOption(
-                        title: playlist.coverId != null
-                            ? "Change cover"
-                            : "Set cover",
-                        icon: Icons.image_outlined,
-                        onSelected: () async {
-                          final result = await _viewModel.changeCover();
-                          if (!context.mounted) return;
-                          switch (result) {
-                            case Err():
-                              if (result.error is ImageTooLargeException) {
-                                Toast.show(context,
-                                    "Image too large: max 15 MB allowed");
-                                return;
-                              }
-                              if (result.error is SubsonicException) {
-                                Toast.show(context,
-                                    "Failed to change cover: ${(result.error as SubsonicException).message}");
-                                return;
-                              }
-                              toastResult(context, result);
-                            case Ok():
-                          }
-                        },
-                      ),
-                      if (playlist.coverId != null)
+                      if (_viewModel.changeCoverSupported)
+                        ContextMenuOption(
+                          title: playlist.coverId != null
+                              ? "Change cover"
+                              : "Set cover",
+                          icon: Icons.image_outlined,
+                          onSelected: () async {
+                            final result = await _viewModel.changeCover();
+                            if (!context.mounted) return;
+                            switch (result) {
+                              case Err():
+                                if (result.error is ImageTooLargeException) {
+                                  Toast.show(context,
+                                      "Image too large: max 15 MB allowed");
+                                  return;
+                                }
+                                if (result.error is SubsonicException) {
+                                  Toast.show(context,
+                                      "Failed to change cover: ${(result.error as SubsonicException).message}");
+                                  return;
+                                }
+                                toastResult(context, result);
+                              case Ok():
+                            }
+                          },
+                        ),
+                      if (playlist.coverId != null &&
+                          _viewModel.changeCoverSupported)
                         ContextMenuOption(
                           title: "Remove cover",
                           icon: Icons.hide_image_outlined,

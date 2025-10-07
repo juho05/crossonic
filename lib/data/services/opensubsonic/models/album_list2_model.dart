@@ -5,7 +5,7 @@ part 'album_list2_model.g.dart';
 
 @JsonSerializable()
 class AlbumList2Model {
-  final List<AlbumID3Model> album;
+  final List<AlbumID3Model>? album;
   AlbumList2Model({
     required this.album,
   });

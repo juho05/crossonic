@@ -500,7 +500,7 @@ class PlaylistRepository extends ChangeNotifier {
     }
 
     try {
-      final playlists = result.value.playlist;
+      final playlists = result.value.playlist ?? [];
 
       final toUpdate = <PlaylistModel>[];
 

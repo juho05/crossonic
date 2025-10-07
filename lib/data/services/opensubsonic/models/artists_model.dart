@@ -5,7 +5,7 @@ part 'artists_model.g.dart';
 
 @JsonSerializable()
 class ArtistsModel {
-  final String ignoredArticles;
+  final String? ignoredArticles;
   final List<IndexID3Model>? index;
 
   ArtistsModel({

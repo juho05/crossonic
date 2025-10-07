@@ -5,7 +5,7 @@ part 'playlists_model.g.dart';
 
 @JsonSerializable()
 class PlaylistsModel {
-  final List<PlaylistModel> playlist;
+  final List<PlaylistModel>? playlist;
 
   PlaylistsModel({required this.playlist});
 

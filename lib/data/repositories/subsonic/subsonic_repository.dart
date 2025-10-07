@@ -83,7 +83,7 @@ class SubsonicRepository {
         return Result.error(result.error);
       case Ok():
     }
-    final lyrics = result.value.structuredLyrics.firstOrNull?.line ?? [];
+    final lyrics = result.value.structuredLyrics?.firstOrNull?.line ?? [];
     return Result.ok(lyrics.map((l) => l.value).toList());
   }
 
@@ -102,7 +102,8 @@ class SubsonicRepository {
       case Ok():
     }
     _updateAlbumFavorites(result.value.album);
-    return Result.ok(result.value.album.map((a) => Album.fromAlbumID3Model(a)));
+    return Result.ok(
+        (result.value.album ?? []).map((a) => Album.fromAlbumID3Model(a)));
   }
 
   Future<Result<List<Song>>> getSongs({
@@ -346,7 +347,8 @@ class SubsonicRepository {
       case Ok():
     }
     _updateAlbumFavorites(result.value.album);
-    return Result.ok(result.value.album.map((a) => Album.fromAlbumID3Model(a)));
+    return Result.ok(
+        (result.value.album ?? []).map((a) => Album.fromAlbumID3Model(a)));
   }
 
   Future<Result<Iterable<Album>>> getAlbumsByYears(
@@ -366,7 +368,8 @@ class SubsonicRepository {
       case Ok():
     }
     _updateAlbumFavorites(result.value.album);
-    return Result.ok(result.value.album.map((a) => Album.fromAlbumID3Model(a)));
+    return Result.ok(
+        (result.value.album ?? []).map((a) => Album.fromAlbumID3Model(a)));
   }
 
   Future<Result<ArtistInfo>> getArtistInfo(String id) async {
@@ -402,7 +405,8 @@ class SubsonicRepository {
       case Ok():
     }
     _updateAlbumFavorites(result.value.album);
-    return Result.ok(result.value.album.map((a) => Album.fromAlbumID3Model(a)));
+    return Result.ok(
+        (result.value.album ?? []).map((a) => Album.fromAlbumID3Model(a)));
   }
 
   Future<Result<Iterable<Album>>> getAppearsOn(String artistId) async {
@@ -416,7 +420,8 @@ class SubsonicRepository {
       case Ok():
     }
     _updateAlbumFavorites(result.value.album);
-    return Result.ok(result.value.album.map((a) => Album.fromAlbumID3Model(a)));
+    return Result.ok(
+        (result.value.album ?? []).map((a) => Album.fromAlbumID3Model(a)));
   }
 
   Future<Result<Album>> getAlbum(String id) async {

@@ -5,7 +5,7 @@ part 'appears_on_model.g.dart';
 
 @JsonSerializable()
 class AppearsOnModel {
-  final List<AlbumID3Model> album;
+  final List<AlbumID3Model>? album;
   AppearsOnModel({
     required this.album,
   });

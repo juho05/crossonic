@@ -49,6 +49,7 @@ class _MainPageState extends State<MainPage> {
         child: ChangeNotifierProvider(
             create: (context) => HomeViewModel(
                   settings: context.read<SettingsRepository>().homeLayout,
+                  subsonicRepository: context.read(),
                 ),
             builder: (context, _) {
               return AutoTabsRouter(

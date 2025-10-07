@@ -11,7 +11,7 @@ typedef StructuredLyricsLine = ({
 class StructuredLyricsModel {
   final String lang;
   final bool synced;
-  final List<StructuredLyricsLine> line;
+  final List<StructuredLyricsLine>? line;
   final String? displayArtist;
   final String? displayTitle;
   final double? offset;

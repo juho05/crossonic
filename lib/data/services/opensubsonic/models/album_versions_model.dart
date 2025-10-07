@@ -5,7 +5,7 @@ part 'album_versions_model.g.dart';
 
 @JsonSerializable()
 class AlbumVersionsModel {
-  final List<AlbumID3Model> album;
+  final List<AlbumID3Model>? album;
 
   AlbumVersionsModel({
     required this.album,
