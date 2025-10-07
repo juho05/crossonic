@@ -32,7 +32,8 @@ class _LoginPageState extends State<LoginPage> with RestorationMixin {
     super.initState();
     viewModel = LoginViewModel(authRepository: context.read<AuthRepository>());
     viewModel.login.addListener(_onResult);
-    _authType = RestorableEnum(viewModel.supportedAuthTypes[0],
+    _authType = RestorableEnum(
+        viewModel.supportedAuthTypes.firstOrNull ?? AuthType.usernamePassword,
         values: AuthType.values);
   }
 
@@ -78,32 +79,33 @@ class _LoginPageState extends State<LoginPage> with RestorationMixin {
                   ),
                 ],
               ),
-              DropdownMenu<AuthType>(
-                initialSelection: _authType.value,
-                expandedInsets: EdgeInsets.zero,
-                requestFocusOnTap: false,
-                enableSearch: false,
-                leadingIcon: const Icon(Icons.login),
-                dropdownMenuEntries: List.generate(
-                  viewModel.supportedAuthTypes.length,
-                  (index) {
-                    return DropdownMenuEntry(
-                      value: viewModel.supportedAuthTypes[index],
-                      label: switch (viewModel.supportedAuthTypes[index]) {
-                            AuthType.apiKey => "API Key",
-                            AuthType.token => "Token",
-                            AuthType.password => "Password",
-                          } +
-                          (index == 0 ? " (recommended)" : ""),
-                    );
-                  },
+              if (viewModel.supportedAuthTypes.length > 1)
+                DropdownMenu<AuthType>(
+                  initialSelection: _authType.value,
+                  expandedInsets: EdgeInsets.zero,
+                  requestFocusOnTap: false,
+                  enableSearch: false,
+                  leadingIcon: const Icon(Icons.login),
+                  dropdownMenuEntries: List.generate(
+                    viewModel.supportedAuthTypes.length,
+                    (index) {
+                      return DropdownMenuEntry(
+                        value: viewModel.supportedAuthTypes[index],
+                        label: switch (viewModel.supportedAuthTypes[index]) {
+                              AuthType.apiKey => "API Key",
+                              AuthType.usernamePassword => "Username/Password",
+                            } +
+                            (index == 0 ? " (recommended)" : ""),
+                      );
+                    },
+                  ),
+                  onSelected: (value) => setState(() {
+                    _authType.value = value ?? viewModel.supportedAuthTypes[0];
+                  }),
                 ),
-                onSelected: (value) => setState(() {
-                  _authType.value = value ?? viewModel.supportedAuthTypes[0];
-                }),
-              ),
               if (_authType.value != AuthType.apiKey)
                 FormBuilderTextField(
+                  key: const ValueKey("username"),
                   name: "username",
                   //restorationId: "login_page_username",
                   decoration: const InputDecoration(
@@ -116,6 +118,7 @@ class _LoginPageState extends State<LoginPage> with RestorationMixin {
                 ),
               if (_authType.value != AuthType.apiKey)
                 FormBuilderTextField(
+                  key: const ValueKey("password"),
                   name: "password",
                   //restorationId: "login_page_password",
                   decoration: const InputDecoration(
@@ -130,6 +133,7 @@ class _LoginPageState extends State<LoginPage> with RestorationMixin {
                 ),
               if (_authType.value == AuthType.apiKey)
                 FormBuilderTextField(
+                  key: const ValueKey("apiKey"),
                   name: "apiKey",
                   //restorationId: "login_page_apiKey",
                   decoration: const InputDecoration(

@@ -499,7 +499,7 @@ class AudioHandler {
     } else if (_settings.replayGain.preferServerFallbackGain) {
       gain = media.fallbackGain ?? gain;
       Log.warn(
-          "using fallback gain because ${_queue.current.value?.id} has not replay gain metadata");
+          "using fallback gain because ${_queue.current.value?.id} has no replay gain metadata");
     }
 
     Log.debug("replay gain of current song: $gain dB");

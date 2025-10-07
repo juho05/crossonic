@@ -1,10 +1,11 @@
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
+import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/utils/command.dart';
 import 'package:crossonic/utils/exceptions.dart';
 import 'package:crossonic/utils/result.dart';
 import 'package:flutter/material.dart';
 
-enum AuthType { apiKey, token, password }
+enum AuthType { apiKey, usernamePassword }
 
 class InvalidCredentialsException extends AppException {
   InvalidCredentialsException(super.message);
@@ -31,9 +32,9 @@ class LoginViewModel extends ChangeNotifier {
     return [
       if (_authRepository.serverFeatures.apiKeyAuthentication.contains(1))
         AuthType.apiKey,
-      if (_authRepository.serverFeatures.supportsTokenAuth) AuthType.token,
-      if (_authRepository.serverFeatures.supportsPasswordAuth)
-        AuthType.password,
+      if (_authRepository.serverFeatures.supportsTokenAuth ||
+          _authRepository.serverFeatures.supportsPasswordAuth)
+        AuthType.usernamePassword,
     ];
   }
 
@@ -52,9 +53,17 @@ class LoginViewModel extends ChangeNotifier {
 
   Future<Result<void>> _login(LoginData data) async {
     if (data.type == AuthType.apiKey) {
-      return await _authRepository.loginApiKey(data.apiKey!);
+      final result = await _authRepository.loginApiKey(data.apiKey!);
+      if (result is Err) {
+        Log.error("failed to login", e: result.error);
+      }
+      return result;
     }
-    return await _authRepository.loginUsernamePassword(
-        data.username!, data.password!, data.type == AuthType.token);
+    final result = await _authRepository.loginUsernamePassword(
+        data.username!, data.password!);
+    if (result is Err) {
+      Log.error("failed to login", e: result.error);
+    }
+    return result;
   }
 }

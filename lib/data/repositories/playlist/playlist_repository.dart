@@ -170,22 +170,34 @@ class PlaylistRepository extends ChangeNotifier {
       case Ok():
     }
     try {
+      if (result.value == null) {
+        await refresh(forceRefresh: true);
+        final p = await _db.managers.playlistTable
+            .orderBy((o) => o.created.desc())
+            .limit(1)
+            .getSingle();
+        return Result.ok(p.id);
+      }
       await _db.managers.playlistTable.create((o) => o(
-            id: result.value.id,
-            changed: result.value.changed,
-            created: result.value.created,
-            durationMs: result.value.duration * 1000,
-            songCount: result.value.songCount,
-            name: result.value.name,
-            comment: Value(result.value.comment),
-            coverArt: Value(result.value.coverArt),
+            id: result.value!.id,
+            changed: result.value!.changed,
+            created: result.value!.created,
+            durationMs: result.value!.duration * 1000,
+            songCount: result.value!.songCount,
+            name: result.value!.name,
+            comment: Value(result.value!.comment),
+            coverArt: Value(result.value!.coverArt),
           ));
       notifyListeners();
-    } catch (e, st) {
+      return Result.ok(result.value!.id);
+    } on Exception catch (e, st) {
       Log.error("Failed to create playlist in DB", e: e, st: st);
-      refresh(refreshIds: {result.value.id});
+      if (result.value != null) {
+        refresh(refreshIds: {result.value!.id});
+        return Result.ok(result.value!.id);
+      }
+      return Result.error(e);
     }
-    return Result.ok(result.value.id);
   }
 
   Future<Result<void>> reorder(

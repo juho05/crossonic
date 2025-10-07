@@ -194,8 +194,8 @@ class AuthRepository extends ChangeNotifier {
   }
 
   Future<Result<void>> loginUsernamePassword(
-      String username, String password, bool useTokenAuth) async {
-    final auth = useTokenAuth
+      String username, String password) async {
+    AuthState auth = _serverFeatures.supportsTokenAuth
         ? AuthStateToken(username: username, password: password)
         : AuthStatePassword(username: username, password: password);
     final connection = Connection(
@@ -207,7 +207,19 @@ class AuthRepository extends ChangeNotifier {
     final result = await _openSubsonicService.ping(connection);
     switch (result) {
       case Err():
-        return Result.error(result.error);
+        if (auth is AuthStateToken &&
+            result.error is SubsonicException &&
+            (result.error as SubsonicException).code ==
+                SubsonicErrorCode.tokenAuthNotSupported) {
+          _serverFeatures = _serverFeatures.copyWith(
+            supportsTokenAuth: false,
+            crossonicVersion: _serverFeatures.crossonicVersion,
+          );
+          notifyListeners();
+          return loginUsernamePassword(username, password);
+        } else {
+          return Result.error(result.error);
+        }
       case Ok():
     }
 

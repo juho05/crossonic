@@ -57,7 +57,8 @@ enum SongsSortMode {
 
 class SubsonicService {
   static const String _clientName = "crossonic";
-  static const String _protocolVersion = "1.16.1";
+  // maximum version allowed by airsonic-advanced
+  static const String _protocolVersion = "1.15.0";
 
   static final http.Client _httpClient = http.Client();
 
@@ -142,13 +143,13 @@ class SubsonicService {
     );
   }
 
-  Future<Result<PlaylistModel>> createPlaylist(
+  Future<Result<PlaylistModel?>> createPlaylist(
     Connection con, {
     String? playlistId,
     String? playlistName,
     Iterable<String> songIds = const [],
   }) async {
-    return await _fetchObject(
+    return await _fetchObjectOptional(
       con,
       "createPlaylist",
       {
@@ -599,13 +600,31 @@ class SubsonicService {
     }
   }
 
+  Future<Result<T?>> _fetchObjectOptional<T>(
+      Connection con,
+      String endpointName,
+      Map<String, Iterable<String>> queryParams,
+      T Function(Map<String, dynamic>) fromJson,
+      String responseKey) async {
+    final result = await _fetchJson(con, endpointName, queryParams, responseKey,
+        optionalResponse: true);
+    switch (result) {
+      case Err():
+        return Result.error(result.error);
+      case Ok<dynamic>():
+        if (result.value == null) {
+          return Result.ok(null);
+        }
+        return Result.ok(fromJson(result.value));
+    }
+  }
+
   Future<Result<T>> _fetchObject<T>(
-    Connection con,
-    String endpointName,
-    Map<String, Iterable<String>> queryParams,
-    T Function(Map<String, dynamic>) fromJson,
-    String responseKey,
-  ) async {
+      Connection con,
+      String endpointName,
+      Map<String, Iterable<String>> queryParams,
+      T Function(Map<String, dynamic>) fromJson,
+      String responseKey) async {
     final result =
         await _fetchJson(con, endpointName, queryParams, responseKey);
     switch (result) {
@@ -635,12 +654,9 @@ class SubsonicService {
     }
   }
 
-  Future<Result<dynamic>> _fetchJson(
-    Connection con,
-    String endpointName,
-    Map<String, Iterable<String>> queryParams,
-    String? responseKey,
-  ) async {
+  Future<Result<dynamic>> _fetchJson(Connection con, String endpointName,
+      Map<String, Iterable<String>> queryParams, String? responseKey,
+      {bool optionalResponse = false}) async {
     try {
       final result = await _request(
           con.baseUri, endpointName, queryParams, con.auth, con.supportsPost);
@@ -649,14 +665,16 @@ class SubsonicService {
           return Result.error(result.error);
         case Ok<http.Response>():
       }
-      return _parseJsonResponse(result.value, responseKey);
+      return _parseJsonResponse(result.value, responseKey,
+          optionalResponse: optionalResponse);
     } catch (e) {
       return Result.error(UnexpectedResponseException(e.toString()));
     }
   }
 
   Future<Result<dynamic>> _parseJsonResponse(
-      http.Response response, String? responseKey) async {
+      http.Response response, String? responseKey,
+      {bool optionalResponse = false}) async {
     final json = response.headers["content-type"]?.contains("charset") ?? false
         ? response.body
         : utf8.decode(response.bodyBytes);
@@ -689,6 +707,9 @@ class SubsonicService {
     }
     if (responseKey != null) {
       if (!res.containsKey(responseKey)) {
+        if (optionalResponse) {
+          return const Result.ok(null);
+        }
         return Result.error(UnexpectedResponseException(
             "response does not contain expected field: $responseKey"));
       }
