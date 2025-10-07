@@ -37,8 +37,16 @@ class SequentialRequestQueue {
     final completer = Completer<Result<T>>();
     _queue.add(_SequentialRequest(
       fn: () async {
-        final value = await request();
-        completer.complete(value);
+        final result = await request();
+        if (result is Err && restorePrevState != null) {
+          try {
+            await restorePrevState((result as Err).error);
+          } catch (e, st) {
+            Log.error("Failed to execute sequential queue run onError callback",
+                e: e, st: st);
+          }
+        }
+        completer.complete(result);
       },
       errFn: (e, [st]) async {
         if (restorePrevState != null) {
