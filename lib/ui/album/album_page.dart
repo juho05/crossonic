@@ -172,7 +172,9 @@ class _AlbumPageState extends State<AlbumPage> {
                   router.push(ArtistRoute(artistId: artistId));
                 },
               ),
-              if (_viewModel.album.releaseDate != null ||
+              if ((_viewModel.album.releaseDate != null &&
+                      _viewModel.album.originalDate?.year !=
+                          _viewModel.album.releaseDate!.year) ||
                   _viewModel.album.version != null ||
                   _viewModel.alternatives.isNotEmpty)
                 CollectionExtraInfo(
