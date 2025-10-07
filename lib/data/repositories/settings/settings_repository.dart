@@ -1,5 +1,6 @@
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
 import 'package:crossonic/data/repositories/keyvalue/key_value_repository.dart';
+import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/data/repositories/settings/appearance.dart';
 import 'package:crossonic/data/repositories/settings/home_page_layout.dart';
 import 'package:crossonic/data/repositories/settings/logging.dart';
@@ -43,12 +44,14 @@ class SettingsRepository {
         load();
       } else if (wasAuthenticated) {
         logging.level = logging.level;
+        Log.debug("sign-out detected, restoring log level ${logging.level}");
       }
       wasAuthenticated = authRepository.isAuthenticated;
     });
   }
 
   Future<void> load() async {
+    Log.debug("loading settings from db");
     await logging.load();
     await Future.wait([
       replayGain.load(),

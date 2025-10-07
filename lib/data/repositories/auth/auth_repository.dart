@@ -56,10 +56,12 @@ class AuthRepository extends ChangeNotifier {
   static const _serverFeaturesKey = "server_features";
 
   Future<void> loadState() async {
+    Log.debug("loading auth state...");
     final uri = await _keyValue.loadString(_serverUriKey);
     final serverFeatures =
         await _keyValue.loadObject(_serverFeaturesKey, ServerFeatures.fromJson);
     if (uri == null || serverFeatures == null) {
+      Log.debug("no auth state found, logging out...");
       await logout(false);
       return;
     }
@@ -73,7 +75,9 @@ class AuthRepository extends ChangeNotifier {
   }
 
   Future<Result<void>> connect(Uri serverUri) async {
+    Log.debug("connecting to new server");
     if (_serverUri != null && _serverUri != serverUri) {
+      Log.debug("original server still connected, logging out...");
       await logout(false);
     }
 
@@ -105,6 +109,7 @@ class AuthRepository extends ChangeNotifier {
         }
       case Ok():
     }
+    Log.debug("password auth available: $supportsPasswordAuth");
 
     final tokenPingRes = await _openSubsonicService.ping(Connection(
       baseUri: serverUri,
@@ -123,11 +128,13 @@ class AuthRepository extends ChangeNotifier {
         }
       case Ok():
     }
+    Log.debug("token auth available: $supportsPasswordAuth");
 
     Version? crossonicVersion;
     if (info.crossonicVersion != null) {
       try {
         crossonicVersion = Version.parse(info.crossonicVersion!);
+        Log.debug("crossonic version: $crossonicVersion");
       } catch (_) {
         Log.error(
             "Failed to parse crossonic version: ${info.crossonicVersion}");
@@ -251,6 +258,7 @@ class AuthRepository extends ChangeNotifier {
   }
 
   Future<void> _loadOpenSubsonicExtensions() async {
+    Log.debug("loading OpenSubsonic extensions...");
     final Result<Iterable<OpenSubsonicExtensionModel>> result;
     if (isAuthenticated) {
       result = await _openSubsonicService.getOpenSubsonicExtensions(con);
@@ -280,6 +288,7 @@ class AuthRepository extends ChangeNotifier {
             apiKeyAuthentication = ext.versions.toSet();
         }
       }
+      Log.debug("available OpenSubsonic extensions:\n${extensions.join("\n")}");
       _serverFeatures = _serverFeatures.copyWith(
         loadedExtensions: true,
         formPost: formPost,
@@ -298,15 +307,19 @@ class AuthRepository extends ChangeNotifier {
 
   Future<void> _persistState() async {
     if (_serverUri != null) {
+      Log.trace("storing server info in db...");
       await _keyValue.store(_serverFeaturesKey, _serverFeatures);
       await _keyValue.store(_serverUriKey, _serverUri.toString());
     } else {
+      Log.trace("removing server info from db...");
       await _keyValue.remove(_serverUriKey);
       await _keyValue.remove(_serverFeaturesKey);
     }
     if (_state != null) {
+      Log.trace("storing auth state in db...");
       await _state!.persist(_storage);
     } else {
+      Log.trace("removing auth state from db...");
       await AuthState.clear(_storage);
     }
   }

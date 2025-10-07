@@ -55,12 +55,16 @@ class AutoUpdateRepository extends ChangeNotifier {
   })  : _versionRepository = versionRepository,
         _github = github {
     if (Platform.isAndroid) {
+      Log.debug("update platform: Android");
       _updater = UpdaterAndroid();
     } else if (Platform.isWindows) {
+      Log.debug("update platform: Windows");
       _updater = UpdaterWindows();
     } else if (Platform.isMacOS) {
+      Log.debug("update platform: macOS");
       _updater = UpdaterMacOS();
     } else if (AppImageRepository.isAppImage) {
+      Log.debug("update platform: Linux (AppImage)");
       _updater = UpdaterLinuxAppImage();
     } else {
       throw UnimplementedError(

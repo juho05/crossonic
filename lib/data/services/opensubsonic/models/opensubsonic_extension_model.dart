@@ -13,4 +13,9 @@ class OpenSubsonicExtensionModel {
       _$OpenSubsonicExtensionModelFromJson(json);
 
   Map<String, dynamic> toJson() => _$OpenSubsonicExtensionModelToJson(this);
+
+  @override
+  String toString() {
+    return "$name: ${versions.join(", ")}";
+  }
 }

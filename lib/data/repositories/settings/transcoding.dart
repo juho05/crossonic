@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:crossonic/data/repositories/keyvalue/key_value_repository.dart';
+import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/data/repositories/subsonic/subsonic_repository.dart';
 import 'package:flutter/foundation.dart';
 
@@ -22,8 +23,8 @@ class TranscodingSettings extends ChangeNotifier {
   final KeyValueRepository _repo;
   final SubsonicRepository _subsonic;
 
-  List<TranscodingCodec> _availableCodecs = [];
-  Iterable<TranscodingCodec> get availableCodecs => _availableCodecs;
+  Iterable<TranscodingCodec> get availableCodecs =>
+      _subsonic.supports.transcodeCodecs;
 
   bool _supportsMobile = false;
   bool get supportsMobile => _supportsMobile;
@@ -33,7 +34,7 @@ class TranscodingSettings extends ChangeNotifier {
     if (kIsWeb) {
       return TranscodingCodec.raw;
     }
-    if (_availableCodecs.contains(TranscodingCodec.opus)) {
+    if (availableCodecs.contains(TranscodingCodec.opus)) {
       return TranscodingCodec.opus;
     }
     return TranscodingCodec.serverDefault;
@@ -47,7 +48,7 @@ class TranscodingSettings extends ChangeNotifier {
     if (kIsWeb) {
       return TranscodingCodec.raw;
     }
-    if (_availableCodecs.contains(TranscodingCodec.opus)) {
+    if (availableCodecs.contains(TranscodingCodec.opus)) {
       return TranscodingCodec.opus;
     }
     return TranscodingCodec.serverDefault;
@@ -86,14 +87,17 @@ class TranscodingSettings extends ChangeNotifier {
   }
 
   Future<void> load() async {
-    _availableCodecs = _subsonic.supports.transcodeCodecs;
+    Log.trace("loading transcode settings");
     _supportsMobile =
         !kIsWeb && (Platform.isAndroid || Platform.isIOS || Platform.isMacOS);
 
     if (_supportsMobile) {
-      _connectivitySubscription = Connectivity()
-          .onConnectivityChanged
-          .listen((event) => notifyListeners());
+      _connectivitySubscription =
+          Connectivity().onConnectivityChanged.listen((event) {
+        Log.debug(
+            "connectivity changed: ${event.map((c) => c.name).join(", ")}");
+        notifyListeners();
+      });
     }
     _codec = TranscodingCodec.values
         .byName((await _repo.loadString(_codecKey)) ?? _codecDefault.name);
@@ -106,6 +110,7 @@ class TranscodingSettings extends ChangeNotifier {
   }
 
   void reset() {
+    Log.debug("resetting transcode settings");
     _codec = _codecDefault;
     _codecMobile = _codecMobileDefault;
 
@@ -122,6 +127,7 @@ class TranscodingSettings extends ChangeNotifier {
 
   set codec(TranscodingCodec codec) {
     if (_codec == codec) return;
+    Log.debug("codec setting: $codec");
     _codec = codec;
     notifyListeners();
     _repo.store(_codecKey, _codec.name);
@@ -129,6 +135,7 @@ class TranscodingSettings extends ChangeNotifier {
 
   set codecMobile(TranscodingCodec codec) {
     if (_codecMobile == codec) return;
+    Log.debug("mobile codec setting: $codec");
     _codecMobile = codec;
     notifyListeners();
     _repo.store(_codecMobileKey, _codecMobile.name);
@@ -136,6 +143,7 @@ class TranscodingSettings extends ChangeNotifier {
 
   set maxBitRate(int? bitRate) {
     if (_maxBitRate == bitRate) return;
+    Log.debug("bit rate setting: $bitRate kbps");
     _maxBitRate = bitRate;
     notifyListeners();
     if (_maxBitRate != null) {
@@ -147,6 +155,7 @@ class TranscodingSettings extends ChangeNotifier {
 
   set maxBitRateMobile(int? bitRate) {
     if (_maxBitRateMobile == bitRate) return;
+    Log.debug("mobile bit rate setting: $bitRate kbps");
     _maxBitRateMobile = bitRate;
     notifyListeners();
     if (_maxBitRateMobile != null) {

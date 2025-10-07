@@ -41,23 +41,25 @@ class VersionRepository {
   }
 
   Future<Result<String?>> getLatestVersionTag({bool force = false}) async {
+    Log.trace("fetching latest version tag (force refresh: $force)");
     if (!force) {
       final lastCheck = await _keyValue.loadDateTime(_keyLastCheck);
       if (lastCheck != null &&
           DateTime.now().difference(lastCheck) < _minCheckInterval) {
         final latest = await _keyValue.loadString(_keyLatestVersionTag);
         if (latest != null) {
+          Log.trace("returning cached version: $latest");
           return Result.ok(latest);
         }
-        if (latest == null) {
-          if (await _keyValue.loadString("version.latest") == null) {
-            return const Result.ok(null);
-          }
-          await _keyValue.remove("version.latest");
+        if (await _keyValue.loadString("version.latest") == null) {
+          Log.trace("no cached version available, returning null");
+          return const Result.ok(null);
         }
+        await _keyValue.remove("version.latest");
       }
     }
 
+    Log.trace("fetching latest version tag from GitHub...");
     final tags = await _github.getRepositoryTags(
         owner: "juho05", repo: "crossonic", pageSize: 30);
     switch (tags) {
@@ -76,14 +78,17 @@ class VersionRepository {
         continue;
       }
     }
+    Log.trace("found ${versions.length} valid versions");
     versions.sort((a, b) => b.$2.compareTo(a));
     final latest = versions.firstOrNull;
-    Log.trace("Fetched latest version: $latest");
+    Log.debug("Fetched latest version: $latest");
 
     await _keyValue.store(_keyLastCheck, DateTime.now());
     if (latest != null) {
+      Log.trace("storing latest version tag in db: ${latest.$1}");
       await _keyValue.store(_keyLatestVersionTag, latest.$1);
     } else {
+      Log.trace("clearing latest version tag in db");
       await _keyValue.remove(_keyLatestVersionTag);
     }
 

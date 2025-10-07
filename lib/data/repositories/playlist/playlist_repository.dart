@@ -482,6 +482,12 @@ class PlaylistRepository extends ChangeNotifier {
 
   Future<Result<void>> _refresh(
       {bool forceRefresh = false, Set<String> refreshIds = const {}}) async {
+    if (refreshIds.isNotEmpty) {
+      Log.trace(
+          "refreshing playlists (force: $forceRefresh): ${refreshIds.join(", ")}");
+    } else {
+      Log.trace("refreshing all playlists (force: $forceRefresh)");
+    }
     final result = await _subsonic.getPlaylists(_auth.con);
     switch (result) {
       case Err():
@@ -489,6 +495,7 @@ class PlaylistRepository extends ChangeNotifier {
       case Ok():
     }
     if (!_requestQueue.done) {
+      Log.trace("new playlist request started, aborting refresh");
       return const Result.ok(null);
     }
 
@@ -514,9 +521,13 @@ class PlaylistRepository extends ChangeNotifier {
         }
       }
 
+      Log.trace("updating ${toUpdate.length}/${playlists.length} playlists");
+
       final deletedCount = await _db.managers.playlistTable
           .filter((f) => f.id.isIn(playlists.map((p) => p.id)).not())
           .delete();
+
+      Log.trace("deleted $deletedCount local playlists");
 
       if (toUpdate.isEmpty) {
         if (deletedCount > 0) {
@@ -527,6 +538,7 @@ class PlaylistRepository extends ChangeNotifier {
 
       Map<String, List<ChildModel>> playlistSongs = {};
 
+      Log.trace("loading playlist songs");
       final results = await Future.wait(toUpdate.map((p) async {
         final r = await _loadPlaylistSongs(p.id);
         switch (r) {
@@ -545,6 +557,7 @@ class PlaylistRepository extends ChangeNotifier {
         }
       }
       if (!_requestQueue.done) {
+        Log.trace("new playlist request started, aborting refresh");
         return const Result.ok(null);
       }
 
@@ -560,11 +573,14 @@ class PlaylistRepository extends ChangeNotifier {
           // TODO properly check if the cover has changed
           // this only checks whether the status of having/not having a cover has changed
           if (p.coverArt != oldCoverIds[p.id]) {
+            Log.trace(
+                "detected cover change for playlist ${p.id}, evicting old cover from cache...");
             _evictCoverFromCache(oldCoverIds[p.id]);
           }
         }
       }
 
+      Log.trace("updating playlists in db");
       await _db.transaction(() async {
         if (toUpdate.isEmpty) return;
         await _db.managers.playlistSongTable
@@ -638,6 +654,7 @@ class PlaylistRepository extends ChangeNotifier {
               _db.coverCacheTable.coverId.isNull()))
         .map((p) => p.read(_db.playlistTable.coverArt))
         .get();
+    Log.trace("ensuring playlist covers are downloaded...");
     await _coverRepository.downloadCovers(playlistCovers);
 
     final downloadCoverIdsQuery = _db.selectOnly(_db.playlistSongTable,
@@ -659,6 +676,7 @@ class PlaylistRepository extends ChangeNotifier {
     final downloadCoverIds = await downloadCoverIdsQuery
         .map((row) => row.read(_db.playlistSongTable.coverId))
         .get();
+    Log.trace("ensuring covers of downloaded songs are downloaded...");
     await _coverRepository.downloadCovers(downloadCoverIds);
   }
 
@@ -702,8 +720,10 @@ class PlaylistRepository extends ChangeNotifier {
     if (_auth.isAuthenticated == _authenticated) return;
     _authenticated = _auth.isAuthenticated;
     if (_auth.isAuthenticated) {
+      Log.trace("authenticated, force refreshing playlists...");
       refresh(forceRefresh: true);
     } else {
+      Log.trace("unauthenticated, clearing song downloads...");
       _songDownloader.clear();
     }
   }

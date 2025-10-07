@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/data/services/database/database.dart';
 import 'package:drift/drift.dart';
 
@@ -13,6 +14,7 @@ class KeyValueRepository {
     if (object is DateTime) {
       object = object.millisecondsSinceEpoch;
     }
+    Log.trace("storing new value for $key");
     await _db.managers.keyValueTable.create(
       (o) => o(key: key, value: jsonEncode(object)),
       mode: InsertMode.replace,
@@ -20,6 +22,7 @@ class KeyValueRepository {
   }
 
   Future<void> remove(String key) async {
+    Log.trace("removing $key");
     await _db.managers.keyValueTable.filter((kv) => kv.key(key)).delete();
   }
 
@@ -81,6 +84,7 @@ class KeyValueRepository {
   }
 
   Future<String?> _loadValue(String key) async {
+    Log.trace("loading value: $key");
     return (await _db.managers.keyValueTable
             .filter((kv) => kv.key(key))
             .getSingleOrNull())

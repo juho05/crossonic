@@ -3,8 +3,6 @@ import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:flutter/foundation.dart';
 import 'package:logger/logger.dart';
 
-enum ReplayGainMode { disabled, track, album, auto }
-
 class LoggingSettings extends ChangeNotifier {
   final KeyValueRepository _repo;
 

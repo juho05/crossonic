@@ -606,6 +606,6 @@ class SubsonicRepository {
   Map<String, Iterable<String>> generateQuery(
       Map<String, Iterable<String>> query, SubsonicAuth auth,
       {bool constantSalt = false}) {
-    return _service.generateQuery(query, auth);
+    return _service.generateQuery(query, auth, constantSalt: constantSalt);
   }
 }

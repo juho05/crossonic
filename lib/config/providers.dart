@@ -92,8 +92,10 @@ Future<List<SingleChildWidget>> createProviders({
   );
   if (!kIsWeb) {
     await songDownloader.init();
+    Log.debug("resuming download tasks from background");
     await bd.FileDownloader().resumeFromBackground();
     Timer(const Duration(seconds: 5), () {
+      Log.debug("rescheduling killed download tasks");
       bd.FileDownloader().rescheduleKilledTasks();
     });
   }
@@ -115,6 +117,7 @@ Future<List<SingleChildWidget>> createProviders({
 
   final MediaIntegration mediaIntegration;
   if (!kIsWeb && Platform.isWindows) {
+    Log.debug("initializing audio service");
     mediaIntegration = SMTCIntegration();
   } else {
     var androidBackgroundAvailable = true;
@@ -122,12 +125,16 @@ Future<List<SingleChildWidget>> createProviders({
       androidBackgroundAvailable =
           await OptimizeBattery.isIgnoringBatteryOptimizations();
       if (!androidBackgroundAvailable) {
+        Log.info("battery optimization is not disabled, asking user...");
         await OptimizeBattery.stopOptimizingBatteryUsage();
         // because there is no way to know when/if the user clicks yes on the dialog
         // androidBackgroundAvailable stays false until the next start of the app
+      } else {
+        Log.info("battery optimization is disabled");
       }
     }
 
+    Log.debug("initializing audio service");
     final audioService = await AudioService.init(
       builder: () =>
           AudioServiceIntegration(playlistRepository: playlistRepository),
@@ -143,6 +150,7 @@ Future<List<SingleChildWidget>> createProviders({
     mediaIntegration = audioService;
   }
 
+  Log.debug("initializing audio session");
   final audioSession = await AudioSession.instance;
   await audioSession.configure(const AudioSessionConfiguration.music());
 

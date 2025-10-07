@@ -2,9 +2,9 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:crossonic/data/repositories/keyvalue/key_value_repository.dart';
+import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/data/repositories/settings/appearance.dart';
 import 'package:crossonic/data/repositories/themeManager/dbus_interface.dart';
-import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -97,6 +97,9 @@ class ThemeManager extends ChangeNotifier {
       });
       return;
     }
+
+    Log.warn(
+        "DBUS color-scheme property not available, no live theme switching (without app restart)");
 
     try {
       final gsettingsResult = await Process.run(

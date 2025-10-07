@@ -1,5 +1,6 @@
-import 'package:crossonic/data/repositories/keyvalue/key_value_repository.dart';
 import 'package:collection/collection.dart';
+import 'package:crossonic/data/repositories/keyvalue/key_value_repository.dart';
+import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:flutter/material.dart';
 
 enum HomeContentOption {
@@ -37,6 +38,7 @@ class HomeLayoutSettings extends ChangeNotifier {
   }
 
   void reset() {
+    Log.debug("resetting home page layout");
     _selectedOptions = _selectedOptionsDefault.toList();
     notifyListeners();
     _repo.remove(_selectedOptionsKey);
@@ -47,6 +49,8 @@ class HomeLayoutSettings extends ChangeNotifier {
         .equals(this.selectedOptions, selectedOptions)) {
       return;
     }
+    Log.debug(
+        "home page layout: ${selectedOptions.map((o) => o.name).join(", ")}");
     _selectedOptions = selectedOptions.toList();
     notifyListeners();
     _repo.store(

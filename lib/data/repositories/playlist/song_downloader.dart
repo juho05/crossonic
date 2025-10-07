@@ -3,13 +3,14 @@ import 'dart:io';
 
 import 'package:background_downloader/background_downloader.dart';
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
+import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/data/repositories/playlist/downloader_storage.dart';
 import 'package:crossonic/data/services/database/database.dart' as db;
 import 'package:crossonic/data/services/opensubsonic/subsonic_service.dart';
 import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
+import 'package:path_provider/path_provider.dart';
 
 enum DownloadStatus { none, enqueued, downloading, downloaded }
 
@@ -34,6 +35,7 @@ class SongDownloader extends ChangeNotifier {
 
   Future<void> init() async {
     if (kIsWeb) return;
+    Log.debug("initializing song downloader...");
     final applicationSupport = await getApplicationSupportDirectory();
     _dir = path.join(applicationSupport.path, "downloaded_songs");
     final dir = await Directory(_dir!).create(recursive: true);
@@ -116,6 +118,7 @@ class SongDownloader extends ChangeNotifier {
   Future<void> _update() async {
     if (kIsWeb || _updating || _dir == null) return;
     _updating = true;
+    Log.debug("updating download status of songs in downloaded playlists");
     final songIds =
         (await (_db.select(_db.playlistSongTable, distinct: true).join(
       [
@@ -131,6 +134,7 @@ class SongDownloader extends ChangeNotifier {
 
     final records =
         await FileDownloader().database.allRecords(group: _taskGroup);
+    Log.trace("canceling downloads that are no longer needed");
     await FileDownloader().cancelAll(
       tasks:
           records.where((r) => !songIds.contains(r.taskId)).map((r) => r.task),
@@ -143,10 +147,12 @@ class SongDownloader extends ChangeNotifier {
       if (songIds.contains(id)) {
         songIds.remove(id);
         _downloadStatus[id] = DownloadStatus.downloaded;
+        Log.trace("found downloaded file for song $id");
       } else {
         File(f.path).delete();
         FileDownloader().database.deleteRecordWithId(id);
         _downloadStatus.remove(id);
+        Log.debug("deleted downloaded file for song $id");
       }
     });
 
@@ -160,6 +166,11 @@ class SongDownloader extends ChangeNotifier {
           songIds.remove(id);
         }
       }
+    }
+
+    if (songIds.isNotEmpty) {
+      Log.debug(
+          "found ${songIds.length} songs that still need to be downloaded, enqueuing...");
     }
 
     final tasks = songIds.map((id) => DownloadTask(
@@ -204,12 +215,16 @@ class SongDownloader extends ChangeNotifier {
 
   Future<void> clear() async {
     if (kIsWeb) return;
+    Log.debug("clearing song downloads");
+    Log.trace("canceling download tasks");
     await FileDownloader().cancelAll(group: _taskGroup);
     await FileDownloader().database.deleteAllRecords(group: _taskGroup);
     if (_dir == null) return;
     try {
+      Log.trace("deleting song download directory");
       await Directory(_dir!).delete(recursive: true);
     } catch (_) {}
+    Log.trace("clearing download status");
     _downloadStatus.clear();
     notifyListeners();
   }

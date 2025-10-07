@@ -1,4 +1,5 @@
 import 'package:crossonic/data/repositories/keyvalue/key_value_repository.dart';
+import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:flutter/material.dart';
 
 enum ReplayGainMode { disabled, track, album, auto }
@@ -26,6 +27,7 @@ class ReplayGainSettings extends ChangeNotifier {
       : _repo = keyValueRepository;
 
   Future<void> load() async {
+    Log.trace("loading replay gain settings");
     _mode = ReplayGainMode.values
         .byName(await _repo.loadString(_modeKey) ?? _modeDefault.name);
 
@@ -40,6 +42,7 @@ class ReplayGainSettings extends ChangeNotifier {
   }
 
   void reset() {
+    Log.debug("resetting replay gain settings");
     _mode = _modeDefault;
     _fallbackGain = _fallbackGainDefault;
     _preferServerFallbackGain = _preferServerFallbackGainDefault;
@@ -51,6 +54,7 @@ class ReplayGainSettings extends ChangeNotifier {
 
   set mode(ReplayGainMode mode) {
     if (_mode == mode) return;
+    Log.debug("replay gain mode: ${mode.name}");
     _mode = mode;
     notifyListeners();
     _repo.store(_modeKey, _mode.name);
@@ -58,6 +62,7 @@ class ReplayGainSettings extends ChangeNotifier {
 
   set fallbackGain(double gain) {
     if (_fallbackGain == gain) return;
+    Log.debug("fallback gain: $gain dB");
     _fallbackGain = gain;
     notifyListeners();
     _repo.store(_fallbackGainKey, _fallbackGain);
@@ -65,6 +70,7 @@ class ReplayGainSettings extends ChangeNotifier {
 
   set preferServerFallbackGain(bool preferServer) {
     if (_preferServerFallbackGain == preferServer) return;
+    Log.debug("prefer server fallback gain: $preferServer");
     _preferServerFallbackGain = preferServer;
     notifyListeners();
     _repo.store(_preferServerFallbackGainKey, _preferServerFallbackGain);

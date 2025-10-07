@@ -1,4 +1,5 @@
 import 'package:crossonic/data/repositories/keyvalue/key_value_repository.dart';
+import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:flutter/material.dart';
 
 class AppearanceSettings extends ChangeNotifier {
@@ -18,6 +19,7 @@ class AppearanceSettings extends ChangeNotifier {
       : _repo = keyValueRepository;
 
   Future<void> load() async {
+    Log.trace("loading appearance settings");
     _themeMode = ThemeMode.values.byName(
         (await _repo.loadString(_themeModeKey)) ?? _themeModeDefault.name);
     _dynamicColors =
@@ -26,6 +28,7 @@ class AppearanceSettings extends ChangeNotifier {
   }
 
   void reset() {
+    Log.debug("resetting appearance settings");
     _themeMode = _themeModeDefault;
     _dynamicColors = _dynamicColorsDefault;
     notifyListeners();
@@ -35,6 +38,7 @@ class AppearanceSettings extends ChangeNotifier {
 
   set themeMode(ThemeMode mode) {
     if (mode == _themeMode) return;
+    Log.debug("theme mode: ${mode.name}");
     _themeMode = mode;
     notifyListeners();
     _repo.store(_themeModeKey, _themeMode.name);
@@ -42,6 +46,7 @@ class AppearanceSettings extends ChangeNotifier {
 
   set dynamicColors(bool enable) {
     if (enable == _dynamicColors) return;
+    Log.debug("enable dynamic colors: $enable");
     _dynamicColors = enable;
     notifyListeners();
     _repo.store(_dynamicColorsKey, _dynamicColors);

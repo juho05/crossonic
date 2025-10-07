@@ -50,18 +50,21 @@ class Scrobbler {
   }
 
   Future<void> _onCurrentChanged(Song? song) async {
+    Log.trace("song change detected: ${song?.title} (${song?.id})");
     await _updateCurrent();
     _current = null;
     await _submitScrobbles();
     if (song == null) {
       return;
     }
+    Log.trace("updating current scrobble data");
     _current = _Scrobble(
       songId: song.id,
       time: DateTime.now(),
       listenDuration: Duration.zero,
       songDuration: song.duration,
     );
+    Log.debug("uploading playing now: ${song.title} (${song.id}");
     final result = await _subsonic.scrobble(
         _auth.con,
         [
@@ -120,6 +123,7 @@ class Scrobbler {
                         f.songDurationMs.column / const Variable(2))));
       }).get();
       if (scrobbles.isNotEmpty) {
+        Log.debug("submitting unsubmitted scrobbles: ${scrobbles.length}");
         final result = await _subsonic.scrobble(
           _auth.con,
           scrobbles.map((s) => (
@@ -159,7 +163,10 @@ class Scrobbler {
             return;
           }
         }
+      } else {
+        Log.trace("no unsubmitted scrobbles");
       }
+      Log.trace("deleting scrobbles in db (except current)");
       await _db.managers.scrobbleTable
           .filter((f) =>
               (f.songId(_current?.songId) & f.startTime(_current?.time)).not())
@@ -172,9 +179,14 @@ class Scrobbler {
   Future<void> _updateCurrent() async {
     if (_current == null) return;
     if (_playingSince != null) {
-      _current!.listenDuration += DateTime.now().difference(_playingSince!);
+      final difference = DateTime.now().difference(_playingSince!);
+      _current!.listenDuration += difference;
+      Log.trace(
+          "Added $difference to current listen duration, new value: ${_current!.listenDuration}");
     }
     _playingSince = _playing ? DateTime.now() : null;
+    Log.trace(
+        "Storing current state in db: songId: ${_current!.songId}, startTime: ${_current!.time}, ${_current!.listenDuration}, songDuration: ${_current!.songDuration}");
     await _db.managers.scrobbleTable.create(
       (o) => o(
         songId: _current!.songId,
@@ -188,9 +200,11 @@ class Scrobbler {
 
   void _onAuthChanged() async {
     if (_auth.isAuthenticated) {
+      Log.trace("authenticated, trying to submit scrobbles");
       await _submitScrobbles();
       return;
     }
+    Log.trace("unauthenticated, clearing local scrobble data");
     _current = null;
   }
 

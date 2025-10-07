@@ -218,8 +218,7 @@ class CoverRepository extends BaseCacheManager {
         withProgress = false;
       }
     } on Object catch (e) {
-      Log.warn(
-          "CacheManager: Failed to load cached file for $key with error:\n$e");
+      Log.warn("failed to load cached file for $key with error:\n$e");
     }
     if (cacheFile == null || cacheFile.validTill.isBefore(DateTime.now())) {
       try {
@@ -236,7 +235,7 @@ class CoverRepository extends BaseCacheManager {
         }
         ensureCleanupScheduled();
       } on Object catch (e, st) {
-        Log.warn("failed to download cover file $key", e: e, st: st);
+        Log.debug("failed to download cover file $key", e: e, st: st);
         if (cacheFile == null && streamController.hasListener) {
           streamController.addError(e);
         }

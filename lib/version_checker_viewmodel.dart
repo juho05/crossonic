@@ -39,6 +39,9 @@ class VersionCheckerViewModel extends ChangeNotifier {
     if (const bool.hasEnvironment("VERSION_CHECK")) {
       _checked = !const bool.fromEnvironment("VERSION_CHECK");
     }
+    if (_checked) {
+      Log.info("version checking is disabled");
+    }
   }
 
   Future<void> check() async {
