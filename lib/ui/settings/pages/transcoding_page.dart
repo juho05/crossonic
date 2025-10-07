@@ -69,8 +69,9 @@ class _TranscodingPageState extends State<TranscodingPage> {
                       .toList(),
                 ),
                 if (_viewModel.codec != TranscodingCodec.raw)
-                  DropdownMenu<int?>(
+                  DropdownMenu<int>(
                     onSelected: (value) {
+                      if (value == null) return;
                       _viewModel.updateBitRate(value);
                     },
                     expandedInsets: EdgeInsets.zero,
@@ -78,15 +79,10 @@ class _TranscodingPageState extends State<TranscodingPage> {
                     requestFocusOnTap: false,
                     enableSearch: false,
                     label: const Text("Bitrate"),
-                    dropdownMenuEntries: ([
-                      null,
-                      ..._viewModel.codec.validBitRates,
-                    ])
+                    dropdownMenuEntries: (_viewModel.codec.validBitRates)
                         .map((option) => DropdownMenuEntry(
                               value: option,
-                              label: option != null
-                                  ? '$option kbps'
-                                  : "Server default",
+                              label: '$option kbps',
                             ))
                         .toList(),
                   ),
@@ -118,8 +114,9 @@ class _TranscodingPageState extends State<TranscodingPage> {
                   ),
                 if (_viewModel.supportsMobile &&
                     _viewModel.codecMobile != TranscodingCodec.raw)
-                  DropdownMenu<int?>(
+                  DropdownMenu<int>(
                     onSelected: (value) {
+                      if (value == null) return;
                       _viewModel.updateBitRateMobile(value);
                     },
                     expandedInsets: EdgeInsets.zero,
@@ -127,15 +124,10 @@ class _TranscodingPageState extends State<TranscodingPage> {
                     requestFocusOnTap: false,
                     enableSearch: false,
                     label: const Text("Bitrate (mobile)"),
-                    dropdownMenuEntries: ([
-                      null,
-                      ..._viewModel.codecMobile.validBitRates,
-                    ])
+                    dropdownMenuEntries: _viewModel.codecMobile.validBitRates
                         .map((option) => DropdownMenuEntry(
                               value: option,
-                              label: option != null
-                                  ? '$option kbps'
-                                  : "Server default",
+                              label: '$option kbps',
                             ))
                         .toList(),
                   ),

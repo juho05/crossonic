@@ -31,7 +31,7 @@ class TranscodingSettings extends ChangeNotifier {
 
   static const String _codecKey = "transcoding.codec";
   TranscodingCodec get _codecDefault {
-    if (kIsWeb) {
+    if (kIsWeb || !_subsonic.supports.transcodeOffset) {
       return TranscodingCodec.raw;
     }
     if (availableCodecs.contains(TranscodingCodec.opus)) {
@@ -45,7 +45,7 @@ class TranscodingSettings extends ChangeNotifier {
 
   static const String _codecMobileKey = "transcoding.codec_mobile";
   TranscodingCodec get _codecMobileDefault {
-    if (kIsWeb) {
+    if (kIsWeb || !_subsonic.supports.transcodeOffset) {
       return TranscodingCodec.raw;
     }
     if (availableCodecs.contains(TranscodingCodec.opus)) {
@@ -58,14 +58,14 @@ class TranscodingSettings extends ChangeNotifier {
   TranscodingCodec get codecMobile => _codecMobile;
 
   static const String _maxBitRateKey = "transcoding.max_bitrate";
-  static const int? _maxBitRateDefault = null;
-  int? _maxBitRate = _maxBitRateDefault;
-  int? get maxBitRate => _maxBitRate;
+  static const int _maxBitRateDefault = 256;
+  int _maxBitRate = _maxBitRateDefault;
+  int get maxBitRate => _maxBitRate;
 
   static const String _maxBitRateMobileKey = "transcoding.max_bitrate_mobile";
-  static const int? _maxBitRateMobileDefault = null;
-  int? _maxBitRateMobile = _maxBitRateMobileDefault;
-  int? get maxBitRateMobile => _maxBitRateMobile;
+  static const int _maxBitRateMobileDefault = 128;
+  int _maxBitRateMobile = _maxBitRateMobileDefault;
+  int get maxBitRateMobile => _maxBitRateMobile;
 
   StreamSubscription? _connectivitySubscription;
 
@@ -75,7 +75,7 @@ class TranscodingSettings extends ChangeNotifier {
   })  : _repo = keyValueRepository,
         _subsonic = subsonicRepository;
 
-  Future<(TranscodingCodec, int?)> activeTranscoding() async {
+  Future<(TranscodingCodec, int)> activeTranscoding() async {
     final connectivity = await Connectivity().checkConnectivity();
     final isMobile = _supportsMobile &&
         !connectivity.contains(ConnectivityResult.wifi) &&
@@ -104,8 +104,9 @@ class TranscodingSettings extends ChangeNotifier {
     _codecMobile = TranscodingCodec.values.byName(
         (await _repo.loadString(_codecMobileKey)) ?? _codecMobileDefault.name);
 
-    _maxBitRate = await _repo.loadInt(_maxBitRateKey);
-    _maxBitRateMobile = await _repo.loadInt(_maxBitRateMobileKey);
+    _maxBitRate = await _repo.loadInt(_maxBitRateKey) ?? _maxBitRateDefault;
+    _maxBitRateMobile =
+        await _repo.loadInt(_maxBitRateMobileKey) ?? _maxBitRateMobileDefault;
     notifyListeners();
   }
 
@@ -141,28 +142,28 @@ class TranscodingSettings extends ChangeNotifier {
     _repo.store(_codecMobileKey, _codecMobile.name);
   }
 
-  set maxBitRate(int? bitRate) {
+  void resetMaxBitRate() {
+    maxBitRate = _maxBitRateDefault;
+  }
+
+  set maxBitRate(int bitRate) {
     if (_maxBitRate == bitRate) return;
     Log.debug("bit rate setting: $bitRate kbps");
     _maxBitRate = bitRate;
     notifyListeners();
-    if (_maxBitRate != null) {
-      _repo.store(_maxBitRateKey, _maxBitRate);
-    } else {
-      _repo.remove(_maxBitRateKey);
-    }
+    _repo.store(_maxBitRateKey, _maxBitRate);
   }
 
-  set maxBitRateMobile(int? bitRate) {
+  void resetMaxBitRateMobile() {
+    maxBitRateMobile = _maxBitRateMobileDefault;
+  }
+
+  set maxBitRateMobile(int bitRate) {
     if (_maxBitRateMobile == bitRate) return;
     Log.debug("mobile bit rate setting: $bitRate kbps");
     _maxBitRateMobile = bitRate;
     notifyListeners();
-    if (_maxBitRateMobile != null) {
-      _repo.store(_maxBitRateMobileKey, _maxBitRateMobile);
-    } else {
-      _repo.remove(_maxBitRateMobileKey);
-    }
+    _repo.store(_maxBitRateMobileKey, _maxBitRateMobile);
   }
 
   @override

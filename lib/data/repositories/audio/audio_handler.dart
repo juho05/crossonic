@@ -74,7 +74,7 @@ class AudioHandler {
 
   bool _playOnNextMediaChange = false;
 
-  (TranscodingCodec, int?) _transcoding;
+  (TranscodingCodec, int) _transcoding;
 
   double _volume = 1;
 
@@ -374,7 +374,7 @@ class AudioHandler {
     _seekingPos = pos;
 
     final canSeek = _downloader.getPath(_queue.current.value!.id) != null ||
-        _transcoding.$1.name == "raw";
+        _transcoding.$1 == TranscodingCodec.raw;
 
     final next = _queue.currentAndNext.value.next;
     await _player.setCurrent(
@@ -449,7 +449,7 @@ class AudioHandler {
   Future<void> _onTranscodingChanged() async {
     _transcoding = await _settings.transcoding.activeTranscoding();
     Log.debug(
-        "current active transcoding profile: ${_transcoding.$1.name} ${_transcoding.$2} kbps");
+        "current active transcoding profile: ${_transcoding.$1.name}${_transcoding.$1 != TranscodingCodec.raw ? "${_transcoding.$2} kbps" : ""}");
     if (_queue.currentAndNext.value.next != null) {
       Log.trace("changing next url because transcoding profile changed");
       await _player.setNext(_getStreamUri(_queue.currentAndNext.value.next!));
@@ -582,8 +582,9 @@ class AudioHandler {
       "format": _transcoding.$1 != TranscodingCodec.serverDefault
           ? [_transcoding.$1.name]
           : [],
-      "maxBitRate":
-          _transcoding.$2 != null ? [_transcoding.$2!.toString()] : [],
+      "maxBitRate": _transcoding.$1 != TranscodingCodec.raw
+          ? [_transcoding.$2.toString()]
+          : [],
       if (!_subsonic.supports.timeOffsetMs)
         "timeOffset": offset != null ? [offset.inSeconds.toString()] : [],
       if (_subsonic.supports.timeOffsetMs)

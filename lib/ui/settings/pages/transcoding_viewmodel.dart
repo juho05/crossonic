@@ -43,19 +43,19 @@ class TranscodingViewModel extends ChangeNotifier {
 
   void updateCodec(TranscodingCodec codec) {
     _settings.transcoding.codec = codec;
-    _settings.transcoding.maxBitRate = null;
+    _settings.transcoding.resetMaxBitRate();
   }
 
   void updateCodecMobile(TranscodingCodec codec) {
     _settings.transcoding.codecMobile = codec;
-    _settings.transcoding.maxBitRateMobile = null;
+    _settings.transcoding.resetMaxBitRateMobile();
   }
 
-  void updateBitRate(int? bitRate) {
+  void updateBitRate(int bitRate) {
     _settings.transcoding.maxBitRate = bitRate;
   }
 
-  void updateBitRateMobile(int? bitRate) {
+  void updateBitRateMobile(int bitRate) {
     _settings.transcoding.maxBitRateMobile = bitRate;
   }
 
