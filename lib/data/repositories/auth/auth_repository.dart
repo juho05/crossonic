@@ -233,11 +233,19 @@ class AuthRepository extends ChangeNotifier {
     final result = await _openSubsonicService.tokenInfo(connection);
     switch (result) {
       case Err():
-        return Result.error(result.error);
+        if (result.error is! SubsonicException ||
+            result.error is UnauthenticatedException) {
+          return Result.error(result.error);
+        }
+        if (result.error is SubsonicException) {
+          Log.warn("failed to get username by calling tokenInfo endpoint",
+              e: result.error);
+        }
       case Ok():
     }
 
-    _state = AuthStateApiKey(username: result.value.username, apiKey: apiKey);
+    _state = AuthStateApiKey(
+        username: result.tryValue?.username ?? "unknown", apiKey: apiKey);
 
     await _persistState();
 

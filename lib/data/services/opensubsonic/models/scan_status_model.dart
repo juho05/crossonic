@@ -1,3 +1,4 @@
+import 'package:crossonic/data/services/opensubsonic/models/datetime_converter.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'scan_status_model.g.dart';
@@ -6,7 +7,9 @@ part 'scan_status_model.g.dart';
 class ScanStatusModel {
   final bool scanning;
   final int? count;
+  @DateTimeConverter()
   final DateTime? lastScan;
+  @DateTimeConverter()
   final DateTime? startTime;
   final bool? fullScan;
   final String? scanType;

@@ -1,4 +1,5 @@
 import 'package:crossonic/data/services/opensubsonic/models/child_model.dart';
+import 'package:crossonic/data/services/opensubsonic/models/datetime_converter.dart';
 import 'package:crossonic/data/services/opensubsonic/models/item_date_model.dart';
 import 'package:json_annotation/json_annotation.dart';
 
@@ -15,10 +16,13 @@ class AlbumID3Model {
   final int songCount;
   final int duration;
   final int? playCount;
+  @DateTimeConverter()
   final DateTime created;
+  @DateTimeConverter()
   final DateTime? starred;
   final int? year;
   final String? genre;
+  @DateTimeConverter()
   final DateTime? played;
   final int? userRating;
   final double? averageRating;

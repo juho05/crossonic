@@ -1,4 +1,5 @@
 import 'package:crossonic/data/services/opensubsonic/models/contributor_model.dart';
+import 'package:crossonic/data/services/opensubsonic/models/datetime_converter.dart';
 import 'package:crossonic/data/services/opensubsonic/models/item_date_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/replay_gain_model.dart';
 import 'package:json_annotation/json_annotation.dart';
@@ -9,7 +10,7 @@ part 'child_model.g.dart';
 class ChildModel {
   final String id;
   final String? parent;
-  final bool isDir;
+  final bool? isDir;
   final String title;
   final String? album;
   final String? artist;
@@ -33,7 +34,9 @@ class ChildModel {
   final double? averageRating;
   final int? playCount;
   final int? discNumber;
+  @DateTimeConverter()
   final DateTime? created;
+  @DateTimeConverter()
   final DateTime? starred;
   final String? albumId;
   final String? artistId;
@@ -42,6 +45,7 @@ class ChildModel {
   final int? bookmarkPosition;
   final int? originalWidth;
   final int? originalHeight;
+  @DateTimeConverter()
   final DateTime? played;
   final int? bpm;
   final String? comment;

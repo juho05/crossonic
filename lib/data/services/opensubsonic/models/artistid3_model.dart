@@ -1,4 +1,5 @@
 import 'package:crossonic/data/services/opensubsonic/models/albumid3_model.dart';
+import 'package:crossonic/data/services/opensubsonic/models/datetime_converter.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'artistid3_model.g.dart';
@@ -10,6 +11,7 @@ class ArtistID3Model {
   final String? coverArt;
   final String? artistImageUrl;
   final int? albumCount;
+  @DateTimeConverter()
   final DateTime? starred;
   final String? musicBrainzId;
   final String? sortName;
