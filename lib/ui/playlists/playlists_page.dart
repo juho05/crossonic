@@ -252,8 +252,11 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
                     ),
                   ),
                   if (playlists.isEmpty)
-                    const SliverToBoxAdapter(
-                        child: Center(child: Text("No playlists found"))),
+                    const SliverPadding(
+                      padding: EdgeInsets.only(top: 8, left: 8),
+                      sliver:
+                          SliverToBoxAdapter(child: Text("No playlists found")),
+                    ),
                   SliverPadding(
                     padding: const EdgeInsetsGeometry.all(4),
                     sliver: SliverGrid(

@@ -44,6 +44,8 @@ class _GenresPageState extends State<GenresPage> {
               _viewModel.largestAlbumCount.toString().length * 10;
           final songTextSize =
               _viewModel.largestSongCount.toString().length * 10;
+          print(
+              "${_viewModel.largestAlbumCount.toString().length}, ${_viewModel.largestSongCount.toString().length}");
           return RefreshIndicator.adaptive(
             onRefresh: () => _viewModel.load(),
             child: CustomScrollView(
@@ -117,7 +119,7 @@ class _GenresPageState extends State<GenresPage> {
                               ),
                               SizedBox(
                                 width: isDesktop
-                                    ? albumTextSize + 100
+                                    ? albumTextSize + 120
                                     : albumTextSize + 50,
                                 child: ClipRRect(
                                   borderRadius: BorderRadius.circular(5),
@@ -151,8 +153,8 @@ class _GenresPageState extends State<GenresPage> {
                               ),
                               SizedBox(
                                   width: isDesktop
-                                      ? songTextSize + 110
-                                      : songTextSize + 60,
+                                      ? songTextSize + 100
+                                      : songTextSize + 50,
                                   child: ClipRRect(
                                     borderRadius: BorderRadius.circular(5),
                                     child: Material(
