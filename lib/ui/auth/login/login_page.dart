@@ -143,6 +143,7 @@ class _LoginPageState extends State<LoginPage> with RestorationMixin {
                   ),
                   autofillHints: const [AutofillHints.password],
                   validator: FormBuilderValidators.required(),
+                  obscureText: true,
                   onSubmitted: (_) => _submit(),
                 ),
               Padding(
