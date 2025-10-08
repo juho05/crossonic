@@ -1,4 +1,5 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:collection/collection.dart';
 import 'package:crossonic/data/repositories/settings/home_page_layout.dart';
 import 'package:crossonic/data/repositories/subsonic/subsonic_repository.dart';
 import 'package:crossonic/routing/router.gr.dart';
@@ -36,7 +37,8 @@ class HomePage extends StatelessWidget {
                 },
                 child: CustomScrollView(
                   slivers: viewModel.content
-                      .map((o) => SliverPadding(
+                      .mapIndexed((i, o) => SliverPadding(
+                            key: ValueKey("$i-${o.name}"),
                             padding: const EdgeInsets.only(bottom: 4),
                             sliver: _optionToWidget(
                                 o, viewModel.refreshStream, viewModel.seed),
