@@ -416,7 +416,7 @@ class _CollectionPageDesktopState extends State<CollectionPageDesktop> {
                   if (widget.description != null)
                     Expanded(
                       child: Padding(
-                        padding: const EdgeInsets.all(12),
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
