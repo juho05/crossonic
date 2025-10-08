@@ -58,18 +58,21 @@ class _CoverArtState extends State<CoverArt> {
           clipBehavior: Clip.antiAlias,
           child: widget.coverId != null
               ? (kIsWeb
-                  ? CachedNetworkImage(
-                      imageUrl: context
+                  ? Image.network(
+                      context
                           .read<SubsonicRepository>()
                           .getCoverUri(widget.coverId!, constantSalt: true)
                           .toString(),
                       fit: BoxFit.cover,
-                      errorWidget: (context, error, stackTrace) =>
+                      errorBuilder: (context, error, stackTrace) =>
                           placeholder(size),
-                      fadeInDuration: const Duration(milliseconds: 300),
-                      fadeOutDuration: const Duration(milliseconds: 100),
-                      placeholder: (context, url) =>
-                          const CircularProgressIndicator.adaptive(),
+                      frameBuilder:
+                          (context, child, frame, wasSynchronouslyLoaded) {
+                        if (frame == null) {
+                          return placeholder(size);
+                        }
+                        return child;
+                      },
                     )
                   : CachedNetworkImage(
                       imageUrl: CoverRepository.getKey(
