@@ -2,7 +2,7 @@
 
 # Crossonic
 
-A cross platform music client for [crossonic-server](https://github.com/juho05/crossonic-server) and other [(Open)Subsonic](https://opensubsonic.netlify.app/) compatible music servers.
+A cross-platform music client for [crossonic-server](https://github.com/juho05/crossonic-server) and other [(Open)Subsonic](https://opensubsonic.netlify.app/) compatible music servers.
 
 [Screenshots](#screenshots)
 
@@ -12,11 +12,22 @@ A cross platform music client for [crossonic-server](https://github.com/juho05/c
 
 This app is still in development. Some features are missing and bugs are to be expected.
 
-The app should support all _Subsonic_ compatible servers ([Navidrome](https://www.navidrome.org/), [gonic](https://github.com/sentriz/gonic), [lms](https://github.com/epoupon/lms), [airsonic-advanced](https://github.com/airsonic-advanced/airsonic-advanced), ...),
-but I only regularly test with [crossonic-server](https://github.com/juho05/crossonic-server). Please [report](https://github.com/juho05/crossonic/issues/new) any
-issues you experience with other servers.
+This app should be compatible with all _Subsonic_ compatible servers, but I recommend to only use servers implementing
+the [OpenSubsonic]() standard. For the best experience (and full feature support) I recommend using [crossonic-server](https://github.com/juho05/crossonic-server).
 
-See [supported platforms](#supported-platforms) for a status per platform.
+**Release builds exist for these platforms:**
+- Windows (`.exe` installer)
+- macOS (`.dmg`)
+- Linux (`.AppImage`, `.tar.gz`)
+- Android (`.apk`)
+- Web (`.zip` of static files), *with some caveats:*
+  - some features are disabled
+  - poor performance on some platforms/browsers
+  - limited support for transcoded playback (depends on browser)
+  - no gapless playback
+  - sub-optimal image caching
+
+The app works on iOS but there are currently no release builds available as I don't have an Apple Developer account.
 
 ## Features
 
@@ -31,6 +42,7 @@ See [supported platforms](#supported-platforms) for a status per platform.
   - [x] configurable transcoding settings for WiFi and mobile
 - [x] Browse/search songs, albums, artists
 - [x] Release types (albums, EPs, singles, live, compilations, …)
+- [x] Release versions (*Deluxe*, *Remaster*, *different release years*, *etc.*)
 - [x] Favorite songs/albums/artists
 - [x] Playlists
   - [x] download for offline listening
@@ -72,29 +84,9 @@ The OpenSubsonic API supports some features that are out-of-scope for this appli
 - Podcasts
 - Chat
 
-## Supported platforms
-
-**regularly tested**
-- Linux
-- Android
-
-**infrequently tested**
-- macOS
-- Windows
-
-**not tested but should work**
-- iOS
-
-**some limitations**
-- Web
-  - no gapless playback (not supported by web APIs)
-  - Safari playback randomly stops when streaming transcoded media
-  - slow image loading
-  - (significantly) worse performance than native
-
 ## Installation
 
-*To update an existing installation just repeat the installation instructions again for the new version.*
+**Update old version:** *Starting with `v0.1.0` the app is able to update itself on most platforms. Otherwise, just repeat the installation instructions again for the new version.*
 
 **Make sure that you fully exit Crossonic before trying to install a new version**.
 
@@ -120,9 +112,9 @@ Download and execute `Crossonic-x.x.x-windows-x86-64.exe` from the [releases](ht
 - Download and execute `Crossonic-x.x.x-macOS-universal.dmg`
 - Drag `Crossonic.app` to the `Applications` directory
 
-**NOTE:** Currently macOS binaries are not signed. If macOS prevents you from opening the `.dmg` file or starting the app, you will need to
+**NOTE:** Currently macOS binaries are not signed. If macOS prevents you from starting the app, you will need to
 open *System Settings*, click on *Privacy & Security*, scroll down to *Security* where it says that Crossonic was blocked and hit *Open Anyway*.
-This should only be necessary once after a new version was installed.
+This should only be necessary once.
 
 ### Web
 
@@ -144,7 +136,7 @@ See [Build](#build) for how to build Crossonic yourself.
 
 ## Build
 
-Install [Flutter](https://docs.flutter.dev/get-started/install) with all dependencies for your desired target platform (including those required for)
+Install [Flutter](https://docs.flutter.dev/get-started/install) with all dependencies for your desired target platform.
 
 Clone the repository
 ```bash
@@ -154,7 +146,7 @@ cd crossonic
 
 Run code generation:
 ```bash
-dart run build_runner build # or watch to automatically run build on file changes
+dart run build_runner build
 ```
 
 ### Linux
@@ -162,19 +154,18 @@ dart run build_runner build # or watch to automatically run build on file change
 #### Install dependencies
 
 - Install `libmpv`
-- Install `libsecret-1-0` and `libjsoncpp1`
 - Install `ayatana-appindicator3-0.1` or `appindicator3-0.1`
 
 ##### Debian
 
 ```bash
-sudo apt install mpv libmpv-dev libsecret-1-dev libjsoncpp-dev libayatana-appindicator3-dev
+sudo apt install mpv libmpv-dev libayatana-appindicator3-dev
 ```
 
 ##### ArchLinux
 
 ```bash
-sudo pacman -S mpv libsecret jsoncpp libayatana-appindicator
+sudo pacman -S mpv libayatana-appindicator
 ```
 
 #### Build
@@ -202,8 +193,7 @@ flutter build macos
 
 ### Android
 
-No additional dependencies should be required.
-
+In the directory of the repository run:
 ```bash
 flutter build apk
 ```
@@ -221,8 +211,6 @@ flutter build ios
 ```
 
 ### Web
-
-No additional dependencies should be required.
 
 In the directory of the repository run:
 ```bash
@@ -256,6 +244,7 @@ Now you can serve `./build/web` with a web server like [Caddy](https://caddyserv
   <img height="550" src="screenshots/mobile_albums.png" alt="Albums page on mobile" title="Albums page on mobile">
   <img height="550" src="screenshots/mobile_album.png" alt="Album page on mobile" title="Album page on mobile">
   <img height="550" src="screenshots/mobile_playlists.png" alt="Playlists page on mobile" title="Playlists page on mobile">
+  <img height="550" src="screenshots/mobile_album_versions.png" alt="Album versions dialog on mobile" title="Album versions dialog on mobile">
   <img height="550" src="screenshots/mobile_queue.png" alt="Queue page on mobile" title="Queue page on mobile">
   <img height="550" src="screenshots/mobile_transcoding.png" alt="Transcoding settings on mobile" title="Transcoding settings on mobile">
   <img height="550" src="screenshots/mobile_replay_gain.png" alt="Replay Gain settings on mobile" title="Replay Gain settings on mobile">
