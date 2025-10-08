@@ -15,6 +15,7 @@ class InformationDialog extends StatelessWidget {
       {String? message, String? btnTitle}) async {
     final result = await showAdaptiveDialog<bool>(
       context: context,
+      barrierDismissible: true,
       builder: (context) {
         return InformationDialog._(
           title: title,

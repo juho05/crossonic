@@ -219,6 +219,7 @@ class _AddToPlaylistDialogContentState
       }
       final option = await showAdaptiveDialog<int>(
         context: context,
+        barrierDismissible: true,
         builder: (context) {
           return AlertDialog.adaptive(
             title: const Text("Duplicate detected"),

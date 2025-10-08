@@ -17,6 +17,7 @@ class ChooserDialog extends StatelessWidget {
     if (autoChooseOnOneOption && options.length == 1) return 0;
     final index = await showAdaptiveDialog<int>(
       context: context,
+      barrierDismissible: true,
       builder: (context) {
         return ChooserDialog._(
           title: title,

@@ -16,6 +16,7 @@ class AlbumReleaseDialog extends StatelessWidget {
   }) async {
     await showAdaptiveDialog(
       context: context,
+      barrierDismissible: true,
       builder: (context) {
         return ChangeNotifierProvider(
           create: (context) => AlbumReleaseDialogViewModel(

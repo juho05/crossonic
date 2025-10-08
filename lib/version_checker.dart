@@ -48,6 +48,7 @@ class VersionChecker extends StatelessWidget {
             viewModel.isOpen = true;
             showAdaptiveDialog<VersionDialogChoice>(
               context: context,
+              barrierDismissible: true,
               builder: (context) {
                 return AlertDialog.adaptive(
                   title: const Text("New version available"),

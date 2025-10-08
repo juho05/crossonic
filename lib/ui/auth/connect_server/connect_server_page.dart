@@ -212,6 +212,8 @@ class _ConnectServerPageState extends State<ConnectServerPage> {
                                                     onPressed: () {
                                                       showAdaptiveDialog(
                                                         context: context,
+                                                        barrierDismissible:
+                                                            true,
                                                         builder: (context) =>
                                                             AlertDialog
                                                                 .adaptive(

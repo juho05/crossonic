@@ -17,6 +17,7 @@ class ConfirmationDialog extends StatelessWidget {
       [String title = "Are you sure?", String? message]) async {
     final result = await showAdaptiveDialog<bool>(
       context: context,
+      barrierDismissible: true,
       builder: (context) {
         return ConfirmationDialog._(
           title: title,
@@ -32,6 +33,7 @@ class ConfirmationDialog extends StatelessWidget {
       {String title = "Are you sure?", String? message}) async {
     final result = await showAdaptiveDialog<bool>(
       context: context,
+      barrierDismissible: true,
       builder: (context) {
         return ConfirmationDialog._(
           title: title,
@@ -49,6 +51,7 @@ class ConfirmationDialog extends StatelessWidget {
       String? cancelBtn}) async {
     final result = await showAdaptiveDialog<bool?>(
       context: context,
+      barrierDismissible: true,
       builder: (context) {
         return ConfirmationDialog._(
           title: title,

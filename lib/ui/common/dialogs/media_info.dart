@@ -9,6 +9,7 @@ class MediaInfoDialog extends StatelessWidget {
 
   static Future<void> showSong(BuildContext context, String id) async {
     await showAdaptiveDialog(
+      barrierDismissible: true,
       context: context,
       builder: (context) {
         return ChangeNotifierProvider(
@@ -26,6 +27,7 @@ class MediaInfoDialog extends StatelessWidget {
   static Future<void> showAlbum(BuildContext context, String id) async {
     await showAdaptiveDialog(
       context: context,
+      barrierDismissible: true,
       builder: (context) {
         return ChangeNotifierProvider(
           create: (context) => MediaInfoDialogViewModel.album(
@@ -42,6 +44,7 @@ class MediaInfoDialog extends StatelessWidget {
   static Future<void> showArtist(BuildContext context, String id) async {
     await showAdaptiveDialog(
       context: context,
+      barrierDismissible: true,
       builder: (context) {
         return ChangeNotifierProvider(
           create: (context) => MediaInfoDialogViewModel.artist(
@@ -58,6 +61,7 @@ class MediaInfoDialog extends StatelessWidget {
   static Future<void> showPlaylist(BuildContext context, String id) async {
     await showAdaptiveDialog(
       context: context,
+      barrierDismissible: true,
       builder: (context) {
         return ChangeNotifierProvider(
           create: (context) => MediaInfoDialogViewModel.playlist(

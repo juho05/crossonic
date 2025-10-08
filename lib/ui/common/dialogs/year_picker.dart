@@ -14,6 +14,7 @@ class YearPickerDialog extends StatefulWidget {
   }) {
     return showAdaptiveDialog<int>(
       context: context,
+      barrierDismissible: true,
       builder: (context) => YearPickerDialog(
         minYear: minYear,
         maxYear: maxYear,
