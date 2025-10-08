@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:ui';
 
 import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/data/repositories/logger/log_message.dart';
@@ -138,6 +139,7 @@ class LogsPageViewModel extends ChangeNotifier {
           XFile.fromData(bytes, mimeType: "text/plain", name: fileName),
         ],
         fileNameOverrides: [fileName],
+        sharePositionOrigin: const Rect.fromLTWH(0, 0, 1, 1),
       ),
     );
     if (result.status == ShareResultStatus.dismissed) {
