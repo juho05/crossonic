@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 
 env:
-  FLUTTER_VERSION: "3.32.8"
+  FLUTTER_VERSION: "3.35.6"
   APK_BUILD_DIR: "/tmp/build"
 
 jobs:
@@ -80,7 +80,7 @@ jobs:
           name: android-aab-result
           path: |
             ${{ env.APK_BUILD_DIR }}/build/app/outputs/bundle/release/app-release.aab
-          retention-days: 90
+          retention-days: 30
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
@@ -245,6 +245,7 @@ jobs:
         with:
           name: windows-installer-x86-64-result
           path: ./build/windows/x64/installer/Release/crossonic-installer.exe
+          retention-days: 2
 
       - name: Add DLL files
         run: |

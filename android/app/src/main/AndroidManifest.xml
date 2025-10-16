@@ -11,11 +11,13 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
+    <!-- TODO: set enableOnBackInvokedCallback to true once bugs are fixed in auto_route-->
     <application
         android:label="@string/app_name"
         android:name="${applicationName}"
         android:allowBackup="false"
         android:usesCleartextTraffic="true"
+        android:enableOnBackInvokedCallback="false"
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"
