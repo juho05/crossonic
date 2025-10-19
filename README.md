@@ -4,13 +4,15 @@
 
 A cross-platform music client for [crossonic-server](https://github.com/juho05/crossonic-server) and other [(Open)Subsonic](https://opensubsonic.netlify.app/) compatible music servers.
 
-[Screenshots](#screenshots)
+[Screenshots](https://crossonic.org/app#screenshots)
 
-[Install](#installation)
+[Install](https://crossonic.org/app/install)
 
 ## Status
 
 This app is still in development. Some features are missing and bugs are to be expected.
+
+Please [report](https://github.com/juho05/crossonic/issues/new/choose) any issues or feature requests.
 
 This app should be compatible with all _Subsonic_ compatible servers, but I recommend to only use servers implementing
 the [OpenSubsonic]() standard. For the best experience (and full feature support) I recommend using [crossonic-server](https://github.com/juho05/crossonic-server).
@@ -36,38 +38,38 @@ The app works on iOS but there are currently no release builds available as I do
 - [x] Respects light/dark theme and accent color
 - [x] System integration (*Android media API*, *MPRIS*, *SystemMediaTransportControls*, …)
 - [x] Android Auto
-  - currently only playlists
+    - Currently only playlists
 - [x] Close to tray
 - [x] Stream original or transcoded media
-  - [x] configurable transcoding settings for WiFi and mobile
+    - [x] Configurable transcoding settings for WiFi and mobile
 - [x] Browse/search songs, albums, artists
 - [x] Release types (albums, EPs, singles, live, compilations, …)
 - [x] Release versions (*Deluxe*, *Remaster*, *different release years*, *etc.*)
 - [x] Favorite songs/albums/artists
 - [x] Playlists
-  - [x] download for offline listening
-    - [x] original (*uses [download](https://opensubsonic.netlify.app/docs/endpoints/download/) endpoint*)
-    - [ ] transcoded
-  - [x] Add songs/albums/artists
-  - [x] drag&drop reorder
-  - [x] change cover (*crossonic-server only*)
+    - [x] Download for offline listening
+        - [x] Original (*uses [download](https://opensubsonic.netlify.app/docs/endpoints/download/) endpoint*)
+        - [ ] Transcoded
+    - [x] Add songs/albums/artists
+    - [x] Drag&drop reorder
+    - [x] Change cover (*crossonic-server only*)
 - [x] Configure [ListenBrainz](https://listenbrainz.org) connection (*crossonic-server only*)
 - [x] Full [OpenSubsonic](https://opensubsonic.netlify.app/) support (*gracefully handles missing features on the server*)
-  - API Key Authentication
-  - Transcoded seek
-  - Multiple artists/genres/…
-  - etc.
+    - API Key Authentication
+    - Transcoded seek
+    - Multiple artists/genres/…
+    - etc.
 - [x] Two queue system
-  - normal queue
-    - automatically populated when listening to an album/artist/playlist
-  - priority queue
-    - for songs you want to listen now before continuing with the normal queue
-  - both can be freely modified
+    - Normal queue
+        - Automatically populated when listening to an album/artist/playlist
+    - Priority queue
+        - For songs you want to listen now before continuing with the normal queue
+    - Both can be freely modified
 - [x] Shuffle artists by song or by album
 - [x] Gapless playback
 - [x] Lyrics
-  - [x] unsynced
-  - [ ] synced
+    - [x] Unsynced
+    - [ ] Synced
 - [x] Replay gain
 - [ ] Load/save queues
 - [ ] Internet Radio
@@ -86,53 +88,7 @@ The OpenSubsonic API supports some features that are out-of-scope for this appli
 
 ## Installation
 
-**Update old version:** *Starting with `v0.1.0` the app is able to update itself on most platforms. Otherwise, just repeat the installation instructions again for the new version.*
-
-**Make sure that you fully exit Crossonic before trying to install a new version**.
-
-### Android
-
-Download and execute the *APK* file for your architecture from the [releases](https://github.com/juho05/crossonic/releases/latest) page.
-
-**Android Auto:** By default Android Auto does not show apps that were not installed from the Google Play Store.
-To enable side-loaded apps open the *Android Auto* settings on your phone (you might have to click on *Additional settings in the app* first), then scroll down to *Version* and click on it a couple of times to enable *Developer Mode*. Now, use the three-dot menu in the top-right corner to enter *Developer Settings* and enable *Unknown Sources*.
-
-### Linux
-
-- Download `Crossonic-x.x.x-linux-x86-64.AppImage` from the [releases](https://github.com/juho05/crossonic/releases/latest) page
-- Execute the *AppImage* file (you might have to make it executable first)
-- When asked whether to integrate the AppImage into your system, hit *Yes*
-
-### Windows
-
-Download and execute `Crossonic-x.x.x-windows-x86-64.exe` from the [releases](https://github.com/juho05/crossonic/releases/latest) page.
-
-### macOS
-
-- Download and execute `Crossonic-x.x.x-macOS-universal.dmg`
-- Drag `Crossonic.app` to the `Applications` directory
-
-**NOTE:** Currently macOS binaries are not signed. If macOS prevents you from starting the app, you will need to
-open *System Settings*, click on *Privacy & Security*, scroll down to *Security* where it says that Crossonic was blocked and hit *Open Anyway*.
-This should only be necessary once.
-
-### Web
-
-- Download and extract `Crossonic-x.x.x-web.zip` from the [releases](https://github.com/juho05/crossonic/releases/latest) page
-- Host the extracted files with a web server like [Caddy](https://caddyserver.com/)
-
-#### Hosting requirements
-
-- Use TLS (`https`) if not on `localhost`
-- Ensure that `/sqlite3.wasm` is served with `Content-Type: application/wasm`
-- Set `Cross-Origin-Opener-Policy` to `same-origin`
-- Set `Cross-Origin-Embedder-Policy` to `require-corp` or `credentialless`
-
-### iOS
-
-There are currently no release builds available for iOS.
-
-See [Build](#build) for how to build Crossonic yourself.
+Installation instructions are available on the [Crossonic website](https://crossonic.org/app/install).
 
 ## Build
 
@@ -228,27 +184,11 @@ Now you can serve `./build/web` with a web server like [Caddy](https://caddyserv
 
 ## Screenshots
 
-### Desktop
-
-<p align="center">
-  <img width="800" src="screenshots/desktop_home.png" alt="Home page on desktop" title="Home page on desktop">
-  <img width="800" src="screenshots/desktop_album.png" alt="Album page on desktop" title="Album page on desktop">
-</p>
-
-### Mobile
-
-<p align="center">
-  <img height="550" src="screenshots/mobile_home.png" alt="Home page on mobile" title="Home page on mobile">
-  <img height="550" src="screenshots/mobile_now_playing.png" alt="Now playing on mobile" title="Now playing on mobile">
-  <img height="550" src="screenshots/mobile_browse.png" alt="Browse page on mobile" title="Browse page on mobile">
-  <img height="550" src="screenshots/mobile_albums.png" alt="Albums page on mobile" title="Albums page on mobile">
-  <img height="550" src="screenshots/mobile_album.png" alt="Album page on mobile" title="Album page on mobile">
-  <img height="550" src="screenshots/mobile_playlists.png" alt="Playlists page on mobile" title="Playlists page on mobile">
-  <img height="550" src="screenshots/mobile_album_versions.png" alt="Album versions dialog on mobile" title="Album versions dialog on mobile">
-  <img height="550" src="screenshots/mobile_queue.png" alt="Queue page on mobile" title="Queue page on mobile">
-  <img height="550" src="screenshots/mobile_transcoding.png" alt="Transcoding settings on mobile" title="Transcoding settings on mobile">
-  <img height="550" src="screenshots/mobile_replay_gain.png" alt="Replay Gain settings on mobile" title="Replay Gain settings on mobile">
-</p>
+![](screenshots/desktop-1.png)
+![](screenshots/desktop-2.png)
+![](screenshots/mobile-1.png)
+![](screenshots/mobile-2.png)
+![](screenshots/mobile-3.png)
 
 ## License
 
