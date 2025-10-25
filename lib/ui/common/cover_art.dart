@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:crossonic/data/repositories/cover/cover_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/subsonic_repository.dart';
+import 'package:crossonic/ui/common/shimmer.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -49,45 +50,49 @@ class _CoverArtState extends State<CoverArt> {
       }
     }
 
-    return LayoutBuilder(builder: (context, constraints) {
-      final size = min(constraints.maxWidth, constraints.maxHeight);
-      return AspectRatio(
-        aspectRatio: 1,
-        child: ClipRRect(
-          borderRadius: widget.borderRadius,
-          clipBehavior: Clip.antiAlias,
-          child: widget.coverId != null
-              ? (kIsWeb
-                  ? Image.network(
-                      context
-                          .read<SubsonicRepository>()
-                          .getCoverUri(widget.coverId!, constantSalt: true)
-                          .toString(),
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) =>
-                          placeholder(size),
-                      frameBuilder:
-                          (context, child, frame, wasSynchronouslyLoaded) {
-                        if (frame == null) {
-                          return placeholder(size);
-                        }
-                        return child;
-                      },
-                    )
-                  : CachedNetworkImage(
-                      imageUrl: CoverRepository.getKey(
-                          widget.coverId!, resolution(context, size)),
-                      fit: BoxFit.cover,
-                      errorWidget: (context, url, error) => placeholder(size),
-                      fadeInDuration: const Duration(milliseconds: 300),
-                      fadeOutDuration: const Duration(milliseconds: 100),
-                      placeholder: (context, url) =>
-                          const CircularProgressIndicator.adaptive(),
-                      cacheManager: context.read<CoverRepository>(),
-                    ))
-              : placeholder(size),
-        ),
-      );
-    });
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final size = min(constraints.maxWidth, constraints.maxHeight);
+        return AspectRatio(
+          aspectRatio: 1,
+          child: ClipRRect(
+            borderRadius: widget.borderRadius,
+            clipBehavior: Clip.antiAlias,
+            child: widget.coverId != null
+                ? (kIsWeb
+                      ? Image.network(
+                          context
+                              .read<SubsonicRepository>()
+                              .getCoverUri(widget.coverId!, constantSalt: true)
+                              .toString(),
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) =>
+                              placeholder(size),
+                          frameBuilder:
+                              (context, child, frame, wasSynchronouslyLoaded) {
+                                if (frame == null) {
+                                  return placeholder(size);
+                                }
+                                return child;
+                              },
+                        )
+                      : CachedNetworkImage(
+                          imageUrl: CoverRepository.getKey(
+                            widget.coverId!,
+                            resolution(context, size),
+                          ),
+                          fit: BoxFit.cover,
+                          errorWidget: (context, url, error) =>
+                              placeholder(size),
+                          fadeInDuration: const Duration(milliseconds: 100),
+                          fadeOutDuration: const Duration(milliseconds: 100),
+                          placeholder: (context, url) => const ShimmerLoading(),
+                          cacheManager: context.read<CoverRepository>(),
+                        ))
+                : placeholder(size),
+          ),
+        );
+      },
+    );
   }
 }

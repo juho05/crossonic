@@ -29,8 +29,8 @@ class CoverRepository extends BaseCacheManager {
     required AuthRepository authRepository,
     required SubsonicRepository subsonicRepository,
     required Database database,
-  })  : _auth = authRepository,
-        _db = database {
+  }) : _auth = authRepository,
+       _db = database {
     _webHelper = WebHelper(
       subsonic: subsonicRepository,
       db: database,
@@ -59,10 +59,12 @@ class CoverRepository extends BaseCacheManager {
   }
 
   @override
-  Future<FileInfo> downloadFile(String url,
-      {String? key,
-      Map<String, String>? authHeaders,
-      bool force = false}) async {
+  Future<FileInfo> downloadFile(
+    String url, {
+    String? key,
+    Map<String, String>? authHeaders,
+    bool force = false,
+  }) async {
     key = _urlToKey(url);
     Log.trace("download cover: $key");
     final fileResponse = await _webHelper
@@ -87,17 +89,24 @@ class CoverRepository extends BaseCacheManager {
 
   @override
   @Deprecated('Prefer to use the new getFileStream method')
-  Stream<FileInfo> getFile(String url,
-      {String? key, Map<String, String>? headers}) {
+  Stream<FileInfo> getFile(
+    String url, {
+    String? key,
+    Map<String, String>? headers,
+  }) {
     key = _urlToKey(url);
-    return getFileStream(url, key: key, withProgress: false)
-        .where((r) => r is FileInfo)
-        .cast<FileInfo>();
+    return getFileStream(
+      url,
+      key: key,
+      withProgress: false,
+    ).where((r) => r is FileInfo).cast<FileInfo>();
   }
 
   @override
-  Future<FileInfo?> getFileFromCache(String key,
-      {bool ignoreMemCache = false}) async {
+  Future<FileInfo?> getFileFromCache(
+    String key, {
+    bool ignoreMemCache = false,
+  }) async {
     key = _urlToKey(key);
     Log.trace("loading cover from cache: $key");
     final id = _idFromKey(key);
@@ -125,8 +134,12 @@ class CoverRepository extends BaseCacheManager {
   }
 
   @override
-  Stream<FileResponse> getFileStream(String url,
-      {String? key, Map<String, String>? headers, bool withProgress = false}) {
+  Stream<FileResponse> getFileStream(
+    String url, {
+    String? key,
+    Map<String, String>? headers,
+    bool withProgress = false,
+  }) {
     key = _urlToKey(url);
     Log.trace("cover file stream requested: $key");
     final streamController = StreamController<FileResponse>();
@@ -135,8 +148,11 @@ class CoverRepository extends BaseCacheManager {
   }
 
   @override
-  Future<File> getSingleFile(String url,
-      {String? key, Map<String, String>? headers}) async {
+  Future<File> getSingleFile(
+    String url, {
+    String? key,
+    Map<String, String>? headers,
+  }) async {
     key = _urlToKey(url);
     Log.trace("get single cover file: $key");
     final cacheFile = await getFileFromCache(key);
@@ -223,9 +239,12 @@ class CoverRepository extends BaseCacheManager {
     if (cacheFile == null || cacheFile.validTill.isBefore(DateTime.now())) {
       try {
         Log.trace(
-            "cover file for $key does not exist or is no longer valid, downloading latest version...");
-        await for (final response
-            in _webHelper.downloadFile(_idFromKey(key), _sizeFromKey(key))) {
+          "cover file for $key does not exist or is no longer valid, downloading latest version...",
+        );
+        await for (final response in _webHelper.downloadFile(
+          _idFromKey(key),
+          _sizeFromKey(key),
+        )) {
           if (response is DownloadProgress && withProgress) {
             streamController.add(response);
           }
@@ -299,10 +318,13 @@ class CoverRepository extends BaseCacheManager {
     final startTime = DateTime.now();
     // delete old unfinished files
     final incompleteFiles = await _db.managers.coverCacheTable
-        .filter((f) =>
-            f.fileFullyWritten.isFalse() &
-            f.downloadTime
-                .isBefore(startTime.subtract(const Duration(hours: 1))))
+        .filter(
+          (f) =>
+              f.fileFullyWritten.isFalse() &
+              f.downloadTime.isBefore(
+                startTime.subtract(const Duration(hours: 1)),
+              ),
+        )
         .get();
     if (incompleteFiles.isNotEmpty) {
       for (final entry in incompleteFiles) {
@@ -312,19 +334,24 @@ class CoverRepository extends BaseCacheManager {
         } catch (_) {}
       }
       await _db.managers.coverCacheTable
-          .filter((f) =>
-              f.fileFullyWritten.isFalse() &
-              f.downloadTime
-                  .isBefore(startTime.subtract(const Duration(hours: 1))))
+          .filter(
+            (f) =>
+                f.fileFullyWritten.isFalse() &
+                f.downloadTime.isBefore(
+                  startTime.subtract(const Duration(hours: 1)),
+                ),
+          )
           .delete();
       Log.debug(
-          "Deleted ${incompleteFiles.length} old incomplete cover cache files.");
+        "Deleted ${incompleteFiles.length} old incomplete cover cache files.",
+      );
     }
 
     int deleted = 0;
     int totalSizeKB;
     while (true) {
-      totalSizeKB = (await (_db.selectOnly(_db.coverCacheTable)
+      totalSizeKB =
+          (await (_db.selectOnly(_db.coverCacheTable)
                 ..addColumns([_db.coverCacheTable.size.sum()]))
               .map((row) => row.read(_db.coverCacheTable.size.sum()))
               .getSingleOrNull()) ??
@@ -332,7 +359,8 @@ class CoverRepository extends BaseCacheManager {
       if (totalSizeKB < _mBToKB(1000)) {
         if (deleted == 0) {
           Log.debug(
-              "Total cover cache size: ${_formatKBSizeInMB(totalSizeKB)} MB < 1000 MB -> skipping cleanup");
+            "Total cover cache size: ${_formatKBSizeInMB(totalSizeKB)} MB < 1000 MB -> skipping cleanup",
+          );
         }
         break;
       }
@@ -341,26 +369,29 @@ class CoverRepository extends BaseCacheManager {
       final select = _db.select(_db.coverCacheTable)
         ..join([
           leftOuterJoin(
-              _db.playlistSongTable,
-              _db.playlistSongTable.coverId
-                  .equalsExp(_db.coverCacheTable.coverId)),
-          leftOuterJoin(_db.playlistTable,
-              _db.playlistTable.id.equalsExp(_db.playlistSongTable.playlistId))
+            _db.playlistSongTable,
+            _db.playlistSongTable.coverId.equalsExp(
+              _db.coverCacheTable.coverId,
+            ),
+          ),
+          leftOuterJoin(
+            _db.playlistTable,
+            _db.playlistTable.id.equalsExp(_db.playlistSongTable.playlistId),
+          ),
         ]);
       select.where(
         (f) =>
             f.fileFullyWritten &
             f.downloadTime.isSmallerThanValue(
-              startTime.subtract(
-                const Duration(minutes: 10),
-              ),
+              startTime.subtract(const Duration(minutes: 10)),
             ) &
             (_db.playlistSongTable.coverId.isNull() |
                 _db.playlistTable.download.not()),
       );
       select.orderBy([(o) => OrderingTerm.asc(o.downloadTime)]);
       select.limit(
-          max(min(((totalSizeKB - _mBToKB(1000)) / 50).round(), 10), 300));
+        max(min(((totalSizeKB - _mBToKB(1000)) / 50).round(), 10), 300),
+      );
       final oldFiles = await select.get();
 
       if (oldFiles.isEmpty) {
@@ -376,7 +407,8 @@ class CoverRepository extends BaseCacheManager {
     }
     if (deleted > 0) {
       Log.debug(
-          "Deleted $deleted old cover cache files. New cache size: ${_formatKBSizeInMB(totalSizeKB)} MB");
+        "Deleted $deleted old cover cache files. New cache size: ${_formatKBSizeInMB(totalSizeKB)} MB",
+      );
     }
   }
 
@@ -401,8 +433,10 @@ class CoverRepository extends BaseCacheManager {
 
   String? _cacheDirPath;
   Future<io.Directory> _cacheDir() async {
-    _cacheDirPath ??=
-        path.join((await getApplicationCacheDirectory()).path, "covers");
+    _cacheDirPath ??= path.join(
+      (await getApplicationCacheDirectory()).path,
+      "covers",
+    );
     return io.Directory(_cacheDirPath!);
   }
 
@@ -432,9 +466,12 @@ class CoverRepository extends BaseCacheManager {
   // TODO remove in next version
   Future<void> _deleteOldCacheFile() async {
     if (kIsWeb) return;
-    final file = io.File(path.join(
+    final file = io.File(
+      path.join(
         (await getApplicationSupportDirectory()).path,
-        "crossonic_cover_cache.json"));
+        "crossonic_cover_cache.json",
+      ),
+    );
     if (await file.exists()) {
       try {
         await file.delete();
