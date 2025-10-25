@@ -13,6 +13,7 @@ import 'package:crossonic/window_listener.dart';
 import 'package:dynamic_system_colors/dynamic_system_colors.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_displaymode/flutter_displaymode.dart';
 import 'package:flutter_single_instance/flutter_single_instance.dart';
 import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
@@ -80,6 +81,15 @@ void main() async {
     windowManager.waitUntilReadyToShow(windowOptions, () async {
       await windowManager.show();
     });
+  }
+
+  if (kReleaseMode && Platform.isAndroid) {
+    try {
+      await FlutterDisplayMode.setHighRefreshRate();
+      Log.debug("Enabled high refresh rate");
+    } catch (e, st) {
+      Log.warn("Failed to enable high refresh rate", e: e, st: st);
+    }
   }
 
   runApp(
