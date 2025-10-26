@@ -68,6 +68,10 @@ android {
         release {
             signingConfig signingConfigs.release.storeFile ? signingConfigs.release : signingConfigs.debug
         }
+        profile {
+            signingConfig signingConfigs.release.storeFile ? signingConfigs.release : signingConfigs.debug
+            resValue "string", "app_name", "Crossonic (Profile)"
+        }
         debug {
             applicationIdSuffix "debug"
             resValue "string", "app_name", "Crossonic (Debug)"
