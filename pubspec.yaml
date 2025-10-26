@@ -68,6 +68,7 @@ dependencies:
   image: ^4.5.4
   flutter_displaymode: ^0.7.0
   flutter_lyric: ^2.0.4+6
+  wakelock_plus: ^1.4.0
 
 dependency_overrides:
   flutter_secure_storage_darwin:

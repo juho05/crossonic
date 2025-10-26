@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:crossonic/data/repositories/audio/audio_handler.dart';
+import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/data/repositories/subsonic/models/lyrics.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
 import 'package:crossonic/data/repositories/subsonic/subsonic_repository.dart';
@@ -8,6 +9,7 @@ import 'package:crossonic/utils/fetch_status.dart';
 import 'package:crossonic/utils/result.dart';
 import 'package:flutter/foundation.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 class LyricsViewModel extends ChangeNotifier {
   final SubsonicRepository _subsonic;
@@ -22,6 +24,7 @@ class LyricsViewModel extends ChangeNotifier {
 
   set syncedMode(bool sync) {
     _syncedMode = sync;
+    _updateWakelock();
     notifyListeners();
   }
 
@@ -73,6 +76,7 @@ class LyricsViewModel extends ChangeNotifier {
     }
     _status = FetchStatus.success;
     _lyrics = result.value;
+    _updateWakelock();
     notifyListeners();
   }
 
@@ -92,6 +96,7 @@ class LyricsViewModel extends ChangeNotifier {
 
   @override
   void dispose() {
+    _updateWakelock(enable: false);
     _positionTimer?.cancel();
     _positionTimer = null;
     _currentSubscription?.cancel();
@@ -99,7 +104,17 @@ class LyricsViewModel extends ChangeNotifier {
     super.dispose();
   }
 
-  void seek(Duration pos) {
-    _audioHandler.seek(pos);
+  Future<void> _updateWakelock({bool? enable}) async {
+    enable ??= syncedMode;
+    final enabled = await WakelockPlus.enabled;
+    if (enable == enabled) return;
+    if (enable) {
+      Log.debug("Enabling wakelock because user is viewing synced lyrics.");
+    } else {
+      Log.debug(
+        "Disabling wakelock because user is no longer viewing synced lyrics.",
+      );
+    }
+    await WakelockPlus.toggle(enable: enable);
   }
 }
