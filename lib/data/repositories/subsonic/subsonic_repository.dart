@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:collection/collection.dart';
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
 import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/data/repositories/subsonic/favorites_repository.dart';
@@ -9,6 +10,7 @@ import 'package:crossonic/data/repositories/subsonic/models/artist.dart';
 import 'package:crossonic/data/repositories/subsonic/models/artist_info.dart';
 import 'package:crossonic/data/repositories/subsonic/models/genre.dart';
 import 'package:crossonic/data/repositories/subsonic/models/listenbrainz_config.dart';
+import 'package:crossonic/data/repositories/subsonic/models/lyrics.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
 import 'package:crossonic/data/repositories/subsonic/server_support.dart';
 import 'package:crossonic/data/services/opensubsonic/auth.dart';
@@ -55,23 +57,34 @@ class SubsonicRepository {
     required AuthRepository authRepository,
     required SubsonicService subsonicService,
     required FavoritesRepository favoritesRepository,
-  })  : _auth = authRepository,
-        _service = subsonicService,
-        _favorites = favoritesRepository;
+  }) : _auth = authRepository,
+       _service = subsonicService,
+       _favorites = favoritesRepository;
 
-  Future<Result<List<String>>> getLyricsLines(Song song) async {
+  Future<Result<Lyrics?>> getLyricsLines(Song song) async {
     if (!supports.songLyricsById) {
-      final result =
-          await _service.getLyrics(_auth.con, song.displayArtist, song.title);
+      final result = await _service.getLyrics(
+        _auth.con,
+        song.displayArtist,
+        song.title,
+      );
       switch (result) {
         case Ok():
-          return Result.ok(result.tryValue!.value.split("\n"));
+          return Result.ok(
+            Lyrics(
+              lines: result.tryValue!.value
+                  .split("\n")
+                  .map((e) => LyricsLine(text: e.trim()))
+                  .toList(),
+              synced: false,
+            ),
+          );
         case Err():
       }
       if (result.error is SubsonicException) {
         final e = result.error as SubsonicException;
         if (e.code == SubsonicErrorCode.notFound) {
-          return const Result.ok([]);
+          return const Result.ok(null);
         }
       }
       return Result.error(result.error);
@@ -83,12 +96,39 @@ class SubsonicRepository {
         return Result.error(result.error);
       case Ok():
     }
-    final lyrics = result.value.structuredLyrics?.firstOrNull?.line ?? [];
-    return Result.ok(lyrics.map((l) => l.value).toList());
+    final lyrics = result.value.structuredLyrics?.firstOrNull;
+    if (lyrics == null || lyrics.line == null || lyrics.line!.isEmpty) {
+      return const Result.ok(null);
+    }
+    final offset = (lyrics.offset ?? 0).round();
+    return Result.ok(
+      Lyrics(
+        synced: lyrics.synced,
+        lines: lyrics.line!.mapIndexed((index, element) {
+          final start = element.start != null
+              ? Duration(milliseconds: max(element.start!.round() - offset, 0))
+              : null;
+          final end = index < lyrics.line!.length - 1
+              ? (lyrics.line![index + 1].start != null
+                    ? Duration(
+                        milliseconds: max(
+                          lyrics.line![index + 1].start!.round() - offset,
+                          start!.inMilliseconds + 1,
+                        ),
+                      )
+                    : null)
+              : null;
+          return LyricsLine(text: element.value.trim(), start: start, end: end);
+        }).toList(),
+      ),
+    );
   }
 
-  Future<Result<Iterable<Album>>> getAlbumsByGenre(String genre, int count,
-      [int offset = 0]) async {
+  Future<Result<Iterable<Album>>> getAlbumsByGenre(
+    String genre,
+    int count, [
+    int offset = 0,
+  ]) async {
     final result = await _service.getAlbumList2(
       _auth.con,
       AlbumListType.byGenre,
@@ -103,7 +143,8 @@ class SubsonicRepository {
     }
     _updateAlbumFavorites(result.value.album);
     return Result.ok(
-        (result.value.album ?? []).map((a) => Album.fromAlbumID3Model(a)));
+      (result.value.album ?? []).map((a) => Album.fromAlbumID3Model(a)),
+    );
   }
 
   Future<Result<List<Song>>> getSongs({
@@ -146,7 +187,8 @@ class SubsonicRepository {
     }
     _updateSongFavorites(result.value.song);
     return Result.ok(
-        (result.value.song ?? []).map((c) => Song.fromChildModel(c)).toList());
+      (result.value.song ?? []).map((c) => Song.fromChildModel(c)).toList(),
+    );
   }
 
   Future<Result<List<Song>>> getSongsByGenre(
@@ -154,8 +196,12 @@ class SubsonicRepository {
     int? count,
     int? offset,
   }) async {
-    final result = await _service.getSongsByGenre(_auth.con, genre,
-        count: count, offset: offset);
+    final result = await _service.getSongsByGenre(
+      _auth.con,
+      genre,
+      count: count,
+      offset: offset,
+    );
     switch (result) {
       case Err():
         return Result.error(result.error);
@@ -163,7 +209,8 @@ class SubsonicRepository {
     }
     _updateSongFavorites(result.value.song);
     return Result.ok(
-        (result.value.song ?? []).map((c) => Song.fromChildModel(c)).toList());
+      (result.value.song ?? []).map((c) => Song.fromChildModel(c)).toList(),
+    );
   }
 
   Future<Result<List<Genre>>> getGenres() async {
@@ -173,9 +220,9 @@ class SubsonicRepository {
         return Result.error(result.error);
       case Ok():
     }
-    return Result.ok((result.value.genre ?? [])
-        .map((g) => Genre.fromGenreModel(g))
-        .toList());
+    return Result.ok(
+      (result.value.genre ?? []).map((g) => Genre.fromGenreModel(g)).toList(),
+    );
   }
 
   Future<Result<ListenBrainzConfig>> connectListenBrainz(String token) async {
@@ -186,20 +233,27 @@ class SubsonicRepository {
       case Ok():
     }
     return Result.ok(
-        ListenBrainzConfig.fromListenBrainzConfigModel(result.value));
+      ListenBrainzConfig.fromListenBrainzConfigModel(result.value),
+    );
   }
 
-  Future<Result<ListenBrainzConfig>> updateListenBrainzConfig(
-      {bool? scrobble, bool? syncFeedback}) async {
-    final result = await _service.updateListenBrainzConfig(_auth.con,
-        scrobble: scrobble, syncFeedback: syncFeedback);
+  Future<Result<ListenBrainzConfig>> updateListenBrainzConfig({
+    bool? scrobble,
+    bool? syncFeedback,
+  }) async {
+    final result = await _service.updateListenBrainzConfig(
+      _auth.con,
+      scrobble: scrobble,
+      syncFeedback: syncFeedback,
+    );
     switch (result) {
       case Err():
         return Result.error(result.error);
       case Ok():
     }
     return Result.ok(
-        ListenBrainzConfig.fromListenBrainzConfigModel(result.value));
+      ListenBrainzConfig.fromListenBrainzConfigModel(result.value),
+    );
   }
 
   Future<Result<ListenBrainzConfig>> disconnectListenBrainz() async {
@@ -214,12 +268,11 @@ class SubsonicRepository {
       case Ok():
     }
     return Result.ok(
-        ListenBrainzConfig.fromListenBrainzConfigModel(result.value));
+      ListenBrainzConfig.fromListenBrainzConfigModel(result.value),
+    );
   }
 
-  Future<Result<ScanStatus>> startScan({
-    bool fullScan = false,
-  }) async {
+  Future<Result<ScanStatus>> startScan({bool fullScan = false}) async {
     final result = await _service.startScan(_auth.con, fullScan: fullScan);
     switch (result) {
       case Err():
@@ -258,8 +311,9 @@ class SubsonicRepository {
         return Result.error(result.error);
       case Ok():
     }
-    final artistModels = (result.value.index ?? [])
-        .expand((i) => (i.artist ?? <ArtistID3Model>[]));
+    final artistModels = (result.value.index ?? []).expand(
+      (i) => (i.artist ?? <ArtistID3Model>[]),
+    );
     _updateArtistFavorites(artistModels);
     return Result.ok(artistModels.map((a) => Artist.fromArtistID3Model(a)));
   }
@@ -273,7 +327,8 @@ class SubsonicRepository {
     }
     _updateSongFavorites(result.value.song);
     return Result.ok(
-        (result.value.song ?? []).map((c) => Song.fromChildModel(c)));
+      (result.value.song ?? []).map((c) => Song.fromChildModel(c)),
+    );
   }
 
   Future<Result<Iterable<Artist>>> getStarredArtists() async {
@@ -285,7 +340,8 @@ class SubsonicRepository {
     }
     _updateArtistFavorites(result.value.artist);
     return Result.ok(
-        (result.value.artist ?? []).map((a) => Artist.fromArtistID3Model(a)));
+      (result.value.artist ?? []).map((a) => Artist.fromArtistID3Model(a)),
+    );
   }
 
   Future<Result<SearchResult>> search(
@@ -324,8 +380,12 @@ class SubsonicRepository {
     ));
   }
 
-  Future<Result<Iterable<Album>>> getAlbums(AlbumsSortMode sort, int count,
-      [int offset = 0, String? seed]) async {
+  Future<Result<Iterable<Album>>> getAlbums(
+    AlbumsSortMode sort,
+    int count, [
+    int offset = 0,
+    String? seed,
+  ]) async {
     final result = await _service.getAlbumList2(
       _auth.con,
       switch (sort) {
@@ -348,12 +408,16 @@ class SubsonicRepository {
     }
     _updateAlbumFavorites(result.value.album);
     return Result.ok(
-        (result.value.album ?? []).map((a) => Album.fromAlbumID3Model(a)));
+      (result.value.album ?? []).map((a) => Album.fromAlbumID3Model(a)),
+    );
   }
 
   Future<Result<Iterable<Album>>> getAlbumsByYears(
-      int fromYear, int toYear, int count,
-      [int offset = 0]) async {
+    int fromYear,
+    int toYear,
+    int count, [
+    int offset = 0,
+  ]) async {
     final result = await _service.getAlbumList2(
       _auth.con,
       AlbumListType.byYear,
@@ -369,7 +433,8 @@ class SubsonicRepository {
     }
     _updateAlbumFavorites(result.value.album);
     return Result.ok(
-        (result.value.album ?? []).map((a) => Album.fromAlbumID3Model(a)));
+      (result.value.album ?? []).map((a) => Album.fromAlbumID3Model(a)),
+    );
   }
 
   Future<Result<ArtistInfo>> getArtistInfo(String id) async {
@@ -394,7 +459,8 @@ class SubsonicRepository {
   }
 
   Future<Result<Iterable<Album>>> getAlternateAlbumVersions(
-      String albumId) async {
+    String albumId,
+  ) async {
     if (!supports.getAlternateAlbumVersions) {
       return const Result.ok([]);
     }
@@ -406,7 +472,8 @@ class SubsonicRepository {
     }
     _updateAlbumFavorites(result.value.album);
     return Result.ok(
-        (result.value.album ?? []).map((a) => Album.fromAlbumID3Model(a)));
+      (result.value.album ?? []).map((a) => Album.fromAlbumID3Model(a)),
+    );
   }
 
   Future<Result<Iterable<Album>>> getAppearsOn(String artistId) async {
@@ -421,7 +488,8 @@ class SubsonicRepository {
     }
     _updateAlbumFavorites(result.value.album);
     return Result.ok(
-        (result.value.album ?? []).map((a) => Album.fromAlbumID3Model(a)));
+      (result.value.album ?? []).map((a) => Album.fromAlbumID3Model(a)),
+    );
   }
 
   Future<Result<Album>> getAlbum(String id) async {
@@ -445,10 +513,17 @@ class SubsonicRepository {
     return Result.ok(AlbumInfo.fromAlbumInfoModel(result.value));
   }
 
-  Future<Result<Iterable<Song>>> getRandomSongs(
-      {int? count, int? offset, String? seed}) async {
-    final result = await _service.getRandomSongs(_auth.con,
-        size: count, offset: offset, seed: seed);
+  Future<Result<Iterable<Song>>> getRandomSongs({
+    int? count,
+    int? offset,
+    String? seed,
+  }) async {
+    final result = await _service.getRandomSongs(
+      _auth.con,
+      size: count,
+      offset: offset,
+      seed: seed,
+    );
     switch (result) {
       case Err():
         return Result.error(result.error);
@@ -456,12 +531,17 @@ class SubsonicRepository {
     }
     _updateSongFavorites(result.value.song);
     return Result.ok(
-        (result.value.song ?? []).map((c) => Song.fromChildModel(c)).toList());
+      (result.value.song ?? []).map((c) => Song.fromChildModel(c)).toList(),
+    );
   }
 
   Uri getCoverUri(String id, {int? size, bool constantSalt = false}) {
-    return _service.getCoverUri(_auth.con, id,
-        size: size, constantSalt: constantSalt);
+    return _service.getCoverUri(
+      _auth.con,
+      id,
+      size: size,
+      constantSalt: constantSalt,
+    );
   }
 
   Future<Result<List<List<Song>>>> getAlbumsSongs(List<Album> albums) async {
@@ -528,8 +608,9 @@ class SubsonicRepository {
     bool firstBatch = true;
     if (firstSongs.value.isNotEmpty) {
       if (shuffleSongs) {
-        final song = firstSongs.value
-            .removeAt(Random().nextInt(firstSongs.value.length));
+        final song = firstSongs.value.removeAt(
+          Random().nextInt(firstSongs.value.length),
+        );
         await songsLoaded([song], firstBatch);
         firstBatch = false;
         songs.addAll(firstSongs.value);
@@ -592,25 +673,36 @@ class SubsonicRepository {
   }
 
   void _updateArtistFavorites(Iterable<ArtistID3Model>? artists) {
-    _favorites.updateAll((artists ?? [])
-        .map((a) => (type: FavoriteType.artist, id: a.id, starred: a.starred)));
+    _favorites.updateAll(
+      (artists ?? []).map(
+        (a) => (type: FavoriteType.artist, id: a.id, starred: a.starred),
+      ),
+    );
     _updateAlbumFavorites((artists ?? []).expand((a) => a.album ?? []));
   }
 
   void _updateAlbumFavorites(Iterable<AlbumID3Model>? albums) {
-    _favorites.updateAll((albums ?? [])
-        .map((a) => (type: FavoriteType.album, id: a.id, starred: a.starred)));
+    _favorites.updateAll(
+      (albums ?? []).map(
+        (a) => (type: FavoriteType.album, id: a.id, starred: a.starred),
+      ),
+    );
     _updateSongFavorites((albums ?? []).expand((a) => a.song ?? []));
   }
 
   void _updateSongFavorites(Iterable<ChildModel>? songs) {
-    _favorites.updateAll((songs ?? [])
-        .map((c) => (type: FavoriteType.song, id: c.id, starred: c.starred)));
+    _favorites.updateAll(
+      (songs ?? []).map(
+        (c) => (type: FavoriteType.song, id: c.id, starred: c.starred),
+      ),
+    );
   }
 
   Map<String, Iterable<String>> generateQuery(
-      Map<String, Iterable<String>> query, SubsonicAuth auth,
-      {bool constantSalt = false}) {
+    Map<String, Iterable<String>> query,
+    SubsonicAuth auth, {
+    bool constantSalt = false,
+  }) {
     return _service.generateQuery(query, auth, constantSalt: constantSalt);
   }
 }
