@@ -70,15 +70,7 @@ class SubsonicRepository {
       );
       switch (result) {
         case Ok():
-          return Result.ok(
-            Lyrics(
-              lines: result.tryValue!.value
-                  .split("\n")
-                  .map((e) => LyricsLine(text: e.trim()))
-                  .toList(),
-              synced: false,
-            ),
-          );
+          return Result.ok(Lyrics.fromLyricsModel(result.value));
         case Err():
       }
       if (result.error is SubsonicException) {
@@ -100,28 +92,7 @@ class SubsonicRepository {
     if (lyrics == null || lyrics.line == null || lyrics.line!.isEmpty) {
       return const Result.ok(null);
     }
-    final offset = (lyrics.offset ?? 0).round();
-    return Result.ok(
-      Lyrics(
-        synced: lyrics.synced,
-        lines: lyrics.line!.mapIndexed((index, element) {
-          final start = element.start != null
-              ? Duration(milliseconds: max(element.start!.round() - offset, 0))
-              : null;
-          final end = index < lyrics.line!.length - 1
-              ? (lyrics.line![index + 1].start != null
-                    ? Duration(
-                        milliseconds: max(
-                          lyrics.line![index + 1].start!.round() - offset,
-                          start!.inMilliseconds + 1,
-                        ),
-                      )
-                    : null)
-              : null;
-          return LyricsLine(text: element.value.trim(), start: start, end: end);
-        }).toList(),
-      ),
-    );
+    return Result.ok(Lyrics.fromStructuredLyrics(lyrics));
   }
 
   Future<Result<Iterable<Album>>> getAlbumsByGenre(

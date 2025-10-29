@@ -139,6 +139,10 @@ class _LyricsPageState extends State<LyricsPage> {
                   fontSize: constraints.maxWidth >= 1000 ? 28 : 22,
                   fontWeight: FontWeight.bold,
                 );
+                final highlightedEmojiTextTheme = textTheme.copyWith(
+                  fontSize: constraints.maxWidth >= 1000 ? 32 : 26,
+                  fontWeight: FontWeight.w900,
+                );
                 return NotificationListener<UserScrollNotification>(
                   onNotification: (notification) {
                     if (notification.direction == ScrollDirection.idle) {
@@ -191,13 +195,18 @@ class _LyricsPageState extends State<LyricsPage> {
                                                   : 50,
                                             ),
                                             child: Text(
-                                              line.text.isNotEmpty
+                                              line.text.isNotEmpty ||
+                                                      !_viewModel.supportsSync
                                                   ? line.text
                                                   : "♪♫♪",
                                               textAlign: TextAlign.center,
                                               softWrap: true,
                                               style: isCurrent
-                                                  ? highlightedTextTheme
+                                                  ? (line.text.isEmpty &&
+                                                            _viewModel
+                                                                .supportsSync
+                                                        ? highlightedEmojiTextTheme
+                                                        : highlightedTextTheme)
                                                   : normalTextTheme,
                                             ),
                                           ),

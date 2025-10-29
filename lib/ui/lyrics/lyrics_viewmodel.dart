@@ -124,18 +124,21 @@ class LyricsViewModel extends ChangeNotifier {
     final pos = _audioHandler.position;
     final currentIndex = _selectedLine.value;
     final currentLine = currentIndex != null
-        ? lyrics?.lines.elementAtOrNull(_selectedLine.value!)
+        ? lyrics?.lines.elementAtOrNull(currentIndex)
+        : null;
+    final nextLine = currentIndex != null
+        ? lyrics?.lines.elementAtOrNull(currentIndex + 1)
         : null;
     if (!force &&
         currentLine != null &&
         currentLine.start != null &&
         currentLine.start! <= pos) {
-      if ((currentLine.end != null && currentLine.end! > pos) ||
-          currentIndex! == lyrics!.lines.length - 1) {
+      if (nextLine == null ||
+          (nextLine.start != null && nextLine.start! > pos)) {
         // current line is still correct
         return;
       }
-      _calculateCurrentLine(pos, currentIndex);
+      _calculateCurrentLine(pos, currentIndex!);
       return;
     }
     _calculateCurrentLine(pos, 0, force: force);
@@ -158,11 +161,7 @@ class LyricsViewModel extends ChangeNotifier {
       final line = lyrics!.lines[i];
       if (line.start == null) continue;
       if (line.start! > pos) break;
-      if ((line.end != null && line.end! > pos) ||
-          i == lyrics!.lines.length - 1) {
-        found = i;
-        break;
-      }
+      found = i;
     }
     if (_selectedLine.value != found || force) {
       _selectedLine.add(found);
