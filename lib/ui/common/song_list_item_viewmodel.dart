@@ -28,8 +28,8 @@ class SongListItemViewModel extends ChangeNotifier {
     required AudioHandler audioHandler,
     required this.song,
     bool disablePlaybackStatus = false,
-  })  : _favoritesRepository = favoritesRepository,
-        _audioHandler = audioHandler {
+  }) : _favoritesRepository = favoritesRepository,
+       _audioHandler = audioHandler {
     _favoritesRepository.addListener(_updateFavoriteStatus);
 
     if (!disablePlaybackStatus) {
@@ -54,7 +54,10 @@ class SongListItemViewModel extends ChangeNotifier {
     _favorite = !favorite;
     notifyListeners();
     final result = await _favoritesRepository.setFavorite(
-        FavoriteType.song, song.id, favorite);
+      FavoriteType.song,
+      song.id,
+      favorite,
+    );
     if (result is Err) {
       _favorite = !favorite;
       notifyListeners();
@@ -62,17 +65,19 @@ class SongListItemViewModel extends ChangeNotifier {
     return result;
   }
 
-  Future<void> playPause() async {
-    if (_playbackStatus == PlaybackStatus.playing) {
-      await _audioHandler.pause();
-    } else if (_playbackStatus == PlaybackStatus.paused) {
-      await _audioHandler.play();
-    }
+  Future<void> play() async {
+    await _audioHandler.play();
+  }
+
+  Future<void> pause() async {
+    await _audioHandler.pause();
   }
 
   void _updateFavoriteStatus() {
-    final favorite =
-        _favoritesRepository.isFavorite(FavoriteType.song, song.id);
+    final favorite = _favoritesRepository.isFavorite(
+      FavoriteType.song,
+      song.id,
+    );
     if (favorite != _favorite) {
       _favorite = favorite;
       notifyListeners();

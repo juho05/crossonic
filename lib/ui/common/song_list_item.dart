@@ -1,5 +1,4 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:crossonic/data/repositories/audio/audio_handler.dart';
 import 'package:crossonic/data/repositories/playlist/song_downloader.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
 import 'package:crossonic/routing/router.gr.dart';
@@ -9,6 +8,7 @@ import 'package:crossonic/ui/common/dialogs/add_to_playlist.dart';
 import 'package:crossonic/ui/common/dialogs/chooser.dart';
 import 'package:crossonic/ui/common/dialogs/media_info.dart';
 import 'package:crossonic/ui/common/song_list_item_viewmodel.dart';
+import 'package:crossonic/ui/common/song_playing_indicator.dart';
 import 'package:crossonic/ui/common/toast.dart';
 import 'package:crossonic/ui/common/with_context_menu.dart';
 import 'package:crossonic/utils/format.dart';
@@ -95,139 +95,145 @@ class _SongListItemState extends State<SongListItem> {
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
-        listenable: viewModel,
-        builder: (context, snapshot) {
-          final s = widget.song;
-          String year = "Unknown year";
-          if (s.originalDate != null) {
-            year = s.originalDate!.year.toString();
-          }
-          if (s.releaseDate != null &&
-              s.releaseDate!.year != s.originalDate!.year) {
-            year += "/${s.releaseDate!.year}";
-          }
-          return ReorderableDelayedDragStartListener(
-            index: widget.reorderIndex ?? 0,
-            enabled:
-                widget.enableLongPressReorder && widget.reorderIndex != null,
-            child: ClickableListItemWithContextMenu(
-              title: widget.song.title,
-              titleBold: viewModel.playbackStatus != null,
-              extraInfo: [
-                if (widget.showArtist) s.displayArtist,
-                if (widget.showAlbum) s.album?.name ?? "Unknown album",
-                if (widget.showYear) year,
-                if (widget.showBpm)
-                  s.bpm != null ? "${s.bpm} BPM" : "Unknown bpm",
-              ],
-              leading: SongLeadingWidget(
-                viewModel: viewModel,
-                coverId: s.coverId,
-                trackNr: widget.showTrackNr
-                    ? s.trackNr ?? widget.fallbackTrackNr
-                    : null,
-                trackDigits: widget.trackDigits,
-                reorderIndex: widget.reorderIndex,
-                showDragHandle: widget.showDragHandle,
-              ),
-              trailingInfo: widget.showDuration
-                  ? (s.duration != null ? formatDuration(s.duration!) : "??:??")
+      listenable: viewModel,
+      builder: (context, snapshot) {
+        final s = widget.song;
+        String year = "Unknown year";
+        if (s.originalDate != null) {
+          year = s.originalDate!.year.toString();
+        }
+        if (s.releaseDate != null &&
+            s.releaseDate!.year != s.originalDate!.year) {
+          year += "/${s.releaseDate!.year}";
+        }
+        return ReorderableDelayedDragStartListener(
+          index: widget.reorderIndex ?? 0,
+          enabled: widget.enableLongPressReorder && widget.reorderIndex != null,
+          child: ClickableListItemWithContextMenu(
+            title: widget.song.title,
+            titleBold: viewModel.playbackStatus != null,
+            extraInfo: [
+              if (widget.showArtist) s.displayArtist,
+              if (widget.showAlbum) s.album?.name ?? "Unknown album",
+              if (widget.showYear) year,
+              if (widget.showBpm)
+                s.bpm != null ? "${s.bpm} BPM" : "Unknown bpm",
+            ],
+            leading: SongLeadingWidget(
+              viewModel: viewModel,
+              coverId: s.coverId,
+              trackNr: widget.showTrackNr
+                  ? s.trackNr ?? widget.fallbackTrackNr
                   : null,
-              onTap: widget.onTap != null
-                  ? () {
-                      if (!widget.editMode) {
-                        widget
-                            .onTap!(HardwareKeyboard.instance.isControlPressed);
-                      }
-                    }
-                  : null,
-              isFavorite: viewModel.favorite,
-              downloadStatus: widget.downloadStatus,
-              options: widget.editMode
-                  ? const []
-                  : [
-                      ContextMenuOption(
-                        icon: Icons.playlist_play,
-                        title: "Add to priority queue",
-                        onSelected: () {
-                          viewModel.addToQueue(true);
-                          Toast.show(
-                              context, "Added '${s.title}' to priority queue");
-                        },
-                      ),
-                      ContextMenuOption(
-                        icon: Icons.playlist_add,
-                        title: "Add to queue",
-                        onSelected: () {
-                          viewModel.addToQueue(false);
-                          Toast.show(context, "Added '${s.title}' to queue");
-                        },
-                      ),
-                      ContextMenuOption(
-                        icon: viewModel.favorite
-                            ? Icons.heart_broken
-                            : Icons.favorite,
-                        title: viewModel.favorite
-                            ? "Remove from favorites"
-                            : "Add to favorites",
-                        onSelected: () async {
-                          final result = await viewModel.toggleFavorite();
-                          if (!context.mounted) return;
-                          toastResult(context, result);
-                        },
-                      ),
-                      ContextMenuOption(
-                          icon: Icons.playlist_add,
-                          title: "Add to playlist",
-                          onSelected: () {
-                            AddToPlaylistDialog.show(
-                                context, s.title, () async => Result.ok([s]));
-                          }),
-                      if (!widget.disableGoToAlbum && s.album != null)
-                        ContextMenuOption(
-                          icon: Icons.album,
-                          title: "Go to release",
-                          onSelected: () {
-                            context.router
-                                .push(AlbumRoute(albumId: s.album!.id));
-                          },
-                        ),
-                      if (!widget.disableGoToArtist && s.artists.isNotEmpty)
-                        ContextMenuOption(
-                          icon: Icons.person,
-                          title: "Go to artist",
-                          onSelected: () async {
-                            final router = context.router;
-                            final artistId = await ChooserDialog.chooseArtist(
-                                context, s.artists.toList());
-                            if (artistId == null) return;
-                            router.push(ArtistRoute(artistId: artistId));
-                          },
-                        ),
-                      ContextMenuOption(
-                        title: "Info",
-                        icon: Icons.info_outline,
-                        onSelected: () {
-                          MediaInfoDialog.showSong(context, s.id);
-                        },
-                      ),
-                      if (widget.onRemove != null && !widget.showRemoveButton)
-                        ContextMenuOption(
-                          icon: Icons.playlist_remove,
-                          title: "Remove",
-                          onSelected: widget.onRemove,
-                        ),
-                    ],
-              extraTrailing: [
-                if (widget.onRemove != null && widget.showRemoveButton)
-                  IconButton(
-                    onPressed: widget.onRemove,
-                    icon: const Icon(Icons.delete_outline),
-                  )
-              ],
+              trackDigits: widget.trackDigits,
+              reorderIndex: widget.reorderIndex,
+              showDragHandle: widget.showDragHandle,
             ),
-          );
-        });
+            trailingInfo: widget.showDuration
+                ? (s.duration != null ? formatDuration(s.duration!) : "??:??")
+                : null,
+            onTap: widget.onTap != null
+                ? () {
+                    if (!widget.editMode) {
+                      widget.onTap!(HardwareKeyboard.instance.isControlPressed);
+                    }
+                  }
+                : null,
+            isFavorite: viewModel.favorite,
+            downloadStatus: widget.downloadStatus,
+            options: widget.editMode
+                ? const []
+                : [
+                    ContextMenuOption(
+                      icon: Icons.playlist_play,
+                      title: "Add to priority queue",
+                      onSelected: () {
+                        viewModel.addToQueue(true);
+                        Toast.show(
+                          context,
+                          "Added '${s.title}' to priority queue",
+                        );
+                      },
+                    ),
+                    ContextMenuOption(
+                      icon: Icons.playlist_add,
+                      title: "Add to queue",
+                      onSelected: () {
+                        viewModel.addToQueue(false);
+                        Toast.show(context, "Added '${s.title}' to queue");
+                      },
+                    ),
+                    ContextMenuOption(
+                      icon: viewModel.favorite
+                          ? Icons.heart_broken
+                          : Icons.favorite,
+                      title: viewModel.favorite
+                          ? "Remove from favorites"
+                          : "Add to favorites",
+                      onSelected: () async {
+                        final result = await viewModel.toggleFavorite();
+                        if (!context.mounted) return;
+                        toastResult(context, result);
+                      },
+                    ),
+                    ContextMenuOption(
+                      icon: Icons.playlist_add,
+                      title: "Add to playlist",
+                      onSelected: () {
+                        AddToPlaylistDialog.show(
+                          context,
+                          s.title,
+                          () async => Result.ok([s]),
+                        );
+                      },
+                    ),
+                    if (!widget.disableGoToAlbum && s.album != null)
+                      ContextMenuOption(
+                        icon: Icons.album,
+                        title: "Go to release",
+                        onSelected: () {
+                          context.router.push(AlbumRoute(albumId: s.album!.id));
+                        },
+                      ),
+                    if (!widget.disableGoToArtist && s.artists.isNotEmpty)
+                      ContextMenuOption(
+                        icon: Icons.person,
+                        title: "Go to artist",
+                        onSelected: () async {
+                          final router = context.router;
+                          final artistId = await ChooserDialog.chooseArtist(
+                            context,
+                            s.artists.toList(),
+                          );
+                          if (artistId == null) return;
+                          router.push(ArtistRoute(artistId: artistId));
+                        },
+                      ),
+                    ContextMenuOption(
+                      title: "Info",
+                      icon: Icons.info_outline,
+                      onSelected: () {
+                        MediaInfoDialog.showSong(context, s.id);
+                      },
+                    ),
+                    if (widget.onRemove != null && !widget.showRemoveButton)
+                      ContextMenuOption(
+                        icon: Icons.playlist_remove,
+                        title: "Remove",
+                        onSelected: widget.onRemove,
+                      ),
+                  ],
+            extraTrailing: [
+              if (widget.onRemove != null && widget.showRemoveButton)
+                IconButton(
+                  onPressed: widget.onRemove,
+                  icon: const Icon(Icons.delete_outline),
+                ),
+            ],
+          ),
+        );
+      },
+    );
   }
 }
 
@@ -260,20 +266,14 @@ class SongLeadingWidget extends StatelessWidget {
             ? Text(
                 trackNr!.toString().padLeft(trackDigits ?? 2, "0"),
                 overflow: TextOverflow.ellipsis,
-                style:
-                    textTheme.bodyMedium!.copyWith(fontWeight: FontWeight.w500),
-              )
-            : IconButton(
-                onPressed: () {
-                  viewModel.playPause();
-                },
-                icon: Icon(
-                  viewModel.playbackStatus == PlaybackStatus.playing
-                      ? Icons.pause
-                      : (viewModel.playbackStatus == PlaybackStatus.loading
-                          ? Icons.hourglass_empty
-                          : Icons.play_arrow),
+                style: textTheme.bodyMedium!.copyWith(
+                  fontWeight: FontWeight.w500,
                 ),
+              )
+            : SongPlayingIndicator(
+                playbackStatus: viewModel.playbackStatus!,
+                onPlay: viewModel.play,
+                onPause: viewModel.pause,
               ),
       );
     } else {
@@ -291,29 +291,18 @@ class SongLeadingWidget extends StatelessWidget {
               child: const ColoredBox(color: Color.fromARGB(90, 0, 0, 0)),
             ),
           if (viewModel.playbackStatus != null)
-            IconButton(
-              onPressed: () {
-                viewModel.playPause();
-              },
-              icon: Icon(
-                viewModel.playbackStatus == PlaybackStatus.playing
-                    ? Icons.pause
-                    : (viewModel.playbackStatus == PlaybackStatus.loading
-                        ? Icons.hourglass_empty
-                        : Icons.play_arrow),
-                color: Colors.white,
-              ),
-            )
+            SongPlayingIndicator(
+              playbackStatus: viewModel.playbackStatus!,
+              onPlay: viewModel.play,
+              onPause: viewModel.pause,
+              color: Colors.white,
+            ),
         ],
       );
     }
     leading = Padding(
       padding: const EdgeInsets.only(left: 4),
-      child: SizedBox(
-        width: 40,
-        height: 40,
-        child: leading,
-      ),
+      child: SizedBox(width: 40, height: 40, child: leading),
     );
     if (reorderIndex != null && showDragHandle) {
       leading = ReorderableDragStartListener(
