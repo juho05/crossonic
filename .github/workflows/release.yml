@@ -70,6 +70,11 @@ jobs:
         working-directory: ${{ env.APK_BUILD_DIR }}
         run: flutter build apk --split-per-abi
 
+      - name: Prepare AndroidManifest.xml for Play Store
+        working-directory: ${{ env.APK_BUILD_DIR }}
+        run: |
+          sed -i '/REQUEST_INSTALL_PACKAGES/d' ./android/app/src/main/AndroidManifest.xml
+
       - name: Build App Bundle
         working-directory: ${{ env.APK_BUILD_DIR }}
         run: flutter build appbundle --dart-define=VERSION_CHECK=false
