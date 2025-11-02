@@ -69,7 +69,7 @@ The app works on iOS but there are currently no release builds available as I do
 - [x] Gapless playback
 - [x] Lyrics
     - [x] Unsynced
-    - [ ] Synced
+    - [x] Synced
 - [x] Replay gain
 - [ ] Load/save queues
 - [ ] Internet Radio
