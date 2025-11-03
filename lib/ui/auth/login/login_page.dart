@@ -33,8 +33,9 @@ class _LoginPageState extends State<LoginPage> with RestorationMixin {
     viewModel = LoginViewModel(authRepository: context.read<AuthRepository>());
     viewModel.login.addListener(_onResult);
     _authType = RestorableEnum(
-        viewModel.supportedAuthTypes.firstOrNull ?? AuthType.usernamePassword,
-        values: AuthType.values);
+      viewModel.supportedAuthTypes.firstOrNull ?? AuthType.usernamePassword,
+      values: AuthType.values,
+    );
   }
 
   @override
@@ -55,7 +56,7 @@ class _LoginPageState extends State<LoginPage> with RestorationMixin {
               onPressed: () {
                 context.router.push(const DebugRoute());
               },
-            )
+            ),
           ],
         ),
         body: SafeArea(
@@ -64,11 +65,12 @@ class _LoginPageState extends State<LoginPage> with RestorationMixin {
             children: [
               Row(
                 children: [
-                  Text("Server:",
-                      style: Theme.of(context)
-                          .textTheme
-                          .labelLarge!
-                          .copyWith(fontWeight: FontWeight.bold)),
+                  Text(
+                    "Server:",
+                    style: Theme.of(context).textTheme.labelLarge!.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                   const SizedBox(width: 8),
                   Text(viewModel.serverURL),
                   IconButton(
@@ -92,10 +94,9 @@ class _LoginPageState extends State<LoginPage> with RestorationMixin {
                       return DropdownMenuEntry(
                         value: viewModel.supportedAuthTypes[index],
                         label: switch (viewModel.supportedAuthTypes[index]) {
-                              AuthType.apiKey => "API Key",
-                              AuthType.usernamePassword => "Username/Password",
-                            } +
-                            (index == 0 ? " (recommended)" : ""),
+                          AuthType.usernamePassword => "Username/Password",
+                          AuthType.apiKey => "API Key",
+                        },
                       );
                     },
                   ),
@@ -170,18 +171,20 @@ class _LoginPageState extends State<LoginPage> with RestorationMixin {
     if (!_formKey.currentState!.saveAndValidate()) {
       return;
     }
-    await viewModel.login.execute(LoginData(
-      type: _authType.value,
-      username: _authType.value != AuthType.apiKey
-          ? _formKey.currentState!.value["username"]
-          : null,
-      password: _authType.value != AuthType.apiKey
-          ? _formKey.currentState!.value["password"]
-          : null,
-      apiKey: _authType.value == AuthType.apiKey
-          ? _formKey.currentState!.value["apiKey"]
-          : null,
-    ));
+    await viewModel.login.execute(
+      LoginData(
+        type: _authType.value,
+        username: _authType.value != AuthType.apiKey
+            ? _formKey.currentState!.value["username"]
+            : null,
+        password: _authType.value != AuthType.apiKey
+            ? _formKey.currentState!.value["password"]
+            : null,
+        apiKey: _authType.value == AuthType.apiKey
+            ? _formKey.currentState!.value["apiKey"]
+            : null,
+      ),
+    );
   }
 
   void _onResult() {

@@ -45,12 +45,12 @@ class AuthRepository extends ChangeNotifier {
     required SubsonicService openSubsonicService,
     required KeyValueRepository keyValueRepository,
     required Database database,
-  })  : _keyValue = keyValueRepository,
-        _database = database,
-        _openSubsonicService = openSubsonicService,
-        _storage = kIsWeb || !Platform.isLinux
-            ? EncryptedStorageSecureStorage()
-            : EncryptedStorageLinux(keyValueRepo: keyValueRepository);
+  }) : _keyValue = keyValueRepository,
+       _database = database,
+       _openSubsonicService = openSubsonicService,
+       _storage = kIsWeb || !Platform.isLinux
+           ? EncryptedStorageSecureStorage()
+           : EncryptedStorageLinux(keyValueRepo: keyValueRepository);
 
   static const _serverUriKey = "server_uri";
   static const _serverFeaturesKey = "server_features";
@@ -58,8 +58,10 @@ class AuthRepository extends ChangeNotifier {
   Future<void> loadState() async {
     Log.debug("loading auth state...");
     final uri = await _keyValue.loadString(_serverUriKey);
-    final serverFeatures =
-        await _keyValue.loadObject(_serverFeaturesKey, ServerFeatures.fromJson);
+    final serverFeatures = await _keyValue.loadObject(
+      _serverFeaturesKey,
+      ServerFeatures.fromJson,
+    );
     if (uri == null || serverFeatures == null) {
       Log.debug("no auth state found, logging out...");
       await logout(false);
@@ -85,19 +87,24 @@ class AuthRepository extends ChangeNotifier {
     switch (result) {
       case Err<ServerInfo>():
         if (result.error is UnexpectedResponseException) {
-          return Result.error(InvalidServerException(
-              (result.error as UnexpectedResponseException).message));
+          return Result.error(
+            InvalidServerException(
+              (result.error as UnexpectedResponseException).message,
+            ),
+          );
         }
         return Result.error(result.error);
       case Ok<ServerInfo>():
     }
     final info = result.value;
 
-    final passwordPingRes = await _openSubsonicService.ping(Connection(
-      baseUri: serverUri,
-      auth: AuthStatePassword(username: "x", password: "x"),
-      supportsPost: false,
-    ));
+    final passwordPingRes = await _openSubsonicService.ping(
+      Connection(
+        baseUri: serverUri,
+        auth: AuthStatePassword(username: "x", password: "x"),
+        supportsPost: false,
+      ),
+    );
 
     bool supportsPasswordAuth = true;
     switch (passwordPingRes) {
@@ -111,11 +118,13 @@ class AuthRepository extends ChangeNotifier {
     }
     Log.debug("password auth available: $supportsPasswordAuth");
 
-    final tokenPingRes = await _openSubsonicService.ping(Connection(
-      baseUri: serverUri,
-      auth: AuthStateToken(username: "x", password: "x"),
-      supportsPost: false,
-    ));
+    final tokenPingRes = await _openSubsonicService.ping(
+      Connection(
+        baseUri: serverUri,
+        auth: AuthStateToken(username: "x", password: "x"),
+        supportsPost: false,
+      ),
+    );
 
     bool supportsTokenAuth = true;
     switch (tokenPingRes) {
@@ -124,11 +133,11 @@ class AuthRepository extends ChangeNotifier {
           final err = tokenPingRes.error as SubsonicException;
           supportsTokenAuth =
               err.code != SubsonicErrorCode.tokenAuthNotSupported &&
-                  err.code != SubsonicErrorCode.authMechanismNotSupported;
+              err.code != SubsonicErrorCode.authMechanismNotSupported;
         }
       case Ok():
     }
-    Log.debug("token auth available: $supportsPasswordAuth");
+    Log.debug("token auth available: $supportsTokenAuth");
 
     Version? crossonicVersion;
     if (info.crossonicVersion != null) {
@@ -137,7 +146,8 @@ class AuthRepository extends ChangeNotifier {
         Log.debug("crossonic version: $crossonicVersion");
       } catch (_) {
         Log.error(
-            "Failed to parse crossonic version: ${info.crossonicVersion}");
+          "Failed to parse crossonic version: ${info.crossonicVersion}",
+        );
       }
     }
 
@@ -162,8 +172,11 @@ class AuthRepository extends ChangeNotifier {
     switch (result) {
       case Err<ServerInfo>():
         if (result.error is UnexpectedResponseException) {
-          return Result.error(InvalidServerException(
-              (result.error as UnexpectedResponseException).message));
+          return Result.error(
+            InvalidServerException(
+              (result.error as UnexpectedResponseException).message,
+            ),
+          );
         }
         return Result.error(result.error);
       case Ok<ServerInfo>():
@@ -176,7 +189,8 @@ class AuthRepository extends ChangeNotifier {
         crossonicVersion = Version.parse(info.crossonicVersion!);
       } catch (_) {
         Log.error(
-            "Failed to parse crossonic version: ${info.crossonicVersion}");
+          "Failed to parse crossonic version: ${info.crossonicVersion}",
+        );
       }
     }
 
@@ -194,7 +208,9 @@ class AuthRepository extends ChangeNotifier {
   }
 
   Future<Result<void>> loginUsernamePassword(
-      String username, String password) async {
+    String username,
+    String password,
+  ) async {
     AuthState auth = _serverFeatures.supportsTokenAuth
         ? AuthStateToken(username: username, password: password)
         : AuthStatePassword(username: username, password: password);
@@ -250,14 +266,18 @@ class AuthRepository extends ChangeNotifier {
           return Result.error(result.error);
         }
         if (result.error is SubsonicException) {
-          Log.warn("failed to get username by calling tokenInfo endpoint",
-              e: result.error);
+          Log.warn(
+            "failed to get username by calling tokenInfo endpoint",
+            e: result.error,
+          );
         }
       case Ok():
     }
 
     _state = AuthStateApiKey(
-        username: result.tryValue?.username ?? "unknown", apiKey: apiKey);
+      username: result.tryValue?.username ?? "unknown",
+      apiKey: apiKey,
+    );
 
     await _persistState();
 
@@ -283,11 +303,13 @@ class AuthRepository extends ChangeNotifier {
     if (isAuthenticated) {
       result = await _openSubsonicService.getOpenSubsonicExtensions(con);
     } else {
-      result = await _openSubsonicService.getOpenSubsonicExtensions(Connection(
-        baseUri: _serverUri!,
-        auth: EmptyAuth(),
-        supportsPost: false,
-      ));
+      result = await _openSubsonicService.getOpenSubsonicExtensions(
+        Connection(
+          baseUri: _serverUri!,
+          auth: EmptyAuth(),
+          supportsPost: false,
+        ),
+      );
     }
     if (result is Ok) {
       final extensions =
@@ -318,8 +340,10 @@ class AuthRepository extends ChangeNotifier {
         crossonicVersion: _serverFeatures.crossonicVersion,
       );
     } else {
-      Log.error("failed to load OpenSubsonic extensions",
-          e: (result as Err).error);
+      Log.error(
+        "failed to load OpenSubsonic extensions",
+        e: (result as Err).error,
+      );
     }
     await _persistState();
     notifyListeners();

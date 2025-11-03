@@ -30,11 +30,11 @@ class LoginViewModel extends ChangeNotifier {
 
   List<AuthType> get supportedAuthTypes {
     return [
-      if (_authRepository.serverFeatures.apiKeyAuthentication.contains(1))
-        AuthType.apiKey,
       if (_authRepository.serverFeatures.supportsTokenAuth ||
           _authRepository.serverFeatures.supportsPasswordAuth)
         AuthType.usernamePassword,
+      if (_authRepository.serverFeatures.apiKeyAuthentication.contains(1))
+        AuthType.apiKey,
     ];
   }
 
@@ -43,7 +43,7 @@ class LoginViewModel extends ChangeNotifier {
   late final Command1<void, LoginData> login;
 
   LoginViewModel({required AuthRepository authRepository})
-      : _authRepository = authRepository {
+    : _authRepository = authRepository {
     login = Command1(_login);
   }
 
@@ -60,7 +60,9 @@ class LoginViewModel extends ChangeNotifier {
       return result;
     }
     final result = await _authRepository.loginUsernamePassword(
-        data.username!, data.password!);
+      data.username!,
+      data.password!,
+    );
     if (result is Err) {
       Log.error("failed to login", e: result.error);
     }
