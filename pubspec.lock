@@ -96,10 +96,9 @@ packages:
   audio_service_mpris:
     dependency: "direct main"
     description:
-      name: audio_service_mpris
-      sha256: fdab1ae1f659c6db36d5cc396e46e4ee9663caefa6153f8453fcd01d57567c08
-      url: "https://pub.dev"
-    source: hosted
+      path: "dependency_overrides/audio_service_mpris"
+      relative: true
+    source: path
     version: "0.2.0"
   audio_service_platform_interface:
     dependency: transitive

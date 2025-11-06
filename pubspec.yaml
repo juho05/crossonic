@@ -75,6 +75,8 @@ dependency_overrides:
     path: ./dependency_overrides/path_provider_linux
   media_kit_libs_android_audio:
     path: ./dependency_overrides/stubs/media_kit_libs_android_audio
+  audio_service_mpris:
+    path: ./dependency_overrides/audio_service_mpris
 dev_dependencies:
   flutter_test:
     sdk: flutter
