@@ -43,6 +43,8 @@ class AudioServiceMpris extends AudioServicePlatform {
           _handlerCallbacks!.skipToNext(const SkipToNextRequest());
         case 'previous':
           _handlerCallbacks!.skipToPrevious(const SkipToPreviousRequest());
+        case "stop":
+          _handlerCallbacks!.stop(const StopRequest());
         case 'playPause':
           _isPlaying
               ? _handlerCallbacks!.pause(const PauseRequest())
