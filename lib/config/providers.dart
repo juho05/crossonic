@@ -155,9 +155,7 @@ Future<List<SingleChildWidget>> createProviders({
   await audioSession.configure(const AudioSessionConfiguration.music());
 
   return [
-    Provider.value(
-      value: logRepository,
-    ),
+    Provider.value(value: logRepository),
     ChangeNotifierProvider(
       create: (context) => ThemeManager(
         keyValue: keyValueRepository,
@@ -165,42 +163,20 @@ Future<List<SingleChildWidget>> createProviders({
       ),
       lazy: false,
     ),
-    Provider.value(
-      value: database,
-    ),
-    Provider.value(
-      value: keyValueRepository,
-    ),
+    Provider.value(value: database),
+    Provider.value(value: keyValueRepository),
+    Provider(create: (context) => GitHubService()),
     Provider(
-      create: (context) => GitHubService(),
+      create: (context) =>
+          VersionRepository(github: context.read(), keyValue: context.read()),
     ),
-    Provider(
-      create: (context) => VersionRepository(
-        github: context.read(),
-        keyValue: context.read(),
-      ),
-    ),
-    Provider.value(
-      value: subsonicService,
-    ),
-    ChangeNotifierProvider.value(
-      value: authRepository,
-    ),
-    ChangeNotifierProvider.value(
-      value: favoritesRepository,
-    ),
-    ChangeNotifierProvider.value(
-      value: songDownloader,
-    ),
-    Provider.value(
-      value: subsonicRepository,
-    ),
-    Provider.value(
-      value: settings,
-    ),
-    Provider.value(
-      value: coverRepository,
-    ),
+    Provider.value(value: subsonicService),
+    ChangeNotifierProvider.value(value: authRepository),
+    ChangeNotifierProvider.value(value: favoritesRepository),
+    ChangeNotifierProvider.value(value: songDownloader),
+    Provider.value(value: subsonicRepository),
+    Provider.value(value: settings),
+    Provider.value(value: coverRepository),
     Provider(
       create: (context) => ah.AudioHandler(
         player: AudioPlayer(),
@@ -215,16 +191,15 @@ Future<List<SingleChildWidget>> createProviders({
     ),
     Provider(
       create: (context) => Scrobbler.enable(
-          audioHandler: context.read(),
-          authRepository: context.read(),
-          database: context.read(),
-          subsonicService: context.read()),
+        audioHandler: context.read(),
+        authRepository: context.read(),
+        database: context.read(),
+        subsonicService: context.read(),
+      ),
       dispose: (context, value) => value.dispose(),
       lazy: false,
     ),
-    ChangeNotifierProvider.value(
-      value: playlistRepository,
-    ),
+    ChangeNotifierProvider.value(value: playlistRepository),
     ChangeNotifierProvider(
       create: (context) => VersionCheckerViewModel(
         keyValue: context.read(),
@@ -233,15 +208,13 @@ Future<List<SingleChildWidget>> createProviders({
     ),
     if (AppImageRepository.isAppImage)
       Provider(
-        create: (context) => AppImageRepository(
-          keyValue: context.read(),
-        ),
+        create: (context) => AppImageRepository(keyValue: context.read()),
       ),
     if (AppImageRepository.isAppImage)
       ChangeNotifierProvider(
-        create: (context) => IntegrateAppImageViewModel(
-          appImageRepository: context.read(),
-        )..check(),
+        create: (context) =>
+            IntegrateAppImageViewModel(appImageRepository: context.read())
+              ..check(),
       ),
     if (AutoUpdateRepository.autoUpdatesSupported)
       ChangeNotifierProvider(
@@ -249,6 +222,6 @@ Future<List<SingleChildWidget>> createProviders({
           versionRepository: context.read(),
           github: context.read(),
         ),
-      )
+      ),
   ];
 }

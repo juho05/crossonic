@@ -6,6 +6,8 @@ import 'package:dbus/dbus.dart';
 import 'metadata.dart';
 
 class OrgMprisMediaPlayer2 extends DBusObject {
+  static void Function()? onRaise;
+
   final String identity;
   final _stateStreamController = StreamController<String>();
   Stream<String> get controlStream => _stateStreamController.stream;
@@ -18,6 +20,9 @@ class OrgMprisMediaPlayer2 extends DBusObject {
 
   final _volumeStreamController = StreamController<double>();
   Stream<double> get volumeStream => _volumeStreamController.stream;
+
+  final _loopStreamController = StreamController<bool>();
+  Stream<bool> get loopStream => _loopStreamController.stream;
 
   var position = const Duration(seconds: 0);
 
@@ -49,7 +54,7 @@ class OrgMprisMediaPlayer2 extends DBusObject {
 
   /// Gets value of property org.mpris.MediaPlayer2.CanRaise
   DBusBoolean getCanRaise() {
-    return const DBusBoolean(false);
+    return DBusBoolean(onRaise != null);
   }
 
   /// Gets value of property org.mpris.MediaPlayer2.HasTrackList
@@ -80,6 +85,7 @@ class OrgMprisMediaPlayer2 extends DBusObject {
 
   /// Implementation of org.mpris.MediaPlayer2.Raise()
   Future<DBusMethodResponse> doRaise() async {
+    onRaise?.call();
     return DBusMethodSuccessResponse([]);
   }
 
@@ -94,11 +100,23 @@ class OrgMprisMediaPlayer2 extends DBusObject {
   set playbackState(String state) {
     if (state == _playbackState) return;
 
+    _playbackState = state;
     emitPropertiesChanged(
       "org.mpris.MediaPlayer2.Player",
       changedProperties: {"PlaybackStatus": DBusString(state)},
     );
-    _playbackState = state;
+  }
+
+  bool _loopState = false;
+
+  set loopState(bool loop) {
+    if (loop == _loopState) return;
+
+    _loopState = loop;
+    emitPropertiesChanged(
+      "org.mpris.MediaPlayer2.Player",
+      changedProperties: {"LoopStatus": getLoopStatus()},
+    );
   }
 
   /// Gets value of property org.mpris.MediaPlayer2.Player.PlaybackStatus
@@ -108,13 +126,12 @@ class OrgMprisMediaPlayer2 extends DBusObject {
 
   /// Gets value of property org.mpris.MediaPlayer2.Player.LoopStatus
   DBusString getLoopStatus() {
-    return const DBusString('None');
+    return DBusString(_loopState ? "Playlist" : "None");
   }
 
   /// Sets property org.mpris.MediaPlayer2.Player.LoopStatus
   Future<DBusMethodResponse> setLoopStatus(String value) async {
-    log('Set org.mpris.MediaPlayer2.Player.LoopStatus not implemented',
-        name: 'audio_service_mpris');
+    _loopStreamController.add(value == "Playlist");
     return DBusMethodSuccessResponse([]);
   }
 

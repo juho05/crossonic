@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:audio_service_mpris/mpris.dart';
 import 'package:crossonic/app_shortcuts.dart';
 import 'package:crossonic/config/providers.dart';
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
@@ -81,6 +82,9 @@ void main() async {
     windowManager.waitUntilReadyToShow(windowOptions, () async {
       await windowManager.show();
     });
+    if (Platform.isLinux) {
+      OrgMprisMediaPlayer2.onRaise = () => windowManager.show();
+    }
   }
 
   if (kReleaseMode && Platform.isAndroid) {
