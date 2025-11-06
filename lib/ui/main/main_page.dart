@@ -414,6 +414,7 @@ class _PageTitleState extends State<PageTitle> {
     if (title.isEmpty) {
       if (_retryCounter < 10) {
         Future.delayed(const Duration(milliseconds: 10), () {
+          if (!mounted) return;
           setState(() {
             _retryCounter++;
           });
