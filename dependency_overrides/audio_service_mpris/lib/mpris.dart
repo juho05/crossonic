@@ -8,7 +8,6 @@ import 'metadata.dart';
 class OrgMprisMediaPlayer2 extends DBusObject {
   static void Function()? onRaise;
 
-  final String identity;
   final _stateStreamController = StreamController<String>();
   Stream<String> get controlStream => _stateStreamController.stream;
 
@@ -28,8 +27,7 @@ class OrgMprisMediaPlayer2 extends DBusObject {
 
   /// Creates a new object to expose on [path].
   OrgMprisMediaPlayer2(
-      {DBusObjectPath path = const DBusObjectPath.unchecked('/'),
-      required this.identity})
+      {DBusObjectPath path = const DBusObjectPath.unchecked('/')})
       : super(path);
 
   /// Gets value of property org.mpris.MediaPlayer2.CanQuit
@@ -64,13 +62,12 @@ class OrgMprisMediaPlayer2 extends DBusObject {
 
   /// Gets value of property org.mpris.MediaPlayer2.Identity
   DBusString getIdentity() {
-    // return DBusMethodSuccessResponse([DBusString(identity)]);
-    return DBusString(identity);
+    return const DBusString("Crossonic");
   }
 
   /// Gets value of property org.mpris.MediaPlayer2.DesktopEntry
   DBusString getDesktopEntry() {
-    return DBusString(identity);
+    return const DBusString("org.crossonic.app");
   }
 
   /// Gets value of property org.mpris.MediaPlayer2.SupportedUriSchemes

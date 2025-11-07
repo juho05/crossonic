@@ -78,13 +78,9 @@ class AudioServiceMpris extends AudioServicePlatform {
 
   @override
   Future<void> configure(ConfigureRequest request) async {
-    assert(request.config.androidNotificationChannelId != null,
-        "androidNotificationChannelId is required for registering DBus object. e.g com.ryanheise.myapp.channel.audio");
-
     _dBusClient = DBusClient.session();
-    _mpris = OrgMprisMediaPlayer2(
-        path: DBusObjectPath('/org/mpris/MediaPlayer2'),
-        identity: request.config.androidNotificationChannelName);
+    _mpris =
+        OrgMprisMediaPlayer2(path: DBusObjectPath('/org/mpris/MediaPlayer2'));
 
     _listenToControlStream();
     _listenToSeekStream();
@@ -94,7 +90,7 @@ class AudioServiceMpris extends AudioServicePlatform {
 
     await _dBusClient.registerObject(_mpris);
     await _dBusClient.requestName(
-        'org.mpris.MediaPlayer2.${request.config.androidNotificationChannelId}.instance$pid',
+        'org.mpris.MediaPlayer2.org.crossonic.app.instance$pid',
         flags: {DBusRequestNameFlag.doNotQueue});
   }
 
