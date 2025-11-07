@@ -13,8 +13,10 @@ abstract interface class MediaIntegration {
     required Future<void> Function() onPlayNext,
     required Future<void> Function() onPlayPrev,
     required Future<void> Function() onStop,
+    required Future<void> Function(double volume) onVolumeChanged,
   });
   void updateMedia(Song? song, Uri? coverArt);
   void updatePosition(Duration position);
   void updatePlaybackState(PlaybackStatus status);
+  void updateVolume(double volume);
 }

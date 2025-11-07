@@ -12,12 +12,18 @@ class SMTCIntegration implements MediaIntegration {
     required Future<void> Function() onPlayNext,
     required Future<void> Function() onPlayPrev,
     required Future<void> Function() onStop,
+    required Future<void> Function(double volume) onVolumeChanged,
   }) async {}
   @override
   void updateMedia(Song? song, Uri? coverArt) {}
   @override
   void updatePlaybackState(PlaybackStatus status) {}
   @override
-  void updatePosition(Duration position,
-      [Duration bufferedPosition = Duration.zero]) {}
+  void updatePosition(
+    Duration position, [
+    Duration bufferedPosition = Duration.zero,
+  ]) {}
+
+  @override
+  void updateVolume(double volume) {}
 }

@@ -75,10 +75,20 @@ class AudioHandler {
 
   double _volume = 1;
 
-  double get volume => _volume;
-  set volume(double volume) {
+  final BehaviorSubject<double> _volumeLinearStream = BehaviorSubject.seeded(1);
+  ValueStream<double> get volumeLinearStream => _volumeLinearStream.stream;
+
+  double get volumeLinear => _volume;
+  set volumeLinear(double volume) {
     _volume = volume;
     _applyReplayGain();
+    _volumeLinearStream.add(_volume);
+    _integration.updateVolume(volumeCubic);
+  }
+
+  double get volumeCubic => _volumeToCubic(_volume);
+  set volumeCubic(double volume) {
+    volumeLinear = _volumeToLinear(volume);
   }
 
   bool _ducking = false;
@@ -113,6 +123,7 @@ class AudioHandler {
           onPlayPrev: playPrev,
           onSeek: seek,
           onStop: stop,
+          onVolumeChanged: (volume) async => volumeCubic = volume,
         )
         .then((value) async {
           _integration.updateMedia(null, null);
@@ -732,6 +743,14 @@ class AudioHandler {
       Log.debug("deactivating audio session");
     }
     await _audioSession.setActive(enable);
+  }
+
+  double _volumeToLinear(double volume) {
+    return pow(volume, 3) as double;
+  }
+
+  double _volumeToCubic(double volume) {
+    return pow(volume, 1 / 3.0) as double;
   }
 
   // =============== dispose ===============

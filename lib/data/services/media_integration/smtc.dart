@@ -19,6 +19,7 @@ class SMTCIntegration implements MediaIntegration {
     required Future<void> Function() onPlayNext,
     required Future<void> Function() onPlayPrev,
     required Future<void> Function() onStop,
+    required Future<void> Function(double volume) onVolumeChanged,
   }) async {
     if (_initialized) return;
     _initialized = true;
@@ -27,16 +28,17 @@ class SMTCIntegration implements MediaIntegration {
     await smtc.SMTCWindows.initialize();
 
     _smtc = smtc.SMTCWindows(
-        enabled: true,
-        config: const smtc.SMTCConfig(
-          fastForwardEnabled: true,
-          nextEnabled: true,
-          pauseEnabled: true,
-          playEnabled: true,
-          rewindEnabled: true,
-          prevEnabled: true,
-          stopEnabled: true,
-        ));
+      enabled: true,
+      config: const smtc.SMTCConfig(
+        fastForwardEnabled: true,
+        nextEnabled: true,
+        pauseEnabled: true,
+        playEnabled: true,
+        rewindEnabled: true,
+        prevEnabled: true,
+        stopEnabled: true,
+      ),
+    );
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       _smtc.buttonPressStream.listen((event) async {
@@ -62,16 +64,19 @@ class SMTCIntegration implements MediaIntegration {
   @override
   void updateMedia(Song? song, Uri? coverArt) {
     Log.trace(
-        "setting SMTC media to song ${song?.id} with cover: ${SubsonicService.sanitizeUrl(coverArt)}");
+      "setting SMTC media to song ${song?.id} with cover: ${SubsonicService.sanitizeUrl(coverArt)}",
+    );
     if (song == null) {
       _smtc.clearMetadata();
     } else {
-      _smtc.updateMetadata(smtc.MusicMetadata(
-        album: song.album?.name,
-        artist: song.displayArtist,
-        thumbnail: coverArt?.toString(),
-        title: song.title,
-      ));
+      _smtc.updateMetadata(
+        smtc.MusicMetadata(
+          album: song.album?.name,
+          artist: song.displayArtist,
+          thumbnail: coverArt?.toString(),
+          title: song.title,
+        ),
+      );
     }
   }
 
@@ -91,8 +96,13 @@ class SMTCIntegration implements MediaIntegration {
   }
 
   @override
-  void updatePosition(Duration position,
-      [Duration bufferedPosition = Duration.zero]) {
+  void updatePosition(
+    Duration position, [
+    Duration bufferedPosition = Duration.zero,
+  ]) {
     // is displayed nowhere and causes bugs when called repeatedly
   }
+
+  @override
+  void updateVolume(double volume) {}
 }

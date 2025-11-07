@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:audio_service/audio_service.dart' as asv;
+import 'package:audio_service_mpris/audio_service_mpris.dart';
 import 'package:crossonic/data/repositories/audio/audio_handler.dart';
 import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/data/repositories/playlist/playlist_repository.dart';
@@ -22,12 +23,12 @@ class AudioServiceIntegration extends asv.BaseAudioHandler
   Future<void> Function()? _onPlayNext;
   Future<void> Function()? _onPlayPrev;
   Future<void> Function()? _onStop;
+  Future<void> Function(double volume)? _onVolumeChanged;
 
   AudioHandler? _audioHandler;
 
-  AudioServiceIntegration({
-    required PlaylistRepository playlistRepository,
-  }) : _playlistRepository = playlistRepository;
+  AudioServiceIntegration({required PlaylistRepository playlistRepository})
+    : _playlistRepository = playlistRepository;
 
   @override
   Future<void> ensureInitialized({
@@ -38,15 +39,18 @@ class AudioServiceIntegration extends asv.BaseAudioHandler
     required Future<void> Function() onPlayNext,
     required Future<void> Function() onPlayPrev,
     required Future<void> Function() onStop,
+    required Future<void> Function(double volume) onVolumeChanged,
   }) async {
     if (_audioHandler != null) return;
     _audioHandler = audioHandler;
     _audioHandler!.queue.looping.listen((loop) {
-      playbackState.add(playbackState.value.copyWith(
-        repeatMode: _audioHandler!.queue.looping.value
-            ? asv.AudioServiceRepeatMode.all
-            : asv.AudioServiceRepeatMode.none,
-      ));
+      playbackState.add(
+        playbackState.value.copyWith(
+          repeatMode: _audioHandler!.queue.looping.value
+              ? asv.AudioServiceRepeatMode.all
+              : asv.AudioServiceRepeatMode.none,
+        ),
+      );
     });
     _onPlay = onPlay;
     _onPause = onPause;
@@ -54,22 +58,26 @@ class AudioServiceIntegration extends asv.BaseAudioHandler
     _onPlayNext = onPlayNext;
     _onPlayPrev = onPlayPrev;
     _onStop = onStop;
+    _onVolumeChanged = onVolumeChanged;
   }
 
   @override
-  Future<List<asv.MediaItem>> getChildren(String parentMediaId,
-      [Map<String, dynamic>? options]) async {
+  Future<List<asv.MediaItem>> getChildren(
+    String parentMediaId, [
+    Map<String, dynamic>? options,
+  ]) async {
     Log.trace("Android Auto requested media children: $parentMediaId");
     if (parentMediaId == "root") {
       return [
         const asv.MediaItem(
-            id: "playlists",
-            title: "Playlists",
-            playable: false,
-            extras: {
-              // DESCRIPTION_EXTRAS_KEY_CONTENT_STYLE_BROWSABLE: DESCRIPTION_EXTRAS_VALUE_CONTENT_STYLE_GRID_ITEM
-              "android.media.browse.CONTENT_STYLE_BROWSABLE_HINT": 2,
-            })
+          id: "playlists",
+          title: "Playlists",
+          playable: false,
+          extras: {
+            // DESCRIPTION_EXTRAS_KEY_CONTENT_STYLE_BROWSABLE: DESCRIPTION_EXTRAS_VALUE_CONTENT_STYLE_GRID_ITEM
+            "android.media.browse.CONTENT_STYLE_BROWSABLE_HINT": 2,
+          },
+        ),
       ];
     }
     if (parentMediaId == "playlists") {
@@ -81,13 +89,15 @@ class AudioServiceIntegration extends asv.BaseAudioHandler
         case Ok():
       }
       return result.value
-          .map((p) => asv.MediaItem(
-                id: p.id,
-                title: p.name,
-                playable: false,
-                displayDescription: "Songs: ${p.songCount}",
-                artUri: _playlistRepository.getPlaylistCoverUri(p, size: 512),
-              ))
+          .map(
+            (p) => asv.MediaItem(
+              id: p.id,
+              title: p.name,
+              playable: false,
+              displayDescription: "Songs: ${p.songCount}",
+              artUri: _playlistRepository.getPlaylistCoverUri(p, size: 512),
+            ),
+          )
           .toList();
     }
     return [
@@ -105,8 +115,10 @@ class AudioServiceIntegration extends asv.BaseAudioHandler
   }
 
   @override
-  Future<void> playFromMediaId(String mediaId,
-      [Map<String, dynamic>? extras]) async {
+  Future<void> playFromMediaId(
+    String mediaId, [
+    Map<String, dynamic>? extras,
+  ]) async {
     Log.debug("Android Auto requested to play media by id: $mediaId");
     if (mediaId.startsWith("playlist;")) {
       final parts = mediaId.split(";");
@@ -132,15 +144,18 @@ class AudioServiceIntegration extends asv.BaseAudioHandler
   @override
   Future<void> play() async {
     Log.debug(
-        "audio_service received play action, current status: ${_audioHandler!.playbackStatus.value.name}");
+      "audio_service received play action, current status: ${_audioHandler!.playbackStatus.value.name}",
+    );
     if (_audioHandler!.playbackStatus.value == PlaybackStatus.stopped) {
-      playbackState.add(playbackState.value.copyWith(
-        controls: [],
-        systemActions: {},
-        androidCompactActionIndices: [],
-        processingState: asv.AudioProcessingState.idle,
-        playing: false,
-      ));
+      playbackState.add(
+        playbackState.value.copyWith(
+          controls: [],
+          systemActions: {},
+          androidCompactActionIndices: [],
+          processingState: asv.AudioProcessingState.idle,
+          playing: false,
+        ),
+      );
       return;
     }
     return _onPlay!();
@@ -149,7 +164,8 @@ class AudioServiceIntegration extends asv.BaseAudioHandler
   @override
   Future<void> pause() async {
     Log.debug(
-        "audio_service received pause action, current status: ${_audioHandler!.playbackStatus.value.name}");
+      "audio_service received pause action, current status: ${_audioHandler!.playbackStatus.value.name}",
+    );
     await _onPause!();
   }
 
@@ -180,60 +196,67 @@ class AudioServiceIntegration extends asv.BaseAudioHandler
   @override
   void updateMedia(Song? song, Uri? coverArt) {
     Log.trace(
-        "setting audio_service media to song ${song?.id} with cover: ${SubsonicService.sanitizeUrl(coverArt)}");
+      "setting audio_service media to song ${song?.id} with cover: ${SubsonicService.sanitizeUrl(coverArt)}",
+    );
     if (song == null) {
       if (!kIsWeb && Platform.isAndroid) {
         mediaItem.add(const asv.MediaItem(id: "", title: "No media"));
       } else {
         mediaItem.add(null);
       }
-      playbackState.add(playbackState.value.copyWith(
-        controls: [],
-        systemActions: {},
-        androidCompactActionIndices: [],
-        processingState: asv.AudioProcessingState.idle,
-        playing: false,
-      ));
+      playbackState.add(
+        playbackState.value.copyWith(
+          controls: [],
+          systemActions: {},
+          androidCompactActionIndices: [],
+          processingState: asv.AudioProcessingState.idle,
+          playing: false,
+        ),
+      );
       _positionTimer?.cancel();
       _positionTimer = null;
     } else {
       if (playbackState.value.controls.isEmpty) {
-        playbackState.add(playbackState.value.copyWith(
-          controls: [
-            asv.MediaControl.pause,
-            asv.MediaControl.play,
-            asv.MediaControl.skipToNext,
-            asv.MediaControl.skipToPrevious,
-            asv.MediaControl.stop,
-          ],
-          systemActions: {
-            asv.MediaAction.pause,
-            asv.MediaAction.play,
-            asv.MediaAction.playPause,
-            asv.MediaAction.seek,
-            asv.MediaAction.seekForward,
-            asv.MediaAction.seekBackward,
-            asv.MediaAction.skipToNext,
-            asv.MediaAction.skipToPrevious,
-            asv.MediaAction.stop,
-            asv.MediaAction.setRepeatMode,
-          },
-          androidCompactActionIndices: [0, 1],
-          repeatMode: _audioHandler!.queue.looping.value
-              ? asv.AudioServiceRepeatMode.all
-              : asv.AudioServiceRepeatMode.none,
-        ));
+        playbackState.add(
+          playbackState.value.copyWith(
+            controls: [
+              asv.MediaControl.pause,
+              asv.MediaControl.play,
+              asv.MediaControl.skipToNext,
+              asv.MediaControl.skipToPrevious,
+              asv.MediaControl.stop,
+            ],
+            systemActions: {
+              asv.MediaAction.pause,
+              asv.MediaAction.play,
+              asv.MediaAction.playPause,
+              asv.MediaAction.seek,
+              asv.MediaAction.seekForward,
+              asv.MediaAction.seekBackward,
+              asv.MediaAction.skipToNext,
+              asv.MediaAction.skipToPrevious,
+              asv.MediaAction.stop,
+              asv.MediaAction.setRepeatMode,
+            },
+            androidCompactActionIndices: [0, 1],
+            repeatMode: _audioHandler!.queue.looping.value
+                ? asv.AudioServiceRepeatMode.all
+                : asv.AudioServiceRepeatMode.none,
+          ),
+        );
       }
-      mediaItem.add(asv.MediaItem(
-        id: song.id,
-        title: song.title,
-        album: song.album?.name,
-        artUri: coverArt,
-        artist: song.displayArtist,
-        duration: song.duration,
-        genre: song.genres.firstOrNull,
-        playable: true,
-      ));
+      mediaItem.add(
+        asv.MediaItem(
+          id: song.id,
+          title: song.title,
+          album: song.album?.name,
+          artUri: coverArt,
+          artist: song.displayArtist,
+          duration: song.duration,
+          genre: song.genres.firstOrNull,
+          playable: true,
+        ),
+      );
     }
   }
 
@@ -245,29 +268,44 @@ class AudioServiceIntegration extends asv.BaseAudioHandler
     Log.trace("setting audio_service playback state to ${status.name}");
     switch (status) {
       case PlaybackStatus.playing:
-        playbackState.add(playbackState.value.copyWith(
+        playbackState.add(
+          playbackState.value.copyWith(
             playing: true,
             processingState: asv.AudioProcessingState.ready,
-            updatePosition: _calculatePosition()));
+            updatePosition: _calculatePosition(),
+          ),
+        );
       case PlaybackStatus.paused:
-        playbackState.add(playbackState.value.copyWith(
+        playbackState.add(
+          playbackState.value.copyWith(
             playing: false,
             processingState: asv.AudioProcessingState.ready,
-            updatePosition: _calculatePosition()));
+            updatePosition: _calculatePosition(),
+          ),
+        );
       case PlaybackStatus.loading:
-        playbackState.add(playbackState.value.copyWith(
+        playbackState.add(
+          playbackState.value.copyWith(
             playing: false,
             processingState: asv.AudioProcessingState.loading,
-            updatePosition: _calculatePosition()));
+            updatePosition: _calculatePosition(),
+          ),
+        );
       case PlaybackStatus.stopped:
-        playbackState.add(playbackState.value.copyWith(
-            playing: false, processingState: asv.AudioProcessingState.idle));
+        playbackState.add(
+          playbackState.value.copyWith(
+            playing: false,
+            processingState: asv.AudioProcessingState.idle,
+          ),
+        );
     }
 
     // TODO test whether periodic updates are unnecessary on other platforms
     if ((kIsWeb || !Platform.isAndroid) && status == PlaybackStatus.playing) {
-      _positionTimer ??=
-          Timer.periodic(const Duration(seconds: 1), (_) => _updatePosition());
+      _positionTimer ??= Timer.periodic(
+        const Duration(seconds: 1),
+        (_) => _updatePosition(),
+      );
     } else {
       _positionTimer?.cancel();
       _positionTimer = null;
@@ -281,10 +319,18 @@ class AudioServiceIntegration extends asv.BaseAudioHandler
     _updatePosition();
   }
 
+  @override
+  Future<void> customAction(String name, [Map<String, dynamic>? extras]) async {
+    if (name == "dbusVolume") {
+      double v = extras!["value"] as double;
+      _onVolumeChanged!(v);
+    }
+  }
+
   void _updatePosition() {
-    playbackState.add(playbackState.value.copyWith(
-      updatePosition: _calculatePosition(),
-    ));
+    playbackState.add(
+      playbackState.value.copyWith(updatePosition: _calculatePosition()),
+    );
   }
 
   Duration _calculatePosition() {
@@ -299,7 +345,14 @@ class AudioServiceIntegration extends asv.BaseAudioHandler
   Future<void> setRepeatMode(asv.AudioServiceRepeatMode repeatMode) async {
     final loop = repeatMode != asv.AudioServiceRepeatMode.none;
     Log.trace(
-        "received audio_service repeat mode ${repeatMode.name}, setting loop to $loop");
+      "received audio_service repeat mode ${repeatMode.name}, setting loop to $loop",
+    );
     _audioHandler!.queue.setLoop(loop);
+  }
+
+  @override
+  void updateVolume(double volume) {
+    if (kIsWeb || !Platform.isLinux) return;
+    AudioServiceMpris.updateVolume(volume);
   }
 }

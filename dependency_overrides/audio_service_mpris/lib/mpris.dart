@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:developer';
+import 'dart:developer' as dev;
 
 import 'package:dbus/dbus.dart';
 
@@ -116,6 +116,16 @@ class OrgMprisMediaPlayer2 extends DBusObject {
     );
   }
 
+  double _volume = 1.0;
+  set volume(double volume) {
+    if (volume == _volume) return;
+    _volume = volume;
+    emitPropertiesChanged(
+      "org.mpris.MediaPlayer2.Player",
+      changedProperties: {"Volume": getVolume()},
+    );
+  }
+
   /// Gets value of property org.mpris.MediaPlayer2.Player.PlaybackStatus
   DBusString _getPlaybackStatus() {
     return DBusString(_playbackState);
@@ -139,7 +149,7 @@ class OrgMprisMediaPlayer2 extends DBusObject {
 
   /// Sets property org.mpris.MediaPlayer2.Player.Rate
   Future<DBusMethodResponse> setRate(double value) async {
-    log('Set org.mpris.MediaPlayer2.Player.Rate not implemented',
+    dev.log('Set org.mpris.MediaPlayer2.Player.Rate not implemented',
         name: 'audio_service_mpris');
     return DBusMethodSuccessResponse([]);
   }
@@ -164,14 +174,12 @@ class OrgMprisMediaPlayer2 extends DBusObject {
 
   /// Gets value of property org.mpris.MediaPlayer2.Player.Volume
   DBusDouble getVolume() {
-    log('Get org.mpris.MediaPlayer2.Player.Volume not implemented',
-        name: 'audio_service_mpris');
-    return const DBusDouble(1.0);
+    return DBusDouble(_volume);
   }
 
   /// Sets property org.mpris.MediaPlayer2.Player.Volume
   Future<DBusMethodResponse> setVolume(double value) async {
-    _volumeStreamController.add(value);
+    _volumeStreamController.add(value.clamp(0, 1));
     return DBusMethodSuccessResponse([]);
   }
 

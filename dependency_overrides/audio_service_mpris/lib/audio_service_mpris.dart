@@ -8,6 +8,11 @@ import 'metadata.dart';
 import 'mpris.dart';
 
 class AudioServiceMpris extends AudioServicePlatform {
+  static void updateVolume(double volume) {
+    if (AudioServicePlatform.instance is! AudioServiceMpris) return;
+    (AudioServicePlatform.instance as AudioServiceMpris)._mpris.volume = volume;
+  }
+
   late final DBusClient _dBusClient;
   late final OrgMprisMediaPlayer2 _mpris;
   AudioHandlerCallbacks? _handlerCallbacks;

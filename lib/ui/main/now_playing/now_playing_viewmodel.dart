@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math';
 
 import 'package:crossonic/data/repositories/audio/audio_handler.dart';
 import 'package:crossonic/data/repositories/subsonic/favorites_repository.dart';
@@ -15,10 +14,13 @@ class NowPlayingViewModel extends ChangeNotifier {
   late final StreamSubscription _currentSongSubscription;
   late final StreamSubscription _playbackStatusSubscription;
   late final StreamSubscription _loopSubscription;
+  late final StreamSubscription _volumeSubscription;
 
   final BehaviorSubject<({Duration position, Duration? bufferedPosition})>
-      _position =
-      BehaviorSubject.seeded((position: Duration.zero, bufferedPosition: null));
+  _position = BehaviorSubject.seeded((
+    position: Duration.zero,
+    bufferedPosition: null,
+  ));
   ValueStream<({Duration position, Duration? bufferedPosition})> get position =>
       _position.stream;
 
@@ -47,9 +49,7 @@ class NowPlayingViewModel extends ChangeNotifier {
   set volume(double volume) {
     _volumeThrottle ??= Throttle1(
       action: (volume) {
-        _audioHandler.volume = _volumeFromLinear(volume);
-        _volume = _volumeToLinear(_audioHandler.volume);
-        notifyListeners();
+        _audioHandler.volumeCubic = volume;
       },
       delay: const Duration(milliseconds: 100),
       leading: true,
@@ -63,23 +63,30 @@ class NowPlayingViewModel extends ChangeNotifier {
   NowPlayingViewModel({
     required FavoritesRepository favoritesRepository,
     required AudioHandler audioHandler,
-  })  : _favoritesRepository = favoritesRepository,
-        _audioHandler = audioHandler,
-        _volume = audioHandler.volume {
+  }) : _favoritesRepository = favoritesRepository,
+       _audioHandler = audioHandler,
+       _volume = audioHandler.volumeLinear {
     _favoritesRepository.addListener(_onFavoriteChanged);
-    _currentSongSubscription =
-        _audioHandler.queue.current.listen(_onSongChanged);
-    _playbackStatusSubscription =
-        _audioHandler.playbackStatus.listen(_onStatusChanged);
-    _loopSubscription = _audioHandler.queue.looping.listen(
-      (loop) {
-        _loop = loop;
-        notifyListeners();
-      },
+    _currentSongSubscription = _audioHandler.queue.current.listen(
+      _onSongChanged,
     );
+    _playbackStatusSubscription = _audioHandler.playbackStatus.listen(
+      _onStatusChanged,
+    );
+    _loopSubscription = _audioHandler.queue.looping.listen((loop) {
+      _loop = loop;
+      notifyListeners();
+    });
+    _volumeSubscription = _audioHandler.volumeLinearStream.listen((_) {
+      _volume = _audioHandler.volumeCubic;
+      notifyListeners();
+    });
+
     _onSongChanged(song);
     _onStatusChanged(_audioHandler.playbackStatus.value);
     _loop = _audioHandler.queue.looping.value;
+    _volume = _audioHandler.volumeCubic;
+    notifyListeners();
   }
 
   void toggleLoop() async {
@@ -89,7 +96,10 @@ class NowPlayingViewModel extends ChangeNotifier {
   Future<Result<void>> toggleFavorite() async {
     if (_song == null) return const Result.ok(null);
     return await _favoritesRepository.setFavorite(
-        FavoriteType.song, _song!.id, !favorite);
+      FavoriteType.song,
+      _song!.id,
+      !favorite,
+    );
   }
 
   Future<void> playPause() async {
@@ -126,11 +136,13 @@ class NowPlayingViewModel extends ChangeNotifier {
     notifyListeners();
     if (status == PlaybackStatus.playing) {
       _positionTimer ??= Timer.periodic(
-          const Duration(milliseconds: 50), (_) => _updatePosition());
+        const Duration(milliseconds: 50),
+        (_) => _updatePosition(),
+      );
       _bufferedPositionTimer ??= Timer.periodic(
-          const Duration(milliseconds: 500),
-          (_) async =>
-              _bufferedPosition = await _audioHandler.bufferedPosition);
+        const Duration(milliseconds: 500),
+        (_) async => _bufferedPosition = await _audioHandler.bufferedPosition,
+      );
     } else {
       _positionTimer?.cancel();
       _positionTimer = null;
@@ -155,7 +167,7 @@ class NowPlayingViewModel extends ChangeNotifier {
   void _updatePosition() async {
     _position.add((
       position: _audioHandler.position,
-      bufferedPosition: _bufferedPosition
+      bufferedPosition: _bufferedPosition,
     ));
   }
 
@@ -170,19 +182,12 @@ class NowPlayingViewModel extends ChangeNotifier {
   @override
   Future<void> dispose() async {
     _favoritesRepository.removeListener(_onFavoriteChanged);
+    await _volumeSubscription.cancel();
     await _loopSubscription.cancel();
     await _currentSongSubscription.cancel();
     await _playbackStatusSubscription.cancel();
     _positionTimer?.cancel();
     _bufferedPositionTimer?.cancel();
     super.dispose();
-  }
-
-  double _volumeToLinear(double volume) {
-    return pow(volume, 1.0 / 3) as double;
-  }
-
-  double _volumeFromLinear(double volume) {
-    return pow(volume, 3) as double;
   }
 }
