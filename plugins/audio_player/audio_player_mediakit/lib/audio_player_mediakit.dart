@@ -46,7 +46,7 @@ class AudioPlayerMediaKit extends AudioPlayerPlatform {
   ValueStream<Duration> get restartPlayback => _restartPlayback.stream;
 
   @override
-  Future<void> pause() => _player!.pause();
+  Future<void> pause() async => await _player?.pause();
 
   @override
   Future<void> play() => _player!.play();
