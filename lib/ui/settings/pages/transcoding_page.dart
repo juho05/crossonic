@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:crossonic/data/repositories/settings/transcoding.dart';
 import 'package:crossonic/ui/common/buttons.dart';
+import 'package:crossonic/ui/common/section_header.dart';
 import 'package:crossonic/ui/settings/pages/transcoding_viewmodel.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -32,9 +33,7 @@ class _TranscodingPageState extends State<TranscodingPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Transcoding"),
-      ),
+      appBar: AppBar(title: const Text("Transcoding")),
       body: ListenableBuilder(
         listenable: _viewModel,
         builder: (context, _) {
@@ -44,6 +43,11 @@ class _TranscodingPageState extends State<TranscodingPage> {
               spacing: 15,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                if (_viewModel.supportsMobile)
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 4),
+                    child: SectionHeader(text: "Wi-Fi"),
+                  ),
                 DropdownMenu<TranscodingCodec>(
                   onSelected: (value) {
                     if (value == null) return;
@@ -55,17 +59,18 @@ class _TranscodingPageState extends State<TranscodingPage> {
                   enableSearch: false,
                   label: const Text("Format"),
                   dropdownMenuEntries: _viewModel.availableCodecs
-                      .map((codec) => DropdownMenuEntry(
-                            label: switch (codec) {
-                              TranscodingCodec.serverDefault =>
-                                "Server default",
-                              TranscodingCodec.raw => "Original",
-                              TranscodingCodec.mp3 => "MP3",
-                              TranscodingCodec.opus => "OGG/Opus",
-                              TranscodingCodec.vorbis => "OGG/Vorbis",
-                            },
-                            value: codec,
-                          ))
+                      .map(
+                        (codec) => DropdownMenuEntry(
+                          label: switch (codec) {
+                            TranscodingCodec.serverDefault => "Server default",
+                            TranscodingCodec.raw => "Original",
+                            TranscodingCodec.mp3 => "MP3",
+                            TranscodingCodec.opus => "OGG/Opus",
+                            TranscodingCodec.vorbis => "OGG/Vorbis",
+                          },
+                          value: codec,
+                        ),
+                      )
                       .toList(),
                 ),
                 if (_viewModel.codec != TranscodingCodec.raw)
@@ -80,13 +85,19 @@ class _TranscodingPageState extends State<TranscodingPage> {
                     enableSearch: false,
                     label: const Text("Bitrate"),
                     dropdownMenuEntries: (_viewModel.codec.validBitRates)
-                        .map((option) => DropdownMenuEntry(
-                              value: option,
-                              label: '$option kbps',
-                            ))
+                        .map(
+                          (option) => DropdownMenuEntry(
+                            value: option,
+                            label: '$option kbps',
+                          ),
+                        )
                         .toList(),
                   ),
-                if (_viewModel.supportsMobile) const SizedBox(height: 15),
+                if (_viewModel.supportsMobile)
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 4),
+                    child: SectionHeader(text: "Cellular"),
+                  ),
                 if (_viewModel.supportsMobile)
                   DropdownMenu<TranscodingCodec>(
                     onSelected: (value) {
@@ -97,19 +108,21 @@ class _TranscodingPageState extends State<TranscodingPage> {
                     initialSelection: _viewModel.codecMobile,
                     requestFocusOnTap: false,
                     enableSearch: false,
-                    label: const Text("Format (mobile)"),
+                    label: const Text("Format"),
                     dropdownMenuEntries: _viewModel.availableCodecs
-                        .map((codec) => DropdownMenuEntry(
-                              label: switch (codec) {
-                                TranscodingCodec.serverDefault =>
-                                  "Server default",
-                                TranscodingCodec.raw => "Original",
-                                TranscodingCodec.mp3 => "MP3",
-                                TranscodingCodec.opus => "OGG/Opus",
-                                TranscodingCodec.vorbis => "OGG/Vorbis",
-                              },
-                              value: codec,
-                            ))
+                        .map(
+                          (codec) => DropdownMenuEntry(
+                            label: switch (codec) {
+                              TranscodingCodec.serverDefault =>
+                                "Server default",
+                              TranscodingCodec.raw => "Original",
+                              TranscodingCodec.mp3 => "MP3",
+                              TranscodingCodec.opus => "OGG/Opus",
+                              TranscodingCodec.vorbis => "OGG/Vorbis",
+                            },
+                            value: codec,
+                          ),
+                        )
                         .toList(),
                   ),
                 if (_viewModel.supportsMobile &&
@@ -123,12 +136,14 @@ class _TranscodingPageState extends State<TranscodingPage> {
                     initialSelection: _viewModel.maxBitRateMobile,
                     requestFocusOnTap: false,
                     enableSearch: false,
-                    label: const Text("Bitrate (mobile)"),
+                    label: const Text("Bitrate"),
                     dropdownMenuEntries: _viewModel.codecMobile.validBitRates
-                        .map((option) => DropdownMenuEntry(
-                              value: option,
-                              label: '$option kbps',
-                            ))
+                        .map(
+                          (option) => DropdownMenuEntry(
+                            value: option,
+                            label: '$option kbps',
+                          ),
+                        )
                         .toList(),
                   ),
                 if (kIsWeb &&
@@ -142,14 +157,16 @@ class _TranscodingPageState extends State<TranscodingPage> {
                       Text(
                         "WARNING: Some browsers (e.g. Safari) don't properly support playback of streamed transcoded media or might not support the chosen codec at all.",
                         style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                            color: const Color.fromARGB(255, 244, 163, 0),
-                            fontSize: 13),
+                          color: const Color.fromARGB(255, 244, 163, 0),
+                          fontSize: 13,
+                        ),
                       ),
                       Text(
-                        "If you notice playback bugs like music suddenly stopping or not transitioning properly to the next song, consider changing the format back to 'Original'.",
+                        "If you notice playback issues like music suddenly stopping or not transitioning properly to the next song, consider changing the format back to 'Original'.",
                         style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                            color: const Color.fromARGB(255, 244, 163, 0),
-                            fontSize: 13),
+                          color: const Color.fromARGB(255, 244, 163, 0),
+                          fontSize: 13,
+                        ),
                       ),
                     ],
                   ),
@@ -162,10 +179,11 @@ class _TranscodingPageState extends State<TranscodingPage> {
                     spacing: 3,
                     children: [
                       Text(
-                        "WARNING: MP3 does not support gapless playback properly. Consider changing the format to OGG/Opus or OGG/Vorbis.",
+                        "WARNING: MP3 does not support gapless playback properly. Consider changing the format to OGG/Opus.",
                         style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                            color: const Color.fromARGB(255, 244, 163, 0),
-                            fontSize: 14),
+                          color: const Color.fromARGB(255, 244, 163, 0),
+                          fontSize: 14,
+                        ),
                       ),
                     ],
                   ),
@@ -176,7 +194,7 @@ class _TranscodingPageState extends State<TranscodingPage> {
                   icon: Icons.settings_backup_restore,
                   outlined: true,
                   child: const Text("Reset"),
-                )
+                ),
               ],
             ),
           );

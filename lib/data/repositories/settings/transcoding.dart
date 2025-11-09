@@ -72,17 +72,18 @@ class TranscodingSettings extends ChangeNotifier {
   TranscodingSettings({
     required KeyValueRepository keyValueRepository,
     required SubsonicRepository subsonicRepository,
-  })  : _repo = keyValueRepository,
-        _subsonic = subsonicRepository;
+  }) : _repo = keyValueRepository,
+       _subsonic = subsonicRepository;
 
   Future<(TranscodingCodec, int)> activeTranscoding() async {
     final connectivity = await Connectivity().checkConnectivity();
-    final isMobile = _supportsMobile &&
+    final isMobile =
+        _supportsMobile &&
         !connectivity.contains(ConnectivityResult.wifi) &&
         !connectivity.contains(ConnectivityResult.ethernet);
     return (
       isMobile ? _codecMobile : _codec,
-      isMobile ? _maxBitRateMobile : _maxBitRate
+      isMobile ? _maxBitRateMobile : _maxBitRate,
     );
   }
 
@@ -92,17 +93,23 @@ class TranscodingSettings extends ChangeNotifier {
         !kIsWeb && (Platform.isAndroid || Platform.isIOS || Platform.isMacOS);
 
     if (_supportsMobile) {
-      _connectivitySubscription =
-          Connectivity().onConnectivityChanged.listen((event) {
+      _connectivitySubscription = Connectivity().onConnectivityChanged.listen((
+        event,
+      ) {
         Log.debug(
-            "connectivity changed: ${event.map((c) => c.name).join(", ")}");
-        notifyListeners();
+          "connectivity changed: ${event.map((c) => c.name).join(", ")}",
+        );
+        if (_codec != _codecMobile || _maxBitRate != _maxBitRateMobile) {
+          notifyListeners();
+        }
       });
     }
-    _codec = TranscodingCodec.values
-        .byName((await _repo.loadString(_codecKey)) ?? _codecDefault.name);
+    _codec = TranscodingCodec.values.byName(
+      (await _repo.loadString(_codecKey)) ?? _codecDefault.name,
+    );
     _codecMobile = TranscodingCodec.values.byName(
-        (await _repo.loadString(_codecMobileKey)) ?? _codecMobileDefault.name);
+      (await _repo.loadString(_codecMobileKey)) ?? _codecMobileDefault.name,
+    );
 
     _maxBitRate = await _repo.loadInt(_maxBitRateKey) ?? _maxBitRateDefault;
     _maxBitRateMobile =
