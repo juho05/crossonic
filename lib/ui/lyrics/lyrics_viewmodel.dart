@@ -48,11 +48,17 @@ class LyricsViewModel extends ChangeNotifier {
     required AudioHandler audioHandler,
   }) : _subsonic = subsonic,
        _audioHandler = audioHandler {
-    _currentSubscription = _audioHandler.queue.current.listen((current) {
-      _currentSong = current;
-      _fetch();
-    });
+    _currentSubscription = _audioHandler.queue.current.listen(
+      _onCurrentChanged,
+    );
     _statusSubscription = _audioHandler.playbackStatus.listen(_onStatusChanged);
+
+    _onCurrentChanged(_audioHandler.queue.current.value);
+  }
+
+  void _onCurrentChanged(Song? current) {
+    _currentSong = current;
+    _fetch();
   }
 
   Future<void> _fetch() async {
