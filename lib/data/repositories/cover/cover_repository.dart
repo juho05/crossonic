@@ -10,6 +10,7 @@ import 'package:crossonic/data/services/database/database.dart';
 import 'package:drift/drift.dart';
 import 'package:file/local.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/file.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:path/path.dart' as path;
@@ -85,6 +86,7 @@ class CoverRepository extends BaseCacheManager {
     if (await cacheDir.exists()) {
       await cacheDir.delete(recursive: true);
     }
+    imageCache.clear();
   }
 
   @override

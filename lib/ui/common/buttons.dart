@@ -2,17 +2,21 @@ import 'package:flutter/material.dart';
 
 class SubmitButton extends StatelessWidget {
   final void Function()? onPressed;
+  final bool enabled;
   final Widget child;
 
-  const SubmitButton({super.key, this.onPressed, required this.child});
+  const SubmitButton({
+    super.key,
+    this.onPressed,
+    this.enabled = true,
+    required this.child,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Button(
-      onPressed: onPressed,
-      style: FilledButton.styleFrom(
-        fixedSize: const Size.fromHeight(42),
-      ),
+      onPressed: enabled ? onPressed : null,
+      style: FilledButton.styleFrom(fixedSize: const Size.fromHeight(42)),
       darkTonal: true,
       child: child,
     );
@@ -27,6 +31,7 @@ class Button extends StatelessWidget {
   final bool darkTonal;
   final Widget child;
   final Color? color;
+  final bool enabled;
 
   const Button({
     super.key,
@@ -36,33 +41,31 @@ class Button extends StatelessWidget {
     this.style,
     this.darkTonal = false,
     this.color,
+    this.enabled = true,
     required this.child,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final callback = enabled ? onPressed : null;
     return Theme(
       data: theme.copyWith(
-        buttonTheme: theme.buttonTheme.copyWith(
-          buttonColor: color,
-        ),
+        buttonTheme: theme.buttonTheme.copyWith(buttonColor: color),
         outlinedButtonTheme: OutlinedButtonThemeData(
           style: OutlinedButton.styleFrom(
             side: color != null ? BorderSide(color: color!) : null,
           ),
         ),
         filledButtonTheme: FilledButtonThemeData(
-          style: FilledButton.styleFrom(
-            backgroundColor: color,
-          ),
+          style: FilledButton.styleFrom(backgroundColor: color),
         ),
       ),
       child: Builder(
         builder: (context) {
           if (outlined) {
             return OutlinedButton.icon(
-              onPressed: onPressed,
+              onPressed: callback,
               style: style,
               icon: icon != null ? Icon(icon, color: color) : null,
               label: child,
@@ -70,7 +73,7 @@ class Button extends StatelessWidget {
           }
           return theme.brightness == Brightness.dark && darkTonal
               ? FilledButton.tonalIcon(
-                  onPressed: onPressed,
+                  onPressed: callback,
                   style: style,
                   icon: icon != null
                       ? Icon(icon, color: color != null ? Colors.white : null)
@@ -78,7 +81,7 @@ class Button extends StatelessWidget {
                   label: child,
                 )
               : FilledButton.icon(
-                  onPressed: onPressed,
+                  onPressed: callback,
                   style: style,
                   icon: icon != null
                       ? Icon(icon, color: color != null ? Colors.white : null)

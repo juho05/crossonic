@@ -122,7 +122,16 @@ class AudioHandler {
           onPlayNext: playNext,
           onPlayPrev: playPrev,
           onSeek: seek,
-          onStop: stop,
+          onStop: () async {
+            if (_settings.workarounds.stopIsPause) {
+              Log.warn(
+                "Received a stop command but treating it as pause because stopIsPause workaround is active.",
+              );
+              await pause();
+              return;
+            }
+            await stop();
+          },
           onVolumeChanged: (volume) async => volumeCubic = volume,
         )
         .then((value) async {

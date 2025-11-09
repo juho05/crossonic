@@ -6,6 +6,7 @@ import 'package:crossonic/data/repositories/settings/home_page_layout.dart';
 import 'package:crossonic/data/repositories/settings/logging.dart';
 import 'package:crossonic/data/repositories/settings/replay_gain.dart';
 import 'package:crossonic/data/repositories/settings/transcoding.dart';
+import 'package:crossonic/data/repositories/settings/workarounds.dart';
 import 'package:crossonic/data/repositories/subsonic/subsonic_repository.dart';
 
 class SettingsRepository {
@@ -14,27 +15,25 @@ class SettingsRepository {
   final TranscodingSettings transcoding;
   final HomeLayoutSettings homeLayout;
   final AppearanceSettings appearanceSettings;
+  final WorkaroundSettings workarounds;
 
   SettingsRepository({
     required AuthRepository authRepository,
     required KeyValueRepository keyValueRepository,
     required SubsonicRepository subsonic,
-  })  : logging = LoggingSettings(
-          keyValueRepository: keyValueRepository,
-        ),
-        replayGain = ReplayGainSettings(
-          keyValueRepository: keyValueRepository,
-        ),
-        transcoding = TranscodingSettings(
-          keyValueRepository: keyValueRepository,
-          subsonicRepository: subsonic,
-        ),
-        homeLayout = HomeLayoutSettings(
-          keyValueRepository: keyValueRepository,
-        ),
-        appearanceSettings = AppearanceSettings(
-          keyValueRepository: keyValueRepository,
-        ) {
+  }) : logging = LoggingSettings(keyValueRepository: keyValueRepository),
+       replayGain = ReplayGainSettings(keyValueRepository: keyValueRepository),
+       transcoding = TranscodingSettings(
+         keyValueRepository: keyValueRepository,
+         subsonicRepository: subsonic,
+       ),
+       homeLayout = HomeLayoutSettings(keyValueRepository: keyValueRepository),
+       appearanceSettings = AppearanceSettings(
+         keyValueRepository: keyValueRepository,
+       ),
+       workarounds = WorkaroundSettings(
+         keyValueRepository: keyValueRepository,
+       ) {
     bool wasAuthenticated = authRepository.isAuthenticated;
     if (authRepository.isAuthenticated) {
       load();
@@ -58,6 +57,7 @@ class SettingsRepository {
       transcoding.load(),
       homeLayout.load(),
       appearanceSettings.load(),
+      workarounds.load(),
     ]);
   }
 
@@ -66,6 +66,7 @@ class SettingsRepository {
     transcoding.dispose();
     homeLayout.dispose();
     appearanceSettings.dispose();
+    workarounds.dispose();
     logging.dispose();
   }
 }

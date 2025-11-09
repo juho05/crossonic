@@ -5,8 +5,8 @@ import 'package:crossonic/data/repositories/auth/auth_repository.dart';
 import 'package:crossonic/integrate_appimage.dart';
 import 'package:crossonic/routing/router.gr.dart';
 import 'package:crossonic/ui/auth/connect_server/connect_server_viewmodel.dart';
-import 'package:crossonic/ui/common/adaptive_dialog_action.dart';
 import 'package:crossonic/ui/common/buttons.dart';
+import 'package:crossonic/ui/common/help_button.dart';
 import 'package:crossonic/ui/common/toast.dart';
 import 'package:crossonic/utils/result.dart';
 import 'package:flutter/material.dart';
@@ -17,9 +17,7 @@ import 'package:provider/provider.dart';
 
 @RoutePage()
 class ConnectServerPage extends StatefulWidget {
-  const ConnectServerPage({
-    super.key,
-  });
+  const ConnectServerPage({super.key});
 
   @override
   State<ConnectServerPage> createState() => _ConnectServerPageState();
@@ -33,8 +31,9 @@ class _ConnectServerPageState extends State<ConnectServerPage> {
   @override
   void initState() {
     super.initState();
-    viewModel =
-        ConnectServerViewModel(authRepository: context.read<AuthRepository>());
+    viewModel = ConnectServerViewModel(
+      authRepository: context.read<AuthRepository>(),
+    );
     viewModel.connect.addListener(_onResult);
   }
 
@@ -57,14 +56,15 @@ class _ConnectServerPageState extends State<ConnectServerPage> {
               onPressed: () {
                 context.router.push(const DebugRoute());
               },
-            )
+            ),
           ],
         ),
         body: SafeArea(
           child: ListenableBuilder(
-              listenable: viewModel,
-              builder: (context, _) {
-                return LayoutBuilder(builder: (context, constraints) {
+            listenable: viewModel,
+            builder: (context, _) {
+              return LayoutBuilder(
+                builder: (context, constraints) {
                   final cardMode =
                       constraints.maxWidth > 800 && constraints.maxHeight > 570;
                   final currentServerUri =
@@ -82,9 +82,7 @@ class _ConnectServerPageState extends State<ConnectServerPage> {
                   return FormBuilder(
                     key: _formKey,
                     autovalidateMode: AutovalidateMode.onUserInteraction,
-                    initialValue: {
-                      "serverUri": viewModel.serverUrl,
-                    },
+                    initialValue: {"serverUri": viewModel.serverUrl},
                     child: Center(
                       child: Padding(
                         padding: EdgeInsets.all(cardMode ? 8.0 : 0),
@@ -97,8 +95,8 @@ class _ConnectServerPageState extends State<ConnectServerPage> {
                             child: Material(
                               color: cardMode
                                   ? theme.brightness == Brightness.dark
-                                      ? theme.colorScheme.surfaceContainerLow
-                                      : theme.colorScheme.surfaceContainer
+                                        ? theme.colorScheme.surfaceContainerLow
+                                        : theme.colorScheme.surfaceContainer
                                   : null,
                               child: Padding(
                                 padding: cardMode
@@ -106,7 +104,8 @@ class _ConnectServerPageState extends State<ConnectServerPage> {
                                         vertical: constraints.maxHeight < 625
                                             ? 12
                                             : 32,
-                                        horizontal: 48)
+                                        horizontal: 48,
+                                      )
                                     : const EdgeInsets.all(0),
                                 child: SizedBox(
                                   width: 430,
@@ -120,25 +119,28 @@ class _ConnectServerPageState extends State<ConnectServerPage> {
                                         flex: cardMode ? 0 : 1,
                                         child: Padding(
                                           padding: EdgeInsets.all(
-                                              cardMode ? 24 : 32),
+                                            cardMode ? 24 : 32,
+                                          ),
                                           child: Column(
                                             crossAxisAlignment:
                                                 CrossAxisAlignment.center,
                                             children: [
                                               SizedBox(
                                                 width: cardMode ? 220 : 256,
-                                                height: constraints.maxHeight >
-                                                        700
+                                                height:
+                                                    constraints.maxHeight > 700
                                                     ? cardMode
-                                                        ? 220
-                                                        : 256
+                                                          ? 220
+                                                          : 256
                                                     : min(
                                                         max(
-                                                            constraints
-                                                                    .maxHeight *
-                                                                0.3,
-                                                            80),
-                                                        cardMode ? 220 : 256),
+                                                          constraints
+                                                                  .maxHeight *
+                                                              0.3,
+                                                          80,
+                                                        ),
+                                                        cardMode ? 220 : 256,
+                                                      ),
                                                 child: AspectRatio(
                                                   aspectRatio: 1,
                                                   child: SvgPicture.asset(
@@ -147,34 +149,39 @@ class _ConnectServerPageState extends State<ConnectServerPage> {
                                                         Alignment.topCenter,
                                                     colorFilter:
                                                         ColorFilter.mode(
-                                                            theme.colorScheme
-                                                                .onSurface,
-                                                            BlendMode.srcIn),
+                                                          theme
+                                                              .colorScheme
+                                                              .onSurface,
+                                                          BlendMode.srcIn,
+                                                        ),
                                                   ),
                                                 ),
                                               ),
                                               SizedBox(
                                                 height:
                                                     constraints.maxHeight >= 510
-                                                        ? 16
-                                                        : 4,
+                                                    ? 16
+                                                    : 4,
                                               ),
-                                              Text("Crossonic",
-                                                  style: theme
-                                                      .textTheme.headlineLarge),
+                                              Text(
+                                                "Crossonic",
+                                                style: theme
+                                                    .textTheme
+                                                    .headlineLarge,
+                                              ),
                                               if (constraints.maxHeight >= 480)
                                                 SizedBox(
                                                   height:
                                                       constraints.maxHeight >=
-                                                              510
-                                                          ? 16
-                                                          : 4,
+                                                          510
+                                                      ? 16
+                                                      : 4,
                                                 ),
                                               if (constraints.maxHeight >= 480)
                                                 const Text(
                                                   "Welcome! Crossonic is a cross-platform OpenSubsonic compatible music player.\n\nTo begin, just enter the URL of your server below:",
                                                   textAlign: TextAlign.center,
-                                                )
+                                                ),
                                             ],
                                           ),
                                         ),
@@ -182,18 +189,21 @@ class _ConnectServerPageState extends State<ConnectServerPage> {
                                       Material(
                                         color: cardMode
                                             ? theme.brightness ==
-                                                    Brightness.dark
-                                                ? theme.colorScheme
-                                                    .surfaceContainerLow
-                                                : theme.colorScheme
-                                                    .surfaceContainer
+                                                      Brightness.dark
+                                                  ? theme
+                                                        .colorScheme
+                                                        .surfaceContainerLow
+                                                  : theme
+                                                        .colorScheme
+                                                        .surfaceContainer
                                             : null,
                                         child: Padding(
                                           padding: const EdgeInsets.only(
-                                              bottom: 32,
-                                              top: 8,
-                                              left: 12,
-                                              right: 12),
+                                            bottom: 32,
+                                            top: 8,
+                                            left: 12,
+                                            right: 12,
+                                          ),
                                           child: Column(
                                             crossAxisAlignment:
                                                 CrossAxisAlignment.stretch,
@@ -204,54 +214,29 @@ class _ConnectServerPageState extends State<ConnectServerPage> {
                                                 //    "connect_server_page_serverUri",
                                                 autocorrect: false,
                                                 keyboardType: TextInputType.url,
-                                                decoration: InputDecoration(
+                                                decoration: const InputDecoration(
                                                   labelText: "Server URL",
-                                                  prefixIcon:
-                                                      const Icon(Icons.link),
-                                                  suffixIcon: IconButton(
-                                                    onPressed: () {
-                                                      showAdaptiveDialog(
-                                                        context: context,
-                                                        barrierDismissible:
-                                                            true,
-                                                        builder: (context) =>
-                                                            AlertDialog
-                                                                .adaptive(
-                                                          title: const Text(
-                                                              "What is a server URL?"),
-                                                          content: const Text(
-                                                              "This URL tells Crossonic which server it should connect to. It must point to a Subsonic compatible server.\n\nExample: https://music.example.com"),
-                                                          actions: [
-                                                            AdaptiveDialogAction(
-                                                              child: const Text(
-                                                                  "Ok"),
-                                                              onPressed: () =>
-                                                                  Navigator.pop(
-                                                                      context),
-                                                            )
-                                                          ],
-                                                        ),
-                                                      );
-                                                    },
-                                                    icon: const Icon(
-                                                        Icons.info_outline),
+                                                  prefixIcon: Icon(Icons.link),
+                                                  suffixIcon: HelpButton(
+                                                    dialogTitle:
+                                                        "What is a server URL?",
+                                                    dialogContentText:
+                                                        "This URL tells Crossonic which server it should connect to. It must point to a Subsonic compatible server.\n\nExample: https://music.example.com",
                                                   ),
-                                                  border:
-                                                      const OutlineInputBorder(),
+                                                  border: OutlineInputBorder(),
                                                 ),
-                                                validator: FormBuilderValidators
-                                                    .compose([
-                                                  FormBuilderValidators
-                                                      .required(),
-                                                  FormBuilderValidators.url(
-                                                    protocols: [
-                                                      "http",
-                                                      "https"
-                                                    ],
-                                                    requireProtocol: true,
-                                                    requireTld: true,
-                                                  ),
-                                                ]),
+                                                validator:
+                                                    FormBuilderValidators.compose([
+                                                      FormBuilderValidators.required(),
+                                                      FormBuilderValidators.url(
+                                                        protocols: [
+                                                          "http",
+                                                          "https",
+                                                        ],
+                                                        requireProtocol: true,
+                                                        requireTld: true,
+                                                      ),
+                                                    ]),
                                                 onSubmitted: (_) => _submit(),
                                               ),
                                               const SizedBox(height: 24),
@@ -259,12 +244,16 @@ class _ConnectServerPageState extends State<ConnectServerPage> {
                                                 listenable: viewModel.connect,
                                                 builder: (context, _) =>
                                                     SubmitButton(
-                                                  onPressed:
-                                                      !viewModel.connect.running
+                                                      onPressed:
+                                                          !viewModel
+                                                              .connect
+                                                              .running
                                                           ? _submit
                                                           : null,
-                                                  child: const Text("Connect"),
-                                                ),
+                                                      child: const Text(
+                                                        "Connect",
+                                                      ),
+                                                    ),
                                               ),
                                             ],
                                           ),
@@ -280,8 +269,10 @@ class _ConnectServerPageState extends State<ConnectServerPage> {
                       ),
                     ),
                   );
-                });
-              }),
+                },
+              );
+            },
+          ),
         ),
       ),
     );
@@ -294,8 +285,9 @@ class _ConnectServerPageState extends State<ConnectServerPage> {
     if (!_formKey.currentState!.saveAndValidate()) {
       return;
     }
-    await viewModel.connect
-        .execute(Uri.parse(_formKey.currentState!.value["serverUri"]));
+    await viewModel.connect.execute(
+      Uri.parse(_formKey.currentState!.value["serverUri"]),
+    );
   }
 
   void _onResult() {
