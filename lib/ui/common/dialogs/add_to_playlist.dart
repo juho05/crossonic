@@ -18,7 +18,10 @@ import 'package:provider/provider.dart';
 
 class AddToPlaylistDialog {
   static Future<void> show(
-      BuildContext context, String? collectionName, SongLoader loader) async {
+    BuildContext context,
+    String? collectionName,
+    SongLoader loader,
+  ) async {
     final AddToPlaylistViewModel viewModel = AddToPlaylistViewModel(
       repository: context.read(),
       songLoader: loader,
@@ -39,10 +42,11 @@ class _AddToPlaylistDialogContent extends StatefulWidget {
   final AddToPlaylistViewModel _viewModel;
   final String? _collectionName;
 
-  const _AddToPlaylistDialogContent(
-      {required AddToPlaylistViewModel viewModel, String? collectionName})
-      : _viewModel = viewModel,
-        _collectionName = collectionName;
+  const _AddToPlaylistDialogContent({
+    required AddToPlaylistViewModel viewModel,
+    String? collectionName,
+  }) : _viewModel = viewModel,
+       _collectionName = collectionName;
 
   @override
   State<_AddToPlaylistDialogContent> createState() =>
@@ -71,133 +75,141 @@ class _AddToPlaylistDialogContentState
         builder: (context, _) {
           return Container(
             constraints: const BoxConstraints(maxWidth: 560),
-            child: Builder(builder: (context) {
-              if (widget._viewModel.status == FetchStatus.failure) {
-                return Container(
-                  constraints: const BoxConstraints(maxHeight: 244),
-                  child: const Center(
-                    child: Icon(Icons.wifi_off),
-                  ),
-                );
-              }
-              if (widget._viewModel.status != FetchStatus.success) {
-                return Container(
-                  constraints: const BoxConstraints(maxHeight: 244),
-                  child: const Center(
-                    child: CircularProgressIndicator.adaptive(),
-                  ),
-                );
-              }
-              return Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  spacing: 8,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          "Add to playlist",
-                          overflow: TextOverflow.ellipsis,
-                          style: textTheme.headlineSmall,
-                        ),
-                        Button(
-                          icon: Icons.add,
-                          onPressed: () {
-                            Navigator.pop(context);
-                            context.router.push(CreatePlaylistRoute(
-                                songs: widget._viewModel.songs));
-                          },
-                          child: const Text("Create"),
-                        ),
-                      ],
+            child: Builder(
+              builder: (context) {
+                if (widget._viewModel.status == FetchStatus.failure) {
+                  return Container(
+                    constraints: const BoxConstraints(maxHeight: 244),
+                    child: const Center(child: Icon(Icons.wifi_off)),
+                  );
+                }
+                if (widget._viewModel.status != FetchStatus.success) {
+                  return Container(
+                    constraints: const BoxConstraints(maxHeight: 244),
+                    child: const Center(
+                      child: CircularProgressIndicator.adaptive(),
                     ),
-                    FocusScope(
-                      node: _textFieldFocusScope,
-                      onKeyEvent: (node, event) {
-                        if (event is KeyUpEvent &&
-                            event.logicalKey == LogicalKeyboardKey.enter) {
-                          node.unfocus();
-                          return KeyEventResult.handled;
-                        }
-                        return KeyEventResult.ignored;
-                      },
-                      child: SearchInput(
-                        onSearch: (query) => widget._viewModel.search(query),
-                        debounce: const Duration(milliseconds: 100),
-                        onTapOutside: () {
-                          _textFieldFocusScope.unfocus();
-                        },
-                        onClearButtonPressed: () {
-                          _textFieldFocusScope.unfocus();
-                        },
+                  );
+                }
+                return Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    spacing: 8,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "Add to playlist",
+                            overflow: TextOverflow.ellipsis,
+                            style: textTheme.headlineSmall,
+                          ),
+                          Button(
+                            icon: Icons.add,
+                            onPressed: () {
+                              Navigator.pop(context);
+                              context.router.push(
+                                CreatePlaylistRoute(
+                                  songs: widget._viewModel.songs,
+                                ),
+                              );
+                            },
+                            child: const Text("Create"),
+                          ),
+                        ],
                       ),
-                    ),
-                    Flexible(
-                      child: Container(
-                        constraints: BoxConstraints(
-                          maxHeight: _PlaylistListItem.verticalExtent *
-                              max(1, widget._viewModel.playlists.length),
+                      FocusScope(
+                        node: _textFieldFocusScope,
+                        onKeyEvent: (node, event) {
+                          if (event is KeyUpEvent &&
+                              event.logicalKey == LogicalKeyboardKey.enter) {
+                            node.unfocus();
+                            return KeyEventResult.handled;
+                          }
+                          return KeyEventResult.ignored;
+                        },
+                        child: SearchInput(
+                          onSearch: (query) => widget._viewModel.search(query),
+                          debounce: const Duration(milliseconds: 100),
+                          onTapOutside: () {
+                            _textFieldFocusScope.unfocus();
+                          },
+                          onClearButtonPressed: () {
+                            _textFieldFocusScope.unfocus();
+                          },
                         ),
-                        child: widget._viewModel.playlists.isNotEmpty
-                            ? ListView.builder(
-                                itemExtent: _PlaylistListItem.verticalExtent,
-                                itemCount: widget._viewModel.playlists.length,
-                                itemBuilder: (context, index) {
-                                  final p = widget._viewModel.playlists[index];
-                                  return _PlaylistListItem(
-                                    playlist: p,
-                                    selected: widget
-                                        ._viewModel.selectedPlaylists
-                                        .contains(p),
-                                    onSelect: () {
-                                      widget._viewModel.toggleSelection(p);
-                                    },
-                                    songInPlaylistCount: widget._viewModel
-                                            .songInPlaylistCounts[p.id] ??
-                                        0,
-                                    onRemoveSong: () async {
-                                      final yes =
-                                          await ConfirmationDialog.showYesNo(
+                      ),
+                      Flexible(
+                        child: Container(
+                          constraints: BoxConstraints(
+                            maxHeight:
+                                _PlaylistListItem.verticalExtent *
+                                max(1, widget._viewModel.playlists.length),
+                          ),
+                          child: widget._viewModel.playlists.isNotEmpty
+                              ? ListView.builder(
+                                  itemExtent: _PlaylistListItem.verticalExtent,
+                                  itemCount: widget._viewModel.playlists.length,
+                                  itemBuilder: (context, index) {
+                                    final p =
+                                        widget._viewModel.playlists[index];
+                                    return _PlaylistListItem(
+                                      playlist: p,
+                                      selected: widget
+                                          ._viewModel
+                                          .selectedPlaylists
+                                          .contains(p),
+                                      onSelect: () {
+                                        widget._viewModel.toggleSelection(p);
+                                      },
+                                      songInPlaylistCount:
+                                          widget
+                                              ._viewModel
+                                              .songInPlaylistCounts[p.id] ??
+                                          0,
+                                      onRemoveSong: () async {
+                                        final yes =
+                                            await ConfirmationDialog.showYesNo(
                                               context,
                                               message:
-                                                  "Remove '${widget._viewModel.songs.first.title}' from '${p.name}'?");
-                                      if (yes ?? false) {
-                                        await widget._viewModel
-                                            .removeSongFromPlaylist(p);
-                                      }
-                                    },
-                                  );
-                                },
-                              )
-                            : const Center(
-                                child: Text("No playlists found."),
-                              ),
+                                                  "Remove '${widget._viewModel.songs.first.title}' from '${p.name}'?",
+                                            );
+                                        if (yes ?? false) {
+                                          await widget._viewModel
+                                              .removeSongFromPlaylist(p);
+                                        }
+                                      },
+                                    );
+                                  },
+                                )
+                              : const Center(
+                                  child: Text("No playlists found."),
+                                ),
+                        ),
                       ),
-                    ),
-                    const Divider(
-                      height: 1,
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
+                      const Divider(height: 1),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
                             "Add ${widget._viewModel.songCount} song${widget._viewModel.songCount != 1 ? "s" : ""} "
-                            "to ${widget._viewModel.selectedPlaylists.length} playlist${widget._viewModel.selectedPlaylists.length != 1 ? "s" : ""}."),
-                        Button(
-                          onPressed:
-                              widget._viewModel.selectedPlaylists.isNotEmpty
-                                  ? () => _submit(context)
-                                  : null,
-                          child: const Text("Add"),
-                        )
-                      ],
-                    )
-                  ],
-                ),
-              );
-            }),
+                            "to ${widget._viewModel.selectedPlaylists.length} playlist${widget._viewModel.selectedPlaylists.length != 1 ? "s" : ""}.",
+                          ),
+                          Button(
+                            onPressed:
+                                widget._viewModel.selectedPlaylists.isNotEmpty
+                                ? () => _submit(context)
+                                : null,
+                            child: const Text("Add"),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
           );
         },
       ),
@@ -209,8 +221,10 @@ class _AddToPlaylistDialogContentState
     Navigator.pop(context);
     final Set<Playlist> addAll = {};
     final Set<Playlist> addNone = {};
-    final successCount =
-        await widget._viewModel.addSongsToPlaylists((p, s) async {
+    final successCount = await widget._viewModel.addSongsToPlaylists((
+      p,
+      s,
+    ) async {
       if (addAll.contains(p)) {
         return true;
       }
@@ -224,7 +238,8 @@ class _AddToPlaylistDialogContentState
           return AlertDialog.adaptive(
             title: const Text("Duplicate detected"),
             content: Text(
-                "The song '${s.title}' is already contained in the playlist ${p.name}.\nAdd anyway?"),
+              "The song '${s.title}' is already contained in the playlist ${p.name}.\nAdd anyway?",
+            ),
             actions: [
               AdaptiveDialogAction(
                 onPressed: () => Navigator.pop(context, 0),
@@ -241,7 +256,7 @@ class _AddToPlaylistDialogContentState
               AdaptiveDialogAction(
                 onPressed: () => Navigator.pop(context, 3),
                 child: const Text("Always"),
-              )
+              ),
             ],
           );
         },
@@ -263,15 +278,21 @@ class _AddToPlaylistDialogContentState
     if (!context.mounted) return;
     if (successCount == widget._viewModel.selectedPlaylists.length) {
       if (successCount == 1) {
-        Toast.show(context,
-            "Added ${widget._collectionName ?? "songs"} to ${widget._viewModel.selectedPlaylists.first.name}");
+        Toast.show(
+          context,
+          "Added ${widget._collectionName ?? "songs"} to ${widget._viewModel.selectedPlaylists.first.name}",
+        );
       } else {
-        Toast.show(context,
-            "Added ${widget._collectionName ?? "songs"} to $successCount playlists");
+        Toast.show(
+          context,
+          "Added ${widget._collectionName ?? "songs"} to $successCount playlists",
+        );
       }
     } else {
-      Toast.show(context,
-          "Added ${widget._collectionName ?? "songs"} to $successCount/${widget._viewModel.selectedPlaylists.length} playlists");
+      Toast.show(
+        context,
+        "Added ${widget._collectionName ?? "songs"} to $successCount/${widget._viewModel.selectedPlaylists.length} playlists",
+      );
     }
   }
 }
@@ -300,7 +321,6 @@ class _PlaylistListItem extends StatelessWidget {
       title: playlist.name,
       extraInfo: ["Songs: ${playlist.songCount}"],
       onTap: onSelect,
-      transparent: true,
       leading: Padding(
         padding: const EdgeInsets.only(left: 4),
         child: SizedBox(
@@ -309,9 +329,7 @@ class _PlaylistListItem extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             spacing: 8,
             children: [
-              Icon(
-                selected ? Icons.check_box : Icons.check_box_outline_blank,
-              ),
+              Icon(selected ? Icons.check_box : Icons.check_box_outline_blank),
               CoverArt(
                 placeholderIcon: Icons.album,
                 coverId: playlist.coverId,
@@ -322,10 +340,7 @@ class _PlaylistListItem extends StatelessWidget {
         ),
       ),
       trailing: songInPlaylistCount > 0
-          ? _SongCountBadge(
-              count: songInPlaylistCount,
-              onRemove: onRemoveSong,
-            )
+          ? _SongCountBadge(count: songInPlaylistCount, onRemove: onRemoveSong)
           : null,
     );
   }
@@ -346,13 +361,14 @@ class _SongCountBadgeState extends State<_SongCountBadge> {
 
   @override
   Widget build(BuildContext context) {
-    final color =
-        _hovering ? Colors.red : Theme.of(context).colorScheme.primary;
+    final color = _hovering
+        ? Colors.red
+        : Theme.of(context).colorScheme.primary;
     final textStyle = Theme.of(context).textTheme.bodyMedium!.copyWith(
-          color: color,
-          fontSize: 14,
-          fontWeight: FontWeight.w500,
-        );
+      color: color,
+      fontSize: 14,
+      fontWeight: FontWeight.w500,
+    );
     return ClipRRect(
       borderRadius: BorderRadiusGeometry.circular(25),
       child: Material(
@@ -374,9 +390,10 @@ class _SongCountBadgeState extends State<_SongCountBadge> {
                 border: Border.all(color: color),
               ),
               child: Center(
-                  child: _hovering
-                      ? Icon(Icons.remove, color: color)
-                      : Text("${widget.count}", style: textStyle)),
+                child: _hovering
+                    ? Icon(Icons.remove, color: color)
+                    : Text("${widget.count}", style: textStyle),
+              ),
             ),
           ),
         ),

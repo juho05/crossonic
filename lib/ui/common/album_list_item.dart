@@ -18,7 +18,7 @@ class AlbumListItem extends StatefulWidget {
   final bool showYear;
   final bool showSongCount;
   final bool disableGoToArtist;
-  final bool transparent;
+  final bool opaque;
   final bool showReleaseVersion;
 
   final void Function()? onNavigate;
@@ -30,7 +30,7 @@ class AlbumListItem extends StatefulWidget {
     this.showYear = true,
     this.showSongCount = true,
     this.disableGoToArtist = false,
-    this.transparent = false,
+    this.opaque = false,
     this.showReleaseVersion = false,
     this.onNavigate,
   });
@@ -65,7 +65,8 @@ class _AlbumListItemState extends State<AlbumListItem> {
 
     String year = "Unknown year";
     if (widget.showReleaseVersion) {
-      year = a.releaseDate?.toString() ??
+      year =
+          a.releaseDate?.toString() ??
           a.originalDate?.toString() ??
           "Unknown date";
     } else {
@@ -79,121 +80,130 @@ class _AlbumListItemState extends State<AlbumListItem> {
     }
 
     return ListenableBuilder(
-        listenable: viewModel,
-        builder: (context, snapshot) {
-          return ClickableListItemWithContextMenu(
-            title: a.name,
-            transparent: widget.transparent,
-            extraInfo: [
-              if (widget.showArtist) a.displayArtist,
-              if (widget.showReleaseVersion && a.version != null) a.version!,
-              if (widget.showYear) year,
-            ],
-            leading: Padding(
-              padding: const EdgeInsets.only(left: 8),
-              child: SizedBox(
-                width: 40,
-                height: 40,
-                child: CoverArt(
-                  placeholderIcon: Icons.album,
-                  coverId: a.coverId,
-                  borderRadius: BorderRadius.circular(5),
-                ),
+      listenable: viewModel,
+      builder: (context, snapshot) {
+        return ClickableListItemWithContextMenu(
+          title: a.name,
+          opaque: widget.opaque,
+          extraInfo: [
+            if (widget.showArtist) a.displayArtist,
+            if (widget.showReleaseVersion && a.version != null) a.version!,
+            if (widget.showYear) year,
+          ],
+          leading: Padding(
+            padding: const EdgeInsets.only(left: 8),
+            child: SizedBox(
+              width: 40,
+              height: 40,
+              child: CoverArt(
+                placeholderIcon: Icons.album,
+                coverId: a.coverId,
+                borderRadius: BorderRadius.circular(5),
               ),
             ),
-            trailingInfo: widget.showSongCount ? a.songCount.toString() : null,
-            onTap: () {
-              if (widget.onNavigate != null) {
-                widget.onNavigate!();
-              }
-              context.router.push(AlbumRoute(albumId: a.id));
-            },
-            isFavorite: viewModel.favorite,
-            options: [
+          ),
+          trailingInfo: widget.showSongCount ? a.songCount.toString() : null,
+          onTap: () {
+            if (widget.onNavigate != null) {
+              widget.onNavigate!();
+            }
+            context.router.push(AlbumRoute(albumId: a.id));
+          },
+          isFavorite: viewModel.favorite,
+          options: [
+            ContextMenuOption(
+              icon: Icons.play_arrow,
+              title: "Play",
+              onSelected: () async {
+                final result = await viewModel.play();
+                if (!context.mounted) return;
+                toastResult(context, result);
+              },
+            ),
+            ContextMenuOption(
+              icon: Icons.shuffle,
+              title: "Shuffle",
+              onSelected: () async {
+                final result = await viewModel.play(shuffle: true);
+                if (!context.mounted) return;
+                toastResult(context, result);
+              },
+            ),
+            ContextMenuOption(
+              icon: Icons.playlist_play,
+              title: "Add to priority queue",
+              onSelected: () async {
+                final result = await viewModel.addToQueue(true);
+                if (!context.mounted) return;
+                toastResult(
+                  context,
+                  result,
+                  successMsg: "Added '${a.name}' to priority queue",
+                );
+              },
+            ),
+            ContextMenuOption(
+              icon: Icons.playlist_add,
+              title: "Add to queue",
+              onSelected: () async {
+                final result = await viewModel.addToQueue(false);
+                if (!context.mounted) return;
+                toastResult(
+                  context,
+                  result,
+                  successMsg: "Added '${a.name}' to queue",
+                );
+              },
+            ),
+            ContextMenuOption(
+              icon: viewModel.favorite ? Icons.heart_broken : Icons.favorite,
+              title: viewModel.favorite
+                  ? "Remove from favorites"
+                  : "Add to favorites",
+              onSelected: () async {
+                final result = await viewModel.toggleFavorite();
+                if (!context.mounted) return;
+                toastResult(context, result);
+              },
+            ),
+            ContextMenuOption(
+              icon: Icons.playlist_add,
+              title: "Add to playlist",
+              onSelected: () {
+                if (widget.onNavigate != null) {
+                  widget.onNavigate!();
+                }
+                AddToPlaylistDialog.show(context, a.name, viewModel.getSongs);
+              },
+            ),
+            if (!widget.disableGoToArtist && a.artists.isNotEmpty)
               ContextMenuOption(
-                icon: Icons.play_arrow,
-                title: "Play",
+                icon: Icons.person,
+                title: "Go to artist",
                 onSelected: () async {
-                  final result = await viewModel.play();
-                  if (!context.mounted) return;
-                  toastResult(context, result);
-                },
-              ),
-              ContextMenuOption(
-                icon: Icons.shuffle,
-                title: "Shuffle",
-                onSelected: () async {
-                  final result = await viewModel.play(shuffle: true);
-                  if (!context.mounted) return;
-                  toastResult(context, result);
-                },
-              ),
-              ContextMenuOption(
-                icon: Icons.playlist_play,
-                title: "Add to priority queue",
-                onSelected: () async {
-                  final result = await viewModel.addToQueue(true);
-                  if (!context.mounted) return;
-                  toastResult(context, result,
-                      successMsg: "Added '${a.name}' to priority queue");
-                },
-              ),
-              ContextMenuOption(
-                icon: Icons.playlist_add,
-                title: "Add to queue",
-                onSelected: () async {
-                  final result = await viewModel.addToQueue(false);
-                  if (!context.mounted) return;
-                  toastResult(context, result,
-                      successMsg: "Added '${a.name}' to queue");
-                },
-              ),
-              ContextMenuOption(
-                icon: viewModel.favorite ? Icons.heart_broken : Icons.favorite,
-                title: viewModel.favorite
-                    ? "Remove from favorites"
-                    : "Add to favorites",
-                onSelected: () async {
-                  final result = await viewModel.toggleFavorite();
-                  if (!context.mounted) return;
-                  toastResult(context, result);
-                },
-              ),
-              ContextMenuOption(
-                icon: Icons.playlist_add,
-                title: "Add to playlist",
-                onSelected: () {
+                  final artistId = await ChooserDialog.chooseArtist(
+                    context,
+                    a.artists.toList(),
+                  );
+                  if (artistId == null || !context.mounted) {
+                    return;
+                  }
                   if (widget.onNavigate != null) {
                     widget.onNavigate!();
                   }
-                  AddToPlaylistDialog.show(context, a.name, viewModel.getSongs);
+                  context.router.push(ArtistRoute(artistId: artistId));
                 },
               ),
-              if (!widget.disableGoToArtist && a.artists.isNotEmpty)
-                ContextMenuOption(
-                  icon: Icons.person,
-                  title: "Go to artist",
-                  onSelected: () async {
-                    final artistId = await ChooserDialog.chooseArtist(
-                        context, a.artists.toList());
-                    if (artistId == null || !context.mounted) {
-                      return;
-                    }
-                    if (widget.onNavigate != null) {
-                      widget.onNavigate!();
-                    }
-                    context.router.push(ArtistRoute(artistId: artistId));
-                  },
-                ),
-              ContextMenuOption(
-                title: "Info",
-                icon: Icons.info_outline,
-                onSelected: () {
-                  MediaInfoDialog.showAlbum(context, a.id);
-                },
-              ),
-            ],
-          );
-        });
+            ContextMenuOption(
+              title: "Info",
+              icon: Icons.info_outline,
+              onSelected: () {
+                MediaInfoDialog.showAlbum(context, a.id);
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 }

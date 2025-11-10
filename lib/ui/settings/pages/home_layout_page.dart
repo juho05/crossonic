@@ -43,6 +43,7 @@ class HomeLayoutPage extends StatelessWidget {
                             key: ValueKey("${c.name}-$index"),
                             index: index,
                             child: ClickableListItem(
+                              opaque: true,
                               title: HomeLayoutSettings.optionTitle(c),
                               onTap: () {},
                               leading: ReorderableDragStartListener(
@@ -77,6 +78,7 @@ class HomeLayoutPage extends StatelessWidget {
                         itemBuilder: (context, index) {
                           final c = viewModel.inactiveComponents[index];
                           return ClickableListItem(
+                            opaque: true,
                             title: HomeLayoutSettings.optionTitle(c),
                             onTap: () => viewModel.add(index),
                             trailing: IconButton(

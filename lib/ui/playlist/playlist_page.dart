@@ -61,13 +61,12 @@ class _PlaylistPageState extends State<PlaylistPage> {
           final playlist = _viewModel.playlist!;
           final songs = _viewModel.tracks;
 
-          Widget songListItem({
-            required int index,
-          }) {
+          Widget songListItem({required int index, bool opaque = false}) {
             final t = songs[index];
             final s = t.$1;
             return SongListItem(
               key: ValueKey("$index-${s.id}"),
+              opaque: opaque,
               song: s,
               reorderIndex: index,
               showPlaybackStatus: !_viewModel.editMode,
@@ -93,20 +92,24 @@ class _PlaylistPageState extends State<PlaylistPage> {
             descriptionTitle: "Description",
             onChangeName: _viewModel.editMode
                 ? () {
-                    context.router.push(UpdatePlaylistRoute(
-                      playlistId: playlist.id,
-                      playlistName: playlist.name,
-                      playlistDescription: playlist.comment ?? "",
-                    ));
+                    context.router.push(
+                      UpdatePlaylistRoute(
+                        playlistId: playlist.id,
+                        playlistName: playlist.name,
+                        playlistDescription: playlist.comment ?? "",
+                      ),
+                    );
                   }
                 : null,
             onChangeDescription: _viewModel.editMode
                 ? () {
-                    context.router.push(UpdatePlaylistRoute(
-                      playlistId: playlist.id,
-                      playlistName: playlist.name,
-                      playlistDescription: playlist.comment ?? "",
-                    ));
+                    context.router.push(
+                      UpdatePlaylistRoute(
+                        playlistId: playlist.id,
+                        playlistName: playlist.name,
+                        playlistDescription: playlist.comment ?? "",
+                      ),
+                    );
                   }
                 : null,
             cover: CoverArtDecorated(
@@ -118,39 +121,41 @@ class _PlaylistPageState extends State<PlaylistPage> {
               downloadStatus: _viewModel.downloadStatus,
               bottomRight:
                   _viewModel.editMode && _viewModel.changeCoverSupported
-                      ? OnCoverMenuButton(
-                          tooltip: "Change cover",
-                          menuOptions: [
-                            ContextMenuOption(
-                              title: playlist.coverId != null
-                                  ? "Change cover"
-                                  : "Set cover",
-                              icon: Icons.image_outlined,
-                              onSelected: () async {
-                                final result = await _viewModel.changeCover();
-                                if (!context.mounted) return;
-                                if (result is ImageTooLargeException) {
-                                  Toast.show(context,
-                                      "Image too large: max 15 MB allowed");
-                                } else {
-                                  toastResult(context, result);
-                                }
-                              },
-                            ),
-                            if (playlist.coverId != null)
-                              ContextMenuOption(
-                                title: "Remove cover",
-                                icon: Icons.hide_image_outlined,
-                                onSelected: () async {
-                                  final result = await _viewModel.removeCover();
-                                  if (!context.mounted) return;
-                                  toastResult(context, result);
-                                },
-                              ),
-                          ],
-                          icon: Icons.edit,
-                        )
-                      : null,
+                  ? OnCoverMenuButton(
+                      tooltip: "Change cover",
+                      menuOptions: [
+                        ContextMenuOption(
+                          title: playlist.coverId != null
+                              ? "Change cover"
+                              : "Set cover",
+                          icon: Icons.image_outlined,
+                          onSelected: () async {
+                            final result = await _viewModel.changeCover();
+                            if (!context.mounted) return;
+                            if (result is ImageTooLargeException) {
+                              Toast.show(
+                                context,
+                                "Image too large: max 15 MB allowed",
+                              );
+                            } else {
+                              toastResult(context, result);
+                            }
+                          },
+                        ),
+                        if (playlist.coverId != null)
+                          ContextMenuOption(
+                            title: "Remove cover",
+                            icon: Icons.hide_image_outlined,
+                            onSelected: () async {
+                              final result = await _viewModel.removeCover();
+                              if (!context.mounted) return;
+                              toastResult(context, result);
+                            },
+                          ),
+                      ],
+                      icon: Icons.edit,
+                    )
+                  : null,
               menuOptions: !_viewModel.editMode
                   ? [
                       ContextMenuOption(
@@ -172,8 +177,10 @@ class _PlaylistPageState extends State<PlaylistPage> {
                         icon: Icons.playlist_play,
                         onSelected: () {
                           _viewModel.addToQueue(true);
-                          Toast.show(context,
-                              "Added '${playlist.name}' to priority queue");
+                          Toast.show(
+                            context,
+                            "Added '${playlist.name}' to priority queue",
+                          );
                         },
                       ),
                       ContextMenuOption(
@@ -182,7 +189,9 @@ class _PlaylistPageState extends State<PlaylistPage> {
                         onSelected: () {
                           _viewModel.addToQueue(false);
                           Toast.show(
-                              context, "Added '${playlist.name}' to queue");
+                            context,
+                            "Added '${playlist.name}' to queue",
+                          );
                         },
                       ),
                       ContextMenuOption(
@@ -190,10 +199,11 @@ class _PlaylistPageState extends State<PlaylistPage> {
                         icon: Icons.playlist_add,
                         onSelected: () {
                           AddToPlaylistDialog.show(
-                              context,
-                              playlist.name,
-                              () async => Result.ok(
-                                  _viewModel.tracks.map((t) => t.$1)));
+                            context,
+                            playlist.name,
+                            () async =>
+                                Result.ok(_viewModel.tracks.map((t) => t.$1)),
+                          );
                         },
                       ),
                       if (!kIsWeb)
@@ -201,22 +211,28 @@ class _PlaylistPageState extends State<PlaylistPage> {
                           title: playlist.download
                               ? "Remove Download"
                               : "Download",
-                          icon:
-                              playlist.download ? Icons.delete : Icons.download,
+                          icon: playlist.download
+                              ? Icons.delete
+                              : Icons.download,
                           onSelected: () async {
                             if (playlist.download) {
                               final confirmation =
-                                  await ConfirmationDialog.showYesNo(context,
-                                      message:
-                                          "You won't be able to play this playlist offline anymore.");
+                                  await ConfirmationDialog.showYesNo(
+                                    context,
+                                    message:
+                                        "You won't be able to play this playlist offline anymore.",
+                                  );
                               if (!(confirmation ?? false)) return;
                             }
                             final result = await _viewModel.toggleDownload();
                             if (!context.mounted) return;
-                            toastResult(context, result,
-                                successMsg: !playlist.download
-                                    ? "Scheduling downloads…"
-                                    : null);
+                            toastResult(
+                              context,
+                              result,
+                              successMsg: !playlist.download
+                                  ? "Scheduling downloads…"
+                                  : null,
+                            );
                           },
                         ),
                       ContextMenuOption(
@@ -238,19 +254,22 @@ class _PlaylistPageState extends State<PlaylistPage> {
                         icon: Icons.delete_forever,
                         onSelected: () async {
                           final confirmed = await ConfirmationDialog.showYesNo(
-                              context,
-                              message: "Delete '${playlist.name}'?");
+                            context,
+                            message: "Delete '${playlist.name}'?",
+                          );
                           if (!(confirmed ?? false) || !context.mounted) {
                             return;
                           }
                           final result = await _viewModel.delete();
                           if (!context.mounted) return;
                           context.maybePop();
-                          toastResult(context, result,
-                              successMsg:
-                                  "Deleted playlist '${playlist.name}'!");
+                          toastResult(
+                            context,
+                            result,
+                            successMsg: "Deleted playlist '${playlist.name}'!",
+                          );
                         },
-                      )
+                      ),
                     ]
                   : [
                       if (_viewModel.changeCoverSupported)
@@ -265,13 +284,17 @@ class _PlaylistPageState extends State<PlaylistPage> {
                             switch (result) {
                               case Err():
                                 if (result.error is ImageTooLargeException) {
-                                  Toast.show(context,
-                                      "Image too large: max 15 MB allowed");
+                                  Toast.show(
+                                    context,
+                                    "Image too large: max 15 MB allowed",
+                                  );
                                   return;
                                 }
                                 if (result.error is SubsonicException) {
-                                  Toast.show(context,
-                                      "Failed to change cover: ${(result.error as SubsonicException).message}");
+                                  Toast.show(
+                                    context,
+                                    "Failed to change cover: ${(result.error as SubsonicException).message}",
+                                  );
                                   return;
                                 }
                                 toastResult(context, result);
@@ -302,19 +325,22 @@ class _PlaylistPageState extends State<PlaylistPage> {
                         icon: Icons.delete_forever,
                         onSelected: () async {
                           final confirmed = await ConfirmationDialog.showYesNo(
-                              context,
-                              message: "Delete '${playlist.name}'?");
+                            context,
+                            message: "Delete '${playlist.name}'?",
+                          );
                           if (!(confirmed ?? false) || !context.mounted) {
                             return;
                           }
                           final result = await _viewModel.delete();
                           if (!context.mounted) return;
                           context.maybePop();
-                          toastResult(context, result,
-                              successMsg:
-                                  "Deleted playlist '${playlist.name}'!");
+                          toastResult(
+                            context,
+                            result,
+                            successMsg: "Deleted playlist '${playlist.name}'!",
+                          );
                         },
-                      )
+                      ),
                     ],
             ),
             extraInfo: [
@@ -350,7 +376,9 @@ class _PlaylistPageState extends State<PlaylistPage> {
                 onClick: () {
                   _viewModel.addToQueue(true);
                   Toast.show(
-                      context, "Added '${playlist.name}' to priority queue");
+                    context,
+                    "Added '${playlist.name}' to priority queue",
+                  );
                 },
               ),
               CollectionAction(
@@ -374,7 +402,7 @@ class _PlaylistPageState extends State<PlaylistPage> {
             contentSliver: SliverReorderableList(
               itemExtent: ClickableListItem.verticalExtent,
               proxyDecorator: (child, index, animation) =>
-                  songListItem(index: index),
+                  songListItem(index: index, opaque: true),
               itemCount: songs.length,
               onReorder: (oldIndex, newIndex) async {
                 final result = await _viewModel.reorder(oldIndex, newIndex);

@@ -38,7 +38,8 @@ class SongListSliver extends StatelessWidget {
   Widget build(BuildContext context) {
     if (fetchStatus == FetchStatus.success && songs.isEmpty) {
       return const SliverToBoxAdapter(
-          child: Center(child: Text("No songs found")));
+        child: Center(child: Text("No songs found")),
+      );
     }
     return Provider(
       create: (context) =>
@@ -47,13 +48,14 @@ class SongListSliver extends StatelessWidget {
         final viewModel = context.read<SongListSliverViewModel>();
         final trackDigits = songs.isNotEmpty
             ? songs
-                .mapIndexed((i, s) => s.trackNr ?? i + 1)
-                .max
-                .toString()
-                .length
+                  .mapIndexed((i, s) => s.trackNr ?? i + 1)
+                  .max
+                  .toString()
+                  .length
             : 1;
         return SliverFixedExtentList.builder(
-          itemCount: (fetchStatus != null && fetchStatus != FetchStatus.success
+          itemCount:
+              (fetchStatus != null && fetchStatus != FetchStatus.success
                   ? 1
                   : 0) +
               songs.length,
@@ -63,11 +65,9 @@ class SongListSliver extends StatelessWidget {
               return switch (fetchStatus) {
                 FetchStatus.success => null,
                 FetchStatus.failure => const Center(
-                    child: Icon(Icons.wifi_off),
-                  ),
-                _ => const Center(
-                    child: CircularProgressIndicator.adaptive(),
-                  ),
+                  child: Icon(Icons.wifi_off),
+                ),
+                _ => const Center(child: CircularProgressIndicator.adaptive()),
               };
             }
             final s = songs[index];

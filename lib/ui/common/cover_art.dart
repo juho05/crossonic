@@ -12,10 +12,12 @@ class CoverArt extends StatefulWidget {
   final String? coverId;
   final IconData placeholderIcon;
   final BorderRadiusGeometry borderRadius;
+  final double? size;
 
   const CoverArt({
     super.key,
     this.coverId,
+    this.size,
     required this.placeholderIcon,
     this.borderRadius = BorderRadius.zero,
   });
@@ -50,48 +52,59 @@ class _CoverArtState extends State<CoverArt> {
       }
     }
 
+    Widget coverWidget(double size) {
+      final image = widget.coverId != null
+          ? (kIsWeb
+                ? Image.network(
+                    context
+                        .read<SubsonicRepository>()
+                        .getCoverUri(widget.coverId!, constantSalt: true)
+                        .toString(),
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) =>
+                        placeholder(size),
+                    frameBuilder:
+                        (context, child, frame, wasSynchronouslyLoaded) {
+                          if (frame == null) {
+                            return placeholder(size);
+                          }
+                          return child;
+                        },
+                  )
+                : CachedNetworkImage(
+                    imageUrl: CoverRepository.getKey(
+                      widget.coverId!,
+                      resolution(context, size),
+                    ),
+                    fit: BoxFit.cover,
+                    errorWidget: (context, url, error) => placeholder(size),
+                    fadeInDuration: const Duration(milliseconds: 100),
+                    fadeOutDuration: const Duration(milliseconds: 100),
+                    placeholder: (context, url) => const ShimmerLoading(),
+                    cacheManager: context.read<CoverRepository>(),
+                  ))
+          : placeholder(size);
+
+      return SizedBox.square(
+        dimension: size,
+        child: widget.borderRadius == BorderRadius.zero
+            ? image
+            : ClipRRect(
+                borderRadius: widget.borderRadius,
+                clipBehavior: Clip.antiAlias,
+                child: image,
+              ),
+      );
+    }
+
+    if (widget.size != null) {
+      return coverWidget(widget.size!);
+    }
+
     return LayoutBuilder(
       builder: (context, constraints) {
         final size = min(constraints.maxWidth, constraints.maxHeight);
-        return AspectRatio(
-          aspectRatio: 1,
-          child: ClipRRect(
-            borderRadius: widget.borderRadius,
-            clipBehavior: Clip.antiAlias,
-            child: widget.coverId != null
-                ? (kIsWeb
-                      ? Image.network(
-                          context
-                              .read<SubsonicRepository>()
-                              .getCoverUri(widget.coverId!, constantSalt: true)
-                              .toString(),
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) =>
-                              placeholder(size),
-                          frameBuilder:
-                              (context, child, frame, wasSynchronouslyLoaded) {
-                                if (frame == null) {
-                                  return placeholder(size);
-                                }
-                                return child;
-                              },
-                        )
-                      : CachedNetworkImage(
-                          imageUrl: CoverRepository.getKey(
-                            widget.coverId!,
-                            resolution(context, size),
-                          ),
-                          fit: BoxFit.cover,
-                          errorWidget: (context, url, error) =>
-                              placeholder(size),
-                          fadeInDuration: const Duration(milliseconds: 100),
-                          fadeOutDuration: const Duration(milliseconds: 100),
-                          placeholder: (context, url) => const ShimmerLoading(),
-                          cacheManager: context.read<CoverRepository>(),
-                        ))
-                : placeholder(size),
-          ),
-        );
+        return coverWidget(size);
       },
     );
   }

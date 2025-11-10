@@ -15,7 +15,7 @@ class ClickableListItemWithContextMenu extends StatefulWidget {
   final bool isFavorite;
   final DownloadStatus downloadStatus;
   final Color? backgroundColor;
-  final bool transparent;
+  final bool opaque;
 
   final Iterable<ContextMenuOption> options;
 
@@ -32,7 +32,7 @@ class ClickableListItemWithContextMenu extends StatefulWidget {
     this.isFavorite = false,
     this.downloadStatus = DownloadStatus.none,
     this.backgroundColor,
-    this.transparent = false,
+    this.opaque = false,
   });
 
   @override
@@ -53,7 +53,7 @@ class _ClickableListItemWithContextMenuState
         leading: widget.leading,
         isFavorite: widget.isFavorite,
         downloadStatus: widget.downloadStatus,
-        transparent: widget.transparent,
+        opaque: widget.opaque,
         trailing: widget.options.isNotEmpty || widget.extraTrailing != null
             ? Row(
                 mainAxisSize: MainAxisSize.min,
@@ -64,9 +64,7 @@ class _ClickableListItemWithContextMenuState
                       children: widget.extraTrailing!,
                     ),
                   if (widget.options.isNotEmpty)
-                    MenuButton(
-                      options: widget.options,
-                    ),
+                    MenuButton(options: widget.options),
                 ],
               )
             : null,

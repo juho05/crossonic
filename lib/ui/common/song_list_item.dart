@@ -37,6 +37,7 @@ class SongListItem extends StatefulWidget {
   final bool showDragHandle;
   final bool showRemoveButton;
   final DownloadStatus downloadStatus;
+  final bool opaque;
 
   final void Function(bool ctrlPressed)? onTap;
   final bool disableGoToAlbum;
@@ -66,6 +67,7 @@ class SongListItem extends StatefulWidget {
     this.onTap,
     this.onRemove,
     this.reorderIndex,
+    this.opaque = false,
   });
 
   @override
@@ -112,6 +114,7 @@ class _SongListItemState extends State<SongListItem> {
           child: ClickableListItemWithContextMenu(
             title: widget.song.title,
             titleBold: viewModel.playbackStatus != null,
+            opaque: widget.opaque,
             extraInfo: [
               if (widget.showArtist) s.displayArtist,
               if (widget.showAlbum) s.album?.name ?? "Unknown album",
@@ -261,49 +264,57 @@ class SongLeadingWidget extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     Widget leading;
     if (trackNr != null) {
-      leading = Center(
-        child: viewModel.playbackStatus == null
-            ? Text(
-                trackNr!.toString().padLeft(trackDigits ?? 2, "0"),
-                overflow: TextOverflow.ellipsis,
-                style: textTheme.bodyMedium!.copyWith(
-                  fontWeight: FontWeight.w500,
+      leading = SizedBox.square(
+        dimension: 40,
+        child: Center(
+          child: viewModel.playbackStatus == null
+              ? Text(
+                  trackNr!.toString().padLeft(trackDigits ?? 2, "0"),
+                  overflow: TextOverflow.ellipsis,
+                  style: textTheme.bodyMedium!.copyWith(
+                    fontWeight: FontWeight.w500,
+                  ),
+                )
+              : SongPlayingIndicator(
+                  playbackStatus: viewModel.playbackStatus!,
+                  onPlay: viewModel.play,
+                  onPause: viewModel.pause,
                 ),
-              )
-            : SongPlayingIndicator(
-                playbackStatus: viewModel.playbackStatus!,
-                onPlay: viewModel.play,
-                onPause: viewModel.pause,
-              ),
+        ),
       );
     } else {
-      leading = Stack(
-        fit: StackFit.expand,
-        children: [
-          CoverArt(
-            placeholderIcon: Icons.album,
-            coverId: coverId,
+      if (viewModel.playbackStatus == null) {
+        leading = CoverArt(
+          placeholderIcon: Icons.album,
+          coverId: coverId,
+          borderRadius: BorderRadius.circular(5),
+          size: 40,
+        );
+      } else {
+        leading = SizedBox.square(
+          dimension: 40,
+          child: ClipRRect(
             borderRadius: BorderRadius.circular(5),
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                CoverArt(placeholderIcon: Icons.album, coverId: coverId),
+                if (viewModel.playbackStatus != null)
+                  const ColoredBox(color: Color.fromARGB(90, 0, 0, 0)),
+                if (viewModel.playbackStatus != null)
+                  SongPlayingIndicator(
+                    playbackStatus: viewModel.playbackStatus!,
+                    onPlay: viewModel.play,
+                    onPause: viewModel.pause,
+                    color: Colors.white,
+                  ),
+              ],
+            ),
           ),
-          if (viewModel.playbackStatus != null)
-            ClipRRect(
-              borderRadius: BorderRadius.circular(5),
-              child: const ColoredBox(color: Color.fromARGB(90, 0, 0, 0)),
-            ),
-          if (viewModel.playbackStatus != null)
-            SongPlayingIndicator(
-              playbackStatus: viewModel.playbackStatus!,
-              onPlay: viewModel.play,
-              onPause: viewModel.pause,
-              color: Colors.white,
-            ),
-        ],
-      );
+        );
+      }
     }
-    leading = Padding(
-      padding: const EdgeInsets.only(left: 4),
-      child: SizedBox(width: 40, height: 40, child: leading),
-    );
+    leading = Padding(padding: const EdgeInsets.only(left: 4), child: leading);
     if (reorderIndex != null && showDragHandle) {
       leading = ReorderableDragStartListener(
         index: reorderIndex!,
