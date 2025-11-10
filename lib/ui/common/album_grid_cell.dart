@@ -56,86 +56,95 @@ class _AlbumGridCellState extends State<AlbumGridCell> {
   @override
   Widget build(BuildContext context) {
     final a = widget.album;
+
+    final menuOptions = [
+      ContextMenuOption(
+        title: "Play",
+        icon: Icons.play_arrow,
+        onSelected: () async {
+          final result = await _viewModel.play();
+          if (!context.mounted) return;
+          toastResult(context, result);
+        },
+      ),
+      ContextMenuOption(
+        title: "Shuffle",
+        icon: Icons.shuffle,
+        onSelected: () async {
+          final result = await _viewModel.play(shuffle: true);
+          if (!context.mounted) return;
+          toastResult(context, result);
+        },
+      ),
+      ContextMenuOption(
+        title: "Add to priority queue",
+        icon: Icons.playlist_play,
+        onSelected: () async {
+          final result = await _viewModel.addToQueue(true);
+          if (!context.mounted) return;
+          toastResult(
+            context,
+            result,
+            successMsg: "Added '${a.name}' to priority queue",
+          );
+        },
+      ),
+      ContextMenuOption(
+        title: "Add to queue",
+        icon: Icons.playlist_add,
+        onSelected: () async {
+          final result = await _viewModel.addToQueue(false);
+          if (!context.mounted) return;
+          toastResult(
+            context,
+            result,
+            successMsg: "Added '${a.name}' to queue",
+          );
+        },
+      ),
+      ContextMenuOption(
+        icon: _viewModel.favorite ? Icons.heart_broken : Icons.favorite,
+        title: _viewModel.favorite
+            ? "Remove from favorites"
+            : "Add to favorites",
+        onSelected: () async {
+          final result = await _viewModel.toggleFavorite();
+          if (!context.mounted) return;
+          toastResult(context, result);
+        },
+      ),
+      ContextMenuOption(
+        title: "Add to playlist",
+        icon: Icons.playlist_add,
+        onSelected: () {
+          AddToPlaylistDialog.show(context, a.name, _viewModel.getSongs);
+        },
+      ),
+      if (!widget.disableGoToArtist && a.artists.isNotEmpty)
+        ContextMenuOption(
+          title: "Go to artist",
+          icon: Icons.person,
+          onSelected: () async {
+            final artistId = await ChooserDialog.chooseArtist(
+              context,
+              a.artists.toList(),
+            );
+            if (artistId == null || !context.mounted) {
+              return;
+            }
+            context.router.push(ArtistRoute(artistId: artistId));
+          },
+        ),
+      ContextMenuOption(
+        title: "Info",
+        icon: Icons.info_outline,
+        onSelected: () => MediaInfoDialog.showAlbum(context, a.id),
+      ),
+    ];
+
     return ListenableBuilder(
       listenable: _viewModel,
       builder: (context, _) {
-        final menuOptions = [
-          ContextMenuOption(
-            title: "Play",
-            icon: Icons.play_arrow,
-            onSelected: () async {
-              final result = await _viewModel.play();
-              if (!context.mounted) return;
-              toastResult(context, result);
-            },
-          ),
-          ContextMenuOption(
-            title: "Shuffle",
-            icon: Icons.shuffle,
-            onSelected: () async {
-              final result = await _viewModel.play(shuffle: true);
-              if (!context.mounted) return;
-              toastResult(context, result);
-            },
-          ),
-          ContextMenuOption(
-            title: "Add to priority queue",
-            icon: Icons.playlist_play,
-            onSelected: () async {
-              final result = await _viewModel.addToQueue(true);
-              if (!context.mounted) return;
-              toastResult(context, result,
-                  successMsg: "Added '${a.name}' to priority queue");
-            },
-          ),
-          ContextMenuOption(
-            title: "Add to queue",
-            icon: Icons.playlist_add,
-            onSelected: () async {
-              final result = await _viewModel.addToQueue(false);
-              if (!context.mounted) return;
-              toastResult(context, result,
-                  successMsg: "Added '${a.name}' to queue");
-            },
-          ),
-          ContextMenuOption(
-            icon: _viewModel.favorite ? Icons.heart_broken : Icons.favorite,
-            title: _viewModel.favorite
-                ? "Remove from favorites"
-                : "Add to favorites",
-            onSelected: () async {
-              final result = await _viewModel.toggleFavorite();
-              if (!context.mounted) return;
-              toastResult(context, result);
-            },
-          ),
-          ContextMenuOption(
-            title: "Add to playlist",
-            icon: Icons.playlist_add,
-            onSelected: () {
-              AddToPlaylistDialog.show(context, a.name, _viewModel.getSongs);
-            },
-          ),
-          if (!widget.disableGoToArtist && a.artists.isNotEmpty)
-            ContextMenuOption(
-              title: "Go to artist",
-              icon: Icons.person,
-              onSelected: () async {
-                final artistId = await ChooserDialog.chooseArtist(
-                    context, a.artists.toList());
-                if (artistId == null || !context.mounted) {
-                  return;
-                }
-                context.router.push(ArtistRoute(artistId: artistId));
-              },
-            ),
-          ContextMenuOption(
-            title: "Info",
-            icon: Icons.info_outline,
-            onSelected: () => MediaInfoDialog.showAlbum(context, a.id),
-          )
-        ];
-
         return GridCell(
           menuOptions: menuOptions,
           coverId: a.coverId,
@@ -145,12 +154,13 @@ class _AlbumGridCellState extends State<AlbumGridCell> {
           extraInfo: [
             if (widget.showArtist) a.displayArtist,
             if (widget.showYear)
-              a.originalDate?.year.toString() ?? "Unknown year"
+              a.originalDate?.year.toString() ?? "Unknown year",
           ],
           onTap: () {
             context.router.push(AlbumRoute(albumId: a.id));
           },
-          topRight: (a.releaseDate != null &&
+          topRight:
+              (a.releaseDate != null &&
                   (a.originalDate!.year != a.releaseDate!.year ||
                       a.version != null))
               ? AlbumReleaseBadge(

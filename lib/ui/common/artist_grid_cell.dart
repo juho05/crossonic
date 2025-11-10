@@ -48,79 +48,89 @@ class _ArtistGridCellState extends State<ArtistGridCell> {
   @override
   Widget build(BuildContext context) {
     final a = widget.artist;
+    final menuOptions = [
+      ContextMenuOption(
+        title: "Play",
+        icon: Icons.play_arrow,
+        onSelected: () async {
+          final result = await _viewModel.play();
+          if (!context.mounted) return;
+          toastResult(context, result);
+        },
+      ),
+      ContextMenuOption(
+        title: "Shuffle",
+        icon: Icons.shuffle,
+        onSelected: () async {
+          final option = await ChooserDialog.choose(context, "Shuffle", [
+            "Releases",
+            "Songs",
+          ]);
+          if (option == null) return;
+          final shuffleSongs = option == 1;
+          final result = await _viewModel.play(
+            shuffleAlbums: !shuffleSongs,
+            shuffleSongs: shuffleSongs,
+          );
+          if (!context.mounted) return;
+          toastResult(context, result);
+        },
+      ),
+      ContextMenuOption(
+        title: "Add to priority queue",
+        icon: Icons.playlist_play,
+        onSelected: () async {
+          final result = await _viewModel.onAddToQueue(true);
+          if (!context.mounted) return;
+          toastResult(
+            context,
+            result,
+            successMsg: "Added '${a.name}' to priority queue",
+          );
+        },
+      ),
+      ContextMenuOption(
+        title: "Add to queue",
+        icon: Icons.playlist_add,
+        onSelected: () async {
+          final result = await _viewModel.onAddToQueue(false);
+          if (!context.mounted) return;
+          toastResult(
+            context,
+            result,
+            successMsg: "Added '${a.name}' to queue",
+          );
+        },
+      ),
+      ContextMenuOption(
+        icon: _viewModel.favorite ? Icons.heart_broken : Icons.favorite,
+        title: _viewModel.favorite
+            ? "Remove from favorites"
+            : "Add to favorites",
+        onSelected: () async {
+          final result = await _viewModel.toggleFavorite();
+          if (!context.mounted) return;
+          toastResult(context, result);
+        },
+      ),
+      ContextMenuOption(
+        title: "Add to playlist",
+        icon: Icons.playlist_add,
+        onSelected: () {
+          AddToPlaylistDialog.show(context, a.name, _viewModel.getSongs);
+        },
+      ),
+      ContextMenuOption(
+        title: "Info",
+        icon: Icons.info_outline,
+        onSelected: () {
+          MediaInfoDialog.showArtist(context, a.id);
+        },
+      ),
+    ];
     return ListenableBuilder(
       listenable: _viewModel,
       builder: (context, _) {
-        final menuOptions = [
-          ContextMenuOption(
-            title: "Play",
-            icon: Icons.play_arrow,
-            onSelected: () async {
-              final result = await _viewModel.play();
-              if (!context.mounted) return;
-              toastResult(context, result);
-            },
-          ),
-          ContextMenuOption(
-            title: "Shuffle",
-            icon: Icons.shuffle,
-            onSelected: () async {
-              final option = await ChooserDialog.choose(
-                  context, "Shuffle", ["Releases", "Songs"]);
-              if (option == null) return;
-              final shuffleSongs = option == 1;
-              final result = await _viewModel.play(
-                  shuffleAlbums: !shuffleSongs, shuffleSongs: shuffleSongs);
-              if (!context.mounted) return;
-              toastResult(context, result);
-            },
-          ),
-          ContextMenuOption(
-            title: "Add to priority queue",
-            icon: Icons.playlist_play,
-            onSelected: () async {
-              final result = await _viewModel.onAddToQueue(true);
-              if (!context.mounted) return;
-              toastResult(context, result,
-                  successMsg: "Added '${a.name}' to priority queue");
-            },
-          ),
-          ContextMenuOption(
-            title: "Add to queue",
-            icon: Icons.playlist_add,
-            onSelected: () async {
-              final result = await _viewModel.onAddToQueue(false);
-              if (!context.mounted) return;
-              toastResult(context, result,
-                  successMsg: "Added '${a.name}' to queue");
-            },
-          ),
-          ContextMenuOption(
-            icon: _viewModel.favorite ? Icons.heart_broken : Icons.favorite,
-            title: _viewModel.favorite
-                ? "Remove from favorites"
-                : "Add to favorites",
-            onSelected: () async {
-              final result = await _viewModel.toggleFavorite();
-              if (!context.mounted) return;
-              toastResult(context, result);
-            },
-          ),
-          ContextMenuOption(
-            title: "Add to playlist",
-            icon: Icons.playlist_add,
-            onSelected: () {
-              AddToPlaylistDialog.show(context, a.name, _viewModel.getSongs);
-            },
-          ),
-          ContextMenuOption(
-            title: "Info",
-            icon: Icons.info_outline,
-            onSelected: () {
-              MediaInfoDialog.showArtist(context, a.id);
-            },
-          )
-        ];
         return GridCell(
           title: a.name,
           coverId: a.coverId,
@@ -129,7 +139,7 @@ class _ArtistGridCellState extends State<ArtistGridCell> {
           placeholderIcon: Icons.person,
           circularCover: true,
           extraInfo: [
-            if (widget.showReleaseCount) "Releases: ${a.albumCount ?? "?"}"
+            if (widget.showReleaseCount) "Releases: ${a.albumCount ?? "?"}",
           ],
           onTap: () {
             context.router.push(ArtistRoute(artistId: a.id));

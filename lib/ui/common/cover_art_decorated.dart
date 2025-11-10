@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:crossonic/data/repositories/playlist/song_downloader.dart';
 import 'package:crossonic/ui/common/cover_art.dart';
 import 'package:crossonic/ui/common/menu_button.dart';
@@ -46,129 +48,121 @@ class _CoverArtDecoratedState extends State<CoverArtDecorated> {
 
   @override
   Widget build(BuildContext context) {
-    final child = Stack(
-      fit: StackFit.loose,
-      alignment: Alignment.center,
-      children: [
-        if (!widget.uploading)
-          CoverArt(
-            placeholderIcon: widget.placeholderIcon,
-            borderRadius: widget.borderRadius,
-            coverId: widget.coverId,
-          )
-        else
-          const AspectRatio(
-            aspectRatio: 1,
-            child: CircularProgressIndicator.adaptive(),
-          ),
-        AspectRatio(
-          aspectRatio: 1,
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              return Provider<OnCoverIconButtonSize>.value(
-                  value: constraints.maxHeight >= 256
-                      ? OnCoverIconButtonSize.large
-                      : OnCoverIconButtonSize.normal,
-                  builder: (context, _) {
-                    final size = context.read<OnCoverIconButtonSize>();
-                    final largeLayout = size == OnCoverIconButtonSize.large;
-                    return Padding(
-                      padding: EdgeInsets.all(largeLayout ? 10 : 6),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Visibility(
-                                visible:
-                                    widget.isFavorite || widget.topLeft != null,
-                                child: widget.topLeft ??
-                                    DecoratedIcon(
-                                      decoration: IconDecoration(
-                                        border: IconBorder(
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .primary,
-                                          width: 4,
-                                        ),
-                                      ),
-                                      icon: Icon(
-                                        Icons.favorite,
-                                        shadows: [
-                                          const Shadow(
-                                              blurRadius: 2,
-                                              color: Colors.black45),
-                                        ],
-                                        size: largeLayout ? 26 : 20,
-                                        color: const Color.fromARGB(
-                                            255, 248, 248, 248),
-                                      ),
-                                    ),
+    final child = LayoutBuilder(
+      builder: (context, constraints) {
+        final size = min(constraints.maxWidth, constraints.maxHeight);
+        return SizedBox.square(
+          dimension: size,
+          child: Provider<OnCoverIconButtonSize>.value(
+            value: size >= 256
+                ? OnCoverIconButtonSize.large
+                : OnCoverIconButtonSize.normal,
+            builder: (context, _) {
+              final buttonSize = context.read<OnCoverIconButtonSize>();
+              final largeLayout = buttonSize == OnCoverIconButtonSize.large;
+              if (widget.uploading) {
+                return const Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: CircularProgressIndicator.adaptive(),
+                );
+              }
+              return Stack(
+                fit: StackFit.loose,
+                alignment: Alignment.center,
+                children: [
+                  CoverArt(
+                    size: size,
+                    placeholderIcon: widget.placeholderIcon,
+                    borderRadius: widget.borderRadius,
+                    coverId: widget.coverId,
+                  ),
+                  if (widget.topLeft != null || widget.isFavorite)
+                    Align(
+                      alignment: Alignment.topLeft,
+                      child: Padding(
+                        padding: EdgeInsets.all(largeLayout ? 8 : 3),
+                        child:
+                            widget.topLeft ??
+                            DecoratedIcon(
+                              decoration: IconDecoration(
+                                border: IconBorder(
+                                  color: Theme.of(context).colorScheme.primary,
+                                  width: 4,
+                                ),
                               ),
-                              Visibility(
-                                visible: widget.downloadStatus !=
-                                        DownloadStatus.none ||
-                                    widget.topRight != null,
-                                child: widget.topRight ??
-                                    DecoratedIcon(
-                                      decoration: const IconDecoration(
-                                        border: IconBorder(
-                                          color: Colors.black87,
-                                          width: 1,
-                                        ),
-                                      ),
-                                      icon: Icon(
-                                        widget.downloadStatus ==
-                                                DownloadStatus.downloading
-                                            ? Icons.downloading_outlined
-                                            : Icons
-                                                .download_for_offline_outlined,
-                                        shadows: [
-                                          const Shadow(
-                                              blurRadius: 3,
-                                              color: Colors.black87),
-                                        ],
-                                        size: largeLayout ? 26 : 20,
-                                        color: const Color.fromARGB(
-                                            255, 248, 248, 248),
-                                      ),
-                                    ),
+                              icon: Icon(
+                                Icons.favorite,
+                                shadows: [
+                                  const Shadow(
+                                    blurRadius: 2,
+                                    color: Colors.black45,
+                                  ),
+                                ],
+                                size: largeLayout ? 26 : 20,
+                                color: const Color.fromARGB(255, 248, 248, 248),
                               ),
-                            ],
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Visibility(
-                                visible: widget.bottomLeft != null,
-                                child: widget.bottomLeft ??
-                                    const SizedBox.shrink(),
-                              ),
-                              Visibility(
-                                visible:
-                                    _showMenu || widget.bottomRight != null,
-                                child: widget.bottomRight ??
-                                    OnCoverMenuButton(
-                                      menuOptions: widget.menuOptions,
-                                    ),
-                              ),
-                            ],
-                          )
-                        ],
+                            ),
                       ),
-                    );
-                  });
+                    ),
+                  if (widget.topRight != null ||
+                      widget.downloadStatus != DownloadStatus.none)
+                    Align(
+                      alignment: Alignment.topRight,
+                      child: Padding(
+                        padding: EdgeInsets.all(largeLayout ? 8 : 3),
+                        child:
+                            widget.topRight ??
+                            DecoratedIcon(
+                              decoration: const IconDecoration(
+                                border: IconBorder(
+                                  color: Colors.black87,
+                                  width: 1,
+                                ),
+                              ),
+                              icon: Icon(
+                                widget.downloadStatus ==
+                                        DownloadStatus.downloading
+                                    ? Icons.downloading_outlined
+                                    : Icons.download_for_offline_outlined,
+                                shadows: [
+                                  const Shadow(
+                                    blurRadius: 3,
+                                    color: Colors.black87,
+                                  ),
+                                ],
+                                size: largeLayout ? 26 : 20,
+                                color: const Color.fromARGB(255, 248, 248, 248),
+                              ),
+                            ),
+                      ),
+                    ),
+                  if (widget.bottomLeft != null)
+                    Align(
+                      alignment: Alignment.bottomLeft,
+                      child: Padding(
+                        padding: EdgeInsets.all(largeLayout ? 8 : 3),
+                        child: widget.bottomLeft,
+                      ),
+                    ),
+                  if (widget.bottomRight != null || _showMenu)
+                    Align(
+                      alignment: Alignment.bottomRight,
+                      child: Padding(
+                        padding: EdgeInsets.all(largeLayout ? 8 : 3),
+                        child:
+                            widget.bottomRight ??
+                            OnCoverMenuButton(menuOptions: widget.menuOptions),
+                      ),
+                    ),
+                ],
+              );
             },
           ),
-        ),
-      ],
+        );
+      },
     );
     if (_showMenu) {
-      return WithContextMenu(
-        options: widget.menuOptions,
-        child: child,
-      );
+      return WithContextMenu(options: widget.menuOptions, child: child);
     }
     return child;
   }
@@ -242,9 +236,7 @@ class OnCoverMenuButton extends StatelessWidget {
 class _OnCoverButton extends StatelessWidget {
   final Widget button;
 
-  const _OnCoverButton({
-    required this.button,
-  });
+  const _OnCoverButton({required this.button});
 
   @override
   Widget build(BuildContext context) {
@@ -252,19 +244,14 @@ class _OnCoverButton extends StatelessWidget {
     try {
       size = context.read<OnCoverIconButtonSize>();
     } catch (_) {}
-    return Material(
-      type: MaterialType.transparency,
-      child: Ink(
-        decoration: ShapeDecoration(
-          color: Colors.black.withAlpha(90),
-          shape: const CircleBorder(),
-        ),
-        child: SizedBox(
-          width: size == OnCoverIconButtonSize.large ? 40 : 30,
-          height: size == OnCoverIconButtonSize.large ? 40 : 30,
-          child: button,
-        ),
+    return Container(
+      width: size == OnCoverIconButtonSize.large ? 40 : 30,
+      height: size == OnCoverIconButtonSize.large ? 40 : 30,
+      decoration: ShapeDecoration(
+        color: Colors.black.withAlpha(90),
+        shape: const CircleBorder(),
       ),
+      child: button,
     );
   }
 }

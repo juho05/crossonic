@@ -92,14 +92,11 @@ class _AlbumListItemState extends State<AlbumListItem> {
           ],
           leading: Padding(
             padding: const EdgeInsets.only(left: 8),
-            child: SizedBox(
-              width: 40,
-              height: 40,
-              child: CoverArt(
-                placeholderIcon: Icons.album,
-                coverId: a.coverId,
-                borderRadius: BorderRadius.circular(5),
-              ),
+            child: CoverArt(
+              size: 40,
+              placeholderIcon: Icons.album,
+              coverId: a.coverId,
+              borderRadius: BorderRadius.circular(5),
             ),
           ),
           trailingInfo: widget.showSongCount ? a.songCount.toString() : null,
