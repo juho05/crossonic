@@ -1,3 +1,4 @@
+import 'package:crossonic/ui/common/dialogs/dialog.dart';
 import 'package:crossonic/ui/common/dialogs/media_info_viewmodel.dart';
 import 'package:crossonic/utils/fetch_status.dart';
 import 'package:flutter/material.dart';
@@ -78,7 +79,7 @@ class MediaInfoDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    return Dialog(
+    return CrossonicDialog(
       child: ConstrainedBox(
         constraints: BoxConstraints.loose(const Size.fromWidth(600)),
         child: LayoutBuilder(

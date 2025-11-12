@@ -7,6 +7,25 @@ class Shimmer extends StatefulWidget {
 
   const Shimmer({super.key, required this.linearGradient, this.child});
 
+  static LinearGradient createGradient(BuildContext context) {
+    final theme = Theme.of(context);
+    final shimmerBackground = theme.brightness == Brightness.light
+        ? theme.colorScheme.surfaceContainer
+        : theme.colorScheme.surfaceContainerLow;
+
+    final shimmerForeground = theme.brightness == Brightness.light
+        ? theme.colorScheme.surfaceContainerLow
+        : theme.colorScheme.surfaceContainer;
+
+    return LinearGradient(
+      colors: [shimmerBackground, shimmerForeground, shimmerBackground],
+      stops: [0.1, 0.3, 0.4],
+      begin: const Alignment(-1.0, -0.3),
+      end: const Alignment(1.0, 0.3),
+      tileMode: TileMode.clamp,
+    );
+  }
+
   final LinearGradient linearGradient;
   final Widget? child;
 

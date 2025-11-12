@@ -2,6 +2,7 @@ import 'package:crossonic/data/repositories/subsonic/models/album.dart';
 import 'package:crossonic/ui/common/album_list_item.dart';
 import 'package:crossonic/ui/common/clickable_list_item.dart';
 import 'package:crossonic/ui/common/dialogs/album_release_viewmodel.dart';
+import 'package:crossonic/ui/common/dialogs/dialog.dart';
 import 'package:crossonic/utils/fetch_status.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -33,7 +34,7 @@ class AlbumReleaseDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    return Dialog(
+    return CrossonicDialog(
       child: ConstrainedBox(
         constraints: BoxConstraints.loose(const Size.fromWidth(450)),
         child: Consumer<AlbumReleaseDialogViewModel>(

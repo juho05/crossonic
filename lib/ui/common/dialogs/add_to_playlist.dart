@@ -9,6 +9,7 @@ import 'package:crossonic/ui/common/clickable_list_item.dart';
 import 'package:crossonic/ui/common/cover_art.dart';
 import 'package:crossonic/ui/common/dialogs/add_to_playlist_viewmodel.dart';
 import 'package:crossonic/ui/common/dialogs/confirmation.dart';
+import 'package:crossonic/ui/common/dialogs/dialog.dart';
 import 'package:crossonic/ui/common/search_input.dart';
 import 'package:crossonic/ui/common/toast.dart';
 import 'package:crossonic/utils/fetch_status.dart';
@@ -28,7 +29,7 @@ class AddToPlaylistDialog {
     );
     return showDialog(
       context: context,
-      builder: (context) => Dialog(
+      builder: (context) => CrossonicDialog(
         child: _AddToPlaylistDialogContent(
           viewModel: viewModel,
           collectionName: collectionName,
