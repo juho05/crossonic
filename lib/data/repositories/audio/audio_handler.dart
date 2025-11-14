@@ -255,6 +255,7 @@ class AudioHandler {
   Future<void> seek(Duration pos) async {
     Log.trace("seek to $pos");
     final song = _queue.current.value;
+    final next = _queue.currentAndNext.value.next;
     if (song == null) return;
     await _ensurePlayerLoaded();
     _seekingPos = pos;
@@ -265,7 +266,10 @@ class AudioHandler {
       _seekingPos = null;
     } else {
       _playbackStatus.add(PlaybackStatus.loading);
-      await _player.setCurrent(_getStreamUri(song, pos));
+      await _player.setCurrent(
+        _getStreamUri(song, pos),
+        nextUrl: next != null ? _getStreamUri(next) : null,
+      );
       _positionOffset = pos;
       _seekingPos = null;
       _updatePosition();
