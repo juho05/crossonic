@@ -336,7 +336,10 @@ class AudioHandler {
 
     Log.debug("new player status: $status");
 
-    _enableAudioSession(status == PlaybackStatus.playing);
+    if (!(status == PlaybackStatus.loading &&
+        _playbackStatus.value == PlaybackStatus.playing)) {
+      _enableAudioSession(status == PlaybackStatus.playing);
+    }
 
     if (status == PlaybackStatus.stopped) {
       if (_queue.current.value == null ||
@@ -614,7 +617,7 @@ class AudioHandler {
     Log.debug("disposing player");
     _player.setVolume(1);
     await _player.dispose();
-    await _audioSession.setActive(false);
+    await _enableAudioSession(false);
   }
 
   Uri _getStreamUri(Song song, [Duration? offset]) {
@@ -745,13 +748,21 @@ class AudioHandler {
     ]);
   }
 
+  bool _audioSessionActive = false;
+  Timer? _deactivateAudioSessionDebounce;
   Future<void> _enableAudioSession(bool enable) async {
+    if (enable == _audioSessionActive) return;
+    _audioSessionActive = enable;
+    _deactivateAudioSessionDebounce?.cancel();
     if (enable) {
       Log.debug("activating audio session");
+      await _audioSession.setActive(true);
     } else {
-      Log.debug("deactivating audio session");
+      _deactivateAudioSessionDebounce = Timer(const Duration(seconds: 3), () {
+        Log.debug("deactivating audio session");
+        _audioSession.setActive(false);
+      });
     }
-    await _audioSession.setActive(enable);
   }
 
   double _volumeToLinear(double volume) {
