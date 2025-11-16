@@ -50,6 +50,6 @@ class DebugViewModel extends ChangeNotifier {
   }
 
   Future<void> clearCoverCache() async {
-    _coverRepo.emptyCache();
+    await _coverRepo.emptyCache();
   }
 }

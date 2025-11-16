@@ -3,6 +3,7 @@ import 'package:crossonic/routing/router.gr.dart';
 import 'package:crossonic/ui/common/buttons.dart';
 import 'package:crossonic/ui/common/help_button.dart';
 import 'package:crossonic/ui/common/section_header.dart';
+import 'package:crossonic/ui/common/toast.dart';
 import 'package:crossonic/ui/settings/pages/debug_viewmodel.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
@@ -110,8 +111,10 @@ class _DebugPageState extends State<DebugPage> {
               Align(
                 alignment: Alignment.centerLeft,
                 child: Button(
-                  onPressed: () {
-                    _viewModel.clearCoverCache();
+                  onPressed: () async {
+                    await _viewModel.clearCoverCache();
+                    if (!context.mounted) return;
+                    Toast.show(context, "Successfully cleared cover cache!");
                   },
                   darkTonal: true,
                   icon: Icons.image_not_supported_outlined,
