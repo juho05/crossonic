@@ -26,11 +26,11 @@ class VersionCheckerViewModel extends ChangeNotifier {
   bool get isOpen => _isOpen;
   set isOpen(bool value) => _isOpen = value;
 
-  VersionCheckerViewModel(
-      {required KeyValueRepository keyValue,
-      required VersionRepository versionRepo})
-      : _keyValue = keyValue,
-        _versionRepo = versionRepo {
+  VersionCheckerViewModel({
+    required KeyValueRepository keyValue,
+    required VersionRepository versionRepo,
+  }) : _keyValue = keyValue,
+       _versionRepo = versionRepo {
     if (!kIsWeb) {
       _checked = Platform.environment["CROSSONIC_DISABLE_VERSION_CHECK"] == "1";
     } else {
@@ -51,7 +51,7 @@ class VersionCheckerViewModel extends ChangeNotifier {
     final lastDisplayed = await _keyValue.loadDateTime(_keyLastDisplayedDialog);
     if (lastDisplayed != null &&
         DateTime.now().difference(lastDisplayed) < const Duration(days: 1)) {
-      //return;
+      return;
     }
 
     final latest = await _versionRepo.getLatestVersion();
