@@ -22,6 +22,19 @@ jobs:
           VERSION=$(sed -n 's/^version: \([0-9]*\.[0-9]*\.[0-9]*\).*/\1/p' pubspec.yaml)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
+  draft_release:
+    needs: build
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Draft release
+        id: draft_release
+        uses: release-drafter/release-drafter@v6
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag: v${{ needs.build.outputs.version }}
+          name: v${{ needs.build.outputs.version }}
+
   build_android:
     needs: build
     runs-on: ubuntu-22.04
@@ -332,7 +345,7 @@ jobs:
           retention-days: 2
   release:
     needs:
-      - build
+      - draft_release
       - build_android
       - build_linux_x86_64_TGZ
       - build_linux_x86_64_AppImage
@@ -342,15 +355,6 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
-
-      - name: Draft release
-        id: draft_release
-        uses: release-drafter/release-drafter@v6
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag: v${{ needs.build.outputs.version }}
-          name: v${{ needs.build.outputs.version }}
 
       - name: Create uploads directory
         run: mkdir uploads
