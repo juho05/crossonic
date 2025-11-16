@@ -325,6 +325,8 @@ class AudioHandler {
     }
     Log.trace("player event received: ${event.name}");
     if (event == AudioPlayerEvent.advance) {
+      _positionOffset = Duration.zero;
+      await _updatePosition(Duration.zero);
       _queue.advance();
       return;
     }
@@ -465,7 +467,7 @@ class AudioHandler {
         "current song changed: ${event.current?.id}, from advance: ${event.fromAdvance}",
       );
       _positionOffset = Duration.zero;
-      _updatePosition(Duration.zero);
+      await _updatePosition(Duration.zero);
       await _applyReplayGain();
     }
 
