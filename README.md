@@ -2,7 +2,7 @@
 
 # Crossonic
 
-A cross-platform music client for [crossonic-server](https://github.com/juho05/crossonic-server) and other [(Open)Subsonic](https://opensubsonic.netlify.app/) compatible music servers.
+A modern cross-platform music client for [crossonic-server](https://github.com/juho05/crossonic-server) and other [(Open)Subsonic](https://opensubsonic.netlify.app/) compatible music servers.
 
 [Screenshots](https://crossonic.org/app#screenshots)
 
@@ -15,10 +15,10 @@ This app is still in development. Some features are missing and bugs are to be e
 Please [report](https://github.com/juho05/crossonic/issues/new/choose) any issues or feature requests.
 
 This app should be compatible with all _Subsonic_ compatible servers, but I recommend to only use servers implementing
-the [OpenSubsonic]() standard. For the best experience (and full feature support) I recommend using [crossonic-server](https://github.com/juho05/crossonic-server).
+the [OpenSubsonic](https://opensubsonic.netlify.app/) standard. For the best experience (and full feature support) I recommend using [crossonic-server](https://github.com/juho05/crossonic-server).
 
 **Release builds exist for these platforms:**
-- Windows (`.exe` installer)
+- Windows (`.exe` installer, `.zip`)
 - macOS (`.dmg`)
 - Linux (`.AppImage`, `.tar.gz`)
 - Android (`.apk`)
@@ -29,7 +29,8 @@ the [OpenSubsonic]() standard. For the best experience (and full feature support
   - no gapless playback
   - sub-optimal image caching
 
-The app works on iOS but there are currently no release builds available as I don't have an Apple Developer account.
+iOS builds are not available because I do not have a paid Apple Developer account. However,
+the app does work on iPhones and iPads if you [build](#build) and sign it yourself.
 
 ## Features
 
@@ -71,11 +72,11 @@ The app works on iOS but there are currently no release builds available as I do
     - [x] Unsynced
     - [x] Synced
 - [x] Replay gain
+- [ ] Casting (*AirPlay* on *iOS* and *macOS* already works)
 - [ ] Load/save queues
 - [ ] Internet Radio
 - [ ] Pre-cache next x songs for spotty networks
 - [ ] Jukebox
-- [ ] Remote control other devices running the app
 - [ ] End-of-year recap
 
 ### Out-of-scope
@@ -162,11 +163,15 @@ flutter build apk
 - Select your development team in Xcode
   - Open `./ios/Runner.xcworkspace` in Xcode
   - Select `Runner` in the project navigator
-  - Select your team in the `Team` dropdown on the `Signing & Capabilities` tab (you'll need to create your team first if you do not already have a team)
+  - Open the `Signing & Capabilities` tab and configure your signing config
 
 In the directory of the repository run:
 ```bash
+# to build an archive
 flutter build ios
+
+# to build a signed ipa file
+flutter build ipa
 ```
 
 ### Web
@@ -192,6 +197,7 @@ Now you can serve `./build/web` with a web server like [Caddy](https://caddyserv
 ![](screenshots/mobile-1.png)
 ![](screenshots/mobile-2.png)
 ![](screenshots/mobile-3.png)
+![](screenshots/mobile-4.png)
 
 ## License
 
