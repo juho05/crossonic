@@ -16,6 +16,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_displaymode/flutter_displaymode.dart';
 import 'package:flutter_single_instance/flutter_single_instance.dart';
+import 'package:path/path.dart' as path;
 import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -30,6 +31,10 @@ final defaultDarkColorScheme = ColorScheme.fromSeed(
 
 void main() async {
   LogRepository logRepository = LogRepository();
+
+  if (!kIsWeb && Platform.isWindows) {
+    await _migrateAppSupportDir();
+  }
 
   Log.init(logRepository);
   Log.info("App started.");
@@ -48,7 +53,7 @@ void main() async {
       final currentVersion = await VersionRepository.getCurrentVersion();
       if (currentVersion != version) {
         Log.info(
-          "An instance with different version is trying to start, exiting...",
+          "An instance with a different version is trying to start, exiting...",
         );
         exit(0);
       }
@@ -151,6 +156,57 @@ class MainApp extends StatelessWidget {
           },
         );
       },
+    );
+  }
+}
+
+Future<void> _migrateAppSupportDir() async {
+  final localappdata = Platform.environment["LOCALAPPDATA"];
+  if (localappdata == null) {
+    Log.warn(
+      "failed to delete old cache dir: LOCALAPPDATA environment variable does not exist",
+    );
+  } else {
+    final dir = Directory(path.join(localappdata, "Julian Hofmann"));
+    if (await dir.exists()) {
+      try {
+        dir.delete(recursive: true);
+      } catch (e, st) {
+        Log.warn("failed to delete old cache dir", e: e, st: st);
+      }
+    }
+  }
+
+  final appdata = Platform.environment["APPDATA"];
+  if (appdata == null) {
+    Log.warn(
+      "failed to migrate app data: LOCALAPPDATA environment variable does not exist",
+    );
+    return;
+  }
+
+  final oldDir = Directory(path.join(appdata, "Julian Hofmann"));
+  final newDir = Directory(path.join(appdata, "juho05"));
+
+  if (!await oldDir.exists()) {
+    return;
+  }
+  if (await newDir.exists()) {
+    try {
+      oldDir.delete(recursive: true);
+    } catch (e, st) {
+      Log.error("failed to delete old app data directory", e: e, st: st);
+    }
+    return;
+  }
+
+  try {
+    await oldDir.rename(newDir.path);
+  } catch (e, st) {
+    Log.error(
+      "Failed to move old app data directory to new location",
+      e: e,
+      st: st,
     );
   }
 }

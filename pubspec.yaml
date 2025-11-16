@@ -98,7 +98,7 @@ inno_bundle:
   id: cbe0f7d0-37fc-11f0-a197-6529278abc9e
   name: Crossonic
   description: OpenSubsonic compatible music player
-  publisher: Julian Hofmann
+  publisher: juho05
   url: "https://crossonic.org/app"
   updates_url: "https://github.com/juho05/crossonic/releases/latest"
   admin: auto
