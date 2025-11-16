@@ -237,6 +237,8 @@ class AudioHandler {
     _fadeTimer?.cancel();
     _fadeTimer = null;
 
+    await _ensurePlayerLoaded();
+
     if (fade) {
       _updatePlayerVolume(scalar: 0);
     } else {
