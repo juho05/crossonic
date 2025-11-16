@@ -94,6 +94,9 @@ Installation instructions are available on the [Crossonic website](https://cross
 
 Install [Flutter](https://docs.flutter.dev/get-started/install) with all dependencies for your desired target platform.
 
+**IMPORTANT:** Some Flutter versions cause issues e.g. with routing. Always use the Flutter version specified [in this line](https://github.com/juho05/crossonic/blob/main/.github/workflows/release.yml#L7)
+of the release workflow when building this project.
+
 Clone the repository
 ```bash
 git clone https://github.com/juho05/crossonic
