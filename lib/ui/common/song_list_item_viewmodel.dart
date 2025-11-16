@@ -73,6 +73,11 @@ class SongListItemViewModel extends ChangeNotifier {
     await _audioHandler.pause();
   }
 
+  Future<void> playSong() async {
+    _audioHandler.playOnNextMediaChange();
+    _audioHandler.queue.replace([song]);
+  }
+
   void _updateFavoriteStatus() {
     final favorite = _favoritesRepository.isFavorite(
       FavoriteType.song,

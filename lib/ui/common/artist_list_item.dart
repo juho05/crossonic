@@ -59,7 +59,7 @@ class _ArtistListItemState extends State<ArtistListItem> {
               "Releases: ${a.albumCount}",
           ],
           leading: Padding(
-            padding: const EdgeInsets.only(left: 8),
+            padding: const EdgeInsets.only(left: 4),
             child: CoverArt(
               size: 40,
               placeholderIcon: Icons.album,

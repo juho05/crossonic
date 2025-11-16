@@ -149,6 +149,13 @@ class _SongListItemState extends State<SongListItem> {
                 ? const []
                 : [
                     ContextMenuOption(
+                      icon: Icons.play_arrow,
+                      title: "Play",
+                      onSelected: () {
+                        viewModel.playSong();
+                      },
+                    ),
+                    ContextMenuOption(
                       icon: Icons.playlist_play,
                       title: "Add to priority queue",
                       onSelected: () {
