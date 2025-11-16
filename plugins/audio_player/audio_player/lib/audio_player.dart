@@ -13,6 +13,7 @@ class AudioPlayer {
   Future<Duration> get bufferedPosition => _platform.bufferedPosition;
   bool get supportsFileUri => _platform.supportsFileUri;
   bool get canSeek => _platform.canSeek;
+  bool get needsManualFade => _platform.needsManualFade;
   double get volume => _platform.volume;
   Future<void> setVolume(double volume) => _platform.setVolume(volume);
   bool get initialized => _platform.initialized;

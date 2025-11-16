@@ -19,6 +19,9 @@ class AudioPlayerMediaKit extends AudioPlayerPlatform {
   }
 
   @override
+  bool get needsManualFade => true;
+
+  @override
   Future<Duration> get position async =>
       _player?.state.position ?? Duration.zero;
 

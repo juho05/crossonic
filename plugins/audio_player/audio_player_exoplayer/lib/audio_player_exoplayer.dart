@@ -20,6 +20,9 @@ class AudioPlayerExoPlayer extends AudioPlayerPlatform {
   }
 
   @override
+  bool get needsManualFade => false;
+
+  @override
   Future<Duration> get position async => _player.position;
 
   @override

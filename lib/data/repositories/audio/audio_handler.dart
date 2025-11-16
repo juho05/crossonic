@@ -161,8 +161,7 @@ class AudioHandler {
                         "received volume duck begin request from audio_session",
                       );
                       _ducking = true;
-                      // ducking is automatically handled in _setPlayerVolume
-                      _setPlayerVolume(1);
+                      _updatePlayerVolume();
                       break;
                     case AudioInterruptionType.pause:
                       Log.debug(
@@ -184,7 +183,7 @@ class AudioHandler {
                         "received volume duck end request from audio_session",
                       );
                       _ducking = false;
-                      _setPlayerVolume(1);
+                      _updatePlayerVolume();
                       break;
                     case AudioInterruptionType.pause:
                       Log.debug("received pause begin end from audio_session");
@@ -204,7 +203,7 @@ class AudioHandler {
               .becomingNoisyEventStream
               .listen((_) async {
                 Log.debug("received becoming noisy event from audio_session");
-                await pause();
+                await pause(fade: false);
               });
 
           await _restoreQueue();
@@ -222,20 +221,92 @@ class AudioHandler {
     Log.trace("enabling playOnNextMediaChange");
   }
 
-  Future<void> play() async {
-    Log.trace("play");
-    await _ensurePlayerLoaded();
+  static const Duration _fadeDuration = Duration(milliseconds: 100);
+  static const Duration _fadeStepPeriod = Duration(milliseconds: 10);
+
+  Timer? _fadeTimer;
+  Future<void> play({bool fade = true}) async {
+    fade = fade && _player.needsManualFade;
+
+    Log.trace("play (fade: $fade)");
+
+    if ((fade && _fadeTimer != null) ||
+        _playbackStatus.value == PlaybackStatus.playing) {
+      return;
+    }
+    _fadeTimer?.cancel();
+    _fadeTimer = null;
+
+    if (fade) {
+      _updatePlayerVolume(scalar: 0);
+    } else {
+      _updatePlayerVolume();
+    }
     await _player.play();
+
+    if (fade) {
+      double volume = 0;
+      _fadeTimer = Timer.periodic(_fadeStepPeriod, (timer) {
+        volume +=
+            1 / (_fadeDuration.inMilliseconds / _fadeStepPeriod.inMilliseconds);
+        volume = min(volume, 1);
+        _updatePlayerVolume(scalar: volume);
+        if (volume >= 1) {
+          _fadeTimer?.cancel();
+          _fadeTimer = null;
+        }
+      });
+    }
   }
 
-  Future<void> pause() async {
-    Log.trace("pause");
-    await _ensurePlayerLoaded();
-    await _player.pause();
+  Future<void> pause({bool fade = true}) async {
+    fade = fade && _player.needsManualFade;
+
+    Log.trace("pause (fade: $fade)");
+
+    if ((fade && _fadeTimer != null) ||
+        _playbackStatus.value == PlaybackStatus.paused) {
+      return;
+    }
+    _fadeTimer?.cancel();
+    _fadeTimer = null;
+    if (!_player.initialized) return;
+
+    if (!fade) {
+      await _player.pause();
+      _updatePlayerVolume();
+      return;
+    }
+
+    _updatePlayerVolume();
+    double volume = 1;
+
+    final pausePos = position + _fadeDuration;
+    _playbackStatus.add(PlaybackStatus.paused);
+    _updatePosition(pausePos);
+
+    _fadeTimer = Timer.periodic(_fadeStepPeriod, (timer) {
+      volume -=
+          1 / (_fadeDuration.inMilliseconds / _fadeStepPeriod.inMilliseconds);
+      volume = max(volume, 0);
+      _updatePlayerVolume(scalar: volume);
+      if (volume <= 0) {
+        _fadeTimer?.cancel();
+        _fadeTimer = null;
+        _player.pause().then((value) {
+          Future.delayed(
+            const Duration(milliseconds: 10),
+            () => _updatePlayerVolume(scalar: volume),
+          );
+        });
+      }
+    });
   }
 
   Future<void> stop() async {
     Log.trace("stop");
+    _fadeTimer?.cancel();
+    _fadeTimer = null;
     _playOnNextMediaChange = false;
     _integration.updateMedia(null, null);
     _integration.updatePosition(Duration.zero);
@@ -314,6 +385,7 @@ class AudioHandler {
 
   // ================ callbacks ================
 
+  AudioPlayerEvent? _previousAudioPlayerEvent;
   Future<void> _playerEvent(AudioPlayerEvent event) async {
     if (!_player.initialized) {
       if (event != AudioPlayerEvent.stopped) {
@@ -331,6 +403,15 @@ class AudioHandler {
       return;
     }
 
+    if (_previousAudioPlayerEvent == event) return;
+
+    Duration lastPos = _positionUpdate.$2;
+    if (_previousAudioPlayerEvent == AudioPlayerEvent.playing) {
+      lastPos += DateTime.now().difference(_positionUpdate.$1);
+    }
+
+    _previousAudioPlayerEvent = event;
+
     var status = switch (event) {
       AudioPlayerEvent.stopped => PlaybackStatus.stopped,
       AudioPlayerEvent.loading => PlaybackStatus.loading,
@@ -338,7 +419,6 @@ class AudioHandler {
       AudioPlayerEvent.paused => PlaybackStatus.paused,
       AudioPlayerEvent.advance => throw Exception("should never happen"),
     };
-    if (status == _playbackStatus.value) return;
 
     Log.debug("new player status: $status");
 
@@ -375,8 +455,6 @@ class AudioHandler {
 
       return;
     }
-
-    final lastPos = position;
 
     _integration.updatePlaybackState(status);
     _playbackStatus.add(status);
@@ -445,9 +523,9 @@ class AudioHandler {
     _seekingPos = null;
 
     if (play) {
-      await _player.play();
+      await this.play(fade: false);
     } else {
-      await _player.pause();
+      await pause(fade: false);
     }
   }
 
@@ -477,7 +555,7 @@ class AudioHandler {
         nextUrl: event.next != null ? _getStreamUri(event.next!) : null,
       );
       if (playAfterChange) {
-        await _player.play();
+        await play();
       }
     } else {
       Log.trace("next song changed: ${event.next?.id}");
@@ -516,12 +594,14 @@ class AudioHandler {
 
   // ================ helpers ================
 
+  double _replayGainVolume = 1;
   Future<void> _applyReplayGain() async {
     if (!_player.initialized) return;
     ReplayGainMode mode = _settings.replayGain.mode;
     final media = _queue.current.value;
     if (mode == ReplayGainMode.disabled || media == null) {
-      await _setPlayerVolume(1);
+      _replayGainVolume = 1;
+      await _updatePlayerVolume();
       return;
     }
 
@@ -564,11 +644,13 @@ class AudioHandler {
     Log.debug("replay gain of current song: $gain dB");
 
     double volume = pow(10, gain / 20) as double;
-    await _setPlayerVolume(volume);
+    _replayGainVolume = volume;
+    await _updatePlayerVolume();
   }
 
-  Future<void> _setPlayerVolume(double volume) async {
-    volume *= _volume;
+  Future<void> _updatePlayerVolume({double scalar = 1}) async {
+    double volume = _volume * scalar;
+    volume *= _replayGainVolume;
     if (_ducking) {
       volume *= 0.5;
     }
@@ -607,9 +689,9 @@ class AudioHandler {
         );
       }
       if (_playbackStatus.value == PlaybackStatus.playing) {
-        await play();
+        await play(fade: false);
       } else {
-        await pause();
+        await pause(fade: false);
       }
     }
     if (current == null && next == null) {

@@ -1,5 +1,6 @@
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 import 'package:rxdart/rxdart.dart';
+
 import 'audio_player_event.dart';
 import 'audio_player_unimplemented.dart';
 
@@ -23,6 +24,7 @@ abstract class AudioPlayerPlatform extends PlatformInterface {
   Future<Duration> get bufferedPosition => _instance.bufferedPosition;
   bool get supportsFileUri => _instance.supportsFileUri;
   bool get canSeek => _instance.canSeek;
+  bool get needsManualFade => _instance.needsManualFade;
   double get volume => _instance.volume;
   Future<void> setVolume(double volume) => _instance.setVolume(volume);
   bool get initialized => _instance.initialized;
