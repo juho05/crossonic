@@ -7,6 +7,7 @@ import 'package:crossonic/ui/common/cover_art.dart';
 import 'package:crossonic/ui/common/dialogs/add_to_playlist.dart';
 import 'package:crossonic/ui/common/dialogs/chooser.dart';
 import 'package:crossonic/ui/common/dialogs/media_info.dart';
+import 'package:crossonic/ui/common/haptic_reorderable_delayed_drag_start_listener.dart';
 import 'package:crossonic/ui/common/song_list_item_viewmodel.dart';
 import 'package:crossonic/ui/common/song_playing_indicator.dart';
 import 'package:crossonic/ui/common/toast.dart';
@@ -108,7 +109,7 @@ class _SongListItemState extends State<SongListItem> {
             s.releaseDate!.year != s.originalDate!.year) {
           year += "/${s.releaseDate!.year}";
         }
-        return ReorderableDelayedDragStartListener(
+        return HapticReorderableDelayedDragStartListener(
           index: widget.reorderIndex ?? 0,
           enabled: widget.enableLongPressReorder && widget.reorderIndex != null,
           child: ClickableListItemWithContextMenu(

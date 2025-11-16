@@ -1,5 +1,6 @@
 import 'package:auto_route/annotations.dart';
 import 'package:crossonic/ui/common/album_grid_sliver.dart';
+import 'package:crossonic/ui/common/refresh_scroll_view.dart';
 import 'package:crossonic/ui/main/layout_mode.dart';
 import 'package:crossonic/ui/years/year_selector_field.dart';
 import 'package:crossonic/ui/years/years_viewmodel.dart';
@@ -22,9 +23,7 @@ class _YearsPageState extends State<YearsPage> {
   @override
   void initState() {
     super.initState();
-    _viewModel = YearsViewModel(
-      subsonic: context.read(),
-    );
+    _viewModel = YearsViewModel(subsonic: context.read());
     _controller.addListener(_onScroll);
     _viewModel.nextPage();
   }
@@ -42,15 +41,15 @@ class _YearsPageState extends State<YearsPage> {
       child: ListenableBuilder(
         listenable: _viewModel,
         builder: (context, _) {
-          return RefreshIndicator.adaptive(
+          return RefreshScrollView(
             onRefresh: () => _viewModel.refresh(),
-            child: CustomScrollView(
-              controller: _controller,
-              slivers: [
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: LayoutModeBuilder(builder: (context, isDesktop) {
+            controller: _controller,
+            slivers: [
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: LayoutModeBuilder(
+                    builder: (context, isDesktop) {
                       return Row(
                         spacing: 12,
                         crossAxisAlignment: CrossAxisAlignment.center,
@@ -58,9 +57,7 @@ class _YearsPageState extends State<YearsPage> {
                         children: [
                           Text(
                             "Years:",
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium!
+                            style: Theme.of(context).textTheme.bodyMedium!
                                 .copyWith(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 16,
@@ -82,18 +79,18 @@ class _YearsPageState extends State<YearsPage> {
                             IconButton(
                               onPressed: () => _viewModel.refresh(),
                               icon: const Icon(Icons.refresh),
-                            )
+                            ),
                         ],
                       );
-                    }),
+                    },
                   ),
                 ),
-                AlbumGridSliver(
-                  albums: _viewModel.albums,
-                  fetchStatus: _viewModel.status,
-                ),
-              ],
-            ),
+              ),
+              AlbumGridSliver(
+                albums: _viewModel.albums,
+                fetchStatus: _viewModel.status,
+              ),
+            ],
           );
         },
       ),

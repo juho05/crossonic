@@ -2,6 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:crossonic/data/repositories/settings/home_page_layout.dart';
 import 'package:crossonic/data/repositories/settings/settings_repository.dart';
 import 'package:crossonic/ui/common/clickable_list_item.dart';
+import 'package:crossonic/ui/common/haptic_reorderable_delayed_drag_start_listener.dart';
 import 'package:crossonic/ui/common/section_header.dart';
 import 'package:crossonic/ui/settings/pages/home_layout_viewmodel.dart';
 import 'package:flutter/material.dart';
@@ -39,7 +40,7 @@ class HomeLayoutPage extends StatelessWidget {
                         itemExtent: ClickableListItem.verticalExtent,
                         itemBuilder: (context, index) {
                           final c = viewModel.activeComponents[index];
-                          return ReorderableDelayedDragStartListener(
+                          return HapticReorderableDelayedDragStartListener(
                             key: ValueKey("${c.name}-$index"),
                             index: index,
                             child: ClickableListItem(
