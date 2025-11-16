@@ -340,6 +340,11 @@ class AudioHandler {
 
     Log.debug("new player status: $status");
 
+    if (status != PlaybackStatus.stopped && _queue.current.value == null) {
+      await stop();
+      return;
+    }
+
     if (!(status == PlaybackStatus.loading &&
         _playbackStatus.value == PlaybackStatus.playing)) {
       _enableAudioSession(status == PlaybackStatus.playing);
@@ -619,7 +624,8 @@ class AudioHandler {
       return;
     }
     Log.debug("disposing player");
-    _player.setVolume(1);
+    await _player.setVolume(1);
+    await _player.stop();
     await _player.dispose();
     await _enableAudioSession(false);
   }
