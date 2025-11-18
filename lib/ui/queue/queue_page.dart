@@ -48,7 +48,7 @@ class _QueuePageState extends State<QueuePage> {
               return SongListItem(
                 song: s,
                 opaque: opaque,
-                key: ValueKey("$i${s.coverId}"),
+                key: ValueKey("$i${s.id}"),
                 reorderIndex: i,
                 showDragHandle: true,
                 showPlaybackStatus: false,
@@ -83,7 +83,7 @@ class _QueuePageState extends State<QueuePage> {
                     if (_viewModel.currentSong == null)
                       const Text("Inactive playback"),
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
                       child: Row(
                         children: [
                           Expanded(
@@ -118,7 +118,7 @@ class _QueuePageState extends State<QueuePage> {
                                 }
                                 _viewModel.clearPriorityQueue();
                               },
-                              icon: const Icon(Icons.delete_outline),
+                              icon: const Icon(Icons.delete_sweep_outlined),
                             ),
                         ],
                       ),
@@ -150,7 +150,7 @@ class _QueuePageState extends State<QueuePage> {
                     if (i == _viewModel.priorityQueue.length) {
                       return Padding(
                         key: _queueSeparatorKey,
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
                         child: Row(
                           children: [
                             Expanded(
@@ -185,7 +185,7 @@ class _QueuePageState extends State<QueuePage> {
                                   }
                                   _viewModel.clearQueue();
                                 },
-                                icon: const Icon(Icons.delete_outline),
+                                icon: const Icon(Icons.delete_sweep_outlined),
                               ),
                           ],
                         ),
