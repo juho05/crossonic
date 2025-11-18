@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:audio_player_platform_interface/audio_player_event.dart';
@@ -72,22 +73,32 @@ class AudioPlayerMediaKit extends AudioPlayerPlatform {
     );
   }
 
+  Timer? _nextUrlDebounce;
   @override
   Future<void> setNext(Uri? url) async {
     if (!initialized) return;
-    _nextCanSeek = url != null && _canSeekFromUrl(url);
-    if (_player!.state.playlist.index <
-        _player!.state.playlist.medias.length - 1) {
-      await _player!.remove(_player!.state.playlist.medias.length - 1);
-    }
-    if (url != null) {
-      await _player!.add(Media(url.toString()));
-    }
+    _nextUrlDebounce?.cancel();
+    _nextUrlDebounce = Timer(const Duration(milliseconds: 100), () async {
+      if (!initialized) return;
+      _nextCanSeek = url != null && _canSeekFromUrl(url);
+      if (_player!.state.playlist.index <
+          _player!.state.playlist.medias.length - 1) {
+        try {
+          await _player!.remove(_player!.state.playlist.medias.length - 1);
+        } catch (e) {
+          rethrow;
+        }
+      }
+      if (url != null) {
+        await _player!.add(Media(url.toString()));
+      }
+    });
   }
 
   @override
   Future<void> stop() async {
     if (!initialized) return;
+    _nextUrlDebounce?.cancel();
     await _player!.stop();
   }
 
@@ -176,6 +187,7 @@ class AudioPlayerMediaKit extends AudioPlayerPlatform {
   @override
   Future<void> dispose() async {
     if (!initialized) return;
+    _nextUrlDebounce?.cancel();
     final p = _player;
     _player = null;
     await p!.dispose();
