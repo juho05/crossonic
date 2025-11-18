@@ -22,34 +22,23 @@ class AlbumReleaseBadge extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     final backgroundColor = Colors.blue.shade900;
     final foregroundColor = Colors.white;
-    return Container(
-      decoration: BoxDecoration(
-          color: backgroundColor.withAlpha(200),
-          border: Border.all(color: backgroundColor),
-          borderRadius: BorderRadius.circular(10),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.8),
-              offset: const Offset(2, 2),
-              blurRadius: 6,
-            ),
-          ]),
-      child: ClipRRect(
+    return Material(
+      color: backgroundColor,
+      borderRadius: BorderRadius.circular(10),
+      child: InkWell(
+        onTap: onTap,
         borderRadius: BorderRadius.circular(10),
-        child: Material(
-          type: MaterialType.transparency,
-          child: Tooltip(
-            message: releaseDate == null
-                ? "$alternativeCount other version${alternativeCount != 1 ? "s" : ""}"
-                : "${(albumVersion ?? "${releaseDate?.year} release")}${alternativeCount != null && alternativeCount! > 0 ? " + $alternativeCount other version${alternativeCount != 1 ? "s" : ""}" : ""}",
-            child: InkWell(
-              onTap: onTap,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                child: Text(
-                    "${releaseDate?.year.toString() ?? "null"}${alternativeCount != null && alternativeCount! > 0 ? " +$alternativeCount" : ""}",
-                    style: textTheme.bodyMedium!
-                        .copyWith(color: foregroundColor, fontSize: 12)),
+        child: Tooltip(
+          message: releaseDate == null
+              ? "$alternativeCount other version${alternativeCount != 1 ? "s" : ""}"
+              : "${(albumVersion ?? "${releaseDate?.year} release")}${alternativeCount != null && alternativeCount! > 0 ? " + $alternativeCount other version${alternativeCount != 1 ? "s" : ""}" : ""}",
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+            child: Text(
+              "${releaseDate?.year.toString() ?? "null"}${alternativeCount != null && alternativeCount! > 0 ? " +$alternativeCount" : ""}",
+              style: textTheme.bodyMedium!.copyWith(
+                color: foregroundColor,
+                fontSize: 12,
               ),
             ),
           ),
