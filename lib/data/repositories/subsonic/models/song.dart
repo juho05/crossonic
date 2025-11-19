@@ -73,13 +73,15 @@ class Song {
       id: child.id,
       coverId: child.coverArt ?? child.id,
       title: child.title,
-      displayArtist: emptyToNull(child.displayArtist) ??
+      displayArtist:
+          emptyToNull(child.displayArtist) ??
           child.artists?.map((a) => a.name).join(", ") ??
           child.artist ??
           child.displayAlbumArtist ??
           child.albumArtists?.map((a) => a.name).join(", ") ??
           "Unknown artist",
-      artists: child.artists ??
+      artists:
+          child.artists ??
           child.albumArtists ??
           (emptyToNull(child.artistId) != null &&
                   emptyToNull(child.artist) != null
@@ -88,15 +90,16 @@ class Song {
           [],
       album:
           emptyToNull(child.albumId) != null && emptyToNull(child.album) != null
-              ? (id: child.albumId!, name: child.album!)
-              : null,
+          ? (id: child.albumId!, name: child.album!)
+          : null,
       genres: child.genres != null
           ? child.genres!.map((g) => g.name)
           : (child.genre != null && child.genre!.isNotEmpty
-              ? [child.genre!]
-              : []),
-      duration:
-          child.duration != null ? Duration(seconds: child.duration!) : null,
+                ? [child.genre!]
+                : []),
+      duration: child.duration != null
+          ? Duration(seconds: child.duration!)
+          : null,
       releaseDate: releaseDate,
       originalDate: originalDate,
       bpm: child.bpm,

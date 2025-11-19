@@ -12,17 +12,19 @@ class LocalQueue extends ChangeNotifier implements MediaQueue {
   ValueStream<Song?> get current => _current.stream;
 
   final BehaviorSubject<
-          ({Song? current, Song? next, bool currentChanged, bool fromAdvance})>
-      _currentAndNext = BehaviorSubject.seeded((
+    ({Song? current, Song? next, bool currentChanged, bool fromAdvance})
+  >
+  _currentAndNext = BehaviorSubject.seeded((
     current: null,
     next: null,
     currentChanged: false,
-    fromAdvance: false
+    fromAdvance: false,
   ));
   @override
   ValueStream<
-          ({Song? current, Song? next, bool currentChanged, bool fromAdvance})>
-      get currentAndNext => _currentAndNext.stream;
+    ({Song? current, Song? next, bool currentChanged, bool fromAdvance})
+  >
+  get currentAndNext => _currentAndNext.stream;
 
   final Queue<Song> _priorityQueue;
   final List<Song> _queue;
@@ -30,10 +32,10 @@ class LocalQueue extends ChangeNotifier implements MediaQueue {
   int _currentIndex;
 
   LocalQueue()
-      : _priorityQueue = Queue(),
-        _queue = [],
-        _currentIndex = -1,
-        _looping = BehaviorSubject.seeded(false);
+    : _priorityQueue = Queue(),
+      _queue = [],
+      _currentIndex = -1,
+      _looping = BehaviorSubject.seeded(false);
 
   LocalQueue.withInitialData({
     required Queue<Song> priorityQueue,
@@ -41,10 +43,10 @@ class LocalQueue extends ChangeNotifier implements MediaQueue {
     required bool looping,
     required int currentIndex,
     required Song currentSong,
-  })  : _priorityQueue = priorityQueue,
-        _queue = regularQueue,
-        _currentIndex = currentIndex,
-        _looping = BehaviorSubject.seeded(looping) {
+  }) : _priorityQueue = priorityQueue,
+       _queue = regularQueue,
+       _currentIndex = currentIndex,
+       _looping = BehaviorSubject.seeded(looping) {
     _current.add(currentSong);
     _currentAndNext.add((
       current: currentSong,
@@ -65,9 +67,7 @@ class LocalQueue extends ChangeNotifier implements MediaQueue {
     if (_looping.value == loop) return;
     Log.trace("loop: $loop");
     _looping.add(loop);
-    if (_priorityQueue.isEmpty && _currentAndNext.value.next != null) {
-      _nextChanged(_queue.elementAtOrNull(_nextIndex));
-    }
+    _updateNext();
     notifyListeners();
   }
 
@@ -106,8 +106,11 @@ class LocalQueue extends ChangeNotifier implements MediaQueue {
       return;
     }
     if (startIndex < 0 || startIndex >= songs.length) {
-      throw IndexError.withLength(startIndex, songs.length,
-          message: "startIndex out of bounds");
+      throw IndexError.withLength(
+        startIndex,
+        songs.length,
+        message: "startIndex out of bounds",
+      );
     }
     _queue.clear();
     _queue.addAll(songs);
@@ -117,8 +120,11 @@ class LocalQueue extends ChangeNotifier implements MediaQueue {
   }
 
   @override
-  void clear(
-      {bool queue = true, int fromIndex = 0, bool priorityQueue = true}) {
+  void clear({
+    bool queue = true,
+    int fromIndex = 0,
+    bool priorityQueue = true,
+  }) {
     if (priorityQueue) {
       _priorityQueue.clear();
     }
@@ -137,14 +143,18 @@ class LocalQueue extends ChangeNotifier implements MediaQueue {
         }
       }
     }
+    _updateNext();
     notifyListeners();
   }
 
   @override
   void goTo(int index) {
     if (index < 0 || index >= _queue.length) {
-      throw IndexError.withLength(index, _queue.length,
-          message: "index out of bounds");
+      throw IndexError.withLength(
+        index,
+        _queue.length,
+        message: "index out of bounds",
+      );
     }
     if (index == _currentIndex) return;
     _currentIndex = index;
@@ -155,8 +165,11 @@ class LocalQueue extends ChangeNotifier implements MediaQueue {
   @override
   void goToPriority(int index) {
     if (index < 0 || index >= _priorityQueue.length) {
-      throw IndexError.withLength(index, _priorityQueue.length,
-          message: "index out of bounds");
+      throw IndexError.withLength(
+        index,
+        _priorityQueue.length,
+        message: "index out of bounds",
+      );
     }
     for (; index > 0; index--) {
       _priorityQueue.removeFirst();
@@ -168,15 +181,18 @@ class LocalQueue extends ChangeNotifier implements MediaQueue {
   @override
   void remove(int index) {
     if (index < 0 || index >= _queue.length) {
-      throw IndexError.withLength(index, _queue.length,
-          message: "index out of bounds");
+      throw IndexError.withLength(
+        index,
+        _queue.length,
+        message: "index out of bounds",
+      );
     }
     _queue.removeAt(index);
     if (_currentIndex == index) {
       _incrementCurrentIndex();
       _currentChanged(_currentAndNext.value.next);
-    } else if (_nextIndex == index && _priorityQueue.isEmpty) {
-      _nextChanged(_queue.elementAtOrNull(_nextIndex));
+    } else {
+      _updateNext();
     }
     notifyListeners();
   }
@@ -184,8 +200,11 @@ class LocalQueue extends ChangeNotifier implements MediaQueue {
   @override
   void removeFromPriorityQueue(int index) {
     if (index < 0 || index >= _priorityQueue.length) {
-      throw IndexError.withLength(index, _priorityQueue.length,
-          message: "index out of bounds");
+      throw IndexError.withLength(
+        index,
+        _priorityQueue.length,
+        message: "index out of bounds",
+      );
     }
     if (index == 0) {
       _priorityQueue.removeFirst();
@@ -194,27 +213,34 @@ class LocalQueue extends ChangeNotifier implements MediaQueue {
     } else {
       final list = List.of(_priorityQueue);
       _priorityQueue.clear();
-      _priorityQueue.addAll(list
-          .getRange(0, index)
-          .followedBy(list.getRange(index + 1, list.length)));
+      _priorityQueue.addAll(
+        list
+            .getRange(0, index)
+            .followedBy(list.getRange(index + 1, list.length)),
+      );
     }
+    _updateNext();
     notifyListeners();
   }
 
   void _insert(int index, Iterable<Song> songs) {
     if (songs.isEmpty) return;
     Log.trace(
-        "insert ${songs.length} songs into regular queue at position $index/${_queue.length}");
+      "insert ${songs.length} songs into regular queue at position $index/${_queue.length}",
+    );
     if (index < 0 || index > _queue.length) {
-      throw IndexError.withLength(index, _queue.length,
-          message: "index out of bounds");
+      throw IndexError.withLength(
+        index,
+        _queue.length,
+        message: "index out of bounds",
+      );
     }
     _queue.insertAll(index, songs);
     if (current.value == null) {
       _currentChanged(_queue.first);
       _currentIndex = 0;
-    } else if (_priorityQueue.isEmpty) {
-      _nextChanged(_queue.elementAtOrNull(_nextIndex));
+    } else {
+      _updateNext();
     }
     notifyListeners();
   }
@@ -222,7 +248,8 @@ class LocalQueue extends ChangeNotifier implements MediaQueue {
   void _insertPrio(int index, Iterable<Song> songs) {
     if (songs.isEmpty) return;
     Log.trace(
-        "insert ${songs.length} songs into priority queue at position $index/${_priorityQueue.length}");
+      "insert ${songs.length} songs into priority queue at position $index/${_priorityQueue.length}",
+    );
     if (index == _priorityQueue.length) {
       _priorityQueue.addAll(songs);
     } else {
@@ -237,7 +264,7 @@ class LocalQueue extends ChangeNotifier implements MediaQueue {
         _currentChanged(_priorityQueue.removeFirst());
         _currentIndex = 0;
       } else {
-        _nextChanged(_priorityQueue.firstOrNull);
+        _updateNext();
       }
     }
 
@@ -255,9 +282,7 @@ class LocalQueue extends ChangeNotifier implements MediaQueue {
     following.shuffle();
     _queue.removeRange(_currentIndex + 1, _queue.length);
     _queue.addAll(following);
-    if (_priorityQueue.isEmpty) {
-      _nextChanged(_queue.elementAtOrNull(_nextIndex));
-    }
+    _updateNext();
     notifyListeners();
   }
 
@@ -268,7 +293,7 @@ class LocalQueue extends ChangeNotifier implements MediaQueue {
     final newQueue = _priorityQueue.toList()..shuffle();
     _priorityQueue.clear();
     _priorityQueue.addAll(newQueue);
-    _nextChanged(_priorityQueue.first);
+    _updateNext();
     notifyListeners();
   }
 
@@ -358,19 +383,25 @@ class LocalQueue extends ChangeNotifier implements MediaQueue {
       next: current == null
           ? null
           : _priorityQueue.isNotEmpty
-              ? _priorityQueue.first
-              : _queue.elementAtOrNull(_nextIndex),
+          ? _priorityQueue.first
+          : _queue.elementAtOrNull(_nextIndex),
       currentChanged: true,
       fromAdvance: fromAdvance,
     ));
   }
 
-  void _nextChanged(Song? next) {
+  void _updateNext() {
+    final next = _current.value != null
+        ? (_priorityQueue.isNotEmpty
+              ? _priorityQueue.first
+              : _queue.elementAtOrNull(_nextIndex))
+        : null;
+    if (_currentAndNext.value.next?.id == next?.id) return;
     _currentAndNext.add((
       current: _currentAndNext.value.current,
       next: next,
       currentChanged: false,
-      fromAdvance: false
+      fromAdvance: false,
     ));
   }
 }
