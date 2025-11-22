@@ -345,6 +345,7 @@ jobs:
           retention-days: 2
   release:
     needs:
+      - build
       - draft_release
       - build_android
       - build_linux_x86_64_TGZ
