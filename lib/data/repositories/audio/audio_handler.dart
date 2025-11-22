@@ -224,43 +224,23 @@ class AudioHandler {
   static const Duration _fadeDuration = Duration(milliseconds: 100);
   static const Duration _fadeStepPeriod = Duration(milliseconds: 10);
 
-  Timer? _fadeTimer;
-  Future<void> play({bool fade = true}) async {
-    fade = fade && _player.needsManualFade;
+  Future<void> play() async {
+    Log.trace("play");
 
-    Log.trace("play (fade: $fade)");
-
-    if ((fade && _fadeTimer != null) ||
-        _playbackStatus.value == PlaybackStatus.playing) {
+    if (_playbackStatus.value == PlaybackStatus.playing) {
       return;
     }
+
     _fadeTimer?.cancel();
     _fadeTimer = null;
 
     await _ensurePlayerLoaded();
 
-    if (fade) {
-      _updatePlayerVolume(scalar: 0);
-    } else {
-      _updatePlayerVolume();
-    }
+    await _updatePlayerVolume();
     await _player.play();
-
-    if (fade) {
-      double volume = 0;
-      _fadeTimer = Timer.periodic(_fadeStepPeriod, (timer) {
-        volume +=
-            1 / (_fadeDuration.inMilliseconds / _fadeStepPeriod.inMilliseconds);
-        volume = min(volume, 1);
-        _updatePlayerVolume(scalar: volume);
-        if (volume >= 1) {
-          _fadeTimer?.cancel();
-          _fadeTimer = null;
-        }
-      });
-    }
   }
 
+  Timer? _fadeTimer;
   Future<void> pause({bool fade = true}) async {
     fade = fade && _player.needsManualFade;
 
@@ -280,7 +260,7 @@ class AudioHandler {
       return;
     }
 
-    _updatePlayerVolume();
+    await _updatePlayerVolume();
     double volume = 1;
 
     final pausePos = position + _fadeDuration;
@@ -525,7 +505,7 @@ class AudioHandler {
     _seekingPos = null;
 
     if (play) {
-      await this.play(fade: false);
+      await this.play();
     } else {
       await pause(fade: false);
     }
@@ -691,7 +671,7 @@ class AudioHandler {
         );
       }
       if (_playbackStatus.value == PlaybackStatus.playing) {
-        await play(fade: false);
+        await play();
       } else {
         await pause(fade: false);
       }

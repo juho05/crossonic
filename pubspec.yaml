@@ -1,7 +1,7 @@
 name: crossonic
 description: "A music player for the OpenSubsonic API with its own server for additional features."
 publish_to: "none"
-version: 0.2.0+8
+version: 0.2.1+9
 environment:
   sdk: ^3.8.0
 
