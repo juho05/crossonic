@@ -58,7 +58,11 @@ class _CoverArtState extends State<CoverArt> {
                 ? Image.network(
                     context
                         .read<SubsonicRepository>()
-                        .getCoverUri(widget.coverId!, constantSalt: true)
+                        .getCoverUri(
+                          widget.coverId!,
+                          constantSalt: true,
+                          size: resolution(context, size),
+                        )
                         .toString(),
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) =>
