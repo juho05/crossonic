@@ -1,18 +1,20 @@
 template: |
   # v$RESOLVED_VERSION
 
-  ## How to install
+  ## How to Install
 
   See [here](https://crossonic.org/app/install) for installation instructions.
 
-  ## What's Changed
+  ## What's New?
 
   ### New Features
 
   - TODO
+  
+  ### Changes
 
   ### Bug Fixes
 
   - TODO
 
-  **Full Changelog:** [$PREVIOUS_TAG...v$RESOLVED_VERSION](https://github.com/$OWNER/$REPOSITORY/compare/$PREVIOUS_TAG...v$RESOLVED_VERSION)
+  **Full changelog:** [$PREVIOUS_TAG...v$RESOLVED_VERSION](https://github.com/$OWNER/$REPOSITORY/compare/$PREVIOUS_TAG...v$RESOLVED_VERSION)
