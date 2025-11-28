@@ -2,6 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
 import 'package:crossonic/ui/common/clickable_list_item.dart';
 import 'package:crossonic/ui/common/dialogs/confirmation.dart';
+import 'package:crossonic/ui/common/haptic_reorderable_delayed_drag_start_listener.dart';
 import 'package:crossonic/ui/common/shimmer.dart';
 import 'package:crossonic/ui/common/song_list_item.dart';
 import 'package:crossonic/ui/queue/queue_viewmodel.dart';
@@ -44,21 +45,25 @@ class _QueuePageState extends State<QueuePage> {
           builder: (context, _) {
             final theme = Theme.of(context);
 
-            Widget songListItem(int i, Song s, {bool opaque = false}) {
-              return SongListItem(
-                song: s,
-                opaque: opaque,
+            Widget songListItem(int i, Song s, {bool floating = false}) {
+              return HapticReorderableDelayedDragStartListener(
                 key: ValueKey("$i${s.id}"),
-                reorderIndex: i,
-                showDragHandle: true,
-                showPlaybackStatus: false,
-                showRemoveButton: true,
-                onRemove: () {
-                  _viewModel.remove(i);
-                },
-                onTap: (_) {
-                  _viewModel.goto(i);
-                },
+                index: i,
+                enabled: !floating,
+                child: SongListItem(
+                  song: s,
+                  opaque: floating,
+                  reorderIndex: i,
+                  showDragHandle: true,
+                  showPlaybackStatus: false,
+                  showRemoveButton: true,
+                  onRemove: () {
+                    _viewModel.remove(i);
+                  },
+                  onTap: (_) {
+                    _viewModel.goto(i);
+                  },
+                ),
               );
             }
 
@@ -140,7 +145,7 @@ class _QueuePageState extends State<QueuePage> {
                         : _viewModel.queue[index -
                               1 -
                               _viewModel.priorityQueue.length];
-                    return songListItem(index, song, opaque: true);
+                    return songListItem(index, song, floating: true);
                   },
                   itemBuilder: (context, i) {
                     if (i < _viewModel.priorityQueue.length) {
