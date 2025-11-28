@@ -15,17 +15,18 @@ class GitHubService {
   final Uri _apiBaseUri;
   final Uri _webBaseUri;
 
-  GitHubService(
-      {String apiBaseUri = "https://api.github.com",
-      String webBaseUri = "https://github.com"})
-      : _apiBaseUri = Uri.parse(apiBaseUri),
-        _webBaseUri = Uri.parse("https://github.com");
+  GitHubService({
+    String apiBaseUri = "https://api.github.com",
+    String webBaseUri = "https://github.com",
+  }) : _apiBaseUri = Uri.parse(apiBaseUri),
+       _webBaseUri = Uri.parse("https://github.com");
 
-  Future<Result<Iterable<GitHubTag>?>> getRepositoryTags(
-      {required String owner,
-      required String repo,
-      int? pageSize,
-      int? page}) async {
+  Future<Result<Iterable<GitHubTag>?>> getRepositoryTags({
+    required String owner,
+    required String repo,
+    int? pageSize,
+    int? page,
+  }) async {
     return _fetchList<GitHubTag>(
       "GET",
       "/repos/${Uri.encodeComponent(owner)}/${Uri.encodeComponent(repo)}/tags",
@@ -44,8 +45,12 @@ class GitHubService {
     Map<String, List<String>> queryParameters = const {},
     Map<String, String> headers = const {},
   }) async {
-    final result = await _request(method, path,
-        queryParameters: queryParameters, headers: headers);
+    final result = await _request(
+      method,
+      path,
+      queryParameters: queryParameters,
+      headers: headers,
+    );
     switch (result) {
       case Err():
         return Result.error(result.error);
@@ -53,7 +58,8 @@ class GitHubService {
         if (result.value == null) return const Result.ok(null);
         final list = jsonDecode(result.value!) as List<dynamic>;
         return Result.ok(
-            list.map((dynamic obj) => fromJson(obj as Map<String, dynamic>)));
+          list.map((dynamic obj) => fromJson(obj as Map<String, dynamic>)),
+        );
     }
   }
 
@@ -65,8 +71,12 @@ class GitHubService {
     Map<String, List<String>> queryParameters = const {},
     Map<String, String> headers = const {},
   }) async {
-    final result = await _request(method, path,
-        queryParameters: queryParameters, headers: headers);
+    final result = await _request(
+      method,
+      path,
+      queryParameters: queryParameters,
+      headers: headers,
+    );
     switch (result) {
       case Err():
         return Result.error(result.error);
@@ -84,11 +94,9 @@ class GitHubService {
     Map<String, String> headers = const {},
   }) async {
     final req = http.Request(
-        method,
-        _apiBaseUri.resolveUri(Uri(
-          path: path,
-          queryParameters: queryParameters,
-        )));
+      method,
+      _apiBaseUri.resolveUri(Uri(path: path, queryParameters: queryParameters)),
+    );
     _currentVersion ??= await VersionRepository.getCurrentVersion();
     req.headers.addAll({
       "Accept": "application/vnd.github+json",
@@ -104,6 +112,9 @@ class GitHubService {
         maxRetries--;
         Log.trace("GitHub request: ${req.method} ${req.url}");
         response = await _httpClient.send(req);
+        if (response.statusCode >= 300) {
+          response.stream.drain();
+        }
         if (response.statusCode == 429 ||
             (response.statusCode == 403 &&
                 response.headers["x-ratelimit-remaining"] == "0")) {
@@ -111,11 +122,13 @@ class GitHubService {
           if (maxRetries == 0) {
             throw GitHubRateLimitMaxRetriesExceeded();
           }
-          int? reset =
-              int.tryParse(response.headers["x-ratelimit-reset"] ?? "");
+          int? reset = int.tryParse(
+            response.headers["x-ratelimit-reset"] ?? "",
+          );
           if (reset == null) {
             Log.warn(
-                "GitHub invalid x-ratelimit-reset header: ${response.headers["x-ratelimit-reset"]}");
+              "GitHub invalid x-ratelimit-reset header: ${response.headers["x-ratelimit-reset"]}",
+            );
             reset = 60;
           }
           final delay =
@@ -139,13 +152,17 @@ class GitHubService {
   }
 
   Uri generateReleaseDownloadLink(String downloadFileName, String tag) {
-    return _webBaseUri.resolveUri(Uri(pathSegments: [
-      "juho05",
-      "crossonic",
-      "releases",
-      "download",
-      tag,
-      downloadFileName
-    ]));
+    return _webBaseUri.resolveUri(
+      Uri(
+        pathSegments: [
+          "juho05",
+          "crossonic",
+          "releases",
+          "download",
+          tag,
+          downloadFileName,
+        ],
+      ),
+    );
   }
 }

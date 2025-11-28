@@ -24,7 +24,7 @@ enum AutoUpdateStatus {
   downloading,
   installing,
   success,
-  failure
+  failure,
 }
 
 class AutoUpdateRepository extends ChangeNotifier {
@@ -52,8 +52,8 @@ class AutoUpdateRepository extends ChangeNotifier {
   AutoUpdateRepository({
     required VersionRepository versionRepository,
     required GitHubService github,
-  })  : _versionRepository = versionRepository,
-        _github = github {
+  }) : _versionRepository = versionRepository,
+       _github = github {
     if (Platform.isAndroid) {
       Log.debug("update platform: Android");
       _updater = UpdaterAndroid();
@@ -68,7 +68,8 @@ class AutoUpdateRepository extends ChangeNotifier {
       _updater = UpdaterLinuxAppImage();
     } else {
       throw UnimplementedError(
-          "auto updates are not supported on this platform");
+        "auto updates are not supported on this platform",
+      );
     }
   }
 
@@ -84,8 +85,9 @@ class AutoUpdateRepository extends ChangeNotifier {
     _status = AutoUpdateStatus.checkingVersion;
     notifyListeners();
 
-    final latestVersionTagResult =
-        await _versionRepository.getLatestVersionTag(force: true);
+    final latestVersionTagResult = await _versionRepository.getLatestVersionTag(
+      force: true,
+    );
     switch (latestVersionTagResult) {
       case Err():
         _status = AutoUpdateStatus.failure;
@@ -144,8 +146,9 @@ class AutoUpdateRepository extends ChangeNotifier {
   }
 
   Future<Result<File>> _download(String tag) async {
-    final downloadFileName =
-        await _updater.generateDownloadFileName(Version.parse(tag));
+    final downloadFileName = await _updater.generateDownloadFileName(
+      Version.parse(tag),
+    );
 
     final uri = _github.generateReleaseDownloadLink(downloadFileName, tag);
 
@@ -155,9 +158,12 @@ class AutoUpdateRepository extends ChangeNotifier {
     _status = AutoUpdateStatus.downloading;
     notifyListeners();
 
-    final targetDir = Directory(path.join(
+    final targetDir = Directory(
+      path.join(
         (await getTemporaryDirectory()).absolute.path,
-        "auto_update_downloads"));
+        "auto_update_downloads",
+      ),
+    );
 
     if (await targetDir.exists()) {
       await targetDir.delete(recursive: true);
@@ -171,13 +177,15 @@ class AutoUpdateRepository extends ChangeNotifier {
     try {
       final response = await _http.send(request);
       if (response.statusCode != 200) {
+        response.stream.drain();
         return Result.error(GitHubUnexpectedStatusCode(response.statusCode));
       }
 
       final totalBytes = (response.contentLength ?? 1).toDouble();
 
-      final outputFile =
-          File(path.join(targetDir.path, downloadFileName)).absolute;
+      final outputFile = File(
+        path.join(targetDir.path, downloadFileName),
+      ).absolute;
       final fileSink = outputFile.openWrite();
       try {
         int downloadedBytes = 0;

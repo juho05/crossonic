@@ -30,14 +30,17 @@ class WebHelper {
     required CoverRepository coverRepo,
     required Database db,
     required SubsonicRepository subsonic,
-  })  : _coverRepo = coverRepo,
-        _db = db,
-        _subsonic = subsonic,
-        _memCache = {};
+  }) : _coverRepo = coverRepo,
+       _db = db,
+       _subsonic = subsonic,
+       _memCache = {};
 
   ///Download the file from the url
-  Stream<FileResponse> downloadFile(String coverId, int size,
-      {bool ignoreMemCache = false}) {
+  Stream<FileResponse> downloadFile(
+    String coverId,
+    int size, {
+    bool ignoreMemCache = false,
+  }) {
     final key = CoverRepository.getKey(coverId, size);
     var subject = _memCache[key];
     if (subject == null || ignoreMemCache) {
@@ -96,8 +99,12 @@ class WebHelper {
           .limit(1)
           .getSingleOrNull();
       if (largerCacheObj != null) {
-        final response = await _resizeExistingCover(largerCacheObj.coverId,
-            largerCacheObj.size, largerCacheObj.validTill, size);
+        final response = await _resizeExistingCover(
+          largerCacheObj.coverId,
+          largerCacheObj.size,
+          largerCacheObj.validTill,
+          size,
+        );
         if (response != null) {
           yield response;
           if (largerCacheObj.validTill.isAfter(DateTime.now())) {
@@ -112,7 +119,11 @@ class WebHelper {
   }
 
   Future<FileResponse?> _resizeExistingCover(
-      String coverId, int size, DateTime validTill, int targetSize) async {
+    String coverId,
+    int size,
+    DateTime validTill,
+    int targetSize,
+  ) async {
     final file = await _coverRepo.cacheFile(coverId, size);
     if (!await file.exists()) return null;
 
@@ -121,7 +132,8 @@ class WebHelper {
       Decoder? decoder = findDecoderForData(fileContent);
       if (decoder == null) {
         Log.warn(
-            "Failed to determine decoder to downsize existing cover image: ${file.path}");
+          "Failed to determine decoder to downsize existing cover image: ${file.path}",
+        );
         return null;
       }
       Image? image = decoder.decode(fileContent);
@@ -131,13 +143,17 @@ class WebHelper {
       }
       Image newImage;
       if (image.width > image.height) {
-        newImage = resize(image,
-            height: targetSize,
-            width: targetSize * (image.width / image.height).round());
+        newImage = resize(
+          image,
+          height: targetSize,
+          width: targetSize * (image.width / image.height).round(),
+        );
       } else {
-        newImage = resize(image,
-            width: targetSize,
-            height: targetSize * (image.height / image.width).round());
+        newImage = resize(
+          image,
+          width: targetSize,
+          height: targetSize * (image.height / image.width).round(),
+        );
       }
       return encodeJpg(newImage, quality: 85);
     });
@@ -145,8 +161,12 @@ class WebHelper {
 
     var newFile = await _coverRepo.cacheFile(coverId, targetSize);
     newFile = await newFile.writeAsBytes(newImage);
-    return FileInfo(newFile, FileSource.Cache, validTill,
-        CoverRepository.getKey(coverId, targetSize));
+    return FileInfo(
+      newFile,
+      FileSource.Cache,
+      validTill,
+      CoverRepository.getKey(coverId, targetSize),
+    );
   }
 
   Future<FileServiceResponse> _download(
@@ -156,8 +176,9 @@ class WebHelper {
     final headers = <String, String>{};
 
     if (lastDownload != null) {
-      headers[io.HttpHeaders.ifModifiedSinceHeader] =
-          io.HttpDate.format(lastDownload);
+      headers[io.HttpHeaders.ifModifiedSinceHeader] = io.HttpDate.format(
+        lastDownload,
+      );
     }
 
     final req = http.Request("GET", uri);
@@ -166,6 +187,7 @@ class WebHelper {
     if (statusCodesNewFile.contains(httpResponse.statusCode)) {
       if (httpResponse.headers["content-type"]?.startsWith("application/") ??
           false) {
+        await httpResponse.stream.drain();
         return NotFoundResponse();
       }
     }
@@ -173,10 +195,15 @@ class WebHelper {
   }
 
   Stream<FileResponse> _manageResponse(
-      String coverId, int size, Uri uri, FileServiceResponse response) async* {
+    String coverId,
+    int size,
+    Uri uri,
+    FileServiceResponse response,
+  ) async* {
     final hasNewFile = statusCodesNewFile.contains(response.statusCode);
     final keepOldFile = statusCodesFileNotChanged.contains(response.statusCode);
     if (!hasNewFile && !keepOldFile) {
+      await response.content.drain();
       throw HttpExceptionWithStatus(
         response.statusCode,
         'Invalid statusCode: ${response.statusCode}',
@@ -186,15 +213,20 @@ class WebHelper {
 
     if (hasNewFile) {
       await for (final progress in _saveFile(coverId, size, response)) {
-        yield DownloadProgress(CoverRepository.getKey(coverId, size),
-            response.contentLength, progress);
+        yield DownloadProgress(
+          CoverRepository.getKey(coverId, size),
+          response.contentLength,
+          progress,
+        );
       }
-    }
-
-    if (keepOldFile) {
-      await _db.managers.coverCacheTable.update((o) => o(
+    } else if (keepOldFile) {
+      await response.content.drain();
+      await _db.managers.coverCacheTable.update(
+        (o) => o(
           validTill: Value(response.validTill),
-          downloadTime: Value(DateTime.now())));
+          downloadTime: Value(DateTime.now()),
+        ),
+      );
     }
 
     yield FileInfo(
@@ -207,7 +239,10 @@ class WebHelper {
   }
 
   Stream<int> _saveFile(
-      String coverId, int size, FileServiceResponse response) {
+    String coverId,
+    int size,
+    FileServiceResponse response,
+  ) {
     final receivedBytesResultController = StreamController<int>();
     _saveFileAndPostUpdates(
       coverId,
@@ -250,11 +285,13 @@ class WebHelper {
     var receivedBytes = 0;
     try {
       final sink = file.openWrite();
-      await response.content.map((s) {
-        receivedBytes += s.length;
-        receivedBytesResultController.add(receivedBytes);
-        return s;
-      }).pipe(sink);
+      await response.content
+          .map((s) {
+            receivedBytes += s.length;
+            receivedBytesResultController.add(receivedBytes);
+            return s;
+          })
+          .pipe(sink);
       success = true;
     } on Object catch (e, stacktrace) {
       receivedBytesResultController.addError(e, stacktrace);
@@ -266,9 +303,12 @@ class WebHelper {
     if (success) {
       await _db.managers.coverCacheTable
           .filter((f) => f.coverId(coverId) & f.size(size))
-          .update((o) => o(
+          .update(
+            (o) => o(
               fileFullyWritten: const Value(true),
-              fileSizeKB: Value((receivedBytes / 1000).floor())));
+              fileSizeKB: Value((receivedBytes / 1000).floor()),
+            ),
+          );
     }
   }
 }
