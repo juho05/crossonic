@@ -277,8 +277,8 @@ class AudioHandler {
         _fadeTimer = null;
         _player.pause().then((value) {
           Future.delayed(
-            const Duration(milliseconds: 10),
-            () => _updatePlayerVolume(scalar: volume),
+            const Duration(milliseconds: 100),
+            () => _updatePlayerVolume(),
           );
         });
       }
