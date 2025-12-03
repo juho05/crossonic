@@ -16,12 +16,12 @@ class NowPlayingExpanded extends StatelessWidget {
   final PanelController _panelController;
   final NowPlayingViewModel _viewModel;
 
-  const NowPlayingExpanded(
-      {required PanelController panelController,
-      required NowPlayingViewModel viewModel,
-      super.key})
-      : _panelController = panelController,
-        _viewModel = viewModel;
+  const NowPlayingExpanded({
+    required PanelController panelController,
+    required NowPlayingViewModel viewModel,
+    super.key,
+  }) : _panelController = panelController,
+       _viewModel = viewModel;
 
   @override
   Widget build(BuildContext context) {
@@ -48,14 +48,21 @@ class NowPlayingExpanded extends StatelessWidget {
                     height: constraints.maxHeight * 0.5,
                     width: constraints.maxWidth - 16,
                     child: WithContextMenu(
-                      options: getNowPlayingMenuOptions(context, _viewModel),
+                      options: getNowPlayingMenuOptions(
+                        context,
+                        _viewModel,
+                        _panelController,
+                      ),
                       child: CoverArtDecorated(
                         coverId: _viewModel.coverId,
                         borderRadius: BorderRadius.circular(10),
                         isFavorite: _viewModel.favorite,
                         placeholderIcon: Icons.album,
-                        menuOptions:
-                            getNowPlayingMenuOptions(context, _viewModel),
+                        menuOptions: getNowPlayingMenuOptions(
+                          context,
+                          _viewModel,
+                          _panelController,
+                        ),
                       ),
                     ),
                   ),
@@ -63,13 +70,16 @@ class NowPlayingExpanded extends StatelessWidget {
                     stream: _viewModel.position,
                     initialData: _viewModel.position.value,
                     builder: (context, snapshot) {
-                      final pos = snapshot.data ??
+                      final pos =
+                          snapshot.data ??
                           (position: Duration.zero, bufferedPosition: null);
                       return Padding(
                         padding: const EdgeInsets.only(top: 10),
                         child: SizedBox(
-                          width: min(constraints.maxHeight * 0.50,
-                              constraints.maxWidth - 25),
+                          width: min(
+                            constraints.maxHeight * 0.50,
+                            constraints.maxWidth - 25,
+                          ),
                           child: ProgressBar(
                             progress: pos.position,
                             buffered: pos.bufferedPosition,
@@ -89,9 +99,9 @@ class NowPlayingExpanded extends StatelessWidget {
                   Text(
                     _viewModel.songTitle,
                     style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 20,
-                        ),
+                      fontWeight: FontWeight.w600,
+                      fontSize: 20,
+                    ),
                     overflow: TextOverflow.ellipsis,
                   ),
                   MouseRegion(
@@ -100,16 +110,17 @@ class NowPlayingExpanded extends StatelessWidget {
                       onTap: () {
                         if (_viewModel.album != null) {
                           _panelController.close();
-                          context.router
-                              .push(AlbumRoute(albumId: _viewModel.album!.id));
+                          context.router.push(
+                            AlbumRoute(albumId: _viewModel.album!.id),
+                          );
                         }
                       },
                       child: Text(
                         _viewModel.album?.name ?? "Unknown album",
                         style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-                              fontWeight: FontWeight.w500,
-                              fontSize: 17,
-                            ),
+                          fontWeight: FontWeight.w500,
+                          fontSize: 17,
+                        ),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
@@ -120,7 +131,9 @@ class NowPlayingExpanded extends StatelessWidget {
                       onTap: () async {
                         final router = context.router;
                         final artistId = await ChooserDialog.chooseArtist(
-                            context, _viewModel.artists.toList());
+                          context,
+                          _viewModel.artists.toList(),
+                        );
                         if (artistId == null) return;
                         _panelController.close();
                         router.push(ArtistRoute(artistId: artistId));
@@ -129,11 +142,11 @@ class NowPlayingExpanded extends StatelessWidget {
                         padding: const EdgeInsets.only(top: 3),
                         child: Text(
                           _viewModel.displayArtist,
-                          style:
-                              Theme.of(context).textTheme.bodyLarge!.copyWith(
-                                    fontWeight: FontWeight.w400,
-                                    fontSize: 14,
-                                  ),
+                          style: Theme.of(context).textTheme.bodyLarge!
+                              .copyWith(
+                                fontWeight: FontWeight.w400,
+                                fontSize: 14,
+                              ),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -151,14 +164,19 @@ class NowPlayingExpanded extends StatelessWidget {
                       ),
                       IconButton(
                         icon: switch (_viewModel.playbackStatus) {
-                          PlaybackStatus.playing =>
-                            const Icon(Icons.pause_circle, size: 75),
-                          PlaybackStatus.paused =>
-                            const Icon(Icons.play_circle, size: 75),
+                          PlaybackStatus.playing => const Icon(
+                            Icons.pause_circle,
+                            size: 75,
+                          ),
+                          PlaybackStatus.paused => const Icon(
+                            Icons.play_circle,
+                            size: 75,
+                          ),
                           _ => const SizedBox(
-                              width: 75,
-                              height: 75,
-                              child: CircularProgressIndicator.adaptive()),
+                            width: 75,
+                            height: 75,
+                            child: CircularProgressIndicator.adaptive(),
+                          ),
                         },
                         onPressed: () {
                           _viewModel.playPause();
@@ -197,7 +215,7 @@ class NowPlayingExpanded extends StatelessWidget {
                             : const Icon(Icons.repeat),
                       ),
                     ],
-                  )
+                  ),
                 ],
               ),
             ),
