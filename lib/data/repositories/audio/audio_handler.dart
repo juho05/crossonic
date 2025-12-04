@@ -235,8 +235,13 @@ class AudioHandler {
     _fadeTimer = null;
 
     await _ensurePlayerLoaded();
-
     await _updatePlayerVolume();
+
+    if (!await _audioSession.setActive(true)) {
+      await _player.pause();
+      return;
+    }
+
     await _player.play();
   }
 
@@ -300,6 +305,7 @@ class AudioHandler {
       await _clearPersistentQueueData();
     }
     _queue.clear();
+    _audioSession.setActive(false);
     await _disposePlayer();
   }
 
@@ -409,10 +415,7 @@ class AudioHandler {
       return;
     }
 
-    if (!(status == PlaybackStatus.loading &&
-        _playbackStatus.value == PlaybackStatus.playing)) {
-      _enableAudioSession(status == PlaybackStatus.playing);
-    }
+    if (status == PlaybackStatus.playing) {}
 
     if (status == PlaybackStatus.stopped) {
       if (_queue.current.value == null ||
@@ -693,7 +696,6 @@ class AudioHandler {
     await _player.setVolume(1);
     await _player.stop();
     await _player.dispose();
-    await _enableAudioSession(false);
   }
 
   Uri _getStreamUri(Song song, [Duration? offset]) {
@@ -822,23 +824,6 @@ class AudioHandler {
       _keyValue.remove(_priorityQueueSongsKey),
       _keyValue.remove(_queueIndexKey),
     ]);
-  }
-
-  bool _audioSessionActive = false;
-  Timer? _deactivateAudioSessionDebounce;
-  Future<void> _enableAudioSession(bool enable) async {
-    if (enable == _audioSessionActive) return;
-    _audioSessionActive = enable;
-    _deactivateAudioSessionDebounce?.cancel();
-    if (enable) {
-      Log.debug("activating audio session");
-      await _audioSession.setActive(true);
-    } else {
-      _deactivateAudioSessionDebounce = Timer(const Duration(seconds: 3), () {
-        Log.debug("deactivating audio session");
-        _audioSession.setActive(false);
-      });
-    }
   }
 
   double _volumeToLinear(double volume) {
