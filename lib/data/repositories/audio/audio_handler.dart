@@ -92,6 +92,7 @@ class AudioHandler {
   }
 
   bool _ducking = false;
+  bool _shouldUnpauseOnInterruptionEnd = false;
 
   AudioHandler({
     required AudioPlayer player,
@@ -167,12 +168,16 @@ class AudioHandler {
                       Log.debug(
                         "received pause begin request from audio_session",
                       );
+                      _shouldUnpauseOnInterruptionEnd =
+                          playbackStatus.value == PlaybackStatus.playing;
                       await pause();
                       break;
                     case AudioInterruptionType.unknown:
                       Log.debug(
                         "received unknown begin request from audio_session",
                       );
+                      _shouldUnpauseOnInterruptionEnd =
+                          playbackStatus.value == PlaybackStatus.playing;
                       await pause();
                       break;
                   }
@@ -187,15 +192,16 @@ class AudioHandler {
                       break;
                     case AudioInterruptionType.pause:
                       Log.debug("received pause begin end from audio_session");
-                      await play();
+                      if (_shouldUnpauseOnInterruptionEnd) await play();
                       break;
                     case AudioInterruptionType.unknown:
                       Log.debug(
                         "received unknown end request from audio_session",
                       );
-                      await play();
+                      if (_shouldUnpauseOnInterruptionEnd) await play();
                       break;
                   }
+                  _shouldUnpauseOnInterruptionEnd = false;
                 }
               });
 
@@ -203,6 +209,7 @@ class AudioHandler {
               .becomingNoisyEventStream
               .listen((_) async {
                 Log.debug("received becoming noisy event from audio_session");
+                _shouldUnpauseOnInterruptionEnd = false;
                 await pause(fade: false);
               });
 
@@ -226,6 +233,8 @@ class AudioHandler {
 
   Future<void> play() async {
     Log.trace("play");
+
+    _shouldUnpauseOnInterruptionEnd = false;
 
     if (_playbackStatus.value == PlaybackStatus.playing) {
       return;
@@ -281,6 +290,7 @@ class AudioHandler {
         _fadeTimer?.cancel();
         _fadeTimer = null;
         _player.pause().then((value) {
+          _ducking = false;
           Future.delayed(
             const Duration(milliseconds: 100),
             () => _updatePlayerVolume(),
@@ -292,6 +302,8 @@ class AudioHandler {
 
   Future<void> stop() async {
     Log.trace("stop");
+    _shouldUnpauseOnInterruptionEnd = false;
+    _ducking = false;
     _fadeTimer?.cancel();
     _fadeTimer = null;
     _playOnNextMediaChange = false;
@@ -410,12 +422,14 @@ class AudioHandler {
 
     Log.debug("new player status: $status");
 
+    if (status != PlaybackStatus.paused) {
+      _shouldUnpauseOnInterruptionEnd = false;
+    }
+
     if (status != PlaybackStatus.stopped && _queue.current.value == null) {
       await stop();
       return;
     }
-
-    if (status == PlaybackStatus.playing) {}
 
     if (status == PlaybackStatus.stopped) {
       if (_queue.current.value == null ||
