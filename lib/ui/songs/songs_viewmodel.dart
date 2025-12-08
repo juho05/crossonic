@@ -7,12 +7,7 @@ import 'package:crossonic/utils/fetch_status.dart';
 import 'package:crossonic/utils/result.dart';
 import 'package:flutter/material.dart';
 
-enum SongsPageMode {
-  all,
-  random,
-  favorites,
-  genre,
-}
+enum SongsPageMode { all, random, favorites, genre }
 
 class SongsViewModel extends ChangeNotifier {
   final SubsonicRepository _subsonic;
@@ -51,16 +46,17 @@ class SongsViewModel extends ChangeNotifier {
     required AudioHandler audioHandler,
     required SongsPageMode mode,
     String? initialSeed,
-  })  : _subsonic = subsonic,
-        _audioHandler = audioHandler,
-        _genre = "",
-        _initialSeed =
-            subsonic.supports.randomSeed && mode == SongsPageMode.random
-                ? initialSeed
-                : null {
+  }) : _subsonic = subsonic,
+       _audioHandler = audioHandler,
+       _genre = "",
+       _initialSeed =
+           subsonic.supports.randomSeed && mode == SongsPageMode.random
+           ? initialSeed
+           : null {
     if (mode == SongsPageMode.genre) {
       throw Exception(
-          "cannot set genre page mode via default constructor, use genre constructor instead");
+        "cannot set genre page mode via default constructor, use genre constructor instead",
+      );
     }
     this.mode = mode;
   }
@@ -69,10 +65,10 @@ class SongsViewModel extends ChangeNotifier {
     required SubsonicRepository subsonic,
     required AudioHandler audioHandler,
     required String genre,
-  })  : _subsonic = subsonic,
-        _audioHandler = audioHandler,
-        _genre = genre,
-        _initialSeed = null {
+  }) : _subsonic = subsonic,
+       _audioHandler = audioHandler,
+       _genre = genre,
+       _initialSeed = null {
     _mode = SongsPageMode.genre;
     _fetch(0);
   }
@@ -95,10 +91,22 @@ class SongsViewModel extends ChangeNotifier {
     _audioHandler.queue.replace(songs);
   }
 
-  void shuffle() async {
-    final s = List.of(songs)..shuffle();
+  Future<Result<void>> shuffle() async {
+    Iterable<Song> s;
+    if (_mode == SongsPageMode.all || _mode == SongsPageMode.random) {
+      final result = await _subsonic.getRandomSongs(count: 500);
+      switch (result) {
+        case Err():
+          return Result.error(result.error);
+        case Ok():
+      }
+      s = result.value;
+    } else {
+      s = List.of(songs)..shuffle();
+    }
     _audioHandler.playOnNextMediaChange();
     _audioHandler.queue.replace(s);
+    return const Result.ok(null);
   }
 
   void addAllToQueue(bool priority) async {
@@ -126,7 +134,10 @@ class SongsViewModel extends ChangeNotifier {
     switch (_mode) {
       case SongsPageMode.random:
         result = await _subsonic.getRandomSongs(
-            count: _pageSize, offset: page * _pageSize, seed: _seed);
+          count: _pageSize,
+          offset: page * _pageSize,
+          seed: _seed,
+        );
       case SongsPageMode.all:
         final r = await _subsonic.search(
           "",
@@ -144,8 +155,11 @@ class SongsViewModel extends ChangeNotifier {
       case SongsPageMode.favorites:
         result = await _subsonic.getStarredSongs();
       case SongsPageMode.genre:
-        result = await _subsonic.getSongsByGenre(_genre,
-            count: _pageSize, offset: page * _pageSize);
+        result = await _subsonic.getSongsByGenre(
+          _genre,
+          count: _pageSize,
+          offset: page * _pageSize,
+        );
     }
     switch (result) {
       case Err():
