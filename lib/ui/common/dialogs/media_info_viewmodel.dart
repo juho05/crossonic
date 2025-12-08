@@ -102,24 +102,20 @@ class MediaInfoDialogViewModel extends ChangeNotifier {
       if (s.releaseDate?.year != null)
         (
           "Release date",
-          formatDate(
-            DateTime(
-              s.releaseDate!.year!,
-              s.releaseDate!.month ?? 1,
-              s.releaseDate!.day ?? 1,
-            ),
+          formatDateValues(
+            s.releaseDate!.year!,
+            s.releaseDate!.month,
+            s.releaseDate!.day,
           ),
           null,
         ),
       if (s.originalReleaseDate?.year != null)
         (
           "Original release date",
-          formatDate(
-            DateTime(
-              s.originalReleaseDate!.year!,
-              s.originalReleaseDate!.month ?? 1,
-              s.originalReleaseDate!.day ?? 1,
-            ),
+          formatDateValues(
+            s.originalReleaseDate!.year!,
+            s.originalReleaseDate!.month,
+            s.originalReleaseDate!.day,
           ),
           null,
         ),
@@ -208,24 +204,20 @@ class MediaInfoDialogViewModel extends ChangeNotifier {
       if (a.releaseDate?.year != null)
         (
           "Release date",
-          formatDate(
-            DateTime(
-              a.releaseDate!.year ?? 0,
-              a.releaseDate!.month ?? 1,
-              a.releaseDate!.day ?? 1,
-            ),
+          formatDateValues(
+            a.releaseDate!.year ?? 0,
+            a.releaseDate!.month,
+            a.releaseDate!.day,
           ),
           null,
         ),
       if (a.originalReleaseDate?.year != null)
         (
           "Original release date",
-          formatDate(
-            DateTime(
-              a.originalReleaseDate!.year ?? 0,
-              a.originalReleaseDate!.month ?? 1,
-              a.originalReleaseDate!.day ?? 1,
-            ),
+          formatDateValues(
+            a.originalReleaseDate!.year ?? 0,
+            a.originalReleaseDate!.month,
+            a.originalReleaseDate!.day,
           ),
           null,
         ),

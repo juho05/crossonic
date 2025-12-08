@@ -9,6 +9,17 @@ String formatDuration(Duration d, {bool long = false}) {
   return '${d.inHours > 0 ? '${d.inHours}:' : ''}${d.inMinutes.remainder(60).toString().padLeft(2, '0')}:${d.inSeconds.remainder(60).toString().padLeft(2, '0')}';
 }
 
+String formatDateValues(int year, [int? month, int? day]) {
+  String result = year.toString().padLeft(4, "0");
+  if (month != null) {
+    result += "-${month.toString().padLeft(2, "0")}";
+  }
+  if (day != null) {
+    result += "-${day.toString().padLeft(2, "0")}";
+  }
+  return result;
+}
+
 String formatDate(DateTime d) {
   d = d.toLocal();
   DateFormat format = DateFormat("yyyy-MM-dd");
