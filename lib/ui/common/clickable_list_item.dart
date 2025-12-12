@@ -47,15 +47,20 @@ class ClickableListItem extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(
-                        title,
-                        style: textTheme.bodyMedium!.copyWith(
-                          fontSize: 15,
-                          fontWeight: titleBold
-                              ? FontWeight.w600
-                              : FontWeight.w400,
+                      Tooltip(
+                        message: title,
+                        waitDuration: const Duration(milliseconds: 500),
+                        triggerMode: TooltipTriggerMode.manual,
+                        child: Text(
+                          title,
+                          style: textTheme.bodyMedium!.copyWith(
+                            fontSize: 15,
+                            fontWeight: titleBold
+                                ? FontWeight.w600
+                                : FontWeight.w400,
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        overflow: TextOverflow.ellipsis,
                       ),
                       if (extraInfo.isNotEmpty ||
                           downloadStatus != DownloadStatus.none)
@@ -85,13 +90,23 @@ class ClickableListItem extends StatelessWidget {
                                 size: 15,
                               ),
                             Expanded(
-                              child: Text(
-                                extraInfo.join(" • "),
-                                style: textTheme.bodySmall!.copyWith(
-                                  fontWeight: FontWeight.w300,
-                                  fontSize: 12,
+                              child: Align(
+                                alignment: Alignment.centerLeft,
+                                child: Tooltip(
+                                  message: extraInfo.join(" • "),
+                                  waitDuration: const Duration(
+                                    milliseconds: 500,
+                                  ),
+                                  triggerMode: TooltipTriggerMode.manual,
+                                  child: Text(
+                                    extraInfo.join(" • "),
+                                    style: textTheme.bodySmall!.copyWith(
+                                      fontWeight: FontWeight.w300,
+                                      fontSize: 12,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
                                 ),
-                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                           ],

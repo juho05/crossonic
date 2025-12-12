@@ -9,6 +9,7 @@ import 'package:crossonic/ui/common/dialogs/chooser.dart';
 import 'package:crossonic/ui/common/with_context_menu.dart';
 import 'package:crossonic/ui/main/now_playing/now_playing_menu_options.dart';
 import 'package:crossonic/ui/main/now_playing/now_playing_viewmodel.dart';
+import 'package:crossonic/ui/main/now_playing/scrolling_song_title.dart';
 import 'package:flutter/material.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 
@@ -96,13 +97,12 @@ class NowPlayingExpanded extends StatelessWidget {
                     },
                   ),
                   const SizedBox(height: 10),
-                  Text(
-                    _viewModel.songTitle,
+                  ScrollingSongTitle(
+                    title: _viewModel.songTitle,
                     style: Theme.of(context).textTheme.bodyLarge!.copyWith(
                       fontWeight: FontWeight.w600,
                       fontSize: 20,
                     ),
-                    overflow: TextOverflow.ellipsis,
                   ),
                   MouseRegion(
                     cursor: SystemMouseCursors.click,
@@ -115,13 +115,18 @@ class NowPlayingExpanded extends StatelessWidget {
                           );
                         }
                       },
-                      child: Text(
-                        _viewModel.album?.name ?? "Unknown album",
-                        style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-                          fontWeight: FontWeight.w500,
-                          fontSize: 17,
+                      child: Tooltip(
+                        message: _viewModel.album?.name,
+                        waitDuration: const Duration(milliseconds: 500),
+                        child: Text(
+                          _viewModel.album?.name ?? "Unknown album",
+                          style: Theme.of(context).textTheme.bodyLarge!
+                              .copyWith(
+                                fontWeight: FontWeight.w500,
+                                fontSize: 17,
+                              ),
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                   ),
@@ -138,16 +143,20 @@ class NowPlayingExpanded extends StatelessWidget {
                         _panelController.close();
                         router.push(ArtistRoute(artistId: artistId));
                       },
-                      child: Padding(
-                        padding: const EdgeInsets.only(top: 3),
-                        child: Text(
-                          _viewModel.displayArtist,
-                          style: Theme.of(context).textTheme.bodyLarge!
-                              .copyWith(
-                                fontWeight: FontWeight.w400,
-                                fontSize: 14,
-                              ),
-                          overflow: TextOverflow.ellipsis,
+                      child: Tooltip(
+                        message: _viewModel.displayArtist,
+                        waitDuration: const Duration(milliseconds: 500),
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 3),
+                          child: Text(
+                            _viewModel.displayArtist,
+                            style: Theme.of(context).textTheme.bodyLarge!
+                                .copyWith(
+                                  fontWeight: FontWeight.w400,
+                                  fontSize: 14,
+                                ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
                       ),
                     ),

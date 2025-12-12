@@ -66,20 +66,30 @@ class GridCell extends StatelessWidget {
                 topRight: topRight,
               ),
               const SizedBox(height: 2),
-              Text(
-                title,
-                overflow: TextOverflow.ellipsis,
-                style: textTheme.bodyMedium!.copyWith(
-                  fontWeight: FontWeight.w400,
-                  fontSize: 12,
+              Tooltip(
+                message: title,
+                waitDuration: const Duration(milliseconds: 500),
+                triggerMode: TooltipTriggerMode.manual,
+                child: Text(
+                  title,
+                  overflow: TextOverflow.ellipsis,
+                  style: textTheme.bodyMedium!.copyWith(
+                    fontWeight: FontWeight.w400,
+                    fontSize: 12,
+                  ),
                 ),
               ),
-              Text(
-                extraInfo,
-                overflow: TextOverflow.ellipsis,
-                style: textTheme.bodyMedium!.copyWith(
-                  fontWeight: FontWeight.w300,
-                  fontSize: 10,
+              Tooltip(
+                message: extraInfo,
+                waitDuration: const Duration(milliseconds: 500),
+                triggerMode: TooltipTriggerMode.manual,
+                child: Text(
+                  extraInfo,
+                  overflow: TextOverflow.ellipsis,
+                  style: textTheme.bodyMedium!.copyWith(
+                    fontWeight: FontWeight.w300,
+                    fontSize: 10,
+                  ),
                 ),
               ),
             ],
