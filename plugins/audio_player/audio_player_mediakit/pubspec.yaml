@@ -12,9 +12,8 @@ dependencies:
   rxdart: ^0.28.0
   audio_player_platform_interface:
     path: ../audio_player_platform_interface
-  # 1.2.4 is broken for network urls
-  media_kit: 1.2.3
-  media_kit_libs_audio: ^1.0.6
+  media_kit: ^1.2.6
+  media_kit_libs_audio: ^1.0.7
 
 dev_dependencies:
   flutter_test:
