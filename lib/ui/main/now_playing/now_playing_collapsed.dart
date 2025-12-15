@@ -1,5 +1,6 @@
 import 'package:crossonic/data/repositories/audio/audio_handler.dart';
 import 'package:crossonic/ui/common/cover_art.dart';
+import 'package:crossonic/ui/common/optional_tooltip.dart';
 import 'package:crossonic/ui/common/with_context_menu.dart';
 import 'package:crossonic/ui/main/now_playing/now_playing_menu_options.dart';
 import 'package:crossonic/ui/main/now_playing/now_playing_viewmodel.dart';
@@ -36,10 +37,9 @@ class NowPlayingCollapsed extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Tooltip(
+                OptionalTooltip(
                   message: _viewModel.album?.name,
-                  waitDuration: const Duration(milliseconds: 500),
-                  triggerMode: TooltipTriggerMode.manual,
+                  triggerOnLongPress: false,
                   child: SizedBox(
                     height: 40,
                     child: CoverArt(
@@ -55,22 +55,25 @@ class NowPlayingCollapsed extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      ScrollingSongTitle(
-                        title: _viewModel.songTitle,
-                        style: textStyle.bodyMedium!.copyWith(
-                          color: colorScheme.onSurface,
-                        ),
-                      ),
-                      Tooltip(
-                        message: _viewModel.displayArtist,
-                        waitDuration: const Duration(milliseconds: 500),
-                        triggerMode: TooltipTriggerMode.manual,
-                        child: Text(
-                          _viewModel.displayArtist,
-                          style: textStyle.bodySmall!.copyWith(
+                      Flexible(
+                        child: ScrollingSongTitle(
+                          title: _viewModel.songTitle,
+                          style: textStyle.bodyMedium!.copyWith(
                             color: colorScheme.onSurface,
                           ),
-                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      Flexible(
+                        child: OptionalTooltip(
+                          message: _viewModel.displayArtist,
+                          triggerOnLongPress: false,
+                          child: Text(
+                            _viewModel.displayArtist,
+                            style: textStyle.bodySmall!.copyWith(
+                              color: colorScheme.onSurface,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
                       ),
                     ],

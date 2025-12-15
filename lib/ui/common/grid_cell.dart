@@ -1,5 +1,6 @@
 import 'package:crossonic/data/repositories/playlist/song_downloader.dart';
 import 'package:crossonic/ui/common/cover_art_decorated.dart';
+import 'package:crossonic/ui/common/optional_tooltip.dart';
 import 'package:crossonic/ui/common/with_context_menu.dart';
 import 'package:flutter/material.dart';
 
@@ -66,10 +67,9 @@ class GridCell extends StatelessWidget {
                 topRight: topRight,
               ),
               const SizedBox(height: 2),
-              Tooltip(
+              OptionalTooltip(
                 message: title,
-                waitDuration: const Duration(milliseconds: 500),
-                triggerMode: TooltipTriggerMode.manual,
+                triggerOnLongPress: false,
                 child: Text(
                   title,
                   overflow: TextOverflow.ellipsis,
@@ -79,10 +79,9 @@ class GridCell extends StatelessWidget {
                   ),
                 ),
               ),
-              Tooltip(
+              OptionalTooltip(
                 message: extraInfo,
-                waitDuration: const Duration(milliseconds: 500),
-                triggerMode: TooltipTriggerMode.manual,
+                triggerOnLongPress: false,
                 child: Text(
                   extraInfo,
                   overflow: TextOverflow.ellipsis,

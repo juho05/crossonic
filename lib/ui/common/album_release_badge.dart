@@ -1,4 +1,5 @@
 import 'package:crossonic/data/repositories/subsonic/models/date.dart';
+import 'package:crossonic/ui/common/optional_tooltip.dart';
 import 'package:flutter/material.dart';
 
 class AlbumReleaseBadge extends StatelessWidget {
@@ -28,10 +29,11 @@ class AlbumReleaseBadge extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(10),
-        child: Tooltip(
+        child: OptionalTooltip(
           message: releaseDate == null
               ? "$alternativeCount other version${alternativeCount != 1 ? "s" : ""}"
               : "${(albumVersion ?? "${releaseDate?.year} release")}${alternativeCount != null && alternativeCount! > 0 ? " + $alternativeCount other version${alternativeCount != 1 ? "s" : ""}" : ""}",
+          enableDelay: false,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
             child: Text(

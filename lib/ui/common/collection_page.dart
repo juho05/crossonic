@@ -1,4 +1,5 @@
 import 'package:crossonic/ui/common/buttons.dart';
+import 'package:crossonic/ui/common/optional_tooltip.dart';
 import 'package:crossonic/ui/main/layout_mode.dart';
 import 'package:flutter/material.dart';
 
@@ -160,9 +161,8 @@ class _CollectionPageMobileState extends State<CollectionPageMobile> {
                       spacing: 4,
                       children: [
                         Flexible(
-                          child: Tooltip(
+                          child: OptionalTooltip(
                             message: widget.name,
-                            waitDuration: const Duration(milliseconds: 500),
                             child: Text(
                               widget.name,
                               style: Theme.of(context).textTheme.bodyLarge!
@@ -177,8 +177,9 @@ class _CollectionPageMobileState extends State<CollectionPageMobile> {
                         if (widget.onChangeName != null)
                           GestureDetector(
                             onTap: widget.onChangeName,
-                            child: const Tooltip(
+                            child: const OptionalTooltip(
                               message: "Change name",
+                              enableDelay: false,
                               child: MouseRegion(
                                 cursor: SystemMouseCursors.click,
                                 child: Padding(
@@ -276,8 +277,9 @@ class _CollectionPageMobileState extends State<CollectionPageMobile> {
                         if (widget.onChangeDescription != null)
                           GestureDetector(
                             onTap: widget.onChangeDescription,
-                            child: const Tooltip(
+                            child: const OptionalTooltip(
                               message: "Change description",
+                              enableDelay: false,
                               child: MouseRegion(
                                 cursor: SystemMouseCursors.click,
                                 child: Padding(
@@ -387,9 +389,8 @@ class _CollectionPageDesktopState extends State<CollectionPageDesktop> {
                         spacing: 4,
                         children: [
                           Flexible(
-                            child: Tooltip(
+                            child: OptionalTooltip(
                               message: widget.name,
-                              waitDuration: const Duration(milliseconds: 500),
                               child: Text(
                                 widget.name,
                                 style: Theme.of(context).textTheme.bodyLarge!
@@ -404,8 +405,9 @@ class _CollectionPageDesktopState extends State<CollectionPageDesktop> {
                           if (widget.onChangeName != null)
                             GestureDetector(
                               onTap: widget.onChangeName,
-                              child: const Tooltip(
+                              child: const OptionalTooltip(
                                 message: "Change name",
+                                enableDelay: false,
                                 child: MouseRegion(
                                   cursor: SystemMouseCursors.click,
                                   child: Padding(
@@ -465,8 +467,9 @@ class _CollectionPageDesktopState extends State<CollectionPageDesktop> {
                                   if (widget.onChangeDescription != null)
                                     GestureDetector(
                                       onTap: widget.onChangeDescription,
-                                      child: const Tooltip(
+                                      child: const OptionalTooltip(
                                         message: "Change description",
+                                        enableDelay: false,
                                         child: MouseRegion(
                                           cursor: SystemMouseCursors.click,
                                           child: Padding(
@@ -592,9 +595,8 @@ class _ExtraInfoWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Widget text = Tooltip(
+    Widget text = OptionalTooltip(
       message: _extraInfo.text,
-      waitDuration: const Duration(milliseconds: 500),
       child: Text(
         _extraInfo.text,
         overflow: TextOverflow.ellipsis,

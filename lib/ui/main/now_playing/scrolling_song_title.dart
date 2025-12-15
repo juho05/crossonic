@@ -1,3 +1,4 @@
+import 'package:crossonic/ui/common/optional_tooltip.dart';
 import 'package:crossonic/ui/common/text_scroll.dart';
 import 'package:flutter/material.dart';
 
@@ -9,10 +10,9 @@ class ScrollingSongTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Tooltip(
+    return OptionalTooltip(
       message: title,
-      waitDuration: const Duration(milliseconds: 500),
-      triggerMode: TooltipTriggerMode.manual,
+      triggerOnLongPress: false,
       child: TextScroll(
         title,
         delayBefore: const Duration(seconds: 3),

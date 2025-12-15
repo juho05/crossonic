@@ -1,4 +1,5 @@
 import 'package:crossonic/data/repositories/playlist/song_downloader.dart';
+import 'package:crossonic/ui/common/optional_tooltip.dart';
 import 'package:flutter/material.dart';
 
 class ClickableListItem extends StatelessWidget {
@@ -47,10 +48,9 @@ class ClickableListItem extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Tooltip(
+                      OptionalTooltip(
                         message: title,
-                        waitDuration: const Duration(milliseconds: 500),
-                        triggerMode: TooltipTriggerMode.manual,
+                        triggerOnLongPress: false,
                         child: Text(
                           title,
                           style: textTheme.bodyMedium!.copyWith(
@@ -92,12 +92,9 @@ class ClickableListItem extends StatelessWidget {
                             Expanded(
                               child: Align(
                                 alignment: Alignment.centerLeft,
-                                child: Tooltip(
+                                child: OptionalTooltip(
                                   message: extraInfo.join(" • "),
-                                  waitDuration: const Duration(
-                                    milliseconds: 500,
-                                  ),
-                                  triggerMode: TooltipTriggerMode.manual,
+                                  triggerOnLongPress: false,
                                   child: Text(
                                     extraInfo.join(" • "),
                                     style: textTheme.bodySmall!.copyWith(

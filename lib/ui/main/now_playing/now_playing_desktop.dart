@@ -5,6 +5,7 @@ import 'package:crossonic/routing/router.gr.dart';
 import 'package:crossonic/ui/common/cover_art.dart';
 import 'package:crossonic/ui/common/dialogs/chooser.dart';
 import 'package:crossonic/ui/common/menu_button.dart';
+import 'package:crossonic/ui/common/optional_tooltip.dart';
 import 'package:crossonic/ui/common/with_context_menu.dart';
 import 'package:crossonic/ui/main/now_playing/now_playing_menu_options.dart';
 import 'package:crossonic/ui/main/now_playing/now_playing_viewmodel.dart';
@@ -49,9 +50,8 @@ class NowPlayingDesktop extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.center,
                       mainAxisSize: MainAxisSize.max,
                       children: [
-                        Tooltip(
+                        OptionalTooltip(
                           message: _viewModel.album?.name,
-                          waitDuration: const Duration(milliseconds: 500),
                           child: SizedBox(
                             height: 60,
                             width: 60,
@@ -83,7 +83,7 @@ class NowPlayingDesktop extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: 10),
-                        Expanded(
+                        Flexible(
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -110,11 +110,8 @@ class NowPlayingDesktop extends StatelessWidget {
                                       ArtistRoute(artistId: artistId),
                                     );
                                   },
-                                  child: Tooltip(
+                                  child: OptionalTooltip(
                                     message: _viewModel.displayArtist,
-                                    waitDuration: const Duration(
-                                      milliseconds: 500,
-                                    ),
                                     child: Text(
                                       _viewModel.displayArtist,
                                       style: textStyle.bodySmall!.copyWith(

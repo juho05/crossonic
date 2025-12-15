@@ -6,6 +6,7 @@ import 'package:crossonic/data/repositories/audio/audio_handler.dart';
 import 'package:crossonic/routing/router.gr.dart';
 import 'package:crossonic/ui/common/cover_art_decorated.dart';
 import 'package:crossonic/ui/common/dialogs/chooser.dart';
+import 'package:crossonic/ui/common/optional_tooltip.dart';
 import 'package:crossonic/ui/common/with_context_menu.dart';
 import 'package:crossonic/ui/main/now_playing/now_playing_menu_options.dart';
 import 'package:crossonic/ui/main/now_playing/now_playing_viewmodel.dart';
@@ -115,9 +116,8 @@ class NowPlayingExpanded extends StatelessWidget {
                           );
                         }
                       },
-                      child: Tooltip(
+                      child: OptionalTooltip(
                         message: _viewModel.album?.name,
-                        waitDuration: const Duration(milliseconds: 500),
                         child: Text(
                           _viewModel.album?.name ?? "Unknown album",
                           style: Theme.of(context).textTheme.bodyLarge!
@@ -143,9 +143,8 @@ class NowPlayingExpanded extends StatelessWidget {
                         _panelController.close();
                         router.push(ArtistRoute(artistId: artistId));
                       },
-                      child: Tooltip(
+                      child: OptionalTooltip(
                         message: _viewModel.displayArtist,
-                        waitDuration: const Duration(milliseconds: 500),
                         child: Padding(
                           padding: const EdgeInsets.only(top: 3),
                           child: Text(
