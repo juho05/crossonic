@@ -58,6 +58,11 @@ class AudioHandler {
     return _positionUpdate.$2;
   }
 
+  final BehaviorSubject<Duration> _positionUpdateStream =
+      BehaviorSubject.seeded(Duration.zero);
+  ValueStream<Duration> get positionUpdateStream =>
+      _positionUpdateStream.stream;
+
   Future<Duration> get bufferedPosition async => _player.initialized
       ? (await _player.bufferedPosition) + _positionOffset
       : Duration.zero;
@@ -353,6 +358,7 @@ class AudioHandler {
     Log.trace("updating current position: $pos");
     _positionUpdate = (DateTime.now(), pos);
     _integration.updatePosition(pos);
+    _positionUpdateStream.add(position);
   }
 
   Future<void> playNext() async {

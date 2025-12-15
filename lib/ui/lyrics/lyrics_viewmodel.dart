@@ -16,6 +16,7 @@ class LyricsViewModel extends ChangeNotifier {
   final AudioHandler _audioHandler;
   StreamSubscription? _currentSubscription;
   StreamSubscription? _statusSubscription;
+  StreamSubscription? _positionUpdateSubscription;
 
   bool get supportsSync => _lyrics?.synced ?? false;
 
@@ -52,6 +53,11 @@ class LyricsViewModel extends ChangeNotifier {
       _onCurrentChanged,
     );
     _statusSubscription = _audioHandler.playbackStatus.listen(_onStatusChanged);
+    _positionUpdateSubscription = _audioHandler.positionUpdateStream.listen((
+      event,
+    ) {
+      _onPositionChanged(force: true);
+    });
 
     _onCurrentChanged(_audioHandler.queue.current.value);
   }
@@ -63,7 +69,7 @@ class LyricsViewModel extends ChangeNotifier {
 
   Future<void> _fetch() async {
     _lyrics = null;
-    _onPositionChanged();
+    _onPositionChanged(force: true);
     if (_currentSong == null) {
       _status = FetchStatus.success;
       notifyListeners();
@@ -176,6 +182,7 @@ class LyricsViewModel extends ChangeNotifier {
 
   @override
   void dispose() {
+    _positionUpdateSubscription?.cancel();
     _currentSubscription?.cancel();
     _statusSubscription?.cancel();
     _stopPositionTimer();

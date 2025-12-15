@@ -15,6 +15,7 @@ class NowPlayingViewModel extends ChangeNotifier {
   late final StreamSubscription _playbackStatusSubscription;
   late final StreamSubscription _loopSubscription;
   late final StreamSubscription _volumeSubscription;
+  late final StreamSubscription _positionUpdateSubscription;
 
   final BehaviorSubject<({Duration position, Duration? bufferedPosition})>
   _position = BehaviorSubject.seeded((
@@ -81,6 +82,9 @@ class NowPlayingViewModel extends ChangeNotifier {
       _volume = _audioHandler.volumeCubic;
       notifyListeners();
     });
+    _positionUpdateSubscription = _audioHandler.positionUpdateStream.listen(
+      (_) => _updatePosition(),
+    );
 
     _onSongChanged(song);
     _onStatusChanged(_audioHandler.playbackStatus.value);
@@ -182,6 +186,7 @@ class NowPlayingViewModel extends ChangeNotifier {
   @override
   Future<void> dispose() async {
     _favoritesRepository.removeListener(_onFavoriteChanged);
+    await _positionUpdateSubscription.cancel();
     await _volumeSubscription.cancel();
     await _loopSubscription.cancel();
     await _currentSongSubscription.cancel();
