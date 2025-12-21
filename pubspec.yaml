@@ -65,6 +65,7 @@ dependencies:
   flutter_displaymode: ^0.7.0
   wakelock_plus: ^1.4.0
   super_sliver_list: ^0.4.1
+  month_picker_dialog: ^6.7.0
 
 dependency_overrides:
   flutter_secure_storage_darwin:
