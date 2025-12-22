@@ -30,6 +30,7 @@ class AddToPlaylistDialog {
     return showDialog(
       context: context,
       builder: (context) => CrossonicDialog(
+        maxWidth: 560,
         child: _AddToPlaylistDialogContent(
           viewModel: viewModel,
           collectionName: collectionName,
@@ -74,143 +75,121 @@ class _AddToPlaylistDialogContentState
       child: ListenableBuilder(
         listenable: widget._viewModel,
         builder: (context, _) {
-          return Container(
-            constraints: const BoxConstraints(maxWidth: 560),
-            child: Builder(
-              builder: (context) {
-                if (widget._viewModel.status == FetchStatus.failure) {
-                  return Container(
-                    constraints: const BoxConstraints(maxHeight: 244),
-                    child: const Center(child: Icon(Icons.wifi_off)),
-                  );
-                }
-                if (widget._viewModel.status != FetchStatus.success) {
-                  return Container(
-                    constraints: const BoxConstraints(maxHeight: 244),
-                    child: const Center(
-                      child: CircularProgressIndicator.adaptive(),
-                    ),
-                  );
-                }
-                return Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    spacing: 8,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            "Add to playlist",
-                            overflow: TextOverflow.ellipsis,
-                            style: textTheme.headlineSmall,
-                          ),
-                          Button(
-                            icon: Icons.add,
-                            onPressed: () {
-                              Navigator.pop(context);
-                              context.router.push(
-                                CreatePlaylistRoute(
-                                  songs: widget._viewModel.songs,
-                                ),
-                              );
-                            },
-                            child: const Text("Create"),
-                          ),
-                        ],
-                      ),
-                      FocusScope(
-                        node: _textFieldFocusScope,
-                        onKeyEvent: (node, event) {
-                          if (event is KeyUpEvent &&
-                              event.logicalKey == LogicalKeyboardKey.enter) {
-                            node.unfocus();
-                            return KeyEventResult.handled;
-                          }
-                          return KeyEventResult.ignored;
-                        },
-                        child: SearchInput(
-                          onSearch: (query) => widget._viewModel.search(query),
-                          debounce: const Duration(milliseconds: 100),
-                          onTapOutside: () {
-                            _textFieldFocusScope.unfocus();
-                          },
-                          onClearButtonPressed: () {
-                            _textFieldFocusScope.unfocus();
-                          },
-                        ),
-                      ),
-                      Flexible(
-                        child: Container(
-                          constraints: BoxConstraints(
-                            maxHeight:
-                                _PlaylistListItem.verticalExtent *
-                                max(1, widget._viewModel.playlists.length),
-                          ),
-                          child: widget._viewModel.playlists.isNotEmpty
-                              ? ListView.builder(
-                                  itemExtent: _PlaylistListItem.verticalExtent,
-                                  itemCount: widget._viewModel.playlists.length,
-                                  itemBuilder: (context, index) {
-                                    final p =
-                                        widget._viewModel.playlists[index];
-                                    return _PlaylistListItem(
-                                      playlist: p,
-                                      selected: widget
-                                          ._viewModel
-                                          .selectedPlaylists
-                                          .contains(p),
-                                      onSelect: () {
-                                        widget._viewModel.toggleSelection(p);
-                                      },
-                                      songInPlaylistCount:
-                                          widget
-                                              ._viewModel
-                                              .songInPlaylistCounts[p.id] ??
-                                          0,
-                                      onRemoveSong: () async {
-                                        final yes =
-                                            await ConfirmationDialog.showYesNo(
-                                              context,
-                                              message:
-                                                  "Remove '${widget._viewModel.songs.first.title}' from '${p.name}'?",
-                                            );
-                                        if (yes ?? false) {
-                                          await widget._viewModel
-                                              .removeSongFromPlaylist(p);
-                                        }
-                                      },
-                                    );
-                                  },
-                                )
-                              : const Center(
-                                  child: Text("No playlists found."),
-                                ),
-                        ),
-                      ),
-                      const Divider(height: 1),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            "Add ${widget._viewModel.songCount} song${widget._viewModel.songCount != 1 ? "s" : ""} "
-                            "to ${widget._viewModel.selectedPlaylists.length} playlist${widget._viewModel.selectedPlaylists.length != 1 ? "s" : ""}.",
-                          ),
-                          Button(
-                            onPressed:
-                                widget._viewModel.selectedPlaylists.isNotEmpty
-                                ? () => _submit(context)
-                                : null,
-                            child: const Text("Add"),
-                          ),
-                        ],
-                      ),
-                    ],
+          if (widget._viewModel.status == FetchStatus.failure) {
+            return Container(
+              constraints: const BoxConstraints(maxHeight: 244),
+              child: const Center(child: Icon(Icons.wifi_off)),
+            );
+          }
+          if (widget._viewModel.status != FetchStatus.success) {
+            return Container(
+              constraints: const BoxConstraints(maxHeight: 244),
+              child: const Center(child: CircularProgressIndicator.adaptive()),
+            );
+          }
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            spacing: 8,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Add to playlist",
+                    overflow: TextOverflow.ellipsis,
+                    style: textTheme.headlineSmall,
                   ),
-                );
-              },
-            ),
+                  Button(
+                    icon: Icons.add,
+                    onPressed: () {
+                      Navigator.pop(context);
+                      context.router.push(
+                        CreatePlaylistRoute(songs: widget._viewModel.songs),
+                      );
+                    },
+                    child: const Text("Create"),
+                  ),
+                ],
+              ),
+              FocusScope(
+                node: _textFieldFocusScope,
+                onKeyEvent: (node, event) {
+                  if (event is KeyUpEvent &&
+                      event.logicalKey == LogicalKeyboardKey.enter) {
+                    node.unfocus();
+                    return KeyEventResult.handled;
+                  }
+                  return KeyEventResult.ignored;
+                },
+                child: SearchInput(
+                  onSearch: (query) => widget._viewModel.search(query),
+                  debounce: const Duration(milliseconds: 100),
+                  onTapOutside: () {
+                    _textFieldFocusScope.unfocus();
+                  },
+                  onClearButtonPressed: () {
+                    _textFieldFocusScope.unfocus();
+                  },
+                ),
+              ),
+              Flexible(
+                child: Container(
+                  constraints: BoxConstraints(
+                    maxHeight:
+                        _PlaylistListItem.verticalExtent *
+                        max(1, widget._viewModel.playlists.length),
+                  ),
+                  child: widget._viewModel.playlists.isNotEmpty
+                      ? ListView.builder(
+                          itemExtent: _PlaylistListItem.verticalExtent,
+                          itemCount: widget._viewModel.playlists.length,
+                          itemBuilder: (context, index) {
+                            final p = widget._viewModel.playlists[index];
+                            return _PlaylistListItem(
+                              playlist: p,
+                              selected: widget._viewModel.selectedPlaylists
+                                  .contains(p),
+                              onSelect: () {
+                                widget._viewModel.toggleSelection(p);
+                              },
+                              songInPlaylistCount:
+                                  widget._viewModel.songInPlaylistCounts[p
+                                      .id] ??
+                                  0,
+                              onRemoveSong: () async {
+                                final yes = await ConfirmationDialog.showYesNo(
+                                  context,
+                                  message:
+                                      "Remove '${widget._viewModel.songs.first.title}' from '${p.name}'?",
+                                );
+                                if (yes ?? false) {
+                                  await widget._viewModel
+                                      .removeSongFromPlaylist(p);
+                                }
+                              },
+                            );
+                          },
+                        )
+                      : const Center(child: Text("No playlists found.")),
+                ),
+              ),
+              const Divider(height: 1),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Add ${widget._viewModel.songCount} song${widget._viewModel.songCount != 1 ? "s" : ""} "
+                    "to ${widget._viewModel.selectedPlaylists.length} playlist${widget._viewModel.selectedPlaylists.length != 1 ? "s" : ""}.",
+                  ),
+                  Button(
+                    onPressed: widget._viewModel.selectedPlaylists.isNotEmpty
+                        ? () => _submit(context)
+                        : null,
+                    child: const Text("Add"),
+                  ),
+                ],
+              ),
+            ],
           );
         },
       ),

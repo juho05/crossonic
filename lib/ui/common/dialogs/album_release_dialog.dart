@@ -35,108 +35,106 @@ class AlbumReleaseDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     return CrossonicDialog(
-      child: ConstrainedBox(
-        constraints: BoxConstraints.loose(const Size.fromWidth(450)),
-        child: Consumer<AlbumReleaseDialogViewModel>(
-          builder: (context, viewModel, _) {
-            return Container(
-              constraints: BoxConstraints(
-                maxHeight:
-                    194 +
-                    viewModel.alternatives.length *
-                        ClickableListItem.verticalExtent +
-                    (viewModel.status != FetchStatus.success ||
-                            viewModel.alternatives.isEmpty
-                        ? ClickableListItem.verticalExtent
-                        : 0),
-              ),
-              child: CustomScrollView(
-                slivers: [
-                  SliverPadding(
-                    padding: const EdgeInsets.only(
-                      left: 12,
-                      right: 12,
-                      top: 24,
-                      bottom: 8,
-                    ),
-                    sliver: SliverToBoxAdapter(
-                      child: Text(
-                        "Release Versions",
-                        textAlign: TextAlign.center,
-                        style: textTheme.headlineSmall,
-                        overflow: TextOverflow.ellipsis,
-                      ),
+      maxWidth: 450,
+      contentPadding: const EdgeInsets.symmetric(vertical: 12),
+      child: Consumer<AlbumReleaseDialogViewModel>(
+        builder: (context, viewModel, _) {
+          return Container(
+            constraints: BoxConstraints(
+              maxHeight:
+                  158 +
+                  viewModel.alternatives.length *
+                      ClickableListItem.verticalExtent +
+                  (viewModel.status != FetchStatus.success ||
+                          viewModel.alternatives.isEmpty
+                      ? ClickableListItem.verticalExtent
+                      : 0),
+            ),
+            child: CustomScrollView(
+              slivers: [
+                SliverPadding(
+                  padding: const EdgeInsets.only(
+                    left: 12,
+                    right: 12,
+                    bottom: 8,
+                  ),
+                  sliver: SliverToBoxAdapter(
+                    child: Text(
+                      "Release Versions",
+                      textAlign: TextAlign.center,
+                      style: textTheme.headlineSmall,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  SliverPadding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    sliver: SliverToBoxAdapter(
-                      child: Text("Current", style: textTheme.titleMedium),
-                    ),
+                ),
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  sliver: SliverToBoxAdapter(
+                    child: Text("Current", style: textTheme.titleMedium),
                   ),
-                  SliverToBoxAdapter(
-                    child: AlbumListItem(
-                      album: viewModel.album,
+                ),
+                SliverToBoxAdapter(
+                  child: AlbumListItem(
+                    album: viewModel.album,
+                    showArtist: false,
+                    showReleaseVersion: true,
+                    onNavigate: () => Navigator.of(context).pop(),
+                  ),
+                ),
+                SliverPadding(
+                  padding: const EdgeInsets.only(left: 12, right: 12, top: 6),
+                  sliver: SliverToBoxAdapter(
+                    child: Text("Other", style: textTheme.titleMedium),
+                  ),
+                ),
+                if (viewModel.alternatives.isNotEmpty)
+                  SliverFixedExtentList.builder(
+                    itemCount: viewModel.alternatives.length,
+                    itemExtent: ClickableListItem.verticalExtent,
+                    itemBuilder: (context, index) => AlbumListItem(
+                      album: viewModel.alternatives[index],
                       showArtist: false,
                       showReleaseVersion: true,
                       onNavigate: () => Navigator.of(context).pop(),
                     ),
                   ),
-                  SliverPadding(
-                    padding: const EdgeInsets.only(left: 12, right: 12, top: 6),
-                    sliver: SliverToBoxAdapter(
-                      child: Text("Other", style: textTheme.titleMedium),
-                    ),
-                  ),
-                  if (viewModel.alternatives.isNotEmpty)
-                    SliverFixedExtentList.builder(
-                      itemCount: viewModel.alternatives.length,
-                      itemExtent: ClickableListItem.verticalExtent,
-                      itemBuilder: (context, index) => AlbumListItem(
-                        album: viewModel.alternatives[index],
-                        showArtist: false,
-                        showReleaseVersion: true,
-                        onNavigate: () => Navigator.of(context).pop(),
+                if (viewModel.status == FetchStatus.loading)
+                  const SliverToBoxAdapter(
+                    child: SizedBox(
+                      height: ClickableListItem.verticalExtent,
+                      child: Center(
+                        child: CircularProgressIndicator.adaptive(),
                       ),
                     ),
-                  if (viewModel.status == FetchStatus.loading)
-                    const SliverToBoxAdapter(
+                  ),
+                if (viewModel.status == FetchStatus.failure)
+                  const SliverToBoxAdapter(
+                    child: SizedBox(
+                      height: ClickableListItem.verticalExtent,
+                      child: Center(child: Icon(Icons.wifi_off)),
+                    ),
+                  ),
+                if (viewModel.status == FetchStatus.success &&
+                    viewModel.alternatives.isEmpty)
+                  const SliverPadding(
+                    padding: EdgeInsets.symmetric(horizontal: 12),
+                    sliver: SliverToBoxAdapter(
                       child: SizedBox(
                         height: ClickableListItem.verticalExtent,
                         child: Center(
-                          child: CircularProgressIndicator.adaptive(),
-                        ),
-                      ),
-                    ),
-                  if (viewModel.status == FetchStatus.failure)
-                    const SliverToBoxAdapter(
-                      child: SizedBox(
-                        height: ClickableListItem.verticalExtent,
-                        child: Center(child: Icon(Icons.wifi_off)),
-                      ),
-                    ),
-                  if (viewModel.status == FetchStatus.success &&
-                      viewModel.alternatives.isEmpty)
-                    const SliverPadding(
-                      padding: EdgeInsets.symmetric(horizontal: 12),
-                      sliver: SliverToBoxAdapter(
-                        child: SizedBox(
-                          height: ClickableListItem.verticalExtent,
-                          child: Center(
-                            child: Text(
-                              "No alternatives found",
-                              overflow: TextOverflow.ellipsis,
-                            ),
+                          child: Text(
+                            "No alternatives found",
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ),
                     ),
-                  const SliverToBoxAdapter(child: SizedBox(height: 24)),
-                ],
-              ),
-            );
-          },
-        ),
+                  ),
+                const SliverToBoxAdapter(child: SizedBox(height: 12)),
+              ],
+            ),
+          );
+        },
       ),
     );
   }

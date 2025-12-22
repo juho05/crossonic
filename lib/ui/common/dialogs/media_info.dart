@@ -80,120 +80,110 @@ class MediaInfoDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     return CrossonicDialog(
-      child: ConstrainedBox(
-        constraints: BoxConstraints.loose(const Size.fromWidth(600)),
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final mobile = constraints.maxWidth < 480;
-            return SingleChildScrollView(
-              child: Padding(
-                padding: EdgeInsets.symmetric(
-                  vertical: 24,
-                  horizontal: mobile ? 12 : 24,
-                ),
-                child: Consumer<MediaInfoDialogViewModel>(
-                  builder: (context, viewModel, _) {
-                    if (viewModel.status == FetchStatus.failure) {
-                      return const Center(
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(vertical: 50),
-                          child: Icon(Icons.wifi_off),
+      maxWidth: 600,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final mobile = constraints.maxWidth < 480;
+          return SingleChildScrollView(
+            child: Consumer<MediaInfoDialogViewModel>(
+              builder: (context, viewModel, _) {
+                if (viewModel.status == FetchStatus.failure) {
+                  return const Center(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: 50),
+                      child: Icon(Icons.wifi_off),
+                    ),
+                  );
+                }
+                if (viewModel.status != FetchStatus.success) {
+                  return const Center(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: 50),
+                      child: CircularProgressIndicator.adaptive(),
+                    ),
+                  );
+                }
+                return Column(
+                  spacing: 8,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      viewModel.name,
+                      textAlign: TextAlign.center,
+                      style: textTheme.headlineSmall,
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 4,
+                    ),
+                    const SizedBox(height: 8),
+                    ...viewModel.fields.map((f) {
+                      final label = Text(
+                        "${f.$1}:",
+                        style: textTheme.bodyMedium!.copyWith(
+                          fontWeight: FontWeight.w800,
                         ),
                       );
-                    }
-                    if (viewModel.status != FetchStatus.success) {
-                      return const Center(
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(vertical: 50),
-                          child: CircularProgressIndicator.adaptive(),
+                      var valueChildren = [
+                        if (f.$3 != null)
+                          IconButton(
+                            onPressed: () {
+                              launchUrl(f.$3!);
+                            },
+                            icon: const Icon(Icons.open_in_new, size: 16),
+                            constraints: BoxConstraints.tight(
+                              const Size(32, 32),
+                            ),
+                          ),
+                        Flexible(
+                          child: SelectableText(
+                            f.$2,
+                            minLines: 1,
+                            maxLines: 10,
+                            textAlign: mobile ? TextAlign.start : TextAlign.end,
+                          ),
                         ),
+                      ];
+                      if (mobile) {
+                        valueChildren = valueChildren.reversed.toList();
+                      }
+                      final value = Row(
+                        mainAxisAlignment: mobile
+                            ? MainAxisAlignment.start
+                            : MainAxisAlignment.end,
+                        mainAxisSize: mobile
+                            ? MainAxisSize.min
+                            : MainAxisSize.max,
+                        children: valueChildren,
                       );
-                    }
-                    return Column(
-                      spacing: 8,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Text(
-                          viewModel.name,
-                          textAlign: TextAlign.center,
-                          style: textTheme.headlineSmall,
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 4,
-                        ),
-                        const SizedBox(height: 8),
-                        ...viewModel.fields.map((f) {
-                          final label = Text(
-                            "${f.$1}:",
-                            style: textTheme.bodyMedium!.copyWith(
-                              fontWeight: FontWeight.w800,
-                            ),
-                          );
-                          var valueChildren = [
-                            if (f.$3 != null)
-                              IconButton(
-                                onPressed: () {
-                                  launchUrl(f.$3!);
-                                },
-                                icon: const Icon(Icons.open_in_new, size: 16),
-                                constraints: BoxConstraints.tight(
-                                  const Size(32, 32),
-                                ),
-                              ),
-                            Flexible(
-                              child: SelectableText(
-                                f.$2,
-                                minLines: 1,
-                                maxLines: 10,
-                                textAlign: mobile
-                                    ? TextAlign.start
-                                    : TextAlign.end,
-                              ),
-                            ),
-                          ];
-                          if (mobile) {
-                            valueChildren = valueChildren.reversed.toList();
-                          }
-                          final value = Row(
-                            mainAxisAlignment: mobile
-                                ? MainAxisAlignment.start
-                                : MainAxisAlignment.end,
-                            mainAxisSize: mobile
-                                ? MainAxisSize.min
-                                : MainAxisSize.max,
-                            children: valueChildren,
-                          );
-                          if (mobile) {
-                            return Column(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              spacing: 2,
-                              children: [label, value],
-                            );
-                          }
-                          return Row(
-                            spacing: 4,
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              label,
-                              Expanded(child: value),
-                            ],
-                          );
-                        }),
-                        const SizedBox(height: 4),
-                        TextButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                          },
-                          child: const Text("Close"),
-                        ),
-                      ],
-                    );
-                  },
-                ),
-              ),
-            );
-          },
-        ),
+                      if (mobile) {
+                        return Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          spacing: 2,
+                          children: [label, value],
+                        );
+                      }
+                      return Row(
+                        spacing: 4,
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          label,
+                          Expanded(child: value),
+                        ],
+                      );
+                    }),
+                    const SizedBox(height: 4),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      child: const Text("Close"),
+                    ),
+                  ],
+                );
+              },
+            ),
+          );
+        },
       ),
     );
   }

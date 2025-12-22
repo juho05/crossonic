@@ -35,6 +35,7 @@ class YearSelectorField extends StatelessWidget {
               lastDate: maxYear != null ? DateTime(maxYear!) : null,
               monthPickerDialogSettings: MonthPickerDialogSettings(
                 dialogSettings: PickerDialogSettings(
+                  insetPadding: const EdgeInsets.all(8),
                   blockScrolling:
                       kIsWeb ||
                       Platform.isWindows ||
