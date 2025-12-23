@@ -140,35 +140,39 @@ class _AddToPlaylistDialogContentState
                         max(1, widget._viewModel.playlists.length),
                   ),
                   child: widget._viewModel.playlists.isNotEmpty
-                      ? ListView.builder(
-                          itemExtent: _PlaylistListItem.verticalExtent,
-                          itemCount: widget._viewModel.playlists.length,
-                          itemBuilder: (context, index) {
-                            final p = widget._viewModel.playlists[index];
-                            return _PlaylistListItem(
-                              playlist: p,
-                              selected: widget._viewModel.selectedPlaylists
-                                  .contains(p),
-                              onSelect: () {
-                                widget._viewModel.toggleSelection(p);
-                              },
-                              songInPlaylistCount:
-                                  widget._viewModel.songInPlaylistCounts[p
-                                      .id] ??
-                                  0,
-                              onRemoveSong: () async {
-                                final yes = await ConfirmationDialog.showYesNo(
-                                  context,
-                                  message:
-                                      "Remove '${widget._viewModel.songs.first.title}' from '${p.name}'?",
-                                );
-                                if (yes ?? false) {
-                                  await widget._viewModel
-                                      .removeSongFromPlaylist(p);
-                                }
-                              },
-                            );
-                          },
+                      ? Material(
+                          type: MaterialType.transparency,
+                          child: ListView.builder(
+                            itemExtent: _PlaylistListItem.verticalExtent,
+                            itemCount: widget._viewModel.playlists.length,
+                            padding: EdgeInsets.zero,
+                            itemBuilder: (context, index) {
+                              final p = widget._viewModel.playlists[index];
+                              return _PlaylistListItem(
+                                playlist: p,
+                                selected: widget._viewModel.selectedPlaylists
+                                    .contains(p),
+                                onSelect: () {
+                                  widget._viewModel.toggleSelection(p);
+                                },
+                                songInPlaylistCount:
+                                    widget._viewModel.songInPlaylistCounts[p
+                                        .id] ??
+                                    0,
+                                onRemoveSong: () async {
+                                  final yes = await ConfirmationDialog.showYesNo(
+                                    context,
+                                    message:
+                                        "Remove '${widget._viewModel.songs.first.title}' from '${p.name}'?",
+                                  );
+                                  if (yes ?? false) {
+                                    await widget._viewModel
+                                        .removeSongFromPlaylist(p);
+                                  }
+                                },
+                              );
+                            },
+                          ),
                         )
                       : const Center(child: Text("No playlists found.")),
                 ),
