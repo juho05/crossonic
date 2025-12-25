@@ -23,7 +23,10 @@ dependencies:
   audio_session: ^0.2.0
   # 1.1.0 won't build
   smtc_windows: ^1.0.0
-  audio_service: ^0.18.17
+  audio_service:
+    git:
+      url: https://github.com/juho05/audio_service
+      path: audio_service
   optimize_battery:
     git: https://github.com/juho05/optimize_battery
   audio_service_mpris: ^0.2.0
