@@ -64,13 +64,6 @@ packages:
       relative: true
     source: path
     version: "0.0.1"
-  audio_player_exoplayer:
-    dependency: transitive
-    description:
-      path: "plugins/audio_player/audio_player_exoplayer"
-      relative: true
-    source: path
-    version: "0.0.1"
   audio_player_mediakit:
     dependency: transitive
     description:
@@ -89,8 +82,8 @@ packages:
     dependency: "direct main"
     description:
       path: audio_service
-      ref: e6111ee
-      resolved-ref: e6111eea6ef106c05cb87897bdb537a412cc6d67
+      ref: HEAD
+      resolved-ref: "4d8abf4a5ea216dab8e4d99acdf385d4b5736119"
       url: "https://github.com/juho05/audio_service"
     source: git
     version: "0.18.18"
@@ -429,13 +422,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.8.0"
-  exoplayer:
-    dependency: transitive
-    description:
-      path: "plugins/audio_player/audio_player_exoplayer/exoplayer"
-      relative: true
-    source: path
-    version: "0.0.1"
   fake_async:
     dependency: transitive
     description:

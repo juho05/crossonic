@@ -9,8 +9,6 @@ environment:
 flutter:
   plugin:
     platforms:
-      android:
-        default_package: audio_player_exoplayer
       ios:
         default_package: audio_player_mediakit
       macos:
@@ -27,8 +25,6 @@ dependencies:
   rxdart: ^0.28.0
   audio_player_platform_interface:
     path: ../audio_player_platform_interface
-  audio_player_exoplayer:
-    path: ../audio_player_exoplayer
   audio_player_mediakit:
     path: ../audio_player_mediakit
 
@@ -38,7 +34,6 @@ dev_dependencies:
   flutter_lints: ^5.0.0
 
 platforms:
-  android:
   ios:
   macos:
   linux:

@@ -25,6 +25,7 @@ import 'package:crossonic/data/repositories/version/version_repository.dart';
 import 'package:crossonic/data/services/database/database.dart';
 import 'package:crossonic/data/services/github/github.dart';
 import 'package:crossonic/data/services/media_integration/media_integration.dart';
+import 'package:crossonic/data/services/media_integration/noop_integration.dart';
 import 'package:crossonic/data/services/opensubsonic/subsonic_service.dart';
 import 'package:crossonic/integrate_appimage_viewmodel.dart';
 import 'package:crossonic/version_checker_viewmodel.dart';
@@ -135,19 +136,23 @@ Future<List<SingleChildWidget>> createProviders({
     }
 
     Log.debug("initializing audio service");
-    final audioService = await AudioService.init(
-      builder: () =>
-          AudioServiceIntegration(playlistRepository: playlistRepository),
-      config: AudioServiceConfig(
-        androidNotificationChannelId: "org.crossonic.app",
-        androidNotificationChannelName: "Music playback",
-        androidNotificationIcon: "drawable/ic_stat_crossonic",
-        androidStopForegroundOnPause: androidBackgroundAvailable,
-        androidNotificationChannelDescription: "Playback notification",
-      ),
-      cacheManager: kIsWeb ? null : coverRepository,
-    );
-    mediaIntegration = audioService;
+    if (!kIsWeb && Platform.isAndroid) {
+      mediaIntegration = NoopIntegration();
+    } else {
+      final audioService = await AudioService.init(
+        builder: () =>
+            AudioServiceIntegration(playlistRepository: playlistRepository),
+        config: AudioServiceConfig(
+          androidNotificationChannelId: "org.crossonic.app",
+          androidNotificationChannelName: "Music playback",
+          androidNotificationIcon: "drawable/ic_stat_crossonic",
+          androidStopForegroundOnPause: androidBackgroundAvailable,
+          androidNotificationChannelDescription: "Playback notification",
+        ),
+        cacheManager: kIsWeb ? null : coverRepository,
+      );
+      mediaIntegration = audioService;
+    }
   }
 
   Log.debug("initializing audio session");

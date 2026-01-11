@@ -1,0 +1,29 @@
+import 'package:crossonic/data/repositories/audio/audio_handler.dart';
+import 'package:crossonic/data/repositories/subsonic/models/song.dart';
+import 'package:crossonic/data/services/media_integration/media_integration.dart';
+
+class NoopIntegration implements MediaIntegration {
+  @override
+  Future<void> ensureInitialized({
+    required AudioHandler audioHandler,
+    required Future<void> Function() onPlay,
+    required Future<void> Function() onPause,
+    required Future<void> Function(Duration position) onSeek,
+    required Future<void> Function() onPlayNext,
+    required Future<void> Function() onPlayPrev,
+    required Future<void> Function() onStop,
+    required Future<void> Function(double volume) onVolumeChanged,
+  }) async {}
+
+  @override
+  void updateMedia(Song? song, Uri? coverArt) {}
+
+  @override
+  void updatePlaybackState(PlaybackStatus status) {}
+
+  @override
+  void updatePosition(Duration position) {}
+
+  @override
+  void updateVolume(double volume) {}
+}

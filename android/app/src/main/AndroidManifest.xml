@@ -4,16 +4,16 @@
 
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"/>
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"/>
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
 
     <!-- TODO: set enableOnBackInvokedCallback to true once bugs are fixed in auto_route-->
     <application
         android:label="@string/app_name"
-        android:name="${applicationName}"
+        android:name=".CrossonicApplication"
         android:allowBackup="false"
         android:usesCleartextTraffic="true"
         android:enableOnBackInvokedCallback="false"
@@ -41,28 +41,18 @@
             </intent-filter>
         </activity>
 
-        <meta-data
-            android:name="androidx.car.app.TintableAttributionIcon"
-            android:resource="@drawable/ic_stat_crossonic" />
-
         <service
-            android:name="com.ryanheise.audioservice.AudioService"
-            android:foregroundServiceType="mediaPlayback"
-            android:exported="true"
-            tools:ignore="Instantiatable">
+                android:name=".PlaybackService"
+                android:foregroundServiceType="mediaPlayback"
+                android:exported="true">
             <intent-filter>
-                <action android:name="android.media.browse.MediaBrowserService" />
+                <action android:name="androidx.media3.session.MediaSessionService"/>
             </intent-filter>
         </service>
 
-        <receiver
-            android:name="com.ryanheise.audioservice.MediaButtonReceiver"
-            android:exported="true"
-            tools:ignore="Instantiatable">
-            <intent-filter>
-                <action android:name="android.intent.action.MEDIA_BUTTON" />
-            </intent-filter>
-        </receiver>
+        <meta-data
+            android:name="androidx.car.app.TintableAttributionIcon"
+            android:resource="@drawable/ic_stat_crossonic" />
 
         <meta-data
             android:name="flutterEmbedding"
