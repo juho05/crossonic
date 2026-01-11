@@ -26,6 +26,7 @@ dependencies:
   audio_service:
     git:
       url: https://github.com/juho05/audio_service
+      ref: e6111ee
       path: audio_service
   optimize_battery:
     git: https://github.com/juho05/optimize_battery
