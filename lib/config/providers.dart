@@ -1,9 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:audio_player/audio_player.dart';
 import 'package:audio_service/audio_service.dart';
-import 'package:audio_session/audio_session.dart';
 import 'package:background_downloader/background_downloader.dart' as bd;
 import 'package:crossonic/data/repositories/appimage/appimage_repository.dart';
 import 'package:crossonic/data/repositories/audio/audio_handler.dart' as ah;
@@ -155,10 +153,6 @@ Future<List<SingleChildWidget>> createProviders({
     }
   }
 
-  Log.debug("initializing audio session");
-  final audioSession = await AudioSession.instance;
-  await audioSession.configure(const AudioSessionConfiguration.music());
-
   return [
     Provider.value(value: logRepository),
     ChangeNotifierProvider(
@@ -184,8 +178,6 @@ Future<List<SingleChildWidget>> createProviders({
     Provider.value(value: coverRepository),
     Provider(
       create: (context) => ah.AudioHandler(
-        player: AudioPlayer(),
-        audioSession: audioSession,
         integration: mediaIntegration,
         authRepository: context.read(),
         subsonicRepository: context.read(),
@@ -193,6 +185,7 @@ Future<List<SingleChildWidget>> createProviders({
         songDownloader: context.read(),
         keyValueRepository: context.read(),
       ),
+      lazy: false,
     ),
     Provider(
       create: (context) => Scrobbler.enable(

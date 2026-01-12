@@ -1,10 +1,11 @@
 import 'dart:async';
 import 'dart:collection';
+import 'dart:io';
 import 'dart:math';
 
-import 'package:audio_player/audio_player.dart';
-import 'package:audio_session/audio_session.dart';
-import 'package:background_downloader/background_downloader.dart';
+import 'package:crossonic/data/repositories/audio/players/android_player.dart';
+import 'package:crossonic/data/repositories/audio/players/mediakit_player.dart';
+import 'package:crossonic/data/repositories/audio/players/player.dart';
 import 'package:crossonic/data/repositories/audio/queue/changable_queue.dart';
 import 'package:crossonic/data/repositories/audio/queue/local_queue.dart';
 import 'package:crossonic/data/repositories/audio/queue/media_queue.dart';
@@ -28,16 +29,10 @@ class AudioHandler {
   final AuthRepository _auth;
   final SubsonicRepository _subsonic;
   final SettingsRepository _settings;
-  final SongDownloader _downloader;
   final KeyValueRepository _keyValue;
 
-  final AudioPlayer _player;
+  late final AudioPlayer _player;
   StreamSubscription? _playerEventSubscription;
-  StreamSubscription? _restartPlaybackSubscription;
-
-  final AudioSession _audioSession;
-  StreamSubscription? _audioSessionInterruptionStream;
-  StreamSubscription? _audioSessionBecomingNoisyStream;
 
   final MediaIntegration _integration;
 
@@ -63,16 +58,10 @@ class AudioHandler {
   ValueStream<Duration> get positionUpdateStream =>
       _positionUpdateStream.stream;
 
-  Future<Duration> get bufferedPosition async => _player.initialized
-      ? (await _player.bufferedPosition) + _positionOffset
-      : Duration.zero;
+  Future<Duration> get bufferedPosition async => await _player.bufferedPosition;
 
   final ChangableQueue _queue = ChangableQueue(LocalQueue());
   StreamSubscription? _queueCurrentSubscription;
-
-  Duration _positionOffset = Duration.zero;
-
-  Timer? _disposePlayerTimer;
 
   bool _playOnNextMediaChange = false;
 
@@ -96,133 +85,86 @@ class AudioHandler {
     volumeLinear = _volumeToLinear(volume);
   }
 
-  bool _ducking = false;
-  bool _shouldUnpauseOnInterruptionEnd = false;
-
   AudioHandler({
-    required AudioPlayer player,
-    required AudioSession audioSession,
     required MediaIntegration integration,
     required AuthRepository authRepository,
     required SubsonicRepository subsonicRepository,
     required SettingsRepository settingsRepository,
     required SongDownloader songDownloader,
     required KeyValueRepository keyValueRepository,
-  }) : _player = player,
-       _audioSession = audioSession,
-       _integration = integration,
+  }) : _integration = integration,
        _auth = authRepository,
        _subsonic = subsonicRepository,
        _settings = settingsRepository,
-       _downloader = songDownloader,
        _transcoding = (
          settingsRepository.transcoding.codec,
          settingsRepository.transcoding.maxBitRate,
        ),
        _keyValue = keyValueRepository {
-    _integration
-        .ensureInitialized(
-          audioHandler: this,
-          onPause: pause,
-          onPlay: play,
-          onPlayNext: playNext,
-          onPlayPrev: playPrev,
-          onSeek: seek,
-          onStop: () async {
-            if (_settings.workarounds.stopIsPause) {
-              Log.warn(
-                "Received a stop command but treating it as pause because stopIsPause workaround is active.",
-              );
-              await pause();
-              return;
-            }
-            await stop();
-          },
-          onVolumeChanged: (volume) async => volumeCubic = volume,
+    if (!kIsWeb && Platform.isAndroid) {
+      _player = AudioPlayerAndroid(
+        downloader: songDownloader,
+        playNextHandler: playNext,
+        playPrevHandler: playPrev,
+        setVolumeHandler: (volume) async => volumeLinear = volume,
+        setLoopHandler: (loop) async => _queue.setLoop(loop),
+        setQueueHandler: (songs) async {
+          playOnNextMediaChange();
+          _queue.replace(songs);
+        },
+      );
+    } else {
+      _player = AudioPlayerMediaKit(
+        downloader: songDownloader,
+        integration: integration,
+        playNextHandler: playNext,
+        playPrevHandler: playPrev,
+        setLoopHandler: (loop) async => _queue.setLoop(loop),
+        setQueueHandler: (songs) async {
+          playOnNextMediaChange();
+          _queue.replace(songs);
+        },
+        setVolumeHandler: (volume) async => volumeLinear = volume,
+      );
+    }
+    _player
+        .init(
+          streamUri: _createStreamUri(),
+          coverUri: _createCoverUri(),
+          supportsTimeOffset: _subsonic.supports.transcodeOffset,
+          supportsTimeOffsetMs: _subsonic.supports.timeOffsetMs,
+          format: _transcoding.$1 != TranscodingCodec.serverDefault
+              ? _transcoding.$1.name
+              : null,
+          maxBitRate: _transcoding.$1 != TranscodingCodec.raw
+              ? _transcoding.$2
+              : null,
         )
         .then((value) async {
-          _integration.updateMedia(null, null);
           _auth.addListener(_authChanged);
+
+          _player.positionDiscontinuity.listen((pos) {
+            _updatePosition(pos);
+          });
 
           _queueCurrentSubscription = _queue.currentAndNext.listen(
             _onCurrentOrNextChanged,
           );
 
           _playerEventSubscription = _player.eventStream.listen(_playerEvent);
-          _restartPlaybackSubscription = _player.restartPlayback.listen(
-            (pos) => _restartPlayback(pos + _positionOffset),
-          );
 
           _settings.replayGain.addListener(_onReplayGainChanged);
           _settings.transcoding.addListener(_onTranscodingChanged);
           _onTranscodingChanged();
 
-          _audioSessionInterruptionStream = _audioSession
-              .interruptionEventStream
-              .listen((event) async {
-                if (event.begin) {
-                  switch (event.type) {
-                    case AudioInterruptionType.duck:
-                      Log.debug(
-                        "received volume duck begin request from audio_session",
-                      );
-                      _ducking = true;
-                      _updatePlayerVolume();
-                      break;
-                    case AudioInterruptionType.pause:
-                      Log.debug(
-                        "received pause begin request from audio_session",
-                      );
-                      _shouldUnpauseOnInterruptionEnd =
-                          playbackStatus.value == PlaybackStatus.playing;
-                      await pause();
-                      break;
-                    case AudioInterruptionType.unknown:
-                      Log.debug(
-                        "received unknown begin request from audio_session",
-                      );
-                      _shouldUnpauseOnInterruptionEnd =
-                          playbackStatus.value == PlaybackStatus.playing;
-                      await pause();
-                      break;
-                  }
-                } else {
-                  switch (event.type) {
-                    case AudioInterruptionType.duck:
-                      Log.debug(
-                        "received volume duck end request from audio_session",
-                      );
-                      _ducking = false;
-                      _updatePlayerVolume();
-                      break;
-                    case AudioInterruptionType.pause:
-                      Log.debug("received pause begin end from audio_session");
-                      if (_shouldUnpauseOnInterruptionEnd) await play();
-                      break;
-                    case AudioInterruptionType.unknown:
-                      Log.debug(
-                        "received unknown end request from audio_session",
-                      );
-                      if (_shouldUnpauseOnInterruptionEnd) await play();
-                      break;
-                  }
-                  _shouldUnpauseOnInterruptionEnd = false;
-                }
-              });
-
-          _audioSessionBecomingNoisyStream = _audioSession
-              .becomingNoisyEventStream
-              .listen((_) async {
-                Log.debug("received becoming noisy event from audio_session");
-                _shouldUnpauseOnInterruptionEnd = false;
-                await pause(fade: false);
-              });
-
           await _restoreQueue();
 
           _queue.addListener(_persistQueue);
           _queue.currentAndNext.listen((_) => _persistQueue());
-          _queue.looping.listen((_) => _persistQueue());
+          _queue.looping.listen((loop) {
+            _integration.updateLoop(loop);
+            _persistQueue();
+          });
         });
   }
 
@@ -233,128 +175,55 @@ class AudioHandler {
     Log.trace("enabling playOnNextMediaChange");
   }
 
-  static const Duration _fadeDuration = Duration(milliseconds: 100);
-  static const Duration _fadeStepPeriod = Duration(milliseconds: 10);
-
   Future<void> play() async {
     Log.trace("play");
-
-    _shouldUnpauseOnInterruptionEnd = false;
 
     if (_playbackStatus.value == PlaybackStatus.playing) {
       return;
     }
 
-    _fadeTimer?.cancel();
-    _fadeTimer = null;
-
-    await _ensurePlayerLoaded();
     await _updatePlayerVolume();
-
-    if (!await _audioSession.setActive(true)) {
-      await _player.pause();
-      return;
-    }
 
     await _player.play();
   }
 
-  Timer? _fadeTimer;
-  Future<void> pause({bool fade = true}) async {
-    fade = fade && _player.needsManualFade;
+  Future<void> pause() async {
+    Log.trace("pause");
 
-    Log.trace("pause (fade: $fade)");
-
-    if ((fade && _fadeTimer != null) ||
-        _playbackStatus.value == PlaybackStatus.paused) {
+    if (_playbackStatus.value == PlaybackStatus.paused) {
       return;
     }
-    _fadeTimer?.cancel();
-    _fadeTimer = null;
-    if (!_player.initialized) return;
-
-    if (!fade) {
-      await _player.pause();
-      _updatePlayerVolume();
-      return;
-    }
-
-    await _updatePlayerVolume();
-    double volume = 1;
-
-    final pausePos = position + _fadeDuration;
-    _playbackStatus.add(PlaybackStatus.paused);
-    _updatePosition(pausePos);
-
-    _fadeTimer = Timer.periodic(_fadeStepPeriod, (timer) {
-      volume -=
-          1 / (_fadeDuration.inMilliseconds / _fadeStepPeriod.inMilliseconds);
-      volume = max(volume, 0);
-      _updatePlayerVolume(scalar: volume);
-      if (volume <= 0) {
-        _fadeTimer?.cancel();
-        _fadeTimer = null;
-        _player.pause().then((value) {
-          _ducking = false;
-          Future.delayed(
-            const Duration(milliseconds: 100),
-            () => _updatePlayerVolume(),
-          );
-        });
-      }
-    });
+    await _player.pause();
+    _updatePlayerVolume();
   }
 
   Future<void> stop() async {
     Log.trace("stop");
-    _shouldUnpauseOnInterruptionEnd = false;
-    _ducking = false;
-    _fadeTimer?.cancel();
-    _fadeTimer = null;
     _playOnNextMediaChange = false;
-    _integration.updateMedia(null, null);
     _integration.updatePosition(Duration.zero);
-    _integration.updatePlaybackState(PlaybackStatus.stopped);
-    _positionOffset = Duration.zero;
     _playbackStatus.add(PlaybackStatus.stopped);
     _updatePosition(Duration.zero);
     if (_restoredQueue) {
       await _clearPersistentQueueData();
     }
     _queue.clear();
-    _audioSession.setActive(false);
-    await _disposePlayer();
+    await _player.stop();
   }
 
   Duration? _seekingPos;
 
   Future<void> seek(Duration pos) async {
     Log.trace("seek to $pos");
-    final song = _queue.current.value;
-    final next = _queue.currentAndNext.value.next;
-    if (song == null) return;
-    await _ensurePlayerLoaded();
     _seekingPos = pos;
     _updatePosition();
-    if ((!_subsonic.supports.transcodeOffset || _player.canSeek) &&
-        _positionOffset == Duration.zero) {
-      await _player.seek(pos);
-      _seekingPos = null;
-    } else {
-      _playbackStatus.add(PlaybackStatus.loading);
-      await _player.setCurrent(
-        _getStreamUri(song, pos),
-        nextUrl: next != null ? _getStreamUri(next) : null,
-      );
-      _positionOffset = pos;
-      _seekingPos = null;
-      _updatePosition();
-    }
+    await _player.seek(pos);
+    _seekingPos = null;
+    _updatePosition();
   }
 
   Future<void> _updatePosition([Duration? pos]) async {
     pos ??= _seekingPos;
-    pos ??= await _player.position + _positionOffset;
+    pos ??= await _player.position;
     Log.trace("updating current position: $pos");
     _positionUpdate = (DateTime.now(), pos);
     _integration.updatePosition(pos);
@@ -393,17 +262,8 @@ class AudioHandler {
 
   AudioPlayerEvent? _previousAudioPlayerEvent;
   Future<void> _playerEvent(AudioPlayerEvent event) async {
-    if (!_player.initialized) {
-      if (event != AudioPlayerEvent.stopped) {
-        Log.warn(
-          "ignoring a player event because the player is not initialized: ${event.name}",
-        );
-      }
-      return;
-    }
     Log.trace("player event received: ${event.name}");
     if (event == AudioPlayerEvent.advance) {
-      _positionOffset = Duration.zero;
       await _updatePosition(Duration.zero);
       _queue.advance();
       return;
@@ -427,10 +287,6 @@ class AudioHandler {
     };
 
     Log.debug("new player status: $status");
-
-    if (status != PlaybackStatus.paused) {
-      _shouldUnpauseOnInterruptionEnd = false;
-    }
 
     if (status != PlaybackStatus.stopped && _queue.current.value == null) {
       await stop();
@@ -461,30 +317,12 @@ class AudioHandler {
       return;
     }
 
-    _integration.updatePlaybackState(status);
     _playbackStatus.add(status);
 
     if (status == PlaybackStatus.playing) {
       _updatePosition();
     } else {
       _updatePosition(lastPos);
-    }
-
-    if (status != PlaybackStatus.playing && status != PlaybackStatus.loading) {
-      // web browsers stop media os integration without active player
-      if (!kIsWeb && _subsonic.supports.transcodeOffset) {
-        if (_disposePlayerTimer == null) {
-          Log.debug("enabling dispose player timer (1 minute)");
-          _disposePlayerTimer = Timer(
-            const Duration(minutes: 1),
-            _disposePlayer,
-          );
-        }
-      }
-    } else if (_disposePlayerTimer != null) {
-      Log.debug("canceling dispose player timer");
-      _disposePlayerTimer?.cancel();
-      _disposePlayerTimer = null;
     }
   }
 
@@ -510,27 +348,14 @@ class AudioHandler {
 
     _seekingPos = pos;
 
-    final canSeek =
-        _downloader.getPath(_queue.current.value!.id) != null ||
-        _transcoding.$1 == TranscodingCodec.raw;
-
     final next = _queue.currentAndNext.value.next;
-    await _player.setCurrent(
-      _getStreamUri(_queue.current.value!, !canSeek ? pos : null),
-      nextUrl: next != null ? _getStreamUri(next) : null,
-      pos: canSeek ? pos : Duration.zero,
-    );
-    if (canSeek) {
-      _positionOffset = Duration.zero;
-    } else {
-      _positionOffset = pos;
-    }
+    await _player.setCurrent(_queue.current.value!, next: next, pos: pos);
     _seekingPos = null;
 
     if (play) {
       await this.play();
     } else {
-      await pause(fade: false);
+      await pause();
     }
   }
 
@@ -544,34 +369,23 @@ class AudioHandler {
       await stop();
       return;
     }
-    await _ensurePlayerLoaded(false);
     if (event.currentChanged) {
       Log.trace(
         "current song changed: ${event.current?.id}, from advance: ${event.fromAdvance}",
       );
-      _positionOffset = Duration.zero;
       await _updatePosition(Duration.zero);
       await _applyReplayGain();
     }
 
     if (event.currentChanged && !event.fromAdvance) {
-      await _player.setCurrent(
-        _getStreamUri(event.current!),
-        nextUrl: event.next != null ? _getStreamUri(event.next!) : null,
-      );
+      await _player.setCurrent(event.current!, next: event.next);
       if (playAfterChange) {
         await play();
       }
     } else {
       Log.trace("next song changed: ${event.next?.id}");
-      await _player.setNext(
-        event.next != null ? _getStreamUri(event.next!) : null,
-      );
+      await _player.setNext(event.next);
     }
-    _integration.updateMedia(
-      event.current,
-      _subsonic.getCoverUri(event.current!.coverId, size: 512),
-    );
   }
 
   Future<void> _authChanged() async {
@@ -591,17 +405,25 @@ class AudioHandler {
     Log.debug(
       "current active transcoding profile: ${_transcoding.$1.name}${_transcoding.$1 != TranscodingCodec.raw ? "${_transcoding.$2} kbps" : ""}",
     );
-    if (_queue.currentAndNext.value.next != null) {
-      Log.trace("changing next url because transcoding profile changed");
-      await _player.setNext(_getStreamUri(_queue.currentAndNext.value.next!));
-    }
+    await _player.configureServerURL(
+      streamUri: _createStreamUri(),
+      coverUri: _createCoverUri(),
+      supportsTimeOffset: _subsonic.supports.transcodeOffset,
+      supportsTimeOffsetMs: _subsonic.supports.timeOffsetMs,
+      format: _transcoding.$1 != TranscodingCodec.serverDefault
+          ? _transcoding.$1.name
+          : null,
+      maxBitRate: _transcoding.$1 != TranscodingCodec.raw
+          ? _transcoding.$2
+          : null,
+      updateCurrentMediaItem: false,
+    );
   }
 
   // ================ helpers ================
 
   double _replayGainVolume = 1;
   Future<void> _applyReplayGain() async {
-    if (!_player.initialized) return;
     ReplayGainMode mode = _settings.replayGain.mode;
     final media = _queue.current.value;
     if (mode == ReplayGainMode.disabled || media == null) {
@@ -656,90 +478,19 @@ class AudioHandler {
   Future<void> _updatePlayerVolume({double scalar = 1}) async {
     double volume = _volume * scalar;
     volume *= _replayGainVolume;
-    if (_ducking) {
-      volume *= 0.5;
-    }
     if (_player.volume == volume) return;
     await _player.setVolume(volume);
   }
 
-  Future<void> _ensurePlayerLoaded([bool restorePlayerState = true]) async {
-    if (_player.initialized) return;
-    Log.debug("reactivating player (restore state: $restorePlayerState)...");
-    await _player.init();
-    await _applyReplayGain();
-    if (restorePlayerState) {
-      await _restorePlayerState();
-    }
-  }
-
-  Future<void> _restorePlayerState() async {
-    final current = _queue.current.value;
-    final next = _queue.currentAndNext.value.next;
-    if (current != null) {
-      if (_downloader.getPath(current.id) != null) {
-        Log.trace("restoring position with player seek");
-        await _player.setCurrent(
-          _getStreamUri(current),
-          nextUrl: next != null ? _getStreamUri(next) : null,
-          pos: position,
-        );
-        _positionOffset = Duration.zero;
-      } else {
-        Log.trace("restoring position with timeOffset seek");
-        _positionOffset = position;
-        await _player.setCurrent(
-          _getStreamUri(current, _positionOffset),
-          nextUrl: next != null ? _getStreamUri(next) : null,
-        );
-      }
-      if (_playbackStatus.value == PlaybackStatus.playing) {
-        await play();
-      } else {
-        await pause(fade: false);
-      }
-    }
-    if (current == null && next == null) {
-      await stop();
-    }
-  }
-
-  Future<void> _disposePlayer() async {
-    _disposePlayerTimer?.cancel();
-    _disposePlayerTimer = null;
-    if (!_player.initialized ||
-        _playbackStatus.value == PlaybackStatus.playing ||
-        _playbackStatus.value == PlaybackStatus.loading) {
-      return;
-    }
-    Log.debug("disposing player");
-    await _player.setVolume(1);
-    await _player.stop();
-    await _player.dispose();
-  }
-
-  Uri _getStreamUri(Song song, [Duration? offset]) {
-    if (offset == null || offset == Duration.zero) {
-      final path = _downloader.getPath(song.id);
-      if (path != null) return path.toFileUri();
-    }
-    final query = _subsonic.generateQuery({
-      "id": [song.id],
-      "format": _transcoding.$1 != TranscodingCodec.serverDefault
-          ? [_transcoding.$1.name]
-          : [],
-      "maxBitRate": _transcoding.$1 != TranscodingCodec.raw
-          ? [_transcoding.$2.toString()]
-          : [],
-      if (!_subsonic.supports.timeOffsetMs)
-        "timeOffset": offset != null ? [offset.inSeconds.toString()] : [],
-      if (_subsonic.supports.timeOffsetMs)
-        "timeOffsetMs": offset != null
-            ? [offset.inMilliseconds.toString()]
-            : [],
-    }, _auth.con.auth);
+  Uri _createStreamUri() {
     return Uri.parse(
-      '${_auth.con.baseUri}/rest/stream${Uri(queryParameters: query)}',
+      '${_auth.con.baseUri}/rest/stream${Uri(queryParameters: _subsonic.generateQuery(const {}, _auth.con.auth))}',
+    );
+  }
+
+  Uri _createCoverUri() {
+    return Uri.parse(
+      '${_auth.con.baseUri}/rest/getCoverArt${Uri(queryParameters: _subsonic.generateQuery(const {}, _auth.con.auth))}',
     );
   }
 
@@ -800,12 +551,6 @@ class AudioHandler {
     await changeQueue(loadedQueue);
 
     _restoredQueue = true;
-
-    _integration.updatePlaybackState(PlaybackStatus.paused);
-    _integration.updateMedia(
-      currentSong,
-      _subsonic.getCoverUri(currentSong.coverId, size: 512),
-    );
   }
 
   Throttle? _persistQueueThrottle;
@@ -862,12 +607,8 @@ class AudioHandler {
     await _queueCurrentSubscription?.cancel();
     _queue.dispose();
 
-    await _audioSessionInterruptionStream?.cancel();
-    await _audioSessionBecomingNoisyStream?.cancel();
-
     // dispose player
     await _playerEventSubscription?.cancel();
-    await _restartPlaybackSubscription?.cancel();
     await _player.dispose();
 
     _settings.replayGain.removeListener(_onReplayGainChanged);

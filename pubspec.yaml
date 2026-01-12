@@ -9,8 +9,6 @@ dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.8
-  audio_player:
-    path: ./plugins/audio_player/audio_player
   provider: ^6.1.2
   auto_route: ^11.0.0
   flutter_secure_storage: ^10.0.0
@@ -70,6 +68,8 @@ dependencies:
   wakelock_plus: ^1.4.0
   super_sliver_list: ^0.4.1
   month_picker_dialog: ^6.7.0
+  media_kit: ^1.2.6
+  media_kit_libs_audio: ^1.0.7
 
 dependency_overrides:
   flutter_secure_storage_darwin:

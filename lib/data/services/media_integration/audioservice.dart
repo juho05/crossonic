@@ -24,15 +24,14 @@ class AudioServiceIntegration extends asv.BaseAudioHandler
   Future<void> Function()? _onPlayPrev;
   Future<void> Function()? _onStop;
   Future<void> Function(double volume)? _onVolumeChanged;
-
-  AudioHandler? _audioHandler;
+  Future<void> Function(Iterable<Song> songs)? _onReplaceQueue;
+  Future<void> Function(bool loop)? _onLoopChanged;
 
   AudioServiceIntegration({required PlaylistRepository playlistRepository})
     : _playlistRepository = playlistRepository;
 
   @override
   Future<void> ensureInitialized({
-    required AudioHandler audioHandler,
     required Future<void> Function() onPlay,
     required Future<void> Function() onPause,
     required Future<void> Function(Duration position) onSeek,
@@ -40,18 +39,10 @@ class AudioServiceIntegration extends asv.BaseAudioHandler
     required Future<void> Function() onPlayPrev,
     required Future<void> Function() onStop,
     required Future<void> Function(double volume) onVolumeChanged,
+    required Future<void> Function(Iterable<Song> songs) onReplaceQueue,
+    required Future<void> Function(bool loop) onLoopChanged,
   }) async {
-    if (_audioHandler != null) return;
-    _audioHandler = audioHandler;
-    _audioHandler!.queue.looping.listen((loop) {
-      playbackState.add(
-        playbackState.value.copyWith(
-          repeatMode: _audioHandler!.queue.looping.value
-              ? asv.AudioServiceRepeatMode.all
-              : asv.AudioServiceRepeatMode.none,
-        ),
-      );
-    });
+    if (_onPlay != null) return;
     _onPlay = onPlay;
     _onPause = onPause;
     _onSeek = onSeek;
@@ -59,6 +50,8 @@ class AudioServiceIntegration extends asv.BaseAudioHandler
     _onPlayPrev = onPlayPrev;
     _onStop = onStop;
     _onVolumeChanged = onVolumeChanged;
+    _onReplaceQueue = onReplaceQueue;
+    _onLoopChanged = onLoopChanged;
   }
 
   @override
@@ -135,37 +128,20 @@ class AudioServiceIntegration extends asv.BaseAudioHandler
       if (parts[1] == "shuffle") {
         songs.shuffle();
       }
-      _audioHandler?.playOnNextMediaChange();
-      _audioHandler?.queue.replace(songs);
+      _onReplaceQueue?.call(songs);
       return;
     }
   }
 
   @override
   Future<void> play() async {
-    Log.debug(
-      "audio_service received play action, current status: ${_audioHandler!.playbackStatus.value.name}",
-    );
-    if (_audioHandler!.playbackStatus.value == PlaybackStatus.stopped) {
-      playbackState.add(
-        playbackState.value.copyWith(
-          controls: [],
-          systemActions: {},
-          androidCompactActionIndices: [],
-          processingState: asv.AudioProcessingState.idle,
-          playing: false,
-        ),
-      );
-      return;
-    }
+    Log.debug("audio_service received play action");
     return _onPlay!();
   }
 
   @override
   Future<void> pause() async {
-    Log.debug(
-      "audio_service received pause action, current status: ${_audioHandler!.playbackStatus.value.name}",
-    );
+    Log.debug("audio_service received pause action");
     await _onPause!();
   }
 
@@ -239,9 +215,6 @@ class AudioServiceIntegration extends asv.BaseAudioHandler
               asv.MediaAction.setRepeatMode,
             },
             androidCompactActionIndices: [0, 1],
-            repeatMode: _audioHandler!.queue.looping.value
-                ? asv.AudioServiceRepeatMode.all
-                : asv.AudioServiceRepeatMode.none,
           ),
         );
       }
@@ -347,12 +320,23 @@ class AudioServiceIntegration extends asv.BaseAudioHandler
     Log.trace(
       "received audio_service repeat mode ${repeatMode.name}, setting loop to $loop",
     );
-    _audioHandler!.queue.setLoop(loop);
+    _onLoopChanged?.call(loop);
   }
 
   @override
   void updateVolume(double volume) {
     if (kIsWeb || !Platform.isLinux) return;
     AudioServiceMpris.updateVolume(volume);
+  }
+
+  @override
+  void updateLoop(bool loop) {
+    playbackState.add(
+      playbackState.value.copyWith(
+        repeatMode: loop
+            ? asv.AudioServiceRepeatMode.all
+            : asv.AudioServiceRepeatMode.none,
+      ),
+    );
   }
 }

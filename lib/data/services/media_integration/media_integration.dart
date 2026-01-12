@@ -6,7 +6,6 @@ export 'smtc_stub.dart' if (dart.library.ffi) 'smtc.dart';
 
 abstract interface class MediaIntegration {
   Future<void> ensureInitialized({
-    required AudioHandler audioHandler,
     required Future<void> Function() onPlay,
     required Future<void> Function() onPause,
     required Future<void> Function(Duration position) onSeek,
@@ -14,9 +13,12 @@ abstract interface class MediaIntegration {
     required Future<void> Function() onPlayPrev,
     required Future<void> Function() onStop,
     required Future<void> Function(double volume) onVolumeChanged,
+    required Future<void> Function(Iterable<Song> songs) onReplaceQueue,
+    required Future<void> Function(bool loop) onLoopChanged,
   });
   void updateMedia(Song? song, Uri? coverArt);
   void updatePosition(Duration position);
   void updatePlaybackState(PlaybackStatus status);
   void updateVolume(double volume);
+  void updateLoop(bool loop);
 }

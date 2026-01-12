@@ -5,7 +5,6 @@ import 'package:crossonic/data/services/media_integration/media_integration.dart
 class NoopIntegration implements MediaIntegration {
   @override
   Future<void> ensureInitialized({
-    required AudioHandler audioHandler,
     required Future<void> Function() onPlay,
     required Future<void> Function() onPause,
     required Future<void> Function(Duration position) onSeek,
@@ -13,6 +12,8 @@ class NoopIntegration implements MediaIntegration {
     required Future<void> Function() onPlayPrev,
     required Future<void> Function() onStop,
     required Future<void> Function(double volume) onVolumeChanged,
+    required Future<void> Function(Iterable<Song> songs) onReplaceQueue,
+    required Future<void> Function(bool loop) onLoopChanged,
   }) async {}
 
   @override
@@ -26,4 +27,7 @@ class NoopIntegration implements MediaIntegration {
 
   @override
   void updateVolume(double volume) {}
+
+  @override
+  void updateLoop(bool loop) {}
 }

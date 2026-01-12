@@ -12,7 +12,6 @@ class SMTCIntegration implements MediaIntegration {
 
   @override
   Future<void> ensureInitialized({
-    required AudioHandler audioHandler,
     required Future<void> Function() onPlay,
     required Future<void> Function() onPause,
     required Future<void> Function(Duration position) onSeek,
@@ -20,6 +19,8 @@ class SMTCIntegration implements MediaIntegration {
     required Future<void> Function() onPlayPrev,
     required Future<void> Function() onStop,
     required Future<void> Function(double volume) onVolumeChanged,
+    required Future<void> Function(Iterable<Song> songs) onReplaceQueue,
+    required Future<void> Function(bool loop) onLoopChanged,
   }) async {
     if (_initialized) return;
     _initialized = true;
@@ -57,6 +58,9 @@ class SMTCIntegration implements MediaIntegration {
           default:
             break;
         }
+      });
+      _smtc.repeatModeChangeStream.listen((mode) async {
+        await onLoopChanged(mode == smtc.RepeatMode.list);
       });
     });
   }
@@ -105,4 +109,9 @@ class SMTCIntegration implements MediaIntegration {
 
   @override
   void updateVolume(double volume) {}
+
+  @override
+  void updateLoop(bool loop) {
+    _smtc.setRepeatMode(loop ? smtc.RepeatMode.list : smtc.RepeatMode.none);
+  }
 }
