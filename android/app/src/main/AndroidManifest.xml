@@ -53,7 +53,7 @@
 
         <meta-data
             android:name="androidx.car.app.TintableAttributionIcon"
-            android:resource="@drawable/ic_stat_crossonic" />
+            android:resource="@drawable/media3_notification_small_icon" />
 
         <meta-data
             android:name="flutterEmbedding"

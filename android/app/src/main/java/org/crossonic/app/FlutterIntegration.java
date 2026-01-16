@@ -18,14 +18,13 @@ public class FlutterIntegration {
 
     private static EventChannel.EventSink eventSink;
 
-    private static final Map<String, List<MethodCallback>> methodCallbacks = new HashMap<>();
+    private static final Map<String, MethodCallback> methodCallbacks = new HashMap<>();
 
     public static void init(Context applicationContext) {
         flutterEngine = new FlutterEngine(applicationContext);
         FlutterEngineCache.getInstance().put(ENGINE_ID, flutterEngine);
-        flutterEngine.getDartExecutor().executeDartEntrypoint(DartExecutor.DartEntrypoint.createDefault());
-        new MethodChannel(flutterEngine.getDartExecutor().getBinaryMessenger(), "org.crossonic.app.methods").setMethodCallHandler(FlutterIntegration::onMethodCall);
-        new EventChannel(flutterEngine.getDartExecutor().getBinaryMessenger(), "org.crossonic.app.events").setStreamHandler(new EventChannel.StreamHandler() {
+        new MethodChannel(flutterEngine.getDartExecutor().getBinaryMessenger(), "org.crossonic.app.player.methods").setMethodCallHandler(FlutterIntegration::onMethodCall);
+        new EventChannel(flutterEngine.getDartExecutor().getBinaryMessenger(), "org.crossonic.app.player.events").setStreamHandler(new EventChannel.StreamHandler() {
             @Override
             public void onListen(Object arguments, EventChannel.EventSink events) {
                 eventSink = events;
@@ -35,6 +34,7 @@ public class FlutterIntegration {
                 eventSink = null;
             }
         });
+        flutterEngine.getDartExecutor().executeDartEntrypoint(DartExecutor.DartEntrypoint.createDefault());
     }
 
     public static FlutterEngine getEngine() {
@@ -56,25 +56,20 @@ public class FlutterIntegration {
         eventSink.error(errorCode, errorMessage, errorDetails);
     }
 
-    public static void addMethodCallback(String methodName, MethodCallback callback) {
-        final List<MethodCallback> list = methodCallbacks.computeIfAbsent(methodName, s -> new LinkedList<>());
-        list.add(callback);
+    public static void setMethodCallback(String methodName, MethodCallback callback) {
+        methodCallbacks.put(methodName, callback);
     }
 
-    public static void removeMethodCallback(String methodName, MethodCallback callback) {
-        final List<MethodCallback> list = methodCallbacks.get(methodName);
-        if (list == null) return;
-        list.remove(callback);
-        if (list.isEmpty()) {
-            methodCallbacks.remove(methodName);
-        }
+    public static void removeMethodCallback(String methodName) {
+        methodCallbacks.remove(methodName);
     }
 
     private static void onMethodCall(@NonNull MethodCall call, @NonNull MethodChannel.Result result) {
-        final List<MethodCallback> callbacks = methodCallbacks.get(call.method);
-        if (callbacks == null) return;
-        for (MethodCallback callback : callbacks) {
-            callback.onMethodCall(call, result);
+        final MethodCallback callback = methodCallbacks.get(call.method);
+        if (callback == null) {
+            result.notImplemented();
+            return;
         }
+        callback.onMethodCall(call, result);
     }
 }

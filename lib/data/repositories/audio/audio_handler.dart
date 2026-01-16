@@ -288,32 +288,8 @@ class AudioHandler {
 
     Log.debug("new player status: $status");
 
-    if (status != PlaybackStatus.stopped && _queue.current.value == null) {
+    if (status == PlaybackStatus.stopped || _queue.current.value == null) {
       await stop();
-      return;
-    }
-
-    if (status == PlaybackStatus.stopped) {
-      if (_queue.current.value == null ||
-          (_queue.currentAndNext.value.next == null &&
-              (_queue.current.value!.duration ?? Duration.zero) - position <
-                  const Duration(seconds: 3))) {
-        Log.debug(
-          "stopping playback; current: ${_queue.current.value?.id}, next: ${_queue.currentAndNext.value.next?.id}, time to end of song: ${_queue.current.value?.duration ?? Duration.zero - position}",
-        );
-        await stop();
-        return;
-      }
-
-      Log.warn(
-        "received player status stop but there should still be a song playing",
-      );
-
-      await _restartPlayback(
-        position,
-        play: _playbackStatus.value == PlaybackStatus.playing,
-      );
-
       return;
     }
 
@@ -323,39 +299,6 @@ class AudioHandler {
       _updatePosition();
     } else {
       _updatePosition(lastPos);
-    }
-  }
-
-  Future<void> _restartPlayback(Duration pos, {bool play = true}) async {
-    if (_queue.current.value == null) return;
-    Log.warn("Restarting playback at position $pos, play after restore: $play");
-
-    final songDuration = _queue.current.value!.duration;
-
-    if (songDuration != null &&
-        songDuration - pos < const Duration(seconds: 1)) {
-      Log.debug(
-        "Target position of restart playback is at end of song, skipping to next song instead",
-      );
-      if (play) {
-        playOnNextMediaChange();
-      }
-      await playNext();
-      return;
-    }
-
-    _updatePosition(pos);
-
-    _seekingPos = pos;
-
-    final next = _queue.currentAndNext.value.next;
-    await _player.setCurrent(_queue.current.value!, next: next, pos: pos);
-    _seekingPos = null;
-
-    if (play) {
-      await this.play();
-    } else {
-      await pause();
     }
   }
 
@@ -389,11 +332,34 @@ class AudioHandler {
   }
 
   Future<void> _authChanged() async {
-    if (_auth.isAuthenticated) return;
+    if (_auth.isAuthenticated) {
+      await _player.configureServerURL(
+        streamUri: _createStreamUri(),
+        coverUri: _createCoverUri(),
+        supportsTimeOffset: _subsonic.supports.transcodeOffset,
+        supportsTimeOffsetMs: _subsonic.supports.timeOffsetMs,
+        updateCurrentMediaItem: true,
+        maxBitRate: _transcoding.$1 != TranscodingCodec.raw
+            ? _transcoding.$2
+            : null,
+        format: _transcoding.$1 != TranscodingCodec.serverDefault
+            ? _transcoding.$1.name
+            : null,
+      );
+      return;
+    }
     if (playbackStatus.value != PlaybackStatus.stopped) {
       Log.debug("stopping playback because user logged out");
       await stop();
     }
+    await _player.configureServerURL(
+      streamUri: Uri(),
+      coverUri: Uri(),
+      supportsTimeOffset: false,
+      supportsTimeOffsetMs: false,
+      maxBitRate: null,
+      format: null,
+    );
   }
 
   Future<void> _onReplayGainChanged() async {
@@ -478,17 +444,18 @@ class AudioHandler {
   Future<void> _updatePlayerVolume({double scalar = 1}) async {
     double volume = _volume * scalar;
     volume *= _replayGainVolume;
-    if (_player.volume == volume) return;
     await _player.setVolume(volume);
   }
 
   Uri _createStreamUri() {
+    if (!_auth.isAuthenticated) return Uri();
     return Uri.parse(
       '${_auth.con.baseUri}/rest/stream${Uri(queryParameters: _subsonic.generateQuery(const {}, _auth.con.auth))}',
     );
   }
 
   Uri _createCoverUri() {
+    if (!_auth.isAuthenticated) return Uri();
     return Uri.parse(
       '${_auth.con.baseUri}/rest/getCoverArt${Uri(queryParameters: _subsonic.generateQuery(const {}, _auth.con.auth))}',
     );

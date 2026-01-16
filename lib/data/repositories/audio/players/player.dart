@@ -121,7 +121,7 @@ abstract class AudioPlayer {
   Future<Duration> get position;
   Future<Duration> get bufferedPosition;
 
-  double get volume;
+  Future<double> get volume;
   Future<void> setVolume(double volume);
 
   Future<void> setCurrent(
