@@ -21,6 +21,8 @@ abstract class AudioPlayer {
   final Future<void> Function() playNextHandler;
   @protected
   final Future<void> Function() playPrevHandler;
+  @protected
+  final Future<void> Function()? restartPlayback;
 
   AudioPlayer({
     required SongDownloader downloader,
@@ -29,6 +31,7 @@ abstract class AudioPlayer {
     required this.setLoopHandler,
     required this.playNextHandler,
     required this.playPrevHandler,
+    this.restartPlayback,
   }) : _downloader = downloader;
 
   late Uri _streamUri;

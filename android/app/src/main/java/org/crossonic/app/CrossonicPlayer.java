@@ -48,6 +48,7 @@ public class CrossonicPlayer implements Player {
         player = buildPlayer(context);
         player.addListener(new PlayerListener());
         registerMethodHandlers();
+        FlutterIntegration.sendEvent("playerCreated", null);
     }
 
     private Player buildPlayer(Context context) {
@@ -226,7 +227,7 @@ public class CrossonicPlayer implements Player {
     }
 
     private void handleDispose(MethodCall call, MethodChannel.Result result) {
-        player.release();
+        release();
         result.success(null);
     }
 

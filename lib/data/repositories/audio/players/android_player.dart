@@ -17,6 +17,7 @@ class AudioPlayerAndroid extends AudioPlayer {
     required super.setLoopHandler,
     required super.playNextHandler,
     required super.playPrevHandler,
+    required super.restartPlayback,
   });
 
   @override
@@ -42,6 +43,7 @@ class AudioPlayerAndroid extends AudioPlayer {
     int? maxBitRate,
     String? format,
   }) async {
+    DateTime initTime = DateTime.now();
     await super.init(
       streamUri: streamUri,
       coverUri: coverUri,
@@ -71,6 +73,12 @@ class AudioPlayerAndroid extends AudioPlayer {
             "loading" => AudioPlayerEvent.loading,
             _ => AudioPlayerEvent.stopped,
           });
+        case "playerCreated":
+          if (DateTime.now().difference(initTime) >
+              const Duration(seconds: 1)) {
+            // the native player was recreated
+            await restartPlayback?.call();
+          }
       }
     });
   }

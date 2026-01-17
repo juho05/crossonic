@@ -112,6 +112,12 @@ class AudioHandler {
           playOnNextMediaChange();
           _queue.replace(songs);
         },
+        restartPlayback: () async {
+          await _restartPlayback(
+            position,
+            play: playbackStatus.value == PlaybackStatus.playing,
+          );
+        },
       );
     } else {
       _player = AudioPlayerMediaKit(
@@ -387,6 +393,41 @@ class AudioHandler {
   }
 
   // ================ helpers ================
+
+  Future<void> _restartPlayback(Duration pos, {bool play = true}) async {
+    if (_queue.current.value == null) return;
+    Log.debug(
+      "Restarting playback at position $pos, play after restore: $play",
+    );
+
+    final songDuration = _queue.current.value!.duration;
+
+    if (songDuration != null &&
+        songDuration - pos < const Duration(seconds: 1)) {
+      Log.debug(
+        "Target position of restart playback is at end of song, skipping to next song instead",
+      );
+      if (play) {
+        playOnNextMediaChange();
+      }
+      await playNext();
+      return;
+    }
+
+    _updatePosition(pos);
+
+    _seekingPos = pos;
+
+    final next = _queue.currentAndNext.value.next;
+    await _player.setCurrent(_queue.current.value!, next: next, pos: pos);
+    _seekingPos = null;
+
+    if (play) {
+      await this.play();
+    } else {
+      await pause();
+    }
+  }
 
   double _replayGainVolume = 1;
   Future<void> _applyReplayGain() async {
