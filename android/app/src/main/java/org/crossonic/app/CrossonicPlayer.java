@@ -20,6 +20,7 @@ import androidx.media3.exoplayer.RenderersFactory;
 import androidx.media3.exoplayer.audio.MediaCodecAudioRenderer;
 import androidx.media3.exoplayer.mediacodec.MediaCodecSelector;
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory;
+import androidx.media3.exoplayer.util.EventLogger;
 import androidx.media3.extractor.DefaultExtractorsFactory;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
@@ -59,13 +60,14 @@ public class CrossonicPlayer implements Player {
         final ExoPlayer.Builder builder = new ExoPlayer.Builder(context, audioOnlyRenderersFactory);
         builder.setMediaSourceFactory(new DefaultMediaSourceFactory(context, new DefaultExtractorsFactory().setConstantBitrateSeekingEnabled(true)));
 
-        final Player player = builder.build();
+        final ExoPlayer player = builder.build();
+        player.addAnalyticsListener(new EventLogger());
 
         // enable audio offload for decreased battery usage
         player.setTrackSelectionParameters(
                 player.getTrackSelectionParameters().buildUpon().
                         setAudioOffloadPreferences(new TrackSelectionParameters.AudioOffloadPreferences.Builder()
-                                .setAudioOffloadMode(TrackSelectionParameters.AudioOffloadPreferences.AUDIO_OFFLOAD_MODE_ENABLED)
+                                .setAudioOffloadMode(TrackSelectionParameters.AudioOffloadPreferences.AUDIO_OFFLOAD_MODE_DISABLED)
                                 .setIsGaplessSupportRequired(true)
                                 .build())
                         // disable all track types except for audio and default/unknown tracks
@@ -183,17 +185,9 @@ public class CrossonicPlayer implements Player {
             return;
         }
 
-        int fromIndex = player.getCurrentMediaItemIndex()+1;
-        if (player.getCurrentMediaItem() == null) {
-            fromIndex = 0;
-        }
-
         final var nextBuilder = new MediaItem.Builder();
         buildMediaItemFromMsg(nextBuilder, next);
-        player.replaceMediaItems(fromIndex, Integer.MAX_VALUE, Collections.singletonList(nextBuilder.build()));
-        if (player.getPlaybackState() == STATE_IDLE) {
-            player.prepare();
-        }
+        player.replaceMediaItems(player.getCurrentMediaItemIndex()+1, Integer.MAX_VALUE, Collections.singletonList(nextBuilder.build()));
         result.success(null);
     }
 
@@ -569,16 +563,16 @@ public class CrossonicPlayer implements Player {
         if (positionMs == C.TIME_UNSET) {
             positionMs = 0;
         }
-        final var mediaItem = player.getCurrentMediaItem();
-        if (mediaItem == null || mediaItem.localConfiguration == null) return;
-        final Uri uri = mediaItem.localConfiguration.uri;
-        if (canSeek(uri)) {
+        if (player.isCurrentMediaItemSeekable()) {
             player.seekTo(positionMs);
             return;
         }
+        final var mediaItem = player.getCurrentMediaItem();
+        if (mediaItem == null || mediaItem.localConfiguration == null) return;
+        final Uri uri = mediaItem.localConfiguration.uri;
         final Uri newUri = setUriTimeOffset(uri, positionMs);
-        player.replaceMediaItem(player.getCurrentMediaItemIndex(), mediaItem.buildUpon().setUri(newUri).build());
         positionOffsetMs = positionMs;
+        player.replaceMediaItem(player.getCurrentMediaItemIndex(), mediaItem.buildUpon().setUri(newUri).build());
     }
 
     @Override
