@@ -1236,6 +1236,7 @@ public class CrossonicPlayer implements Player {
         }
     }
 
+    @SuppressWarnings("deprecation")
     static final Commands availableCommands = new Commands.Builder().addAll(
             COMMAND_PLAY_PAUSE,
             COMMAND_PREPARE,
@@ -1254,6 +1255,10 @@ public class CrossonicPlayer implements Player {
             COMMAND_GET_VOLUME,
             COMMAND_GET_DEVICE_VOLUME,
             COMMAND_SET_VOLUME,
+            COMMAND_SET_DEVICE_VOLUME,
+            COMMAND_SET_DEVICE_VOLUME_WITH_FLAGS,
+            COMMAND_ADJUST_DEVICE_VOLUME,
+            COMMAND_ADJUST_DEVICE_VOLUME_WITH_FLAGS,
             COMMAND_SET_AUDIO_ATTRIBUTES,
             COMMAND_RELEASE
     ).build();
