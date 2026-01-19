@@ -609,7 +609,7 @@ public class CrossonicPlayer implements Player {
 
     @Override
     public void seekToPreviousMediaItem() {
-        // TODO handle with flutter
+        FlutterIntegration.sendEvent("playPrev", null);
     }
 
     @Override
@@ -619,11 +619,11 @@ public class CrossonicPlayer implements Player {
 
     @Override
     public void seekToPrevious() {
-        if (getCurrentPosition() <= 3000) {
+        if (getCurrentPosition() > 3000) {
             seekTo(0);
             return;
         }
-        FlutterIntegration.sendEvent("playPrev", null);
+        seekToPreviousMediaItem();
     }
 
     @Override
