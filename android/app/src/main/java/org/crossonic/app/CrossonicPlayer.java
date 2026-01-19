@@ -564,7 +564,7 @@ public class CrossonicPlayer implements Player {
         if (positionMs == C.TIME_UNSET) {
             positionMs = 0;
         }
-        if (player.isCurrentMediaItemSeekable()) {
+        if (player.isCurrentMediaItemSeekable() && positionOffsetMs == 0) {
             player.seekTo(positionMs);
             return;
         }
@@ -1141,7 +1141,10 @@ public class CrossonicPlayer implements Player {
         @Override
         public void onPositionDiscontinuity(
                 @NonNull PositionInfo oldPosition, @NonNull PositionInfo newPosition, @DiscontinuityReason int reason) {
-            // TODO recover
+            if (reason == Player.DISCONTINUITY_REASON_INTERNAL && newPosition.positionMs < oldPosition.positionMs && newPosition.positionMs < 2000) {
+                seekTo(oldPosition.positionMs+positionOffsetMs);
+                return;
+            }
 
             final PositionInfo adjustedNewPosition = new PositionInfo(newPosition.windowUid, newPosition.mediaItemIndex, newPosition.mediaItem,
                     newPosition.periodUid, newPosition.periodIndex, newPosition.positionMs + positionOffsetMs,
