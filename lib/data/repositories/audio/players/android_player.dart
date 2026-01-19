@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:crossonic/data/repositories/audio/players/player.dart';
+import 'package:crossonic/data/repositories/cover/cover_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
 import 'package:flutter/services.dart';
 
@@ -10,7 +11,10 @@ class AudioPlayerAndroid extends AudioPlayer {
   );
   static const _eventChannel = EventChannel("org.crossonic.app.player.events");
 
+  final CoverRepository _coverRepo;
+
   AudioPlayerAndroid({
+    required CoverRepository coverRepository,
     required super.downloader,
     required super.setVolumeHandler,
     required super.setQueueHandler,
@@ -18,7 +22,7 @@ class AudioPlayerAndroid extends AudioPlayer {
     required super.playNextHandler,
     required super.playPrevHandler,
     required super.restartPlayback,
-  });
+  }) : _coverRepo = coverRepository;
 
   @override
   Future<Duration> get position async =>
@@ -116,9 +120,9 @@ class AudioPlayerAndroid extends AudioPlayer {
   }) async {
     super.setCurrent(current, next: next, pos: pos);
     await _methodChannel.invokeMethod("setCurrent", {
-      "current": _songToMap(current),
+      "current": await _songToMap(current),
       if (pos > Duration.zero) "pos": pos.inMilliseconds,
-      if (next != null) "next": _songToMap(next),
+      if (next != null) "next": await _songToMap(next),
     });
   }
 
@@ -126,7 +130,7 @@ class AudioPlayerAndroid extends AudioPlayer {
   Future<void> setNext(Song? next) async {
     super.setNext(next);
     await _methodChannel.invokeMethod("setNext", {
-      if (next != null) "next": _songToMap(next),
+      if (next != null) "next": await _songToMap(next),
     });
   }
 
@@ -162,8 +166,26 @@ class AudioPlayerAndroid extends AudioPlayer {
     await super.dispose();
   }
 
-  Map<String, dynamic>? _songToMap(Song? s) {
+  Future<Map<String, dynamic>?> _songToMap(Song? s) async {
     if (s == null) return null;
+    final coverKey = CoverRepository.getKey(s.coverId, 512);
+    final coverFile = await _coverRepo.getFileFromCache(coverKey);
+    if (coverFile == null) {
+      _coverRepo
+          .getSingleFile(coverKey)
+          .then(
+            (file) async {
+              final bytes = await file.readAsBytes();
+              _methodChannel.invokeMethod("updateCover", {
+                "songId": s.id,
+                "coverBytes": bytes,
+              });
+            },
+            onError: (err) {
+              // ignore
+            },
+          );
+    }
     return {
       "id": s.id,
       "title": s.title,
@@ -176,7 +198,7 @@ class AudioPlayerAndroid extends AudioPlayer {
       if (s.releaseDate?.year != null) "releaseYear": s.releaseDate!.year,
       if (s.releaseDate?.month != null) "releaseMonth": s.releaseDate!.month,
       if (s.releaseDate?.day != null) "releaseDay": s.releaseDate!.day,
-      "coverUri": constructCoverUri(s).toString(),
+      if (coverFile != null) "coverBytes": await coverFile.file.readAsBytes(),
       // time offset is handled in android
       "uri": constructStreamUri(s).toString(),
     };

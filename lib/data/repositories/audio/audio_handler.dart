@@ -10,6 +10,7 @@ import 'package:crossonic/data/repositories/audio/queue/changable_queue.dart';
 import 'package:crossonic/data/repositories/audio/queue/local_queue.dart';
 import 'package:crossonic/data/repositories/audio/queue/media_queue.dart';
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
+import 'package:crossonic/data/repositories/cover/cover_repository.dart';
 import 'package:crossonic/data/repositories/keyvalue/key_value_repository.dart';
 import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/data/repositories/playlist/song_downloader.dart';
@@ -87,6 +88,7 @@ class AudioHandler {
 
   AudioHandler({
     required MediaIntegration integration,
+    required CoverRepository coverRepository,
     required AuthRepository authRepository,
     required SubsonicRepository subsonicRepository,
     required SettingsRepository settingsRepository,
@@ -103,6 +105,7 @@ class AudioHandler {
        _keyValue = keyValueRepository {
     if (!kIsWeb && Platform.isAndroid) {
       _player = AudioPlayerAndroid(
+        coverRepository: coverRepository,
         downloader: songDownloader,
         playNextHandler: playNext,
         playPrevHandler: playPrev,

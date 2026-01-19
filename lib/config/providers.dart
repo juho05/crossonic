@@ -178,6 +178,7 @@ Future<List<SingleChildWidget>> createProviders({
     Provider.value(value: coverRepository),
     Provider(
       create: (context) => ah.AudioHandler(
+        coverRepository: coverRepository,
         integration: mediaIntegration,
         authRepository: context.read(),
         subsonicRepository: context.read(),

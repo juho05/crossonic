@@ -1,7 +1,9 @@
 package org.crossonic.app;
 
 import android.content.Context;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.Handler;
 import android.os.Looper;
 import android.view.Surface;
 import android.view.SurfaceHolder;
@@ -26,10 +28,14 @@ import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import org.jspecify.annotations.NonNull;
 
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import static androidx.media3.common.MediaMetadata.PICTURE_TYPE_FRONT_COVER;
 
 @OptIn(markerClass = UnstableApi.class)
 public class CrossonicPlayer implements Player {
@@ -42,7 +48,7 @@ public class CrossonicPlayer implements Player {
 
     private boolean loop = false;
 
-    private final Set<Player.Listener> listeners = new HashSet<>();
+    private final Set<Listener> listeners = new HashSet<>();
 
     public CrossonicPlayer(Context context) {
         player = buildPlayer(context);
@@ -92,6 +98,7 @@ public class CrossonicPlayer implements Player {
         FlutterIntegration.setMethodCallback("pause", this::handlePause);
         FlutterIntegration.setMethodCallback("setCurrent", this::handleSetCurrent);
         FlutterIntegration.setMethodCallback("setNext", this::handleSetNext);
+        FlutterIntegration.setMethodCallback("updateCover", this::handleUpdateCover);
         FlutterIntegration.setMethodCallback("getPosition", this::handleGetPosition);
         FlutterIntegration.setMethodCallback("getBufferedPosition", this::handleGetBufferedPosition);
         FlutterIntegration.setMethodCallback("getVolume", this::handleGetVolume);
@@ -107,6 +114,7 @@ public class CrossonicPlayer implements Player {
         FlutterIntegration.removeMethodCallback("pause");
         FlutterIntegration.removeMethodCallback("setCurrent");
         FlutterIntegration.removeMethodCallback("setNext");
+        FlutterIntegration.removeMethodCallback("updateCover");
         FlutterIntegration.removeMethodCallback("getPosition");
         FlutterIntegration.removeMethodCallback("getBufferedPosition");
         FlutterIntegration.removeMethodCallback("getVolume");
@@ -192,6 +200,28 @@ public class CrossonicPlayer implements Player {
         result.success(null);
     }
 
+    private void handleUpdateCover(MethodCall call, MethodChannel.Result result) {
+        final String songId = call.argument("songId");
+        final byte[] coverBytes = call.argument("coverBytes");
+
+        final var currentIndex = player.getCurrentMediaItemIndex();
+        final var currentMediaItem = player.getCurrentMediaItem();
+
+        final var nextIndex = player.getNextMediaItemIndex();
+        final var nextMediaItem = player.hasNextMediaItem() ? player.getMediaItemAt(nextIndex) : null;
+
+        if (currentMediaItem != null && currentMediaItem.mediaId.equals(songId)) {
+            player.replaceMediaItem(currentIndex, currentMediaItem.buildUpon().
+                    setMediaMetadata(currentMediaItem.mediaMetadata.buildUpon().setArtworkData(coverBytes, PICTURE_TYPE_FRONT_COVER).build()).build());
+        }
+        if (nextMediaItem != null && nextMediaItem.mediaId.equals(songId)) {
+            player.replaceMediaItem(nextIndex, nextMediaItem.buildUpon().
+                    setMediaMetadata(nextMediaItem.mediaMetadata.buildUpon().setArtworkData(coverBytes, PICTURE_TYPE_FRONT_COVER).build()).build());
+        }
+
+        result.success(null);
+    }
+
     private void handleGetPosition(MethodCall call, MethodChannel.Result result) {
         final long pos = player.getCurrentPosition() + positionOffsetMs;
         result.success(pos);
@@ -272,8 +302,8 @@ public class CrossonicPlayer implements Player {
         if (msg.containsKey("releaseDay")) {
             metadataBuilder.setReleaseDay(((Number)msg.get("releaseDay")).intValue());
         }
-        if (msg.containsKey("coverUri")) {
-            metadataBuilder.setArtworkUri(Uri.parse((String)msg.get("coverUri")));
+        if (msg.containsKey("coverBytes")) {
+            metadataBuilder.setArtworkData((byte[])msg.get("coverBytes"), PICTURE_TYPE_FRONT_COVER);
         }
 
         builder.setMediaMetadata(metadataBuilder.build());
@@ -1008,7 +1038,7 @@ public class CrossonicPlayer implements Player {
         player.setAudioAttributes(audioAttributes, handleAudioFocus);
     }
 
-    private class PlayerListener implements Player.Listener {
+    private class PlayerListener implements Listener {
         @Override
         public void onEvents(@NonNull Player player, @NonNull Events events) {
             listeners.forEach(listener -> listener.onEvents(player, events));
