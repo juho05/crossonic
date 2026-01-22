@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:crossonic/data/repositories/audio/players/player.dart';
 import 'package:crossonic/data/repositories/cover/cover_repository.dart';
+import 'package:crossonic/data/repositories/settings/settings_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
 import 'package:flutter/services.dart';
 
@@ -12,9 +13,11 @@ class AudioPlayerAndroid extends AudioPlayer {
   static const _eventChannel = EventChannel("org.crossonic.app.player.events");
 
   final CoverRepository _coverRepo;
+  final SettingsRepository _settings;
 
   AudioPlayerAndroid({
     required CoverRepository coverRepository,
+    required SettingsRepository settings,
     required super.downloader,
     required super.setVolumeHandler,
     required super.setQueueHandler,
@@ -22,7 +25,8 @@ class AudioPlayerAndroid extends AudioPlayer {
     required super.playNextHandler,
     required super.playPrevHandler,
     required super.restartPlayback,
-  }) : _coverRepo = coverRepository;
+  }) : _coverRepo = coverRepository,
+       _settings = settings;
 
   @override
   Future<Duration> get position async =>
@@ -56,6 +60,7 @@ class AudioPlayerAndroid extends AudioPlayer {
       maxBitRate: maxBitRate,
       format: format,
     );
+    _settings.workarounds.addListener(_onWorkaroundsChanged);
     _eventStreamSub = _eventChannel.receiveBroadcastStream().listen((
       event,
     ) async {
@@ -87,6 +92,12 @@ class AudioPlayerAndroid extends AudioPlayer {
     });
   }
 
+  Future<void> _onWorkaroundsChanged() async {
+    await _methodChannel.invokeMethod("configure", {
+      "treatStopAsPause": _settings.workarounds.stopIsPause,
+    });
+  }
+
   @override
   Future<void> configureServerURL({
     required Uri streamUri,
@@ -106,9 +117,10 @@ class AudioPlayerAndroid extends AudioPlayer {
       format: format,
       updateCurrentMediaItem: updateCurrentMediaItem,
     );
-    await _methodChannel.invokeMethod("setSupportedFeatures", {
-      "timeOffset": supportsTimeOffset,
-      "timeOffsetMs": supportsTimeOffsetMs,
+    await _methodChannel.invokeMethod("configure", {
+      "supportsTimeOffset": supportsTimeOffset,
+      "supportsTimeOffsetMs": supportsTimeOffsetMs,
+      "treatStopAsPause": _settings.workarounds.stopIsPause,
     });
   }
 
@@ -161,6 +173,7 @@ class AudioPlayerAndroid extends AudioPlayer {
 
   @override
   Future<void> dispose() async {
+    _settings.workarounds.removeListener(_onWorkaroundsChanged);
     await _methodChannel.invokeMethod("dispose");
     await _eventStreamSub?.cancel();
     await super.dispose();

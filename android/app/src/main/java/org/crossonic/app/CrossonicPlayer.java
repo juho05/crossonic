@@ -1,9 +1,7 @@
 package org.crossonic.app;
 
 import android.content.Context;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
-import android.os.Handler;
 import android.os.Looper;
 import android.view.Surface;
 import android.view.SurfaceHolder;
@@ -32,8 +30,6 @@ import java.io.*;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import static androidx.media3.common.MediaMetadata.PICTURE_TYPE_FRONT_COVER;
 
@@ -43,8 +39,9 @@ public class CrossonicPlayer implements Player {
 
     private long positionOffsetMs = 0;
 
-    private boolean supportsTimeOffset = false;
+    private boolean supportsTimeOffset = true;
     private boolean supportsTimeOffsetMs = false;
+    private boolean treatStopAsPause = false;
 
     private boolean loop = false;
 
@@ -92,7 +89,7 @@ public class CrossonicPlayer implements Player {
     // ====== method channel handlers ======
 
     private void registerMethodHandlers() {
-        FlutterIntegration.setMethodCallback("setSupportedFeatures", this::handleSetSupportedFeatures);
+        FlutterIntegration.setMethodCallback("configure", this::handleConfigure);
         FlutterIntegration.setMethodCallback("setLoop", this::handleSetLoop);
         FlutterIntegration.setMethodCallback("play", this::handlePlay);
         FlutterIntegration.setMethodCallback("pause", this::handlePause);
@@ -109,7 +106,7 @@ public class CrossonicPlayer implements Player {
     }
 
     private void unregisterMethodHandlers() {
-        FlutterIntegration.removeMethodCallback("setSupportedFeatures");
+        FlutterIntegration.removeMethodCallback("configure");
         FlutterIntegration.removeMethodCallback("play");
         FlutterIntegration.removeMethodCallback("pause");
         FlutterIntegration.removeMethodCallback("setCurrent");
@@ -124,9 +121,16 @@ public class CrossonicPlayer implements Player {
         FlutterIntegration.removeMethodCallback("dispose");
     }
 
-    private void handleSetSupportedFeatures(MethodCall call, MethodChannel.Result result) {
-        supportsTimeOffset = Boolean.TRUE.equals(call.argument("timeOffset"));
-        supportsTimeOffsetMs = Boolean.TRUE.equals(call.argument("timeOffsetMs"));
+    private void handleConfigure(MethodCall call, MethodChannel.Result result) {
+        if (call.hasArgument("supportsTimeOffset")) {
+            supportsTimeOffset = Boolean.TRUE.equals(call.argument("supportsTimeOffset"));
+        }
+        if (call.hasArgument("supportsTimeOffsetMs")) {
+            supportsTimeOffsetMs = Boolean.TRUE.equals(call.argument("supportsTimeOffsetMs"));
+        }
+        if (call.hasArgument("treatStopAsPause")) {
+            treatStopAsPause = Boolean.TRUE.equals(call.argument("treatStopAsPause"));
+        }
         result.success(null);
     }
 
@@ -252,7 +256,8 @@ public class CrossonicPlayer implements Player {
     }
 
     private void handleStop(MethodCall call, MethodChannel.Result result) {
-        stop();
+        player.clearMediaItems();
+        player.stop();
         result.success(null);
     }
 
@@ -696,6 +701,10 @@ public class CrossonicPlayer implements Player {
 
     @Override
     public void stop() {
+        if (treatStopAsPause) {
+            pause();
+            return;
+        }
         player.clearMediaItems();
         player.stop();
     }

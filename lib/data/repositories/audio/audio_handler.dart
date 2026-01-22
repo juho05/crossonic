@@ -105,6 +105,7 @@ class AudioHandler {
        _keyValue = keyValueRepository {
     if (!kIsWeb && Platform.isAndroid) {
       _player = AudioPlayerAndroid(
+        settings: settingsRepository,
         coverRepository: coverRepository,
         downloader: songDownloader,
         playNextHandler: playNext,
@@ -125,6 +126,7 @@ class AudioHandler {
     } else {
       _player = AudioPlayerMediaKit(
         downloader: songDownloader,
+        settings: settingsRepository,
         integration: integration,
         playNextHandler: playNext,
         playPrevHandler: playPrev,
