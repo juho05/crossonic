@@ -3,6 +3,7 @@ package org.crossonic.app;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Looper;
+import android.util.Log;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -63,14 +64,17 @@ public class CrossonicPlayer implements Player {
                         };
         final ExoPlayer.Builder builder = new ExoPlayer.Builder(context, audioOnlyRenderersFactory);
         builder.setMediaSourceFactory(new DefaultMediaSourceFactory(context, new DefaultExtractorsFactory().setConstantBitrateSeekingEnabled(true)));
+        builder.setAudioAttributes(new AudioAttributes.Builder().setUsage(C.USAGE_MEDIA).setContentType(C.AUDIO_CONTENT_TYPE_MUSIC).setAllowedCapturePolicy(C.ALLOW_CAPTURE_BY_ALL).build(), true);
+        builder.setHandleAudioBecomingNoisy(true);
 
         final ExoPlayer player = builder.build();
         player.addAnalyticsListener(new EventLogger());
 
-        // enable audio offload for decreased battery usage
+        player.setPlayWhenReady(false);
         player.setTrackSelectionParameters(
                 player.getTrackSelectionParameters().buildUpon().
                         setAudioOffloadPreferences(new TrackSelectionParameters.AudioOffloadPreferences.Builder()
+                                // enabling this causes transition bugs and infinite loading when transcoding is enabled
                                 .setAudioOffloadMode(TrackSelectionParameters.AudioOffloadPreferences.AUDIO_OFFLOAD_MODE_DISABLED)
                                 .setIsGaplessSupportRequired(true)
                                 .build())
@@ -749,7 +753,7 @@ public class CrossonicPlayer implements Player {
     @Override
     public @org.jspecify.annotations.Nullable Object getCurrentManifest() {
         return null;
-        //return player.getCurrentManifest();
+        // return player.getCurrentManifest();
     }
 
     @Override
@@ -1162,6 +1166,7 @@ public class CrossonicPlayer implements Player {
         @Override
         public void onPlayerError(@NonNull PlaybackException error) {
             // TODO send to flutter
+            Log.e("Player Error", error.toString());
             listeners.forEach(listener -> listener.onPlayerError(error));
         }
 
@@ -1235,7 +1240,7 @@ public class CrossonicPlayer implements Player {
         }
 
         @Override
-        public void onDeviceInfoChanged(DeviceInfo deviceInfo) {
+        public void onDeviceInfoChanged(@NonNull DeviceInfo deviceInfo) {
             listeners.forEach(listener -> listener.onDeviceInfoChanged(deviceInfo));
         }
 
