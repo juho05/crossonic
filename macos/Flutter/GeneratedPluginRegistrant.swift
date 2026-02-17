@@ -9,7 +9,7 @@ import audio_service
 import audio_session
 import connectivity_plus
 import device_info_plus
-import dynamic_system_colors
+import dynamic_color
 import file_picker
 import file_selector_macos
 import media_kit_libs_macos_audio

@@ -3,7 +3,7 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
-  dynamic_system_colors
+  dynamic_color
   file_selector_linux
   media_kit_libs_linux
   open_file_linux

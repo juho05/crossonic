@@ -11,7 +11,7 @@ import 'package:crossonic/data/repositories/version/version.dart';
 import 'package:crossonic/data/repositories/version/version_repository.dart';
 import 'package:crossonic/routing/router.dart';
 import 'package:crossonic/window_listener.dart';
-import 'package:dynamic_system_colors/dynamic_system_colors.dart';
+import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_displaymode/flutter_displaymode.dart';
@@ -132,22 +132,32 @@ class MainApp extends StatelessWidget {
         return ListenableBuilder(
           listenable: themeManager,
           builder: (context, _) {
-            var lightTheme = lightDynamic;
-            var darkTheme = darkDynamic;
+            var lightPrimary = lightDynamic?.primary;
+            var darkPrimary = darkDynamic?.primary;
             if (!themeManager.enableDynamicColors) {
-              lightTheme = null;
-              darkTheme = null;
+              lightPrimary = null;
+              darkPrimary = null;
             }
+            lightPrimary ??= Colors.blue;
+            darkPrimary ??= Colors.blue;
             return MaterialApp.router(
               title: "Crossonic",
               restorationScopeId: "crossonic_app",
               theme: ThemeData(
                 useMaterial3: true,
-                colorScheme: lightTheme ?? defaultLightColorScheme,
+                colorScheme: ColorScheme.fromSeed(
+                  seedColor: lightPrimary,
+                  brightness: Brightness.light,
+                  dynamicSchemeVariant: DynamicSchemeVariant.fidelity,
+                ),
               ),
               darkTheme: ThemeData(
                 useMaterial3: true,
-                colorScheme: darkTheme ?? defaultDarkColorScheme,
+                colorScheme: ColorScheme.fromSeed(
+                  seedColor: darkPrimary,
+                  brightness: Brightness.dark,
+                  dynamicSchemeVariant: DynamicSchemeVariant.fidelity,
+                ),
               ),
               themeMode: themeManager.themeMode,
               debugShowCheckedModeBanner: false,
