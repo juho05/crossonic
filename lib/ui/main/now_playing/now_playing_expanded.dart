@@ -104,6 +104,7 @@ class NowPlayingExpanded extends StatelessWidget {
                       fontWeight: FontWeight.w600,
                       fontSize: 20,
                     ),
+                    textAlign: TextAlign.center,
                   ),
                   MouseRegion(
                     cursor: SystemMouseCursors.click,

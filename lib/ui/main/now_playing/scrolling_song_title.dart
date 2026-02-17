@@ -5,8 +5,14 @@ import 'package:flutter/material.dart';
 class ScrollingSongTitle extends StatelessWidget {
   final String title;
   final TextStyle? style;
+  final TextAlign? textAlign;
 
-  const ScrollingSongTitle({required this.title, this.style, super.key});
+  const ScrollingSongTitle({
+    required this.title,
+    this.style,
+    this.textAlign,
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -15,6 +21,7 @@ class ScrollingSongTitle extends StatelessWidget {
       triggerOnLongPress: false,
       child: TextScroll(
         title,
+        textAlign: textAlign,
         delayBefore: const Duration(seconds: 3),
         pauseBetween: const Duration(seconds: 3),
         fadedBorder: true,
