@@ -17,28 +17,24 @@ class CrossonicWindowListener with WindowListener, TrayListener {
 
   Future<void> _updateTrayContextMenu() async {
     if (kIsWeb || Platform.isMacOS) return;
-    await trayManager.setContextMenu(Menu(items: [
-      if (await windowManager.isVisible())
-        MenuItem(
-          key: "hide",
-          label: "Hide",
-        )
-      else
-        MenuItem(
-          key: "show",
-          label: "Show",
-        ),
-      MenuItem.separator(),
-      MenuItem(
-        key: "exit",
-        label: "Exit",
-      )
-    ]));
+    await trayManager.setContextMenu(
+      Menu(
+        items: [
+          if (await windowManager.isVisible())
+            MenuItem(key: "hide", label: "Hide")
+          else
+            MenuItem(key: "show", label: "Show"),
+          MenuItem.separator(),
+          MenuItem(key: "exit", label: "Exit"),
+        ],
+      ),
+    );
   }
 
   Future<void> _initSystemTray() async {
     await trayManager.setIcon(
-        "assets/icon/crossonic-tray.${Platform.isWindows ? "ico" : "png"}");
+      "assets/icon/crossonic-tray.${Platform.isWindows ? "ico" : "png"}",
+    );
     if (Platform.isLinux) {
       await trayManager.setTitle("Crossonic");
     } else {
