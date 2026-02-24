@@ -229,11 +229,12 @@ class AudioHandler {
     _updatePosition();
     await _player.seek(pos);
     _seekingPos = null;
-    _updatePosition();
   }
 
   Future<void> _updatePosition([Duration? pos]) async {
-    pos ??= _seekingPos;
+    if (_seekingPos != null) {
+      pos = _seekingPos;
+    }
     pos ??= await _player.position;
     Log.trace("updating current position: $pos");
     _positionUpdate = (DateTime.now(), pos);
@@ -282,7 +283,7 @@ class AudioHandler {
 
     if (_previousAudioPlayerEvent == event) return;
 
-    Duration lastPos = _positionUpdate.$2;
+    Duration lastPos = _seekingPos ?? _positionUpdate.$2;
     if (_previousAudioPlayerEvent == AudioPlayerEvent.playing) {
       lastPos += DateTime.now().difference(_positionUpdate.$1);
     }

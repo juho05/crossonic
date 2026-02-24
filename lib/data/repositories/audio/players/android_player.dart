@@ -159,6 +159,7 @@ class AudioPlayerAndroid extends AudioPlayer {
   @override
   Future<void> seek(Duration position) async {
     await _methodChannel.invokeMethod("seek", {"pos": position.inMilliseconds});
+    positionDiscontinuity.add(position);
   }
 
   @override
