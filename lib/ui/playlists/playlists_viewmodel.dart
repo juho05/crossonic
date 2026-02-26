@@ -57,8 +57,7 @@ class PlaylistsViewModel extends ChangeNotifier {
 
   void clearFilters() {
     _searchTerm = "";
-    _offline = false;
-    _updateFiltered();
+    _updateHasConnection();
   }
 
   String _searchTerm = "";
@@ -91,16 +90,16 @@ class PlaylistsViewModel extends ChangeNotifier {
     required PlaylistRepository playlistRepository,
     required AudioHandler audioHandler,
     required SongDownloader songDownloader,
-  })  : _repo = playlistRepository,
-        _audioHandler = audioHandler,
-        _downloader = songDownloader {
+  }) : _repo = playlistRepository,
+       _audioHandler = audioHandler,
+       _downloader = songDownloader {
     _repo.addListener(_load);
     _downloader.addListener(_onDownloadStatusChanged);
 
     if (!kIsWeb) {
-      _connectivityStreamSub = Connectivity()
-          .onConnectivityChanged
-          .listen((event) => _updateHasConnection());
+      _connectivityStreamSub = Connectivity().onConnectivityChanged.listen(
+        (event) => _updateHasConnection(),
+      );
       _updateHasConnection();
     }
     _load();
@@ -108,7 +107,8 @@ class PlaylistsViewModel extends ChangeNotifier {
 
   Future<void> _updateHasConnection() async {
     final con = await Connectivity().checkConnectivity();
-    final online = con.contains(ConnectivityResult.mobile) ||
+    final online =
+        con.contains(ConnectivityResult.mobile) ||
         con.contains(ConnectivityResult.wifi) ||
         con.contains(ConnectivityResult.ethernet) ||
         con.contains(ConnectivityResult.vpn) ||
@@ -209,9 +209,11 @@ class PlaylistsViewModel extends ChangeNotifier {
         return;
       case Ok():
     }
-    _playlists = await Future.wait(result.value
-        .map((p) async => (p, await _getPlaylistDownloadStatus(p)))
-        .toList());
+    _playlists = await Future.wait(
+      result.value
+          .map((p) async => (p, await _getPlaylistDownloadStatus(p)))
+          .toList(),
+    );
     _updateFiltered();
   }
 
@@ -220,8 +222,10 @@ class PlaylistsViewModel extends ChangeNotifier {
     final result = await _repo.getPlaylist(playlist.id);
     switch (result) {
       case Err():
-        Log.error("Failed to get playlist for download status",
-            e: result.error);
+        Log.error(
+          "Failed to get playlist for download status",
+          e: result.error,
+        );
         return DownloadStatus.downloading;
       case Ok():
     }
