@@ -17,6 +17,7 @@ import 'package:crossonic/utils/result.dart';
 import 'package:crossonic/utils/result_toast.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 @RoutePage()
@@ -410,6 +411,7 @@ class _PlaylistPageState extends State<PlaylistPage> {
                 toastResult(context, result);
               },
               onReorderStart: (_) {
+                HapticFeedback.lightImpact();
                 _viewModel.editMode = true;
               },
               itemBuilder: (context, index) => songListItem(index: index),

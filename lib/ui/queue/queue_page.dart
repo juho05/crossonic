@@ -2,11 +2,11 @@ import 'package:auto_route/auto_route.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
 import 'package:crossonic/ui/common/clickable_list_item.dart';
 import 'package:crossonic/ui/common/dialogs/confirmation.dart';
-import 'package:crossonic/ui/common/haptic_reorderable_delayed_drag_start_listener.dart';
 import 'package:crossonic/ui/common/shimmer.dart';
 import 'package:crossonic/ui/common/song_list_item.dart';
 import 'package:crossonic/ui/queue/queue_viewmodel.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 @RoutePage()
@@ -46,7 +46,7 @@ class _QueuePageState extends State<QueuePage> {
             final theme = Theme.of(context);
 
             Widget songListItem(int i, Song s, {bool floating = false}) {
-              return HapticReorderableDelayedDragStartListener(
+              return ReorderableDelayedDragStartListener(
                 key: ValueKey("$i${s.id}"),
                 index: i,
                 enabled: !floating,
@@ -199,6 +199,9 @@ class _QueuePageState extends State<QueuePage> {
                     final s = _viewModel
                         .queue[i - 1 - _viewModel.priorityQueue.length];
                     return songListItem(i, s);
+                  },
+                  onReorderStart: (_) {
+                    HapticFeedback.lightImpact();
                   },
                   onReorder: _viewModel.reorder,
                 ),
