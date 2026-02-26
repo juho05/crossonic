@@ -206,7 +206,9 @@ class AudioPlayerMediaKit extends AudioPlayer {
       eventStream.add(AudioPlayerEvent.playing);
       return;
     }
-    eventStream.add(AudioPlayerEvent.paused);
+    if (eventStream.value != AudioPlayerEvent.stopped) {
+      eventStream.add(AudioPlayerEvent.paused);
+    }
   }
 
   @override
@@ -312,6 +314,7 @@ class AudioPlayerMediaKit extends AudioPlayer {
     _shouldUnpauseOnInterruptionEnd = false;
     await _player!.stop();
     await _audioSession.setActive(false);
+    eventStream.add(AudioPlayerEvent.stopped);
   }
 
   @override
