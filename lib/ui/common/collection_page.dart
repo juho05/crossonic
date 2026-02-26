@@ -135,195 +135,178 @@ class _CollectionPageMobileState extends State<CollectionPageMobile> {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return CustomScrollView(
-          slivers: [
-            SliverPadding(
-              padding: const EdgeInsets.only(bottom: 10),
-              sliver: SliverList.list(
-                children: [
-                  if (widget.cover != null)
-                    Padding(
+    final screenHeight = MediaQuery.heightOf(context);
+    return CustomScrollView(
+      slivers: [
+        SliverPadding(
+          padding: const EdgeInsets.only(bottom: 10),
+          sliver: SliverList.list(
+            children: [
+              if (widget.cover != null)
+                ConstrainedBox(
+                  constraints: BoxConstraints(maxHeight: screenHeight * 0.5),
+                  child: AspectRatio(
+                    aspectRatio: 1,
+                    child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 12),
-                      child: ConstrainedBox(
-                        constraints: BoxConstraints(
-                          maxHeight: constraints.maxHeight * 0.6,
-                        ),
-                        child: widget.cover!,
-                      ),
-                    ),
-                  if (widget.cover != null) const SizedBox(height: 10),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      spacing: 4,
-                      children: [
-                        Flexible(
-                          child: OptionalTooltip(
-                            message: widget.name,
-                            child: Text(
-                              widget.name,
-                              style: Theme.of(context).textTheme.bodyLarge!
-                                  .copyWith(
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 22,
-                                  ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        ),
-                        if (widget.onChangeName != null)
-                          GestureDetector(
-                            onTap: widget.onChangeName,
-                            child: const OptionalTooltip(
-                              message: "Change name",
-                              enableDelay: false,
-                              child: MouseRegion(
-                                cursor: SystemMouseCursors.click,
-                                child: Padding(
-                                  padding: EdgeInsets.all(4),
-                                  child: Icon(Icons.edit, size: 18),
-                                ),
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                  if (widget.extraInfo != null)
-                    ...widget.extraInfo!.map(
-                      (i) => _ExtraInfoWidget(extraInfo: i),
-                    ),
-                  if (widget.actions != null)
-                    Padding(
-                      padding: const EdgeInsets.only(
-                        left: 12,
-                        right: 12,
-                        top: 10,
-                      ),
-                      child: Wrap(
-                        alignment: WrapAlignment.center,
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: widget.actions!.map((element) {
-                          return Button(
-                            icon: element.icon,
-                            onPressed: element.onClick,
-                            outlined: !element.highlighted,
-                            color: element.color,
-                            child: Text(
-                              element.title,
-                              style: element.color != null
-                                  ? Theme.of(context).textTheme.bodyMedium!
-                                        .copyWith(color: element.color)
-                                  : null,
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                    ),
-                  if (widget.contentTitle != null)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 10),
-                      child: Text(
-                        widget.contentTitle!,
-                        style: Theme.of(
-                          context,
-                        ).textTheme.headlineSmall!.copyWith(fontSize: 20),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-            if (widget.contentSliver != null) widget.contentSliver!,
-            if (widget.description == null &&
-                widget.onChangeDescription != null)
-              SliverPadding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 8,
-                  vertical: 24,
-                ),
-                sliver: SliverToBoxAdapter(
-                  child: Center(
-                    child: Button(
-                      icon: Icons.add,
-                      onPressed: widget.onChangeDescription,
-                      outlined: true,
-                      child: const Text("Add description"),
+                      child: widget.cover!,
                     ),
                   ),
                 ),
-              ),
-            if (widget.description != null)
-              SliverPadding(
-                padding: const EdgeInsets.all(12),
-                sliver: SliverList.list(
+              if (widget.cover != null) const SizedBox(height: 10),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  spacing: 4,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      spacing: 4,
-                      children: [
-                        Text(
-                          widget.descriptionTitle,
-                          textAlign: TextAlign.start,
-                          style: Theme.of(context).textTheme.headlineSmall!
+                    Flexible(
+                      child: OptionalTooltip(
+                        message: widget.name,
+                        child: Text(
+                          widget.name,
+                          style: Theme.of(context).textTheme.bodyLarge!
                               .copyWith(
-                                fontSize: 24,
-                                fontWeight: FontWeight.w500,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 22,
                               ),
+                          textAlign: TextAlign.center,
                         ),
-                        if (widget.onChangeDescription != null)
-                          GestureDetector(
-                            onTap: widget.onChangeDescription,
-                            child: const OptionalTooltip(
-                              message: "Change description",
-                              enableDelay: false,
-                              child: MouseRegion(
-                                cursor: SystemMouseCursors.click,
-                                child: Padding(
-                                  padding: EdgeInsets.all(4),
-                                  child: Icon(Icons.edit, size: 20),
-                                ),
-                              ),
+                      ),
+                    ),
+                    if (widget.onChangeName != null)
+                      GestureDetector(
+                        onTap: widget.onChangeName,
+                        child: const OptionalTooltip(
+                          message: "Change name",
+                          enableDelay: false,
+                          child: MouseRegion(
+                            cursor: SystemMouseCursors.click,
+                            child: Padding(
+                              padding: EdgeInsets.all(4),
+                              child: Icon(Icons.edit, size: 18),
                             ),
                           ),
-                      ],
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(top: 4),
-                      child: Container(
-                        constraints: _descriptionOpen
-                            ? null
-                            : const BoxConstraints(maxHeight: 182),
-                        child: Text(widget.description!),
-                      ),
-                    ),
-                    Align(
-                      alignment: Alignment.bottomRight,
-                      child: TextButton(
-                        onPressed: () => setState(() {
-                          _descriptionOpen = !_descriptionOpen;
-                        }),
-                        child: Text(
-                          _descriptionOpen ? "show less" : "show more",
                         ),
                       ),
-                    ),
                   ],
                 ),
               ),
-            if (widget.loadingDescription)
-              const SliverPadding(
-                padding: EdgeInsets.only(top: 12),
-                sliver: SliverToBoxAdapter(
-                  child: Center(child: CircularProgressIndicator.adaptive()),
+              if (widget.extraInfo != null)
+                ...widget.extraInfo!.map((i) => _ExtraInfoWidget(extraInfo: i)),
+              if (widget.actions != null)
+                Padding(
+                  padding: const EdgeInsets.only(left: 12, right: 12, top: 10),
+                  child: Wrap(
+                    alignment: WrapAlignment.center,
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: widget.actions!.map((element) {
+                      return Button(
+                        icon: element.icon,
+                        onPressed: element.onClick,
+                        outlined: !element.highlighted,
+                        color: element.color,
+                        child: Text(
+                          element.title,
+                          style: element.color != null
+                              ? Theme.of(context).textTheme.bodyMedium!
+                                    .copyWith(color: element.color)
+                              : null,
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
+              if (widget.contentTitle != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 10),
+                  child: Text(
+                    widget.contentTitle!,
+                    style: Theme.of(
+                      context,
+                    ).textTheme.headlineSmall!.copyWith(fontSize: 20),
+                  ),
+                ),
+            ],
+          ),
+        ),
+        if (widget.contentSliver != null) widget.contentSliver!,
+        if (widget.description == null && widget.onChangeDescription != null)
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 24),
+            sliver: SliverToBoxAdapter(
+              child: Center(
+                child: Button(
+                  icon: Icons.add,
+                  onPressed: widget.onChangeDescription,
+                  outlined: true,
+                  child: const Text("Add description"),
                 ),
               ),
-          ],
-        );
-      },
+            ),
+          ),
+        if (widget.description != null)
+          SliverPadding(
+            padding: const EdgeInsets.all(12),
+            sliver: SliverList.list(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  spacing: 4,
+                  children: [
+                    Text(
+                      widget.descriptionTitle,
+                      textAlign: TextAlign.start,
+                      style: Theme.of(context).textTheme.headlineSmall!
+                          .copyWith(fontSize: 24, fontWeight: FontWeight.w500),
+                    ),
+                    if (widget.onChangeDescription != null)
+                      GestureDetector(
+                        onTap: widget.onChangeDescription,
+                        child: const OptionalTooltip(
+                          message: "Change description",
+                          enableDelay: false,
+                          child: MouseRegion(
+                            cursor: SystemMouseCursors.click,
+                            child: Padding(
+                              padding: EdgeInsets.all(4),
+                              child: Icon(Icons.edit, size: 20),
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Container(
+                    constraints: _descriptionOpen
+                        ? null
+                        : const BoxConstraints(maxHeight: 182),
+                    child: Text(widget.description!),
+                  ),
+                ),
+                Align(
+                  alignment: Alignment.bottomRight,
+                  child: TextButton(
+                    onPressed: () => setState(() {
+                      _descriptionOpen = !_descriptionOpen;
+                    }),
+                    child: Text(_descriptionOpen ? "show less" : "show more"),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        if (widget.loadingDescription)
+          const SliverPadding(
+            padding: EdgeInsets.only(top: 12),
+            sliver: SliverToBoxAdapter(
+              child: Center(child: CircularProgressIndicator.adaptive()),
+            ),
+          ),
+      ],
     );
   }
 }
