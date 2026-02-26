@@ -35,7 +35,7 @@ class AlbumReleaseBadge extends StatelessWidget {
               : "${(albumVersion ?? "${releaseDate?.year} release")}${alternativeCount != null && alternativeCount! > 0 ? " + $alternativeCount other version${alternativeCount != 1 ? "s" : ""}" : ""}",
           enableDelay: false,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
             child: Text(
               "${releaseDate?.year.toString() ?? "null"}${alternativeCount != null && alternativeCount! > 0 ? " +$alternativeCount" : ""}",
               style: textTheme.bodyMedium!.copyWith(
