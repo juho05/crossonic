@@ -6,6 +6,6 @@ public class CrossonicApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        FlutterIntegration.init(this);
+        FlutterIntegration.getEngine(this);
     }
 }

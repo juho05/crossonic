@@ -26,7 +26,7 @@ public class PlaybackService extends MediaSessionService {
 
         final Player player = new CrossonicPlayer(this);
 
-        Intent intent = new Intent(this, MainActivity.class);
+        Intent intent = MainActivity.withCachedEngine(FlutterIntegration.ENGINE_ID).build(this);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
         mediaSession = new MediaSession.Builder(this, player).

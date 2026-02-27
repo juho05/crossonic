@@ -27,6 +27,6 @@ public class MainActivity extends FlutterActivity {
 
     @Override
     public FlutterEngine provideFlutterEngine(@NonNull Context context) {
-        return FlutterIntegration.getEngine();
+        return FlutterIntegration.getEngine(context);
     }
 }

@@ -1,6 +1,7 @@
 package org.crossonic.app;
 
 import android.content.Context;
+import android.util.Log;
 import androidx.annotation.NonNull;
 import io.flutter.embedding.engine.FlutterEngine;
 import io.flutter.embedding.engine.FlutterEngineCache;
@@ -12,16 +13,29 @@ import io.flutter.plugin.common.MethodChannel;
 import java.util.*;
 
 public class FlutterIntegration {
-    private static final String ENGINE_ID = "crossonic_flutter_engine";
+    private static class MCall {
+        MethodCall call;
+        MethodChannel.Result result;
+        MCall(MethodCall call, MethodChannel.Result result) {
+            this.call = call;
+            this.result = result;
+        }
+    }
 
-    private static FlutterEngine flutterEngine;
+    public static final String ENGINE_ID = "crossonic_flutter_engine";
+
+    private static FlutterEngine flutterEngine = null;
 
     private static EventChannel.EventSink eventSink;
 
     private static final Map<String, MethodCallback> methodCallbacks = new HashMap<>();
+    private static final Map<String, List<MCall>> unhandledCalls = new HashMap<>();
 
-    public static void init(Context applicationContext) {
-        flutterEngine = new FlutterEngine(applicationContext);
+    public static FlutterEngine getEngine(Context context) {
+        if (flutterEngine != null) {
+            return flutterEngine;
+        }
+        flutterEngine = new FlutterEngine(context.getApplicationContext());
         FlutterEngineCache.getInstance().put(ENGINE_ID, flutterEngine);
         new MethodChannel(flutterEngine.getDartExecutor().getBinaryMessenger(), "org.crossonic.app.player.methods").setMethodCallHandler(FlutterIntegration::onMethodCall);
         new EventChannel(flutterEngine.getDartExecutor().getBinaryMessenger(), "org.crossonic.app.player.events").setStreamHandler(new EventChannel.StreamHandler() {
@@ -35,9 +49,6 @@ public class FlutterIntegration {
             }
         });
         flutterEngine.getDartExecutor().executeDartEntrypoint(DartExecutor.DartEntrypoint.createDefault());
-    }
-
-    public static FlutterEngine getEngine() {
         return flutterEngine;
     }
 
@@ -58,6 +69,13 @@ public class FlutterIntegration {
 
     public static void setMethodCallback(String methodName, MethodCallback callback) {
         methodCallbacks.put(methodName, callback);
+        final var calls = unhandledCalls.get(methodName);
+        if (calls != null) {
+            unhandledCalls.remove(methodName);
+            for (MCall c : calls) {
+                callback.onMethodCall(c.call, c.result);
+            }
+        }
     }
 
     public static void removeMethodCallback(String methodName) {
@@ -67,7 +85,8 @@ public class FlutterIntegration {
     private static void onMethodCall(@NonNull MethodCall call, @NonNull MethodChannel.Result result) {
         final MethodCallback callback = methodCallbacks.get(call.method);
         if (callback == null) {
-            result.notImplemented();
+            unhandledCalls.putIfAbsent(call.method, new LinkedList<>());
+            Objects.requireNonNull(unhandledCalls.get(call.method)).add(new MCall(call, result));
             return;
         }
         callback.onMethodCall(call, result);

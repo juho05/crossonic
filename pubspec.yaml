@@ -24,7 +24,7 @@ dependencies:
   audio_service:
     git:
       url: https://github.com/juho05/audio_service
-      ref: e6111ee
+      ref: 4d8abf4
       path: audio_service
   optimize_battery:
     git: https://github.com/juho05/optimize_battery
@@ -40,7 +40,7 @@ dependencies:
   file: ^7.0.1
   cached_network_image: ^3.4.1
   intl: ^0.20.2
-  background_downloader: ^9.1.1
+  background_downloader: ^9.5.3
   path: ^1.9.0
   image_picker: ^1.1.2
   flutter_single_instance: ^1.5.1

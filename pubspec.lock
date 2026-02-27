@@ -61,8 +61,8 @@ packages:
     dependency: "direct main"
     description:
       path: audio_service
-      ref: e6111ee
-      resolved-ref: e6111eea6ef106c05cb87897bdb537a412cc6d67
+      ref: "4d8abf4"
+      resolved-ref: "4d8abf4a5ea216dab8e4d99acdf385d4b5736119"
       url: "https://github.com/juho05/audio_service"
     source: git
     version: "0.18.18"

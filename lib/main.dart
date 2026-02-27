@@ -37,7 +37,13 @@ void main() async {
   }
 
   Log.init(logRepository);
-  Log.info("App started.");
+  Log.info(
+    "App started. Engine ID: ${PlatformDispatcher.instance.engineId}, Configuration: ${kDebugMode
+        ? "debug"
+        : kProfileMode
+        ? "profile"
+        : "release"}",
+  );
 
   if (kIsWasm) {
     Log.info("Running on WebAssembly");
