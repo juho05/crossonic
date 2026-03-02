@@ -20,16 +20,18 @@ import 'package:path_provider/path_provider.dart';
 
 part 'database.g.dart';
 
-@DriftDatabase(tables: [
-  KeyValueTable,
-  ScrobbleTable,
-  PlaylistTable,
-  PlaylistSongTable,
-  DownloadTask,
-  FavoritesTable,
-  LogMessageTable,
-  CoverCacheTable,
-])
+@DriftDatabase(
+  tables: [
+    KeyValueTable,
+    ScrobbleTable,
+    PlaylistTable,
+    PlaylistSongTable,
+    DownloadTask,
+    FavoritesTable,
+    LogMessageTable,
+    CoverCacheTable,
+  ],
+)
 class Database extends _$Database {
   Database([QueryExecutor? e]) : super(e ?? _openConnection());
 
@@ -59,59 +61,67 @@ class Database extends _$Database {
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
-        onUpgrade: (m, from, to) async {
-          await customStatement("PRAGMA foreign_keys = OFF");
-          Log.info("Migrating database from schema version $from to $to");
-          await transaction(
-            () async => m.runMigrationSteps(
-              from: from,
-              to: to,
-              steps: migrationSteps(
-                from1To2: (m, schema) async {
-                  await m.createTable(schema.scrobble);
-                },
-                from2To3: (m, schema) async {
-                  await m.createTable(schema.playlist);
-                  await m.createTable(schema.playlistSong);
-                },
-                from3To4: (m, schema) async {
-                  await m.createTable(schema.downloadTask);
-                },
-                from4To5: (m, schema) async {
-                  await m.createTable(schema.favorites);
-                },
-                from5To6: (m, schema) async {
-                  await m.createTable(schema.logMessage);
-                },
-                from6To7: (m, schema) async {
-                  await m.createTable(schema.coverCache);
-                  await m.alterTable(
-                      TableMigration(schema.playlistSong, columnTransformer: {
+    onUpgrade: (m, from, to) async {
+      await customStatement("PRAGMA foreign_keys = OFF");
+      Log.info("Migrating database from schema version $from to $to");
+      await transaction(
+        () async => m.runMigrationSteps(
+          from: from,
+          to: to,
+          steps: migrationSteps(
+            from1To2: (m, schema) async {
+              await m.createTable(schema.scrobble);
+            },
+            from2To3: (m, schema) async {
+              await m.createTable(schema.playlist);
+              await m.createTable(schema.playlistSong);
+            },
+            from3To4: (m, schema) async {
+              await m.createTable(schema.downloadTask);
+            },
+            from4To5: (m, schema) async {
+              await m.createTable(schema.favorites);
+            },
+            from5To6: (m, schema) async {
+              await m.createTable(schema.logMessage);
+            },
+            from6To7: (m, schema) async {
+              await m.createTable(schema.coverCache);
+              await m.alterTable(
+                TableMigration(
+                  schema.playlistSong,
+                  columnTransformer: {
                     schema.playlistSong.coverId: schema
-                        .playlistSong.childModelJson
-                        .jsonExtract("\$.coverArt")
-                  }));
-                },
-              ),
-            ),
-          );
-
-          if (kDebugMode) {
-            // Fail if the migration broke foreign keys
-            final wrongForeignKeys =
-                await customSelect('PRAGMA foreign_key_check').get();
-            assert(wrongForeignKeys.isEmpty,
-                '${wrongForeignKeys.map((e) => e.data)}');
-          }
-
-          await customStatement("PRAGMA foreign_keys = ON");
-        },
-        beforeOpen: (details) async {
-          await customStatement("PRAGMA foreign_keys = ON");
-          await customStatement("PRAGMA journal_mode = WAL");
-          await customStatement("PRAGMA busy_timeout = 5000");
-        },
+                        .playlistSong
+                        .childModelJson
+                        .jsonExtract("\$.coverArt"),
+                  },
+                ),
+              );
+            },
+          ),
+        ),
       );
+
+      if (kDebugMode) {
+        // Fail if the migration broke foreign keys
+        final wrongForeignKeys = await customSelect(
+          'PRAGMA foreign_key_check',
+        ).get();
+        assert(
+          wrongForeignKeys.isEmpty,
+          '${wrongForeignKeys.map((e) => e.data)}',
+        );
+      }
+
+      await customStatement("PRAGMA foreign_keys = ON");
+    },
+    beforeOpen: (details) async {
+      await customStatement("PRAGMA foreign_keys = ON");
+      await customStatement("PRAGMA journal_mode = WAL");
+      await customStatement("PRAGMA busy_timeout = 5000");
+    },
+  );
 
   static QueryExecutor _openConnection() {
     final db = driftDatabase(
@@ -121,7 +131,7 @@ class Database extends _$Database {
       ),
       web: DriftWebOptions(
         sqlite3Wasm: Uri.parse("sqlite3.wasm"),
-        driftWorker: Uri.parse("drift_worker.dart.js"),
+        driftWorker: Uri.parse("drift_worker.js"),
       ),
     ).interceptWith(LogInterceptor());
     return db;
