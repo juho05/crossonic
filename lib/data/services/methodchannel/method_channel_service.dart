@@ -1,9 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/services.dart';
 
 typedef EventCallback =
     void Function(String event, Map<Object?, dynamic>? data);
-typedef MethodCallback =
-    Future<dynamic> Function(Map<Object?, dynamic>? arguments);
+typedef MethodCallback<R, A> = Future<R> Function(A? arguments);
 
 class MethodChannelService {
   final _methodChannel = const MethodChannel(
@@ -11,20 +12,20 @@ class MethodChannelService {
   );
   final _eventChannel = const EventChannel("org.crossonic.app.player.events");
   final Set<EventCallback> _eventCallbacks = {};
-  final Map<String, MethodCallback> _methodCallbacks = {};
+  final Map<String, MethodCallback<dynamic, dynamic>> _methodCallbacks = {};
+
+  final Map<String, List<(MethodCall, Completer<dynamic>)>> _unhandledCalls =
+      {};
 
   MethodChannelService() {
     _methodChannel.setMethodCallHandler((call) async {
-      print("Method call received from Android: ${call.method}");
       if (!_methodCallbacks.containsKey(call.method)) {
-        throw MissingPluginException(
-          "no method call handler for '${call.method}' on Flutter side",
-        );
+        _unhandledCalls.putIfAbsent(call.method, () => []);
+        final completer = Completer();
+        _unhandledCalls[call.method]!.add((call, completer));
+        return completer;
       }
-      print("calling callback");
-      final result = await _methodCallbacks[call.method]!(call.arguments);
-      print("Returning method call result to Android: $result");
-      return result;
+      return await _methodCallbacks[call.method]!(call.arguments);
     });
     _eventChannel.receiveBroadcastStream().listen((event) async {
       final eventObj = event as Map<Object?, dynamic>;
@@ -39,8 +40,23 @@ class MethodChannelService {
     return _methodChannel.invokeMethod(method, arguments);
   }
 
-  void handleMethodCall(String method, MethodCallback callback) {
-    _methodCallbacks[method] = callback;
+  Future<void> handleMethodCall<R, A>(
+    String method,
+    MethodCallback<R, A> callback,
+  ) async {
+    _methodCallbacks[method] = (a) => callback(a);
+    if (_unhandledCalls.containsKey(method)) {
+      final list = _unhandledCalls[method]!;
+      _unhandledCalls.remove(method);
+      for (final c in list) {
+        try {
+          final result = await callback(c.$1.arguments);
+          c.$2.complete(result);
+        } catch (e, st) {
+          c.$2.completeError(e, st);
+        }
+      }
+    }
   }
 
   void removeMethodCallHandler(String method) {

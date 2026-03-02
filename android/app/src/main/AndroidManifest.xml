@@ -51,6 +51,11 @@
             </intent-filter>
         </service>
 
+        <provider
+                android:name=".AlbumArtContentProvider"
+                android:authorities="@string/cover_provider_id"
+                android:exported="true" />
+
         <meta-data
             android:name="androidx.car.app.TintableAttributionIcon"
             android:resource="@drawable/media3_notification_small_icon" />

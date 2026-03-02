@@ -38,27 +38,23 @@ class AndroidLibraryParams {
   final bool isOffline;
   final bool isRecent;
   final bool isSuggested;
-  final AndroidLibraryContentStyle? contentStyle;
 
   const AndroidLibraryParams({
     this.isOffline = false,
     this.isRecent = false,
     this.isSuggested = false,
-    this.contentStyle,
   });
 
   AndroidLibraryParams.fromMsgData(Map<Object?, dynamic>? data)
     : isOffline = data?["isOffline"] ?? false,
       isRecent = data?["isRecent"] ?? false,
-      isSuggested = data?["isSuggested"] ?? false,
-      contentStyle = null;
+      isSuggested = data?["isSuggested"] ?? false;
 
   Map<String, dynamic> toMsgData() {
     return {
       "isOffline": isOffline,
       "isRecent": isRecent,
       "isSuggested": isSuggested,
-      if (contentStyle != null) "contentStyle": contentStyle!.name,
     };
   }
 }

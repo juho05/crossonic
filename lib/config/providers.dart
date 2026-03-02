@@ -171,6 +171,7 @@ Future<List<SingleChildWidget>> createProviders({
         methodChannel: methodChannelService,
         subsonicRepo: subsonicRepository,
         playlistRepo: playlistRepository,
+        coverRepository: coverRepository,
       ),
       lazy: false,
     ),

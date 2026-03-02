@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:crossonic/data/repositories/cover/cover_repository.dart';
 import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/data/repositories/playlist/playlist_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/subsonic_repository.dart';
@@ -13,16 +14,32 @@ class AndroidAutoRepository {
   final MethodChannelService _methodChannel;
   final SubsonicRepository _subsonicRepo;
   final PlaylistRepository _playlistRepo;
+  final CoverRepository _coverRepository;
 
   AndroidAutoRepository({
     required MethodChannelService methodChannel,
     required SubsonicRepository subsonicRepo,
     required PlaylistRepository playlistRepo,
+    required CoverRepository coverRepository,
   }) : _subsonicRepo = subsonicRepo,
        _playlistRepo = playlistRepo,
-       _methodChannel = methodChannel {
+       _methodChannel = methodChannel,
+       _coverRepository = coverRepository {
     if (kIsWeb || !Platform.isAndroid) return;
     _methodChannel.handleMethodCall("onGetChildren", _onGetChildren);
+    _methodChannel.handleMethodCall("getCoverFile", _getCoverFile);
+  }
+
+  Future<String?> _getCoverFile(String? coverId) async {
+    if (coverId == null) return null;
+    try {
+      final file = await _coverRepository.getSingleFile(
+        CoverRepository.getKey(coverId, 512),
+      );
+      return file.path;
+    } catch (_) {
+      return null;
+    }
   }
 
   Future<Map<Object?, dynamic>> _onGetChildren(
@@ -35,10 +52,7 @@ class AndroidAutoRepository {
 
     if (parentId == "crossonic_root") {
       return AndroidLibraryResult(
-        params: AndroidLibraryParams(
-          isOffline: params.isOffline,
-          contentStyle: AndroidLibraryContentStyle.list,
-        ),
+        params: AndroidLibraryParams(isOffline: params.isOffline),
         mediaItems: [
           AndroidMediaItem(
             id: "crossonic_playlists",
@@ -67,10 +81,7 @@ class AndroidAutoRepository {
         case Ok():
       }
       return AndroidLibraryResult(
-        params: AndroidLibraryParams(
-          isOffline: params.isOffline,
-          contentStyle: AndroidLibraryContentStyle.list,
-        ),
+        params: AndroidLibraryParams(isOffline: params.isOffline),
         mediaItems: result.value
             .where((p) => !params.isOffline || p.download)
             .map(
@@ -80,6 +91,15 @@ class AndroidAutoRepository {
                 playable: true,
                 durationMs: p.duration.inMilliseconds,
                 title: p.name,
+                artworkContentUri: p.coverId != null
+                    ? Uri(
+                        scheme: "content",
+                        host: kDebugMode
+                            ? "org.crossonic.app.debug.covers"
+                            : "org.crossonic.app.covers",
+                        pathSegments: [p.coverId!],
+                      )
+                    : null,
               ),
             )
             .toList(),

@@ -69,7 +69,6 @@ public class PlaybackService extends MediaLibraryService {
         @OptIn(markerClass = UnstableApi.class)
         @Override
         public @NonNull ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> onGetChildren(@NonNull MediaLibrarySession session, MediaSession.@NonNull ControllerInfo browser, @NonNull String parentId, int page, int pageSize, @Nullable MediaLibraryService.LibraryParams params) {
-            Log.e("ANDROIDAUTO", "onGetChildren");
             final HashMap<Object, Object> msgParams = new HashMap<>();
             msgParams.put("parentId", parentId);
             if (params != null) {

@@ -17,6 +17,7 @@ class AndroidMediaItem {
   final int? releaseMonth;
   final int? releaseDay;
   final Uint8List? artworkData;
+  final Uri? artworkContentUri;
 
   AndroidMediaItem({
     required this.id,
@@ -34,6 +35,7 @@ class AndroidMediaItem {
     this.releaseMonth,
     this.releaseDay,
     this.artworkData,
+    this.artworkContentUri,
   });
 
   Map<String, dynamic> toMsgData() {
@@ -53,6 +55,8 @@ class AndroidMediaItem {
       if (releaseMonth != null) "releaseMonth": releaseMonth,
       if (releaseDay != null) "releaseDay": releaseDay,
       if (artworkData != null) "artworkData": artworkData,
+      if (artworkContentUri != null)
+        "artworkContentUri": artworkContentUri.toString(),
     };
   }
 }

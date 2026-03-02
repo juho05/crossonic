@@ -57,28 +57,10 @@ public class Mappings {
 
     @OptIn(markerClass = UnstableApi.class)
     private static MediaLibraryService.LibraryParams libraryParamsFromMsg(Map<Object, Object> params) {
-        String contentStyle = null;
-        if (params.containsKey("contentStyle")) {
-            contentStyle = (String)params.get("contentStyle");
-        }
-        final Bundle extras = new Bundle();
-        if (contentStyle != null) {
-            switch (contentStyle) {
-                case "list":
-                    extras.putInt(MediaConstants.EXTRAS_KEY_CONTENT_STYLE_BROWSABLE, MediaConstants.EXTRAS_VALUE_CONTENT_STYLE_LIST_ITEM);
-                    extras.putInt(MediaConstants.EXTRAS_KEY_CONTENT_STYLE_PLAYABLE, MediaConstants.EXTRAS_VALUE_CONTENT_STYLE_LIST_ITEM);
-                    break;
-                case "grid":
-                    extras.putInt(MediaConstants.EXTRAS_KEY_CONTENT_STYLE_BROWSABLE, MediaConstants.EXTRAS_VALUE_CONTENT_STYLE_GRID_ITEM);
-                    extras.putInt(MediaConstants.EXTRAS_KEY_CONTENT_STYLE_PLAYABLE, MediaConstants.EXTRAS_VALUE_CONTENT_STYLE_GRID_ITEM);
-                    break;
-            }
-        }
         return new MediaLibraryService.LibraryParams.Builder()
                 .setOffline((boolean) params.get("isOffline"))
                 .setRecent((boolean)params.get("isRecent"))
-                .setSuggested((boolean)params.get("isSuggested"))
-                .setExtras(extras).build();
+                .setSuggested((boolean)params.get("isSuggested")).build();
     }
 
     public static void buildMediaItemFromMsg(MediaItem.Builder builder, Map<Object, Object> msg) {
@@ -130,6 +112,9 @@ public class Mappings {
         }
         if (msg.containsKey("artworkData")) {
             metadataBuilder.setArtworkData((byte[])msg.get("artworkData"), PICTURE_TYPE_FRONT_COVER);
+        }
+        if (msg.containsKey("artworkContentUri")) {
+            metadataBuilder.setArtworkUri(Uri.parse((String)msg.get("artworkContentUri")));
         }
 
         builder.setMediaMetadata(metadataBuilder.build());

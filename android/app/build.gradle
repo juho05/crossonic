@@ -67,14 +67,17 @@ android {
     buildTypes {
         release {
             signingConfig signingConfigs.release.storeFile ? signingConfigs.release : signingConfigs.debug
+            resValue "string", "cover_provider_id", "org.crossonic.app.covers"
         }
         profile {
             signingConfig signingConfigs.release.storeFile ? signingConfigs.release : signingConfigs.debug
             resValue "string", "app_name", "Crossonic (Profile)"
+            resValue "string", "cover_provider_id", "org.crossonic.app.covers"
         }
         debug {
             applicationIdSuffix "debug"
             resValue "string", "app_name", "Crossonic (Debug)"
+            resValue "string", "cover_provider_id", "org.crossonic.app.debug.covers"
         }
     }
 }
