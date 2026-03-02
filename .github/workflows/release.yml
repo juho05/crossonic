@@ -87,10 +87,11 @@ jobs:
         working-directory: ${{ env.APK_BUILD_DIR }}
         run: |
           sed -i '/REQUEST_INSTALL_PACKAGES/d' ./android/app/src/main/AndroidManifest.xml
+          sed -i '/REQUEST_IGNORE_BATTERY_OPTIMIZATIONS/d' ./android/app/src/main/AndroidManifest.xml
 
       - name: Build App Bundle
         working-directory: ${{ env.APK_BUILD_DIR }}
-        run: flutter build appbundle --dart-define=VERSION_CHECK=false
+        run: flutter build appbundle --dart-define=VERSION_CHECK=false --dart-define=PLAYSTORE=true
 
       - name: Upload App Bundle
         uses: actions/upload-artifact@v4

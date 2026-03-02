@@ -122,15 +122,12 @@ Future<List<SingleChildWidget>> createProviders({
     Log.debug("initializing audio service");
     mediaIntegration = SMTCIntegration();
   } else {
-    var androidBackgroundAvailable = true;
-    if (!kIsWeb && Platform.isAndroid) {
-      androidBackgroundAvailable =
-          await OptimizeBattery.isIgnoringBatteryOptimizations();
-      if (!androidBackgroundAvailable) {
+    if (!kIsWeb &&
+        Platform.isAndroid &&
+        !(const bool.fromEnvironment("PLAYSTORE", defaultValue: false))) {
+      if (!await OptimizeBattery.isIgnoringBatteryOptimizations()) {
         Log.info("battery optimization is not disabled, asking user...");
         await OptimizeBattery.stopOptimizingBatteryUsage();
-        // because there is no way to know when/if the user clicks yes on the dialog
-        // androidBackgroundAvailable stays false until the next start of the app
       } else {
         Log.info("battery optimization is disabled");
       }
@@ -143,11 +140,10 @@ Future<List<SingleChildWidget>> createProviders({
       final audioService = await AudioService.init(
         builder: () =>
             AudioServiceIntegration(playlistRepository: playlistRepository),
-        config: AudioServiceConfig(
+        config: const AudioServiceConfig(
           androidNotificationChannelId: "org.crossonic.app",
           androidNotificationChannelName: "Music playback",
           androidNotificationIcon: "drawable/ic_stat_crossonic",
-          androidStopForegroundOnPause: androidBackgroundAvailable,
           androidNotificationChannelDescription: "Playback notification",
         ),
         cacheManager: kIsWeb ? null : coverRepository,
