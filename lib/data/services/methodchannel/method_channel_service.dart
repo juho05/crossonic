@@ -23,7 +23,7 @@ class MethodChannelService {
         _unhandledCalls.putIfAbsent(call.method, () => []);
         final completer = Completer();
         _unhandledCalls[call.method]!.add((call, completer));
-        return completer;
+        return await completer.future;
       }
       return await _methodCallbacks[call.method]!(call.arguments);
     });
