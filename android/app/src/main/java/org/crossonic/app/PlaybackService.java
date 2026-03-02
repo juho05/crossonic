@@ -99,6 +99,9 @@ public class PlaybackService extends MediaLibraryService {
         @OptIn(markerClass = UnstableApi.class)
         @Override
         public MediaSession.@NonNull ConnectionResult onConnect(@NonNull MediaSession session, MediaSession.@NonNull ControllerInfo controller) {
+            if (!controller.isTrusted()) {
+                return MediaSession.ConnectionResult.reject();
+            }
             if (session.isMediaNotificationController(controller)) {
                 return new MediaSession.ConnectionResult.AcceptedResultBuilder(session)
                         .setAvailableSessionCommands(MediaSession.ConnectionResult.DEFAULT_SESSION_COMMANDS.buildUpon().add(CUSTOM_COMMAND_STOP).build())
