@@ -9,6 +9,7 @@ import 'package:crossonic/data/repositories/logger/log_repository.dart';
 import 'package:crossonic/data/repositories/themeManager/theme_manager.dart';
 import 'package:crossonic/data/repositories/version/version.dart';
 import 'package:crossonic/data/repositories/version/version_repository.dart';
+import 'package:crossonic/data/services/methodchannel/method_channel_service.dart';
 import 'package:crossonic/routing/router.dart';
 import 'package:crossonic/window_listener.dart';
 import 'package:dynamic_color/dynamic_color.dart';
@@ -30,6 +31,9 @@ final defaultDarkColorScheme = ColorScheme.fromSeed(
 );
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  MethodChannelService methodChannelService = MethodChannelService();
+
   LogRepository logRepository = LogRepository();
 
   if (!kIsWeb && Platform.isWindows) {
@@ -50,8 +54,6 @@ void main() async {
   } else if (kIsWeb) {
     Log.info("Running on JavaScript");
   }
-
-  WidgetsFlutterBinding.ensureInitialized();
 
   FlutterSingleInstance.onFocus = (metadata) async {
     try {
@@ -109,7 +111,10 @@ void main() async {
 
   runApp(
     MultiProvider(
-      providers: await createProviders(logRepository: logRepository),
+      providers: await createProviders(
+        methodChannelService: methodChannelService,
+        logRepository: logRepository,
+      ),
       child: AppShortcuts(
         child: Builder(
           builder: (context) {

@@ -155,7 +155,7 @@ public class CrossonicPlayer implements Player {
     }
 
     private void handleSetCurrent(MethodCall call, MethodChannel.Result result) {
-        final Map<String, Object> current = call.argument("current");
+        final Map<Object, Object> current = call.argument("current");
         assert current != null;
 
         long pos = 0;
@@ -167,7 +167,7 @@ public class CrossonicPlayer implements Player {
         Uri streamUri = Uri.parse((String)current.get("uri"));
 
         final var currentBuilder = new MediaItem.Builder();
-        buildMediaItemFromMsg(currentBuilder, current);
+        Mappings.buildMediaItemFromMsg(currentBuilder, current);
         if (pos > 0 && !canSeek(streamUri)) {
             streamUri = setUriTimeOffset(streamUri, pos);
         }
@@ -181,21 +181,21 @@ public class CrossonicPlayer implements Player {
             player.prepare();
         }
 
-        final Map<String, Object> next = call.argument("next");
+        final Map<Object, Object> next = call.argument("next");
         if (next == null) {
             result.success(null);
             return;
         }
 
         final var nextBuilder = new MediaItem.Builder();
-        buildMediaItemFromMsg(nextBuilder, next);
+        Mappings.buildMediaItemFromMsg(nextBuilder, next);
         final var nextMediaItem = nextBuilder.build();
         player.addMediaItem(nextMediaItem);
         result.success(null);
     }
 
     private void handleSetNext(MethodCall call, MethodChannel.Result result) {
-        final Map<String, Object> next = call.argument("next");
+        final Map<Object, Object> next = call.argument("next");
         if (next == null) {
             player.removeMediaItems(player.getCurrentMediaItemIndex()+1, Integer.MAX_VALUE);
             result.success(null);
@@ -203,7 +203,7 @@ public class CrossonicPlayer implements Player {
         }
 
         final var nextBuilder = new MediaItem.Builder();
-        buildMediaItemFromMsg(nextBuilder, next);
+        Mappings.buildMediaItemFromMsg(nextBuilder, next);
         player.replaceMediaItems(player.getCurrentMediaItemIndex()+1, Integer.MAX_VALUE, Collections.singletonList(nextBuilder.build()));
         result.success(null);
     }
@@ -268,54 +268,6 @@ public class CrossonicPlayer implements Player {
     private void handleDispose(MethodCall call, MethodChannel.Result result) {
         release();
         result.success(null);
-    }
-
-    private void buildMediaItemFromMsg(MediaItem.Builder builder, Map<String, Object> msg) {
-        final String id = (String)msg.get("id");
-        assert id != null;
-        builder.setMediaId(id);
-
-        Uri streamUri = Uri.parse((String)msg.get("uri"));
-        builder.setUri(streamUri);
-
-        final var metadataBuilder = new MediaMetadata.Builder();
-        metadataBuilder.setIsBrowsable(false);
-        metadataBuilder.setIsPlayable(true);
-        if (msg.containsKey("title")) {
-            metadataBuilder.setTitle((String) msg.get("title"));
-        }
-        if (msg.containsKey("album")) {
-            metadataBuilder.setAlbumTitle((String) msg.get("album"));
-        }
-        if (msg.containsKey("artist")) {
-            metadataBuilder.setArtist((String) msg.get("artist"));
-        }
-        if (msg.containsKey("discNumber")) {
-            metadataBuilder.setDiscNumber(((Number)msg.get("discNumber")).intValue());
-        }
-        if (msg.containsKey("duration")) {
-            metadataBuilder.setDurationMs(((Number)msg.get("duration")).longValue());
-        }
-        if (msg.containsKey("genre")) {
-            metadataBuilder.setGenre((String)msg.get("genre"));
-        }
-        if (msg.containsKey("trackNumber")) {
-            metadataBuilder.setTrackNumber(((Number)msg.get("trackNumber")).intValue());
-        }
-        if (msg.containsKey("releaseYear")) {
-            metadataBuilder.setReleaseYear(((Number)msg.get("releaseYear")).intValue());
-        }
-        if (msg.containsKey("releaseMonth")) {
-            metadataBuilder.setReleaseMonth(((Number)msg.get("releaseMonth")).intValue());
-        }
-        if (msg.containsKey("releaseDay")) {
-            metadataBuilder.setReleaseDay(((Number)msg.get("releaseDay")).intValue());
-        }
-        if (msg.containsKey("coverBytes")) {
-            metadataBuilder.setArtworkData((byte[])msg.get("coverBytes"), PICTURE_TYPE_FRONT_COVER);
-        }
-
-        builder.setMediaMetadata(metadataBuilder.build());
     }
 
     private boolean canSeek(Uri uri) {

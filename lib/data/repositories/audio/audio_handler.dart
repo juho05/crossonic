@@ -20,6 +20,7 @@ import 'package:crossonic/data/repositories/settings/transcoding.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
 import 'package:crossonic/data/repositories/subsonic/subsonic_repository.dart';
 import 'package:crossonic/data/services/media_integration/media_integration.dart';
+import 'package:crossonic/data/services/methodchannel/method_channel_service.dart';
 import 'package:crossonic/utils/throttle.dart';
 import 'package:flutter/foundation.dart';
 import 'package:rxdart/rxdart.dart';
@@ -87,6 +88,7 @@ class AudioHandler {
   }
 
   AudioHandler({
+    required MethodChannelService methodChannel,
     required MediaIntegration integration,
     required CoverRepository coverRepository,
     required AuthRepository authRepository,
@@ -105,6 +107,7 @@ class AudioHandler {
        _keyValue = keyValueRepository {
     if (!kIsWeb && Platform.isAndroid) {
       _player = AudioPlayerAndroid(
+        methodChannel: methodChannel,
         settings: settingsRepository,
         coverRepository: coverRepository,
         downloader: songDownloader,

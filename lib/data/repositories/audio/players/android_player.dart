@@ -4,18 +4,16 @@ import 'package:crossonic/data/repositories/audio/players/player.dart';
 import 'package:crossonic/data/repositories/cover/cover_repository.dart';
 import 'package:crossonic/data/repositories/settings/settings_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
-import 'package:flutter/services.dart';
+import 'package:crossonic/data/services/methodchannel/android_mediaitem.dart';
+import 'package:crossonic/data/services/methodchannel/method_channel_service.dart';
 
 class AudioPlayerAndroid extends AudioPlayer {
-  static const _methodChannel = MethodChannel(
-    "org.crossonic.app.player.methods",
-  );
-  static const _eventChannel = EventChannel("org.crossonic.app.player.events");
-
   final CoverRepository _coverRepo;
   final SettingsRepository _settings;
+  final MethodChannelService _methodChannel;
 
   AudioPlayerAndroid({
+    required MethodChannelService methodChannel,
     required CoverRepository coverRepository,
     required SettingsRepository settings,
     required super.downloader,
@@ -25,7 +23,8 @@ class AudioPlayerAndroid extends AudioPlayer {
     required super.playNextHandler,
     required super.playPrevHandler,
     required super.restartPlayback,
-  }) : _coverRepo = coverRepository,
+  }) : _methodChannel = methodChannel,
+       _coverRepo = coverRepository,
        _settings = settings;
 
   @override
@@ -41,7 +40,7 @@ class AudioPlayerAndroid extends AudioPlayer {
   Future<double> get volume async =>
       await _methodChannel.invokeMethod("getVolume");
 
-  StreamSubscription? _eventStreamSub;
+  DateTime? _initTime;
   @override
   Future<void> init({
     required Uri streamUri,
@@ -51,7 +50,7 @@ class AudioPlayerAndroid extends AudioPlayer {
     int? maxBitRate,
     String? format,
   }) async {
-    DateTime initTime = DateTime.now();
+    _initTime = DateTime.now();
     await super.init(
       streamUri: streamUri,
       coverUri: coverUri,
@@ -61,35 +60,34 @@ class AudioPlayerAndroid extends AudioPlayer {
       format: format,
     );
     _settings.workarounds.addListener(_onWorkaroundsChanged);
-    _eventStreamSub = _eventChannel.receiveBroadcastStream().listen((
-      event,
-    ) async {
-      final eventObj = event as Map<Object?, dynamic>;
-      final data = eventObj["data"] as Map<Object?, dynamic>?;
-      switch (eventObj["event"]) {
-        case "playNext":
-          await playNextHandler();
-        case "playPrev":
-          await playPrevHandler();
-        case "setLoop":
-          await setLoopHandler(data!["loop"]);
-        case "advance":
-          eventStream.add(AudioPlayerEvent.advance);
-        case "state":
-          eventStream.add(switch (data!["state"] as String) {
-            "playing" => AudioPlayerEvent.playing,
-            "paused" => AudioPlayerEvent.paused,
-            "loading" => AudioPlayerEvent.loading,
-            _ => AudioPlayerEvent.stopped,
-          });
-        case "playerCreated":
-          if (DateTime.now().difference(initTime) >
-              const Duration(seconds: 1)) {
-            // the native player was recreated
-            await restartPlayback?.call();
-          }
-      }
-    });
+    _methodChannel.addEventListener(_onEvent);
+  }
+
+  Future<void> _onEvent(String event, Map<Object?, dynamic>? data) async {
+    switch (event) {
+      case "playNext":
+        await playNextHandler();
+      case "playPrev":
+        await playPrevHandler();
+      case "setLoop":
+        await setLoopHandler(data!["loop"]);
+      case "advance":
+        eventStream.add(AudioPlayerEvent.advance);
+      case "state":
+        eventStream.add(switch (data!["state"] as String) {
+          "playing" => AudioPlayerEvent.playing,
+          "paused" => AudioPlayerEvent.paused,
+          "loading" => AudioPlayerEvent.loading,
+          _ => AudioPlayerEvent.stopped,
+        });
+      case "playerCreated":
+        if (_initTime != null &&
+            DateTime.now().difference(_initTime!) >
+                const Duration(seconds: 1)) {
+          // the native player was recreated
+          await restartPlayback?.call();
+        }
+    }
   }
 
   Future<void> _onWorkaroundsChanged() async {
@@ -175,8 +173,8 @@ class AudioPlayerAndroid extends AudioPlayer {
   @override
   Future<void> dispose() async {
     _settings.workarounds.removeListener(_onWorkaroundsChanged);
+    _methodChannel.removeEventListener(_onEvent);
     await _methodChannel.invokeMethod("dispose");
-    await _eventStreamSub?.cancel();
     await super.dispose();
   }
 
@@ -200,21 +198,23 @@ class AudioPlayerAndroid extends AudioPlayer {
             },
           );
     }
-    return {
-      "id": s.id,
-      "title": s.title,
-      if (s.album != null) "album": s.album!.name,
-      "artist": s.displayArtist,
-      if (s.discNr != null) "discNumber": s.discNr,
-      if (s.duration != null) "duration": s.duration!.inMilliseconds,
-      if (s.genres.isNotEmpty) "genre": s.genres.first,
-      if (s.trackNr != null) "trackNumber": s.trackNr,
-      if (s.releaseDate?.year != null) "releaseYear": s.releaseDate!.year,
-      if (s.releaseDate?.month != null) "releaseMonth": s.releaseDate!.month,
-      if (s.releaseDate?.day != null) "releaseDay": s.releaseDate!.day,
-      if (coverFile != null) "coverBytes": await coverFile.file.readAsBytes(),
+    return AndroidMediaItem(
+      id: s.id,
+      browsable: false,
+      playable: true,
+      title: s.title,
+      album: s.album?.name,
+      artist: s.displayArtist,
+      discNumber: s.discNr,
+      durationMs: s.duration?.inMilliseconds,
+      genre: s.genres.firstOrNull,
+      trackNumber: s.trackNr,
+      releaseYear: s.releaseDate?.year,
+      releaseMonth: s.releaseDate?.month,
+      releaseDay: s.releaseDate?.day,
+      artworkData: await coverFile?.file.readAsBytes(),
       // time offset is handled in android
-      "uri": constructStreamUri(s).toString(),
-    };
+      uri: constructStreamUri(s).toString(),
+    ).toMsgData();
   }
 }

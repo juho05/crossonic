@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:background_downloader/background_downloader.dart' as bd;
+import 'package:crossonic/data/repositories/androidauto/androidauto_repository.dart';
 import 'package:crossonic/data/repositories/appimage/appimage_repository.dart';
 import 'package:crossonic/data/repositories/audio/audio_handler.dart' as ah;
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
@@ -24,6 +25,7 @@ import 'package:crossonic/data/services/database/database.dart';
 import 'package:crossonic/data/services/github/github.dart';
 import 'package:crossonic/data/services/media_integration/media_integration.dart';
 import 'package:crossonic/data/services/media_integration/noop_integration.dart';
+import 'package:crossonic/data/services/methodchannel/method_channel_service.dart';
 import 'package:crossonic/data/services/opensubsonic/subsonic_service.dart';
 import 'package:crossonic/integrate_appimage_viewmodel.dart';
 import 'package:crossonic/version_checker_viewmodel.dart';
@@ -33,6 +35,7 @@ import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
 
 Future<List<SingleChildWidget>> createProviders({
+  required MethodChannelService methodChannelService,
   required LogRepository logRepository,
 }) async {
   final database = Database();
@@ -154,11 +157,20 @@ Future<List<SingleChildWidget>> createProviders({
   }
 
   return [
+    Provider.value(value: methodChannelService),
     Provider.value(value: logRepository),
     ChangeNotifierProvider(
       create: (context) => ThemeManager(
         keyValue: keyValueRepository,
         appearanceSettings: settings.appearanceSettings,
+      ),
+      lazy: false,
+    ),
+    Provider(
+      create: (context) => AndroidAutoRepository(
+        methodChannel: methodChannelService,
+        subsonicRepo: subsonicRepository,
+        playlistRepo: playlistRepository,
       ),
       lazy: false,
     ),
@@ -178,6 +190,7 @@ Future<List<SingleChildWidget>> createProviders({
     Provider.value(value: coverRepository),
     Provider(
       create: (context) => ah.AudioHandler(
+        methodChannel: methodChannelService,
         coverRepository: coverRepository,
         integration: mediaIntegration,
         authRepository: context.read(),

@@ -86,12 +86,8 @@ flutter {
 dependencies {
     def media3_version = "1.9.0"
 
-    // for media playback using ExoPlayer
     implementation "androidx.media3:media3-exoplayer:$media3_version"
-
-    // for exposing and controlling media sessions
     implementation "androidx.media3:media3-session:$media3_version"
-
-    // common functionality used across multiple media libraries
     implementation "androidx.media3:media3-common:$media3_version"
+    implementation "androidx.concurrent:concurrent-futures:1.3.0"
 }
