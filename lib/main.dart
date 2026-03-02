@@ -159,7 +159,6 @@ class MainApp extends StatelessWidget {
                 colorScheme: ColorScheme.fromSeed(
                   seedColor: lightPrimary,
                   brightness: Brightness.light,
-                  dynamicSchemeVariant: DynamicSchemeVariant.fidelity,
                 ),
               ),
               darkTheme: ThemeData(
@@ -167,7 +166,6 @@ class MainApp extends StatelessWidget {
                 colorScheme: ColorScheme.fromSeed(
                   seedColor: darkPrimary,
                   brightness: Brightness.dark,
-                  dynamicSchemeVariant: DynamicSchemeVariant.fidelity,
                 ),
               ),
               themeMode: themeManager.themeMode,
