@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:crossonic/data/repositories/audio/audio_handler.dart';
 import 'package:crossonic/data/repositories/cover/cover_repository.dart';
 import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/data/repositories/playlist/playlist_repository.dart';
@@ -15,19 +16,51 @@ class AndroidAutoRepository {
   final SubsonicRepository _subsonicRepo;
   final PlaylistRepository _playlistRepo;
   final CoverRepository _coverRepository;
+  final AudioHandler _audioHandler;
 
   AndroidAutoRepository({
     required MethodChannelService methodChannel,
     required SubsonicRepository subsonicRepo,
     required PlaylistRepository playlistRepo,
     required CoverRepository coverRepository,
+    required AudioHandler audioHandler,
   }) : _subsonicRepo = subsonicRepo,
        _playlistRepo = playlistRepo,
        _methodChannel = methodChannel,
-       _coverRepository = coverRepository {
+       _coverRepository = coverRepository,
+       _audioHandler = audioHandler {
     if (kIsWeb || !Platform.isAndroid) return;
     _methodChannel.handleMethodCall("onGetChildren", _onGetChildren);
     _methodChannel.handleMethodCall("getCoverFile", _getCoverFile);
+    _methodChannel.handleMethodCall("setMediaItem", _setMediaItem);
+  }
+
+  Future<void> _setMediaItem(Map<Object?, dynamic>? args) async {
+    if (args == null) return;
+    final id = args["id"]! as String;
+    final posMs = args["startPositionMs"] as int?;
+
+    if (id.startsWith("crossonic_playlist:")) {
+      final pId = id.substring("crossonic_playlist:".length);
+      final result = await _playlistRepo.getPlaylist(pId);
+      switch (result) {
+        case Err():
+          Log.error(
+            "Failed to get playlist for Android Auto play request",
+            e: result.error,
+          );
+          return;
+        case Ok():
+      }
+      final songs = result.value?.tracks ?? [];
+      if (songs.isEmpty) return;
+      songs.shuffle();
+      _audioHandler.playOnNextMediaChange();
+      _audioHandler.queue.replace(songs);
+      return;
+    }
+
+    return;
   }
 
   Future<String?> _getCoverFile(String? coverId) async {
@@ -59,6 +92,7 @@ class AndroidAutoRepository {
             title: "Playlists",
             playable: false,
             browsable: true,
+            contentStyle: AndroidLibraryContentStyle.grid,
           ),
         ],
       ).toMsgData();

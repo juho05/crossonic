@@ -32,8 +32,6 @@ class AndroidLibraryResult {
   }
 }
 
-enum AndroidLibraryContentStyle { list, grid }
-
 class AndroidLibraryParams {
   final bool isOffline;
   final bool isRecent;

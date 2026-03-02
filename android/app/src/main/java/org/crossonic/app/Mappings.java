@@ -63,6 +63,7 @@ public class Mappings {
                 .setSuggested((boolean)params.get("isSuggested")).build();
     }
 
+    @OptIn(markerClass = UnstableApi.class)
     public static void buildMediaItemFromMsg(MediaItem.Builder builder, Map<Object, Object> msg) {
         final String id = (String)msg.get("id");
         assert id != null;
@@ -115,6 +116,20 @@ public class Mappings {
         }
         if (msg.containsKey("artworkContentUri")) {
             metadataBuilder.setArtworkUri(Uri.parse((String)msg.get("artworkContentUri")));
+        }
+        if (msg.containsKey("contentStyle")) {
+            final var extras = new Bundle();
+            switch ((String)msg.get("contentStyle")) {
+                case "list":
+                    extras.putInt(MediaConstants.EXTRAS_KEY_CONTENT_STYLE_PLAYABLE, MediaConstants.EXTRAS_VALUE_CONTENT_STYLE_LIST_ITEM);
+                    extras.putInt(MediaConstants.EXTRAS_KEY_CONTENT_STYLE_BROWSABLE, MediaConstants.EXTRAS_VALUE_CONTENT_STYLE_LIST_ITEM);
+                    break;
+                case "grid":
+                    extras.putInt(MediaConstants.EXTRAS_KEY_CONTENT_STYLE_PLAYABLE, MediaConstants.EXTRAS_VALUE_CONTENT_STYLE_GRID_ITEM);
+                    extras.putInt(MediaConstants.EXTRAS_KEY_CONTENT_STYLE_BROWSABLE, MediaConstants.EXTRAS_VALUE_CONTENT_STYLE_GRID_ITEM);
+                    break;
+            }
+            metadataBuilder.setExtras(extras);
         }
 
         builder.setMediaMetadata(metadataBuilder.build());

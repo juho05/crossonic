@@ -166,15 +166,6 @@ Future<List<SingleChildWidget>> createProviders({
       ),
       lazy: false,
     ),
-    Provider(
-      create: (context) => AndroidAutoRepository(
-        methodChannel: methodChannelService,
-        subsonicRepo: subsonicRepository,
-        playlistRepo: playlistRepository,
-        coverRepository: coverRepository,
-      ),
-      lazy: false,
-    ),
     Provider.value(value: database),
     Provider.value(value: keyValueRepository),
     Provider(create: (context) => GitHubService()),
@@ -210,6 +201,16 @@ Future<List<SingleChildWidget>> createProviders({
         subsonicService: context.read(),
       ),
       dispose: (context, value) => value.dispose(),
+      lazy: false,
+    ),
+    Provider(
+      create: (context) => AndroidAutoRepository(
+        methodChannel: methodChannelService,
+        subsonicRepo: subsonicRepository,
+        playlistRepo: playlistRepository,
+        coverRepository: coverRepository,
+        audioHandler: context.read(),
+      ),
       lazy: false,
     ),
     ChangeNotifierProvider.value(value: playlistRepository),

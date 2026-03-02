@@ -17,6 +17,7 @@ import io.flutter.plugin.common.MethodChannel;
 import org.jspecify.annotations.NonNull;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
@@ -35,7 +36,7 @@ public class PlaybackService extends MediaLibraryService {
 
         final Player player = new CrossonicPlayer(this);
 
-        Intent intent = MainActivity.withCachedEngine(FlutterIntegration.ENGINE_ID).build(this);
+        Intent intent = new Intent(this, MainActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
         callback = new SessionCallback();
@@ -63,7 +64,17 @@ public class PlaybackService extends MediaLibraryService {
         public @NonNull ListenableFuture<LibraryResult<MediaItem>> onGetLibraryRoot(@NonNull MediaLibrarySession session, MediaSession.@NonNull ControllerInfo browser, @Nullable MediaLibraryService.LibraryParams params) {
             final var metadata = new MediaMetadata.Builder().setIsPlayable(false).setIsBrowsable(true).build();
             final var item = new MediaItem.Builder().setMediaId("crossonic_root").setMediaMetadata(metadata).build();
-            return Futures.immediateFuture(LibraryResult.ofItem(item, params));
+
+            final var extras = new Bundle();
+            // TODO change when supported
+            extras.putBoolean("android.media.browse.SEARCH_SUPPORTED", false);
+
+            extras.putBoolean("android.media.browse.CONTENT_STYLE_SUPPORTED", true);
+            extras.putInt(MediaConstants.EXTRAS_KEY_CONTENT_STYLE_BROWSABLE, MediaConstants.EXTRAS_VALUE_CONTENT_STYLE_LIST_ITEM);
+            extras.putInt(MediaConstants.EXTRAS_KEY_CONTENT_STYLE_PLAYABLE, MediaConstants.EXTRAS_VALUE_CONTENT_STYLE_LIST_ITEM);
+
+            final var libraryParams = new LibraryParams.Builder().setOffline(params != null && params.isOffline).setExtras(extras).build();
+            return Futures.immediateFuture(LibraryResult.ofItem(item, libraryParams));
         }
 
         @OptIn(markerClass = UnstableApi.class)
@@ -81,8 +92,8 @@ public class PlaybackService extends MediaLibraryService {
         }
 
         @Override
-        public @NonNull ListenableFuture<LibraryResult<MediaItem>> onGetItem(@NonNull MediaLibrarySession session, MediaSession.@NonNull ControllerInfo browser, @NonNull String mediaId) {
-            return MediaLibrarySession.Callback.super.onGetItem(session, browser, mediaId);
+        public ListenableFuture<List<MediaItem>> onAddMediaItems(MediaSession mediaSession, MediaSession.ControllerInfo controller, List<MediaItem> mediaItems) {
+            return Futures.immediateFuture(mediaItems);
         }
 
         @OptIn(markerClass = UnstableApi.class)

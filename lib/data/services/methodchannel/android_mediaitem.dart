@@ -1,5 +1,7 @@
 import 'dart:typed_data';
 
+enum AndroidLibraryContentStyle { list, grid }
+
 class AndroidMediaItem {
   final String id;
   final bool browsable;
@@ -18,6 +20,7 @@ class AndroidMediaItem {
   final int? releaseDay;
   final Uint8List? artworkData;
   final Uri? artworkContentUri;
+  final AndroidLibraryContentStyle? contentStyle;
 
   AndroidMediaItem({
     required this.id,
@@ -36,6 +39,7 @@ class AndroidMediaItem {
     this.releaseDay,
     this.artworkData,
     this.artworkContentUri,
+    this.contentStyle,
   });
 
   Map<String, dynamic> toMsgData() {
@@ -57,6 +61,7 @@ class AndroidMediaItem {
       if (artworkData != null) "artworkData": artworkData,
       if (artworkContentUri != null)
         "artworkContentUri": artworkContentUri.toString(),
+      if (contentStyle != null) "contentStyle": contentStyle!.name,
     };
   }
 }

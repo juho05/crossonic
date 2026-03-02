@@ -89,7 +89,7 @@ public class FlutterIntegration {
 
                     @Override
                     public void error(@NonNull @org.jspecify.annotations.NonNull String errorCode, @Nullable @org.jspecify.annotations.Nullable String errorMessage, @Nullable @org.jspecify.annotations.Nullable Object errorDetails) {
-                        Log.e("ANDROIDAUTO", "invoke method error");
+                        Log.e("ANDROIDAUTO", "invoke method error: " + errorMessage);
                         completer.setException(new Exception(errorMessage));
                     }
 

@@ -370,88 +370,77 @@ public class CrossonicPlayer implements Player {
 
     @Override
     public void setMediaItems(@NonNull List<MediaItem> mediaItems) {
-        // TODO handle somehow
+        if (mediaItems.isEmpty()) return;
+
+        // TODO properly implement this method
+        setMediaItem(mediaItems.get(0));
     }
 
     @Override
     public void setMediaItems(@NonNull List<MediaItem> mediaItems, boolean resetPosition) {
-        // TODO handle somehow
+        setMediaItems(mediaItems);
     }
 
     @Override
     public void setMediaItems(@NonNull List<MediaItem> mediaItems, int startIndex, long startPositionMs) {
-        // TODO handle somehow
+        // TODO properly implement this method
+        setMediaItem(mediaItems.get(startIndex), startPositionMs);
     }
 
     @Override
     public void setMediaItem(@NonNull MediaItem mediaItem) {
-        // TODO handle somehow
+        final Map<String, Object> args = new HashMap<>();
+        args.put("id", mediaItem.mediaId);
+        FlutterIntegration.invokeMethod("setMediaItem", args);
     }
 
     @Override
     public void setMediaItem(@NonNull MediaItem mediaItem, long startPositionMs) {
-        // TODO handle somehow
+        final Map<String, Object> args = new HashMap<>();
+        args.put("id", mediaItem.mediaId);
+        if (startPositionMs != C.TIME_UNSET) {
+            args.put("startPositionMs", startPositionMs);
+        }
+        FlutterIntegration.invokeMethod("setMediaItem", args);
     }
 
     @Override
     public void setMediaItem(@NonNull MediaItem mediaItem, boolean resetPosition) {
-        // TODO handle somehow
+        setMediaItem(mediaItem);
     }
 
     @Override
-    public void addMediaItem(@NonNull MediaItem mediaItem) {
-        // TODO handle somehow
-    }
+    public void addMediaItem(@NonNull MediaItem mediaItem) {}
 
     @Override
-    public void addMediaItem(int index, @NonNull MediaItem mediaItem) {
-        // TODO handle somehow
-    }
+    public void addMediaItem(int index, @NonNull MediaItem mediaItem) {}
 
     @Override
-    public void addMediaItems(@NonNull List<MediaItem> mediaItems) {
-        // TODO handle somehow
-    }
+    public void addMediaItems(@NonNull List<MediaItem> mediaItems) {}
 
     @Override
-    public void addMediaItems(int index, @NonNull List<MediaItem> mediaItems) {
-        // TODO handle somehow
-    }
+    public void addMediaItems(int index, @NonNull List<MediaItem> mediaItems) {}
 
     @Override
-    public void moveMediaItem(int currentIndex, int newIndex) {
-        player.moveMediaItem(currentIndex, newIndex);
-    }
+    public void moveMediaItem(int currentIndex, int newIndex) {}
 
     @Override
-    public void moveMediaItems(int fromIndex, int toIndex, int newIndex) {
-        player.moveMediaItems(fromIndex, toIndex, newIndex);
-    }
+    public void moveMediaItems(int fromIndex, int toIndex, int newIndex) {}
 
     @Override
-    public void replaceMediaItem(int index, @NonNull MediaItem mediaItem) {
-        // TODO handle somehow
-    }
+    public void replaceMediaItem(int index, @NonNull MediaItem mediaItem) {}
 
     @Override
-    public void replaceMediaItems(int fromIndex, int toIndex, @NonNull List<MediaItem> mediaItems) {
-        // TODO handle somehow
-    }
+    public void replaceMediaItems(int fromIndex, int toIndex, @NonNull List<MediaItem> mediaItems) {}
 
     @Override
-    public void removeMediaItem(int index) {
-        player.removeMediaItem(index);
-    }
+    public void removeMediaItem(int index) {}
 
     @Override
-    public void removeMediaItems(int fromIndex, int toIndex) {
-        player.removeMediaItems(fromIndex, toIndex);
-    }
+    public void removeMediaItems(int fromIndex, int toIndex) {}
 
     @Override
-    public void clearMediaItems() {
-        player.clearMediaItems();
-    }
+    public void clearMediaItems() {}
 
     @Override
     public boolean isCommandAvailable(int command) {
@@ -1259,6 +1248,8 @@ public class CrossonicPlayer implements Player {
             COMMAND_ADJUST_DEVICE_VOLUME,
             COMMAND_ADJUST_DEVICE_VOLUME_WITH_FLAGS,
             COMMAND_SET_AUDIO_ATTRIBUTES,
-            COMMAND_RELEASE
+            COMMAND_RELEASE,
+            COMMAND_SET_MEDIA_ITEM,
+            COMMAND_CHANGE_MEDIA_ITEMS
     ).build();
 }

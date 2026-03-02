@@ -11,12 +11,8 @@ import androidx.annotation.Nullable;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 public class AlbumArtContentProvider extends ContentProvider {
     @Override
