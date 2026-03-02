@@ -69,6 +69,7 @@ class _ArtistsPageState extends State<ArtistsPage> {
                               requestFocusOnTap: false,
                               leadingIcon: const Icon(Icons.sort),
                               width: isDesktop ? 210 : null,
+                              label: const Text("Sort/Filter"),
                               expandedInsets: !isDesktop
                                   ? EdgeInsets.zero
                                   : null,

@@ -47,7 +47,7 @@ class _GenresPageState extends State<GenresPage> {
             onRefresh: () => _viewModel.load(),
             slivers: [
               SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                padding: const EdgeInsets.all(8),
                 sliver: SliverToBoxAdapter(
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -57,6 +57,7 @@ class _GenresPageState extends State<GenresPage> {
                         leadingIcon: const Icon(Icons.sort),
                         width: 240,
                         requestFocusOnTap: false,
+                        label: const Text("Sort"),
                         enableSearch: false,
                         dropdownMenuEntries: [
                           const DropdownMenuEntry(

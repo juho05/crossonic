@@ -81,6 +81,7 @@ class _AlbumsPageState extends State<AlbumsPage> {
                                     initialSelection: _viewModel.mode,
                                     requestFocusOnTap: false,
                                     leadingIcon: const Icon(Icons.sort),
+                                    label: const Text("Sort/Filter"),
                                     width: isDesktop ? 240 : null,
                                     expandedInsets: !isDesktop
                                         ? EdgeInsets.zero

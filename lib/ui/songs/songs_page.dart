@@ -119,6 +119,7 @@ class _SongsPageState extends State<SongsPage> {
                                   initialSelection: _viewModel.mode,
                                   requestFocusOnTap: false,
                                   leadingIcon: const Icon(Icons.sort),
+                                  label: const Text("Sort/Filter"),
                                   enableSearch: false,
                                   width: isDesktop ? 190 : null,
                                   expandedInsets: !isDesktop

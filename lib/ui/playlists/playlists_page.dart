@@ -43,24 +43,25 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
   @override
   Widget build(BuildContext context) {
     bool? wasDesktop;
-    return LayoutModeBuilder(builder: (context, isDesktop) {
-      if (wasDesktop != null && wasDesktop != isDesktop) {
-        if (_viewModel.searchTerm.isNotEmpty || _viewModel.offline) {
-          _viewModel.showFilters = true;
+    return LayoutModeBuilder(
+      builder: (context, isDesktop) {
+        if (wasDesktop != null && wasDesktop != isDesktop) {
+          if (_viewModel.searchTerm.isNotEmpty || _viewModel.offline) {
+            _viewModel.showFilters = true;
+          }
         }
-      }
-      wasDesktop = isDesktop;
-      return Scaffold(
-        floatingActionButton: !isDesktop
-            ? FloatingActionButton(
-                onPressed: () {
-                  context.router.push(CreatePlaylistRoute());
-                },
-                tooltip: "Create Playlist",
-                child: const Icon(Icons.add),
-              )
-            : null,
-        body: ListenableBuilder(
+        wasDesktop = isDesktop;
+        return Scaffold(
+          floatingActionButton: !isDesktop
+              ? FloatingActionButton(
+                  onPressed: () {
+                    context.router.push(CreatePlaylistRoute());
+                  },
+                  tooltip: "Create Playlist",
+                  child: const Icon(Icons.add),
+                )
+              : null,
+          body: ListenableBuilder(
             listenable: _viewModel,
             builder: (context, _) {
               final dropdown = DropdownMenu<PlaylistsSort>(
@@ -70,6 +71,7 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
                 width: isDesktop ? 210 : null,
                 expandedInsets: !isDesktop ? EdgeInsets.zero : null,
                 enableSearch: false,
+                label: const Text("Sort"),
                 dropdownMenuEntries: [
                   const DropdownMenuEntry(
                     value: PlaylistsSort.updated,
@@ -124,10 +126,11 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
                                           children: [
                                             const Icon(Icons.sort),
                                             Icon(
-                                                _viewModel.sortAscending
-                                                    ? Icons.arrow_downward
-                                                    : Icons.arrow_upward,
-                                                size: 20),
+                                              _viewModel.sortAscending
+                                                  ? Icons.arrow_downward
+                                                  : Icons.arrow_upward,
+                                              size: 20,
+                                            ),
                                           ],
                                         ),
                                         onPressed: () {
@@ -140,18 +143,20 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
                                 Flexible(
                                   fit: FlexFit.loose,
                                   child: Container(
-                                    constraints:
-                                        const BoxConstraints(maxWidth: 400),
+                                    constraints: const BoxConstraints(
+                                      maxWidth: 400,
+                                    ),
                                     child: Row(
                                       spacing: 8,
                                       children: [
                                         if (!kIsWeb)
                                           IconButton(
                                             icon: Icon(
-                                                _viewModel.offline
-                                                    ? Icons.wifi_off
-                                                    : Icons.wifi,
-                                                size: 20),
+                                              _viewModel.offline
+                                                  ? Icons.wifi_off
+                                                  : Icons.wifi,
+                                              size: 20,
+                                            ),
                                             onPressed: () {
                                               _viewModel.offline =
                                                   !_viewModel.offline;
@@ -168,8 +173,9 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
                                         Button(
                                           icon: Icons.add,
                                           onPressed: () {
-                                            context.router
-                                                .push(CreatePlaylistRoute());
+                                            context.router.push(
+                                              CreatePlaylistRoute(),
+                                            );
                                           },
                                           outlined: true,
                                           child: const Text("Create"),
@@ -193,10 +199,11 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
                                           children: [
                                             const Icon(Icons.sort),
                                             Icon(
-                                                _viewModel.sortAscending
-                                                    ? Icons.arrow_downward
-                                                    : Icons.arrow_upward,
-                                                size: 20),
+                                              _viewModel.sortAscending
+                                                  ? Icons.arrow_downward
+                                                  : Icons.arrow_upward,
+                                              size: 20,
+                                            ),
                                           ],
                                         ),
                                         onPressed: () {
@@ -217,7 +224,7 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
                                         _viewModel.showFilters =
                                             !_viewModel.showFilters;
                                       },
-                                    )
+                                    ),
                                   ],
                                 ),
                                 if (_viewModel.showFilters)
@@ -236,17 +243,18 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
                                       if (!kIsWeb)
                                         IconButton(
                                           icon: Icon(
-                                              _viewModel.offline
-                                                  ? Icons.wifi_off
-                                                  : Icons.wifi,
-                                              size: 20),
+                                            _viewModel.offline
+                                                ? Icons.wifi_off
+                                                : Icons.wifi,
+                                            size: 20,
+                                          ),
                                           onPressed: () {
                                             _viewModel.offline =
                                                 !_viewModel.offline;
                                           },
                                         ),
                                     ],
-                                  )
+                                  ),
                               ],
                             ),
                     ),
@@ -254,93 +262,112 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
                   if (playlists.isEmpty)
                     const SliverPadding(
                       padding: EdgeInsets.only(top: 8, left: 8),
-                      sliver:
-                          SliverToBoxAdapter(child: Text("No playlists found")),
+                      sliver: SliverToBoxAdapter(
+                        child: Text("No playlists found"),
+                      ),
                     ),
                   SliverPadding(
                     padding: const EdgeInsetsGeometry.all(4),
                     sliver: SliverGrid(
                       gridDelegate: AlbumsGridDelegate(),
-                      delegate: SliverChildBuilderDelegate(
-                        (context, index) {
-                          if (index >= playlists.length) {
-                            return null;
-                          }
-                          final playlist = playlists[index];
-                          final p = playlists[index].$1;
-                          return PlaylistGridCell(
-                            id: p.id,
-                            extraInfo: [
-                              "Songs: ${p.songCount}",
-                            ],
-                            coverId: p.coverId,
-                            name: p.name,
-                            download: p.download,
-                            downloadStatus: playlist.$2,
-                            onTap: () {
-                              context.router
-                                  .push(PlaylistRoute(playlistId: p.id));
-                            },
-                            onPlay: () async {
-                              final result = await _viewModel.play(p);
-                              if (!context.mounted) return;
-                              toastResult(context, result);
-                            },
-                            onShuffle: () async {
-                              final result =
-                                  await _viewModel.play(p, shuffle: true);
-                              if (!context.mounted) return;
-                              toastResult(context, result);
-                            },
-                            onAddToQueue: (priority) async {
-                              final result =
-                                  await _viewModel.addToQueue(p, priority);
-                              if (!context.mounted) return;
-                              toastResult(context, result,
-                                  successMsg:
-                                      "Added '${p.name}' to ${priority ? "priority " : ""}queue");
-                            },
-                            onAddToPlaylist: () {
-                              AddToPlaylistDialog.show(context, p.name,
-                                  () => _viewModel.getTracks(p.id));
-                            },
-                            onDelete: () async {
-                              final confirmed =
-                                  await ConfirmationDialog.showYesNo(context,
-                                      message: "Delete '${p.name}'?");
-                              if (!(confirmed ?? false) || !context.mounted) {
-                                return;
-                              }
-                              final result = await _viewModel.delete(p);
-                              if (!context.mounted) return;
-                              toastResult(context, result,
-                                  successMsg: "Deleted playlist '${p.name}'!");
-                            },
-                            onToggleDownload: () async {
-                              if (p.download) {
-                                final confirmation =
-                                    await ConfirmationDialog.showYesNo(context,
-                                        message:
-                                            "You won't be able to play this playlist offline anymore.");
-                                if (!(confirmation ?? false)) return;
-                              }
-                              final result = await _viewModel.toggleDownload(p);
-                              if (!context.mounted) return;
-                              toastResult(context, result,
-                                  successMsg: !p.download
-                                      ? "Scheduling downloads…"
-                                      : null);
-                            },
-                          );
-                        },
-                        childCount: playlists.length,
-                      ),
+                      delegate: SliverChildBuilderDelegate((context, index) {
+                        if (index >= playlists.length) {
+                          return null;
+                        }
+                        final playlist = playlists[index];
+                        final p = playlists[index].$1;
+                        return PlaylistGridCell(
+                          id: p.id,
+                          extraInfo: ["Songs: ${p.songCount}"],
+                          coverId: p.coverId,
+                          name: p.name,
+                          download: p.download,
+                          downloadStatus: playlist.$2,
+                          onTap: () {
+                            context.router.push(
+                              PlaylistRoute(playlistId: p.id),
+                            );
+                          },
+                          onPlay: () async {
+                            final result = await _viewModel.play(p);
+                            if (!context.mounted) return;
+                            toastResult(context, result);
+                          },
+                          onShuffle: () async {
+                            final result = await _viewModel.play(
+                              p,
+                              shuffle: true,
+                            );
+                            if (!context.mounted) return;
+                            toastResult(context, result);
+                          },
+                          onAddToQueue: (priority) async {
+                            final result = await _viewModel.addToQueue(
+                              p,
+                              priority,
+                            );
+                            if (!context.mounted) return;
+                            toastResult(
+                              context,
+                              result,
+                              successMsg:
+                                  "Added '${p.name}' to ${priority ? "priority " : ""}queue",
+                            );
+                          },
+                          onAddToPlaylist: () {
+                            AddToPlaylistDialog.show(
+                              context,
+                              p.name,
+                              () => _viewModel.getTracks(p.id),
+                            );
+                          },
+                          onDelete: () async {
+                            final confirmed =
+                                await ConfirmationDialog.showYesNo(
+                                  context,
+                                  message: "Delete '${p.name}'?",
+                                );
+                            if (!(confirmed ?? false) || !context.mounted) {
+                              return;
+                            }
+                            final result = await _viewModel.delete(p);
+                            if (!context.mounted) return;
+                            toastResult(
+                              context,
+                              result,
+                              successMsg: "Deleted playlist '${p.name}'!",
+                            );
+                          },
+                          onToggleDownload: () async {
+                            if (p.download) {
+                              final confirmation =
+                                  await ConfirmationDialog.showYesNo(
+                                    context,
+                                    message:
+                                        "You won't be able to play this playlist offline anymore.",
+                                  );
+                              if (!(confirmation ?? false)) return;
+                            }
+                            final result = await _viewModel.toggleDownload(p);
+                            if (!context.mounted) return;
+                            toastResult(
+                              context,
+                              result,
+                              successMsg: !p.download
+                                  ? "Scheduling downloads…"
+                                  : null,
+                            );
+                          },
+                        );
+                      }, childCount: playlists.length),
                     ),
                   ),
                 ],
               );
-            }),
-      );
-    });
+            },
+          ),
+        );
+      },
+    );
   }
 }
