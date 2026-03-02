@@ -199,16 +199,17 @@ Future<List<SingleChildWidget>> createProviders({
       dispose: (context, value) => value.dispose(),
       lazy: false,
     ),
-    Provider(
-      create: (context) => AndroidAutoRepository(
-        methodChannel: methodChannelService,
-        subsonicRepo: subsonicRepository,
-        playlistRepo: playlistRepository,
-        coverRepository: coverRepository,
-        audioHandler: context.read(),
+    if (!kIsWeb && Platform.isAndroid)
+      Provider(
+        create: (context) => AndroidAutoRepository(
+          methodChannel: methodChannelService,
+          subsonicRepo: subsonicRepository,
+          playlistRepo: playlistRepository,
+          coverRepository: coverRepository,
+          audioHandler: context.read(),
+        ),
+        lazy: false,
       ),
-      lazy: false,
-    ),
     ChangeNotifierProvider.value(value: playlistRepository),
     ChangeNotifierProvider(
       create: (context) => VersionCheckerViewModel(

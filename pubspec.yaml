@@ -49,7 +49,6 @@ dependencies:
   flutter_svg: ^2.0.17
   url_launcher: ^6.3.1
   linkfy_text: ^1.1.6
-  file_picker: ^10.3.2
   package_info_plus: ^9.0.0
   dbus: ^0.7.11
   dbus_secrets: ^0.0.2
@@ -70,6 +69,8 @@ dependencies:
   media_kit: ^1.2.6
   media_kit_libs_audio: ^1.0.7
   dynamic_color: ^1.8.1
+  file_selector: ^1.1.0
+  file_picker: ^10.3.10
 
 dependency_overrides:
   flutter_secure_storage_darwin:

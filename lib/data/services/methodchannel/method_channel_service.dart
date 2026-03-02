@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 typedef EventCallback =
@@ -18,6 +20,7 @@ class MethodChannelService {
       {};
 
   MethodChannelService() {
+    if (kIsWeb || !Platform.isAndroid) return;
     _methodChannel.setMethodCallHandler((call) async {
       if (!_methodCallbacks.containsKey(call.method)) {
         _unhandledCalls.putIfAbsent(call.method, () => []);

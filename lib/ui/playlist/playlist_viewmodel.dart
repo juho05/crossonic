@@ -10,7 +10,7 @@ import 'package:crossonic/data/repositories/subsonic/models/song.dart';
 import 'package:crossonic/utils/exceptions.dart';
 import 'package:crossonic/utils/result.dart';
 import 'package:crossonic/utils/throttle.dart';
-import 'package:file_picker/file_picker.dart';
+import 'package:file_selector/file_selector.dart';
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart' as path;
@@ -55,10 +55,10 @@ class PlaylistViewModel extends ChangeNotifier {
     required AudioHandler audioHandler,
     required SongDownloader songDownloader,
     required String playlistId,
-  })  : _repo = playlistRepository,
-        _audioHandler = audioHandler,
-        _downloader = songDownloader,
-        _playlistId = playlistId {
+  }) : _repo = playlistRepository,
+       _audioHandler = audioHandler,
+       _downloader = songDownloader,
+       _playlistId = playlistId {
     _downloader.addListener(_onDownloadStatusChanged);
     _repo.addListener(_load);
     _load();
@@ -91,8 +91,8 @@ class PlaylistViewModel extends ChangeNotifier {
       _downloadStatus = !_playlist!.download
           ? DownloadStatus.none
           : (fullDownload
-              ? DownloadStatus.downloaded
-              : DownloadStatus.downloading);
+                ? DownloadStatus.downloaded
+                : DownloadStatus.downloading);
       if (changed) {
         notifyListeners();
       }
@@ -110,8 +110,9 @@ class PlaylistViewModel extends ChangeNotifier {
     final newState = !_playlist!.download;
     final result = await _repo.setDownload(_playlistId, newState);
     if (result is Ok) {
-      _downloadStatus =
-          newState ? DownloadStatus.downloading : DownloadStatus.none;
+      _downloadStatus = newState
+          ? DownloadStatus.downloading
+          : DownloadStatus.none;
       notifyListeners();
     }
     return result;
@@ -120,13 +121,15 @@ class PlaylistViewModel extends ChangeNotifier {
   Future<Result<void>> changeCover() async {
     XFile? image;
     if (!kIsWeb && Platform.isLinux) {
-      final result = await FilePicker.platform.pickFiles(
-        allowMultiple: false,
-        withData: false,
-        withReadStream: false,
-        type: FileType.image,
+      image = await openFile(
+        acceptedTypeGroups: [
+          const XTypeGroup(
+            label: "Images",
+            extensions: ["jpg", "jpeg", "png", "gif", "bmp", "tif", "tiff"],
+            uniformTypeIdentifiers: ["public.png", "public.jpeg"],
+          ),
+        ],
       );
-      image = result?.xFiles.firstOrNull;
     } else {
       image = await ImagePicker().pickImage(source: ImageSource.gallery);
     }
@@ -140,7 +143,8 @@ class PlaylistViewModel extends ChangeNotifier {
     _uploadingCover = true;
     notifyListeners();
 
-    var mimeType = image.mimeType ??
+    var mimeType =
+        image.mimeType ??
         switch (path.extension(image.path).toLowerCase()) {
           ".avif" => "image/avif",
           ".jpg" => "image/jpeg",
@@ -154,8 +158,11 @@ class PlaylistViewModel extends ChangeNotifier {
           ".heic" => "image/heic",
           _ => "application/octet-stream",
         };
-    final r =
-        await _repo.setCover(_playlistId, mimeType, await image.readAsBytes());
+    final r = await _repo.setCover(
+      _playlistId,
+      mimeType,
+      await image.readAsBytes(),
+    );
     await Future.delayed(const Duration(milliseconds: 500));
     _uploadingCover = false;
     notifyListeners();

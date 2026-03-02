@@ -10,6 +10,7 @@ import 'package:crossonic/data/repositories/settings/settings_repository.dart';
 import 'package:crossonic/utils/format.dart';
 import 'package:crossonic/utils/result.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:file_selector/file_selector.dart';
 import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import 'package:logger/logger.dart';
@@ -37,13 +38,13 @@ class LogsPageViewModel extends ChangeNotifier {
   LogsPageViewModel({
     required SettingsRepository settingsRepository,
     required LogRepository logRepository,
-  })  : _settings = settingsRepository,
-        _repository = logRepository,
-        _sessionTime = Log.sessionStartTime,
-        _logMessages = const [],
-        _filteredMessages = const [],
-        _enabledLevels = const {},
-        _searchText = "" {
+  }) : _settings = settingsRepository,
+       _repository = logRepository,
+       _sessionTime = Log.sessionStartTime,
+       _logMessages = const [],
+       _filteredMessages = const [],
+       _enabledLevels = const {},
+       _searchText = "" {
     _enabledLevels = [
       Level.trace,
       Level.debug,
@@ -99,8 +100,9 @@ class LogsPageViewModel extends ChangeNotifier {
     _logMessages = (await _repository.getMessages(sessionTime));
 
     if (sessionTime == Log.sessionStartTime) {
-      _newMessageSubscription =
-          _repository.newMessageStream.listen(_onNewMessage);
+      _newMessageSubscription = _repository.newMessageStream.listen(
+        _onNewMessage,
+      );
     }
 
     _updateFilteredLogMessages();
@@ -124,9 +126,7 @@ class LogsPageViewModel extends ChangeNotifier {
     _updateFilteredLogMessages();
   }
 
-  Future<Result<bool>> shareLog({
-    required bool filtered,
-  }) async {
+  Future<Result<bool>> shareLog({required bool filtered}) async {
     final timeStr = DateFormat("yyyy-MM-dd_HH-mm-ss").format(sessionTime);
     final bytes = utf8.encode(_exportLog(filtered: filtered));
     final fileName = "crossonic-logs_$timeStr.txt";
@@ -135,9 +135,7 @@ class LogsPageViewModel extends ChangeNotifier {
       ShareParams(
         title: "Share logs",
         downloadFallbackEnabled: true,
-        files: [
-          XFile.fromData(bytes, mimeType: "text/plain", name: fileName),
-        ],
+        files: [XFile.fromData(bytes, mimeType: "text/plain", name: fileName)],
         fileNameOverrides: [fileName],
         sharePositionOrigin: const Rect.fromLTWH(0, 0, 1, 1),
       ),
@@ -148,28 +146,30 @@ class LogsPageViewModel extends ChangeNotifier {
     return const Result.ok(true);
   }
 
-  Future<Result<bool>> saveLog({
-    required bool filtered,
-  }) async {
+  Future<Result<bool>> saveLog({required bool filtered}) async {
     try {
       final timeStr = DateFormat("yyyy-MM-dd_HH-mm-ss").format(sessionTime);
       final bytes = utf8.encode(_exportLog(filtered: filtered));
 
-      final outputFile = await FilePicker.platform.saveFile(
-        fileName: "crossonic-logs_$timeStr.txt",
-        bytes: bytes,
+      if (kIsWeb) {
+        final outputFile = await FilePicker.platform.saveFile(
+          fileName: "crossonic-logs_$timeStr.txt",
+          bytes: bytes,
+        );
+        return Result.ok(outputFile != null);
+      }
+      final outputFile = await getSaveLocation(
+        suggestedName: "crossonic-logs_$timeStr.txt",
+        confirmButtonText: "Save",
       );
       if (outputFile == null) {
         return const Result.ok(false);
       }
-      // file_picker does not write the file on Linux for some reason
-      if (!kIsWeb && Platform.isLinux) {
-        await File(outputFile).writeAsBytes(bytes);
-      }
+      await File(outputFile.path).writeAsBytes(bytes);
+      return const Result.ok(true);
     } on Exception catch (e) {
       return Result.error(e);
     }
-    return const Result.ok(true);
   }
 
   String _exportLog({required bool filtered}) {
@@ -189,11 +189,13 @@ class LogsPageViewModel extends ChangeNotifier {
 
   void _updateFilteredLogMessages() {
     _filteredMessages = _logMessages
-        .where((m) =>
-            enabledLevels.contains(m.level) &&
-            (searchText.isEmpty ||
-                m.tag.contains(searchText) ||
-                m.message.contains(searchText)))
+        .where(
+          (m) =>
+              enabledLevels.contains(m.level) &&
+              (searchText.isEmpty ||
+                  m.tag.contains(searchText) ||
+                  m.message.contains(searchText)),
+        )
         .toList();
     notifyListeners();
   }
