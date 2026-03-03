@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io' as io;
 import 'dart:math';
 
@@ -41,7 +42,6 @@ class CoverRepository extends BaseCacheManager {
     _auth.addListener(_onAuthChanged);
     _onAuthChanged();
     _cleanup();
-    _deleteOldCacheFile();
   }
 
   Future<void> downloadCovers(Iterable<String?> coverIds) async {
@@ -212,7 +212,8 @@ class CoverRepository extends BaseCacheManager {
         .filter((f) => f.coverId(coverId))
         .delete();
     final dir = await _cacheDir();
-    final filePrefix = "$coverId-";
+    final encodedId = base64UrlCodec.encode(coverId);
+    final filePrefix = "$encodedId-";
     await dir.list(followLinks: false).forEach((entry) async {
       if (path.basename(entry.path).startsWith(filePrefix)) {
         try {
@@ -350,6 +351,44 @@ class CoverRepository extends BaseCacheManager {
     }
 
     int deleted = 0;
+    final dbCoverCount = await _db.managers.coverCacheTable.count();
+    final coverFileCount = await (await _cacheDir())
+        .list(recursive: false, followLinks: false)
+        .length;
+    if (dbCoverCount < coverFileCount) {
+      await (await _cacheDir())
+          .list(recursive: false, followLinks: false)
+          .forEach((file) async {
+            if (file is! io.File) return;
+            final parts = path.basename(file.path).split("-");
+            if (parts.length < 2) {
+              await file.delete();
+              deleted++;
+              return;
+            }
+            try {
+              final size = int.parse(parts.last);
+              final id = base64UrlCodec.decode(
+                parts.take(parts.length - 1).join("-"),
+              );
+              final exists = await _db.managers.coverCacheTable
+                  .filter((f) => f.coverId(id) & f.size(size))
+                  .exists();
+              if (!exists) {
+                await file.delete();
+                deleted++;
+                return;
+              }
+            } catch (_) {
+              await file.delete();
+              deleted++;
+              return;
+            }
+          });
+      Log.debug("Deleted $deleted cover cache files not found in DB.");
+    }
+
+    deleted = 0;
     int totalSizeKB;
     while (true) {
       totalSizeKB =
@@ -442,9 +481,13 @@ class CoverRepository extends BaseCacheManager {
     return io.Directory(_cacheDirPath!);
   }
 
+  static final base64UrlCodec = utf8.fuse(base64Url);
   Future<File> cacheFile(String id, int size) async {
     final dir = await _cacheDir();
-    return const LocalFileSystem().file(path.join(dir.path, "$id-$size"));
+    final encodedId = base64UrlCodec.encode(id);
+    return const LocalFileSystem().file(
+      path.join(dir.path, "$encodedId-$size"),
+    );
   }
 
   Future<bool> cacheFileIsReady(CoverCacheTableData? obj) async {
@@ -462,24 +505,5 @@ class CoverRepository extends BaseCacheManager {
       return false;
     }
     return true;
-  }
-
-  // removes the cover cache file that was used in <=v0.0.9
-  // TODO remove in next version
-  Future<void> _deleteOldCacheFile() async {
-    if (kIsWeb) return;
-    final file = io.File(
-      path.join(
-        (await getApplicationSupportDirectory()).path,
-        "crossonic_cover_cache.json",
-      ),
-    );
-    if (await file.exists()) {
-      try {
-        await file.delete();
-      } on Exception catch (e, st) {
-        Log.warn("Failed to remove old cover cache file", e: e, st: st);
-      }
-    }
   }
 }
