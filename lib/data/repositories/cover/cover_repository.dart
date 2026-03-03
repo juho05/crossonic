@@ -23,6 +23,8 @@ class CoverRepository extends BaseCacheManager {
 
   late final WebHelper _webHelper;
 
+  final Map<String, FileInfo> _memCache = {};
+
   static String getKey(String id, int resolution) {
     return "$id\t$resolution";
   }
@@ -52,7 +54,7 @@ class CoverRepository extends BaseCacheManager {
     await Future.wait(
       coverIds.map<Future>((id) async {
         if (await cacheFileExists(id!, 1024)) {
-          return SynchronousFuture(null);
+          return null;
         }
         return downloadFile(getKey(id, 1024));
       }),
@@ -71,8 +73,9 @@ class CoverRepository extends BaseCacheManager {
     final fileResponse = await _webHelper
         .downloadFile(_idFromKey(key), _sizeFromKey(key))
         .firstWhere((r) => r is FileInfo);
+    _memCache[key] = fileResponse as FileInfo;
     ensureCleanupScheduled();
-    return fileResponse as FileInfo;
+    return fileResponse;
   }
 
   @override
@@ -81,6 +84,7 @@ class CoverRepository extends BaseCacheManager {
     Log.debug("clearing cover cache...");
     _cleanupTimer?.cancel();
     _cleanupTimer = null;
+    _memCache.clear();
     await _db.managers.coverCacheTable.delete();
     final cacheDir = await _cacheDir();
     if (await cacheDir.exists()) {
@@ -111,8 +115,15 @@ class CoverRepository extends BaseCacheManager {
   }) async {
     key = _urlToKey(key);
     Log.trace("loading cover from cache: $key");
+
+    final cachedObj = _memCache[key];
+    if (cachedObj != null && cachedObj.validTill.isAfter(DateTime.now())) {
+      return SynchronousFuture(cachedObj);
+    }
+
     final id = _idFromKey(key);
     final size = _sizeFromKey(key);
+
     final obj = await _db.managers.coverCacheTable
         .filter((f) => f.coverId(id) & f.size(size))
         .getSingleOrNull();
@@ -121,12 +132,14 @@ class CoverRepository extends BaseCacheManager {
       Log.trace("cache file not ready, returning null...");
       return null;
     }
-    return FileInfo(
+    final info = FileInfo(
       await cacheFile(id, size),
       FileSource.Cache,
       obj!.validTill,
       key,
     );
+    _memCache[key] = info;
+    return info;
   }
 
   @override
@@ -194,6 +207,7 @@ class CoverRepository extends BaseCacheManager {
   Future<void> removeFile(String key) async {
     key = _urlToKey(key);
     Log.trace("removing cover file: $key");
+    _memCache.remove(key);
     final id = _idFromKey(key);
     final size = _sizeFromKey(key);
     await _db.managers.coverCacheTable
@@ -208,6 +222,7 @@ class CoverRepository extends BaseCacheManager {
   Future<void> invalidateCover(String coverId) async {
     if (kIsWeb) return;
     Log.trace("removing all cache objects for cover: $coverId");
+    _memCache.removeWhere((key, value) => key.startsWith(coverId));
     await _db.managers.coverCacheTable
         .filter((f) => f.coverId(coverId))
         .delete();
@@ -240,6 +255,7 @@ class CoverRepository extends BaseCacheManager {
       Log.warn("failed to load cached file for $key with error:\n$e");
     }
     if (cacheFile == null || cacheFile.validTill.isBefore(DateTime.now())) {
+      _memCache.remove(key);
       try {
         Log.trace(
           "cover file for $key does not exist or is no longer valid, downloading latest version...",
@@ -252,6 +268,7 @@ class CoverRepository extends BaseCacheManager {
             streamController.add(response);
           }
           if (response is FileInfo) {
+            _memCache[key] = response;
             streamController.add(response);
           }
         }
@@ -331,6 +348,7 @@ class CoverRepository extends BaseCacheManager {
         .get();
     if (incompleteFiles.isNotEmpty) {
       for (final entry in incompleteFiles) {
+        _memCache.remove(getKey(entry.coverId, entry.size));
         final file = await cacheFile(entry.coverId, entry.size);
         try {
           await file.delete();
@@ -451,6 +469,9 @@ class CoverRepository extends BaseCacheManager {
         "Deleted $deleted old cover cache files. New cache size: ${_formatKBSizeInMB(totalSizeKB)} MB",
       );
     }
+    _memCache.removeWhere(
+      (key, value) => value.validTill.isBefore(DateTime.now()),
+    );
   }
 
   void ensureCleanupScheduled() {
@@ -499,6 +520,7 @@ class CoverRepository extends BaseCacheManager {
     File f = await cacheFile(coverId, size);
     final exists = await f.exists();
     if (!exists) {
+      _memCache.remove(getKey(coverId, size));
       await _db.managers.coverCacheTable
           .filter((f) => f.coverId(coverId) & f.size(size))
           .delete();

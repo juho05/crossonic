@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:math';
 
 import 'package:cached_network_image/cached_network_image.dart';
@@ -37,8 +38,10 @@ class _CoverArtState extends State<CoverArt> {
       );
     }
 
+    final dpi = MediaQuery.devicePixelRatioOf(context);
+
     int resolution(BuildContext context, double size) {
-      size *= MediaQuery.of(context).devicePixelRatio;
+      size *= dpi;
       if (size > 512) {
         return 1024;
       } else if (size > 256) {
@@ -86,6 +89,12 @@ class _CoverArtState extends State<CoverArt> {
                     fadeOutDuration: const Duration(milliseconds: 100),
                     placeholder: (context, url) => const ShimmerLoading(),
                     cacheManager: context.read<CoverRepository>(),
+                    memCacheWidth: Platform.isAndroid || Platform.isIOS
+                        ? (size * dpi).ceil()
+                        : null,
+                    memCacheHeight: Platform.isAndroid || Platform.isIOS
+                        ? (size * dpi).ceil()
+                        : null,
                   ))
           : placeholder(size);
 
