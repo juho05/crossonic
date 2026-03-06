@@ -3,7 +3,6 @@ package org.crossonic.app;
 import android.app.PendingIntent;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import androidx.annotation.Nullable;
 import androidx.annotation.OptIn;
 import androidx.media3.common.MediaItem;
@@ -13,13 +12,11 @@ import androidx.media3.common.util.UnstableApi;
 import androidx.media3.session.*;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.*;
-import io.flutter.plugin.common.MethodChannel;
 import org.jspecify.annotations.NonNull;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 
 public class PlaybackService extends MediaLibraryService {
     private MediaLibrarySession mediaSession;
@@ -66,10 +63,6 @@ public class PlaybackService extends MediaLibraryService {
             final var item = new MediaItem.Builder().setMediaId("crossonic_root").setMediaMetadata(metadata).build();
 
             final var extras = new Bundle();
-            // TODO change when supported
-            extras.putBoolean("android.media.browse.SEARCH_SUPPORTED", false);
-
-            extras.putBoolean("android.media.browse.CONTENT_STYLE_SUPPORTED", true);
             extras.putInt(MediaConstants.EXTRAS_KEY_CONTENT_STYLE_BROWSABLE, MediaConstants.EXTRAS_VALUE_CONTENT_STYLE_LIST_ITEM);
             extras.putInt(MediaConstants.EXTRAS_KEY_CONTENT_STYLE_PLAYABLE, MediaConstants.EXTRAS_VALUE_CONTENT_STYLE_LIST_ITEM);
 
@@ -82,6 +75,10 @@ public class PlaybackService extends MediaLibraryService {
         public @NonNull ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> onGetChildren(@NonNull MediaLibrarySession session, MediaSession.@NonNull ControllerInfo browser, @NonNull String parentId, int page, int pageSize, @Nullable MediaLibraryService.LibraryParams params) {
             final HashMap<Object, Object> msgParams = new HashMap<>();
             msgParams.put("parentId", parentId);
+            if (pageSize < Integer.MAX_VALUE) {
+                msgParams.put("page", page);
+                msgParams.put("pageSize", pageSize);
+            }
             if (params != null) {
                 msgParams.put("isOffline", params.isOffline);
                 msgParams.put("isRecent", params.isRecent);
@@ -89,6 +86,39 @@ public class PlaybackService extends MediaLibraryService {
             }
             final var future = FlutterIntegration.invokeMethod("onGetChildren", msgParams);
             return Futures.transformAsync(future, result -> Futures.immediateFuture(Mappings.buildLibraryResultMediaItemsFromMsg((Map<Object,Object>)result)), MoreExecutors.directExecutor());
+        }
+
+        @Override
+        public @NonNull ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> onGetSearchResult(@NonNull MediaLibrarySession session, MediaSession.@NonNull ControllerInfo browser, @NonNull String query, int page, int pageSize, @Nullable MediaLibraryService.LibraryParams params) {
+            final HashMap<Object, Object> msgParams = new HashMap<>();
+            msgParams.put("query", query);
+            if (pageSize < Integer.MAX_VALUE) {
+                msgParams.put("page", page);
+                msgParams.put("pageSize", pageSize);
+            }
+            if (params != null) {
+                msgParams.put("isOffline", params.isOffline);
+                msgParams.put("isRecent", params.isRecent);
+                msgParams.put("isSuggested", params.isSuggested);
+            }
+            final var future = FlutterIntegration.invokeMethod("onGetSearchResult", msgParams);
+            return Futures.transformAsync(future, result -> Futures.immediateFuture(Mappings.buildLibraryResultMediaItemsFromMsg((Map<Object,Object>)result)), MoreExecutors.directExecutor());
+        }
+
+        @Override
+        public @NonNull ListenableFuture<LibraryResult<Void>> onSearch(@NonNull MediaLibrarySession session, MediaSession.@NonNull ControllerInfo browser, @NonNull String query, @Nullable MediaLibraryService.LibraryParams params) {
+            final HashMap<Object, Object> msgParams = new HashMap<>();
+            msgParams.put("query", query);
+            if (params != null) {
+                msgParams.put("isOffline", params.isOffline);
+                msgParams.put("isRecent", params.isRecent);
+                msgParams.put("isSuggested", params.isSuggested);
+            }
+            final var future = FlutterIntegration.invokeMethod("onSearch", msgParams);
+            return Futures.transformAsync(future, result -> {
+                mediaSession.notifySearchResultChanged(browser, query, ((Number)result).intValue(), params);
+                return Futures.immediateFuture(LibraryResult.ofVoid(params));
+            }, MoreExecutors.directExecutor());
         }
 
         @Override

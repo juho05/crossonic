@@ -33,6 +33,8 @@ class AndroidAutoRepository {
     _methodChannel.handleMethodCall("onGetChildren", _onGetChildren);
     _methodChannel.handleMethodCall("getCoverFile", _getCoverFile);
     _methodChannel.handleMethodCall("setMediaItem", _setMediaItem);
+    _methodChannel.handleMethodCall("onSearch", _onSearch);
+    _methodChannel.handleMethodCall("onGetSearchResult", _onGetSearchResult);
   }
 
   Future<void> _setMediaItem(Map<Object?, dynamic>? args) async {
@@ -100,8 +102,9 @@ class AndroidAutoRepository {
 
     if (parentId == "crossonic_playlists") {
       final result = await _playlistRepo.getPlaylists(
-        limit: pageSize,
+        limit: pageSize ?? 50,
         offset: pageSize != null && page != null ? page * pageSize : null,
+        download: params.isOffline ? true : null,
       );
       switch (result) {
         case Err():
@@ -117,7 +120,6 @@ class AndroidAutoRepository {
       return AndroidLibraryResult(
         params: AndroidLibraryParams(isOffline: params.isOffline),
         mediaItems: result.value
-            .where((p) => !params.isOffline || p.download)
             .map(
               (p) => AndroidMediaItem(
                 id: "crossonic_playlist:${p.id}",
@@ -143,7 +145,84 @@ class AndroidAutoRepository {
     return const AndroidLibraryResult(mediaItems: []).toMsgData();
   }
 
+  Future<Map<Object?, dynamic>> _onGetSearchResult(
+    Map<Object?, dynamic>? args,
+  ) async {
+    String query = args!["query"];
+    int? page = args["page"];
+    int? pageSize = args["pageSize"];
+    final params = AndroidLibraryParams.fromMsgData(args["params"]);
+
+    final result = await _playlistRepo.getPlaylists(
+      limit: pageSize ?? 50,
+      offset: page != null && pageSize != null ? page * pageSize : null,
+      orderBy: PlaylistOrderBy.alphabetical,
+      query: query,
+      download: params.isOffline ? true : null,
+    );
+    switch (result) {
+      case Err():
+        Log.error(
+          "failed to get playlist search results for Android Auto",
+          e: result.error,
+        );
+        return const AndroidLibraryResult(
+          resultCode: AndroidLibraryResultCode.unknown,
+        ).toMsgData();
+      case Ok():
+    }
+    return AndroidLibraryResult(
+      params: AndroidLibraryParams(isOffline: params.isOffline),
+      mediaItems: result.value
+          .map(
+            (p) => AndroidMediaItem(
+              id: "crossonic_playlist:${p.id}",
+              browsable: false,
+              playable: true,
+              durationMs: p.duration.inMilliseconds,
+              title: p.name,
+              artworkContentUri: p.coverId != null
+                  ? Uri(
+                      scheme: "content",
+                      host: kDebugMode
+                          ? "org.crossonic.app.debug.covers"
+                          : "org.crossonic.app.covers",
+                      pathSegments: [p.coverId!],
+                    )
+                  : null,
+            ),
+          )
+          .toList(),
+    ).toMsgData();
+  }
+
+  Future<dynamic> _onSearch(Map<Object?, dynamic>? args) async {
+    String query = args!["query"];
+    final params = AndroidLibraryParams.fromMsgData(args["params"]);
+
+    final result = await _playlistRepo.countPlaylists(
+      query: query,
+      download: params.isOffline ? true : null,
+    );
+    switch (result) {
+      case Err():
+        Log.error(
+          "failed to search playlists for Android Auto",
+          e: result.error,
+        );
+        return const AndroidLibraryResult(
+          resultCode: AndroidLibraryResultCode.unknown,
+        ).toMsgData();
+      case Ok():
+    }
+    return result.value;
+  }
+
   void dispose() {
     _methodChannel.removeMethodCallHandler("onGetChildren");
+    _methodChannel.removeMethodCallHandler("getCoverFile");
+    _methodChannel.removeMethodCallHandler("setMediaItem");
+    _methodChannel.removeMethodCallHandler("onSearch");
+    _methodChannel.removeMethodCallHandler("onGetSearchResult");
   }
 }

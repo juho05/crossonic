@@ -440,18 +440,29 @@ class PlaylistRepository extends ChangeNotifier {
     PlaylistOrderBy orderBy = PlaylistOrderBy.alphabetical,
     int? limit,
     int? offset,
+    String query = "",
+    bool? download,
   }) async {
     try {
-      var q = _db.managers.playlistTable.orderBy((o) {
-        switch (orderBy) {
-          case PlaylistOrderBy.alphabetical:
-            return o.name.asc();
-          case PlaylistOrderBy.updated:
-            return o.changed.desc();
-          case PlaylistOrderBy.created:
-            return o.created.desc();
-        }
-      });
+      var q = _db.managers.playlistTable
+          .filter((f) {
+            if (query.isEmpty) return const Constant(true);
+            return f.name.contains(query, caseInsensitive: true);
+          })
+          .filter((f) {
+            if (download == null) return const Constant(true);
+            return f.download.equals(download);
+          })
+          .orderBy((o) {
+            switch (orderBy) {
+              case PlaylistOrderBy.alphabetical:
+                return o.name.asc();
+              case PlaylistOrderBy.updated:
+                return o.changed.desc();
+              case PlaylistOrderBy.created:
+                return o.created.desc();
+            }
+          });
       if (limit != null) {
         q = q.limit(limit, offset: offset);
       }
@@ -473,6 +484,26 @@ class PlaylistRepository extends ChangeNotifier {
             )
             .toList(),
       );
+    } on Exception catch (e) {
+      return Result.error(e);
+    }
+  }
+
+  Future<Result<int>> countPlaylists({
+    String query = "",
+    bool? download,
+  }) async {
+    try {
+      var q = _db.managers.playlistTable
+          .filter((f) {
+            if (query.isEmpty) return const Constant(true);
+            return f.name.contains(query, caseInsensitive: true);
+          })
+          .filter((f) {
+            if (download == null) return const Constant(true);
+            return f.download.equals(download);
+          });
+      return Result.ok(await q.count());
     } on Exception catch (e) {
       return Result.error(e);
     }
