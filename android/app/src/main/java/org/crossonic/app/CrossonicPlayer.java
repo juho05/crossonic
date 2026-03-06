@@ -395,7 +395,11 @@ public class CrossonicPlayer implements Player {
     @Override
     public void setMediaItem(@NonNull MediaItem mediaItem, long startPositionMs) {
         final Map<String, Object> args = new HashMap<>();
-        // TODO handle play from search requests
+        if (mediaItem.requestMetadata.searchQuery != null) {
+            args.put("query", mediaItem.requestMetadata.searchQuery);
+            FlutterIntegration.invokeMethod("playFromSearch", args);
+            return;
+        }
         args.put("id", mediaItem.mediaId);
         if (startPositionMs != C.TIME_UNSET) {
             args.put("startPositionMs", startPositionMs);

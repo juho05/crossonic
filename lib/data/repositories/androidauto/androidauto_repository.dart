@@ -35,6 +35,7 @@ class AndroidAutoRepository {
     _methodChannel.handleMethodCall("setMediaItem", _setMediaItem);
     _methodChannel.handleMethodCall("onSearch", _onSearch);
     _methodChannel.handleMethodCall("onGetSearchResult", _onGetSearchResult);
+    _methodChannel.handleMethodCall("playFromSearch", _playFromSearch);
   }
 
   Future<void> _setMediaItem(Map<Object?, dynamic>? args) async {
@@ -102,7 +103,7 @@ class AndroidAutoRepository {
 
     if (parentId == "crossonic_playlists") {
       final result = await _playlistRepo.getPlaylists(
-        limit: pageSize ?? 50,
+        limit: pageSize ?? 100,
         offset: pageSize != null && page != null ? page * pageSize : null,
         download: params.isOffline ? true : null,
       );
@@ -154,7 +155,7 @@ class AndroidAutoRepository {
     final params = AndroidLibraryParams.fromMsgData(args["params"]);
 
     final result = await _playlistRepo.getPlaylists(
-      limit: pageSize ?? 50,
+      limit: pageSize ?? 100,
       offset: page != null && pageSize != null ? page * pageSize : null,
       orderBy: PlaylistOrderBy.alphabetical,
       query: query,
@@ -218,11 +219,49 @@ class AndroidAutoRepository {
     return result.value;
   }
 
+  Future<void> _playFromSearch(Map<Object?, dynamic>? args) async {
+    if (args == null) return;
+    final query = args["query"]! as String;
+    final result = await _playlistRepo.getPlaylists(
+      orderBy: PlaylistOrderBy.updated,
+      limit: 1,
+      offset: 0,
+      query: query,
+    );
+    if (result is Err || result.tryValue!.isEmpty) {
+      Log.error(
+        "Failed to find playlist for playFromSearch from Android Auto",
+        e: (result as Err).error,
+      );
+      return;
+    }
+    final playlistResult = await _playlistRepo.getPlaylist(
+      result.tryValue!.first.id,
+    );
+    switch (playlistResult) {
+      case Err():
+        Log.error(
+          "Failed to get playlist for Android Auto playFromSearch request",
+          e: playlistResult.error,
+        );
+        return;
+      case Ok():
+    }
+
+    final songs = playlistResult.value?.tracks ?? [];
+    if (songs.isEmpty) return;
+    songs.shuffle();
+    _audioHandler.playOnNextMediaChange();
+    _audioHandler.queue.replace(songs);
+    return;
+  }
+
   void dispose() {
     _methodChannel.removeMethodCallHandler("onGetChildren");
     _methodChannel.removeMethodCallHandler("getCoverFile");
     _methodChannel.removeMethodCallHandler("setMediaItem");
     _methodChannel.removeMethodCallHandler("onSearch");
     _methodChannel.removeMethodCallHandler("onGetSearchResult");
+    _methodChannel.removeMethodCallHandler("playFromSearch");
   }
 }
