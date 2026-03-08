@@ -87,11 +87,11 @@ class WebHelper {
   ///Download the file from the url
   Stream<FileResponse> _updateFile(String coverId, int size) async* {
     DateTime? lastDownload;
-    final cacheObj = await _db.managers.coverCacheTable
-        .filter((f) => f.coverId(coverId) & f.size(size))
-        .getSingleOrNull();
-    if (cacheObj != null && await _coverRepo.cacheFileExists(coverId, size)) {
-      lastDownload = cacheObj.downloadTime;
+    if (await _coverRepo.cacheFileExists(coverId, size)) {
+      final cacheObj = await _db.managers.coverCacheTable
+          .filter((f) => f.coverId(coverId) & f.size(size))
+          .getSingleOrNull();
+      lastDownload = cacheObj?.downloadTime;
     }
 
     final uri = _subsonic.getCoverUri(coverId, size: size);
@@ -113,8 +113,10 @@ class WebHelper {
         );
         if (response != null) {
           yield response;
+          return;
         }
       }
+      rethrow;
     }
   }
 
@@ -124,8 +126,10 @@ class WebHelper {
     DateTime validTill,
     int targetSize,
   ) async {
+    if (!await _coverRepo.cacheFileExists(coverId, size)) {
+      return null;
+    }
     final file = await _coverRepo.cacheFile(coverId, size);
-    if (!await file.exists()) return null;
 
     final newImage = await Isolate.run<Uint8List?>(() async {
       final fileContent = await file.readAsBytes();
@@ -160,7 +164,28 @@ class WebHelper {
     if (newImage == null) return null;
 
     var newFile = await _coverRepo.cacheFile(coverId, targetSize);
+
     newFile = await newFile.writeAsBytes(newImage);
+
+    await _db.managers.coverCacheTable.create(
+      (o) => o(
+        coverId: coverId,
+        size: targetSize,
+        downloadTime: DateTime.now(),
+        fileFullyWritten: true,
+        validTill: validTill,
+        fileSizeKB: ((newImage.length) / 1000).floor(),
+      ),
+      onConflict: DoUpdate(
+        (old) => CoverCacheTableCompanion(
+          downloadTime: Value(DateTime.now()),
+          fileFullyWritten: const Value(true),
+          validTill: Value(validTill),
+          fileSizeKB: Value(((newImage.length) / 1000).floor()),
+        ),
+      ),
+    );
+
     return FileInfo(
       newFile,
       FileSource.Cache,

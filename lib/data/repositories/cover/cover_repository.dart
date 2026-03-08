@@ -342,7 +342,7 @@ class CoverRepository extends BaseCacheManager {
           (f) =>
               f.fileFullyWritten.isFalse() &
               f.downloadTime.isBefore(
-                startTime.subtract(const Duration(hours: 1)),
+                startTime.subtract(const Duration(seconds: 30)),
               ),
         )
         .get();
@@ -359,7 +359,7 @@ class CoverRepository extends BaseCacheManager {
             (f) =>
                 f.fileFullyWritten.isFalse() &
                 f.downloadTime.isBefore(
-                  startTime.subtract(const Duration(hours: 1)),
+                  startTime.subtract(const Duration(seconds: 30)),
                 ),
           )
           .delete();

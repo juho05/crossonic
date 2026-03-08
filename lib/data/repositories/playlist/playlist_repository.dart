@@ -50,6 +50,8 @@ class PlaylistRepository extends ChangeNotifier {
     if (!kIsWeb) {
       addListener(() => _songDownloader.update());
     }
+    _songDownloader.update();
+    _downloadCovers();
   }
 
   final Set<String> _playlistIdsNeedUpdate = {};
@@ -109,6 +111,7 @@ class PlaylistRepository extends ChangeNotifier {
               .get();
           _coverRepository.downloadCovers(songs);
         }
+        _downloadCovers();
       }
       return const Result.ok(null);
     } on Exception catch (e) {
@@ -747,7 +750,8 @@ class PlaylistRepository extends ChangeNotifier {
                   _db.coverCacheTable.coverId.equalsExp(
                         _db.playlistTable.coverArt,
                       ) &
-                      _db.coverCacheTable.size.equals(1024),
+                      _db.coverCacheTable.size.equals(1024) &
+                      _db.coverCacheTable.fileFullyWritten,
                 ),
               ])
               ..where(
@@ -757,7 +761,9 @@ class PlaylistRepository extends ChangeNotifier {
               ))
             .map((p) => p.read(_db.playlistTable.coverArt))
             .get();
-    Log.trace("ensuring playlist covers are downloaded...");
+    Log.debug(
+      "downloading covers for ${playlistCovers.length} downloaded playlists...",
+    );
     await _coverRepository.downloadCovers(playlistCovers);
 
     final downloadCoverIdsQuery = _db.selectOnly(
@@ -772,7 +778,8 @@ class PlaylistRepository extends ChangeNotifier {
       leftOuterJoin(
         _db.coverCacheTable,
         _db.coverCacheTable.coverId.equalsExp(_db.playlistSongTable.coverId) &
-            _db.coverCacheTable.size.equals(1024),
+            _db.coverCacheTable.size.equals(1024) &
+            _db.coverCacheTable.fileFullyWritten,
       ),
     ]);
     downloadCoverIdsQuery.where(
@@ -783,7 +790,9 @@ class PlaylistRepository extends ChangeNotifier {
     final downloadCoverIds = await downloadCoverIdsQuery
         .map((row) => row.read(_db.playlistSongTable.coverId))
         .get();
-    Log.trace("ensuring covers of downloaded songs are downloaded...");
+    Log.debug(
+      "downloading covers for ${downloadCoverIds.length} downloaded songs...",
+    );
     await _coverRepository.downloadCovers(downloadCoverIds);
   }
 
