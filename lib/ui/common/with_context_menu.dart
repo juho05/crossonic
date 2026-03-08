@@ -6,17 +6,14 @@ class ContextMenuOption {
   final String title;
   final void Function()? onSelected;
 
-  ContextMenuOption({
-    this.icon,
-    required this.title,
-    required this.onSelected,
-  });
+  ContextMenuOption({this.icon, required this.title, required this.onSelected});
 }
 
 class WithContextMenu extends StatefulWidget {
   final Widget child;
   final Iterable<ContextMenuOption> options;
   final bool openOnTap;
+  final bool openOnLongTap;
   final bool enabled;
 
   const WithContextMenu({
@@ -24,6 +21,7 @@ class WithContextMenu extends StatefulWidget {
     required this.child,
     required this.options,
     this.openOnTap = false,
+    this.openOnLongTap = true,
     this.enabled = true,
   });
 
@@ -39,6 +37,7 @@ class _WithContextMenuState extends State<WithContextMenu> {
     }
     return ContextMenu(
       openOnTap: widget.openOnTap,
+      openOnLongTap: widget.openOnLongTap,
       contextMenuBuilder: (context, offset) {
         return SafeArea(
           // don't change the context menu offset
@@ -47,19 +46,21 @@ class _WithContextMenuState extends State<WithContextMenu> {
           child: DesktopTextSelectionToolbar(
             anchor: offset,
             children: widget.options
-                .map((o) => Container(
-                      color: Theme.of(context).colorScheme.surfaceContainer,
-                      child: MenuItemButton(
-                        leadingIcon: o.icon != null ? Icon(o.icon) : null,
-                        onPressed: () {
-                          if (o.onSelected != null) {
-                            o.onSelected!();
-                          }
-                          CustomContextMenuController.removeAny();
-                        },
-                        child: Text(o.title),
-                      ),
-                    ))
+                .map(
+                  (o) => Container(
+                    color: Theme.of(context).colorScheme.surfaceContainer,
+                    child: MenuItemButton(
+                      leadingIcon: o.icon != null ? Icon(o.icon) : null,
+                      onPressed: () {
+                        if (o.onSelected != null) {
+                          o.onSelected!();
+                        }
+                        CustomContextMenuController.removeAny();
+                      },
+                      child: Text(o.title),
+                    ),
+                  ),
+                )
                 .toList(),
           ),
         );
@@ -69,23 +70,26 @@ class _WithContextMenuState extends State<WithContextMenu> {
   }
 }
 
-typedef ContextMenuBuilder = Widget Function(
-    BuildContext context, Offset offset);
+typedef ContextMenuBuilder =
+    Widget Function(BuildContext context, Offset offset);
 
 class ContextMenu extends StatefulWidget {
   /// Builds the context menu.
   final ContextMenuBuilder contextMenuBuilder;
 
   final bool openOnTap;
+  final bool openOnLongTap;
 
   /// The child widget that will be listened to for gestures.
   final Widget child;
 
-  const ContextMenu(
-      {super.key,
-      required this.child,
-      required this.contextMenuBuilder,
-      this.openOnTap = false});
+  const ContextMenu({
+    super.key,
+    required this.child,
+    required this.contextMenuBuilder,
+    this.openOnTap = false,
+    this.openOnLongTap = true,
+  });
 
   @override
   State<ContextMenu> createState() => _ContextMenuState();
@@ -96,6 +100,11 @@ class _ContextMenuState extends State<ContextMenu> {
       CustomContextMenuController();
 
   void _onSecondaryTapUp(TapUpDetails details) {
+    _show(details.globalPosition);
+  }
+
+  void _onLongPress(LongPressStartDetails details) {
+    HapticFeedback.mediumImpact();
     _show(details.globalPosition);
   }
 
@@ -126,6 +135,7 @@ class _ContextMenuState extends State<ContextMenu> {
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
           onSecondaryTapUp: _onSecondaryTapUp,
+          onLongPressStart: widget.openOnLongTap ? _onLongPress : null,
           child: InkWell(
             onTapUp: (details) => _show(details.globalPosition),
             child: widget.child,
@@ -136,6 +146,7 @@ class _ContextMenuState extends State<ContextMenu> {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onSecondaryTapUp: _onSecondaryTapUp,
+      onLongPressStart: widget.openOnLongTap ? _onLongPress : null,
       child: widget.child,
     );
   }

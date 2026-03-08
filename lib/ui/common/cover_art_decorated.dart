@@ -68,109 +68,98 @@ class _CoverArtDecoratedState extends State<CoverArtDecorated> {
                     child: CircularProgressIndicator.adaptive(),
                   );
                 }
+
+                final cover = CoverArt(
+                  size: size,
+                  placeholderIcon: widget.placeholderIcon,
+                  borderRadius: widget.borderRadius,
+                  coverId: widget.coverId,
+                );
+
+                final stackChildren = [
+                  cover,
+                  if (widget.topLeft != null || widget.isFavorite)
+                    Align(
+                      alignment: Alignment.topLeft,
+                      child: Padding(
+                        padding: EdgeInsets.all(largeLayout ? 8 : 3),
+                        child:
+                            widget.topLeft ??
+                            DecoratedIcon(
+                              decoration: const IconDecoration(
+                                border: IconBorder(
+                                  color: Colors.black,
+                                  width: 2,
+                                ),
+                              ),
+                              icon: Icon(
+                                Icons.favorite,
+                                size: largeLayout ? 26 : 20,
+                                color: const Color.fromARGB(255, 248, 248, 248),
+                              ),
+                            ),
+                      ),
+                    ),
+                  if (widget.topRight != null ||
+                      widget.downloadStatus != DownloadStatus.none)
+                    Align(
+                      alignment: Alignment.topRight,
+                      child: Padding(
+                        padding: EdgeInsets.all(largeLayout ? 8 : 3),
+                        child:
+                            widget.topRight ??
+                            DecoratedIcon(
+                              decoration: const IconDecoration(
+                                border: IconBorder(
+                                  color: Colors.black87,
+                                  width: 1,
+                                ),
+                              ),
+                              icon: Icon(
+                                widget.downloadStatus ==
+                                        DownloadStatus.downloading
+                                    ? Icons.downloading_outlined
+                                    : Icons.download_for_offline_outlined,
+                                shadows: [
+                                  const Shadow(
+                                    blurRadius: 3,
+                                    color: Colors.black87,
+                                  ),
+                                ],
+                                size: largeLayout ? 26 : 20,
+                                color: const Color.fromARGB(255, 248, 248, 248),
+                              ),
+                            ),
+                      ),
+                    ),
+                  if (widget.bottomLeft != null)
+                    Align(
+                      alignment: Alignment.bottomLeft,
+                      child: Padding(
+                        padding: EdgeInsets.all(largeLayout ? 8 : 3),
+                        child: widget.bottomLeft,
+                      ),
+                    ),
+                  if (widget.bottomRight != null || _showMenu)
+                    Align(
+                      alignment: Alignment.bottomRight,
+                      child: Padding(
+                        padding: EdgeInsets.all(largeLayout ? 8 : 3),
+                        child:
+                            widget.bottomRight ??
+                            OnCoverMenuButton(menuOptions: widget.menuOptions),
+                      ),
+                    ),
+                ];
+
+                if (stackChildren.length == 1) {
+                  return cover;
+                }
+
                 return Stack(
                   fit: StackFit.loose,
                   alignment: Alignment.center,
-                  children: [
-                    CoverArt(
-                      size: size,
-                      placeholderIcon: widget.placeholderIcon,
-                      borderRadius: widget.borderRadius,
-                      coverId: widget.coverId,
-                    ),
-                    if (widget.topLeft != null || widget.isFavorite)
-                      Align(
-                        alignment: Alignment.topLeft,
-                        child: Padding(
-                          padding: EdgeInsets.all(largeLayout ? 8 : 3),
-                          child:
-                              widget.topLeft ??
-                              DecoratedIcon(
-                                decoration: IconDecoration(
-                                  border: IconBorder(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.primary,
-                                    width: 4,
-                                  ),
-                                ),
-                                icon: Icon(
-                                  Icons.favorite,
-                                  shadows: [
-                                    const Shadow(
-                                      blurRadius: 2,
-                                      color: Colors.black45,
-                                    ),
-                                  ],
-                                  size: largeLayout ? 26 : 20,
-                                  color: const Color.fromARGB(
-                                    255,
-                                    248,
-                                    248,
-                                    248,
-                                  ),
-                                ),
-                              ),
-                        ),
-                      ),
-                    if (widget.topRight != null ||
-                        widget.downloadStatus != DownloadStatus.none)
-                      Align(
-                        alignment: Alignment.topRight,
-                        child: Padding(
-                          padding: EdgeInsets.all(largeLayout ? 8 : 3),
-                          child:
-                              widget.topRight ??
-                              DecoratedIcon(
-                                decoration: const IconDecoration(
-                                  border: IconBorder(
-                                    color: Colors.black87,
-                                    width: 1,
-                                  ),
-                                ),
-                                icon: Icon(
-                                  widget.downloadStatus ==
-                                          DownloadStatus.downloading
-                                      ? Icons.downloading_outlined
-                                      : Icons.download_for_offline_outlined,
-                                  shadows: [
-                                    const Shadow(
-                                      blurRadius: 3,
-                                      color: Colors.black87,
-                                    ),
-                                  ],
-                                  size: largeLayout ? 26 : 20,
-                                  color: const Color.fromARGB(
-                                    255,
-                                    248,
-                                    248,
-                                    248,
-                                  ),
-                                ),
-                              ),
-                        ),
-                      ),
-                    if (widget.bottomLeft != null)
-                      Align(
-                        alignment: Alignment.bottomLeft,
-                        child: Padding(
-                          padding: EdgeInsets.all(largeLayout ? 8 : 3),
-                          child: widget.bottomLeft,
-                        ),
-                      ),
-                    if (widget.bottomRight != null || _showMenu)
-                      Align(
-                        alignment: Alignment.bottomRight,
-                        child: Padding(
-                          padding: EdgeInsets.all(largeLayout ? 8 : 3),
-                          child:
-                              widget.bottomRight ??
-                              OnCoverMenuButton(
-                                menuOptions: widget.menuOptions,
-                              ),
-                        ),
-                      ),
-                  ],
+                  children: stackChildren,
                 );
               },
             ),

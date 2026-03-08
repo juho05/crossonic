@@ -44,6 +44,7 @@ class GridCell extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     return WithContextMenu(
       options: menuOptions,
+      openOnLongTap: true,
       child: InkWell(
         borderRadius: BorderRadius.circular(10),
         onTap: onTap,
@@ -60,7 +61,6 @@ class GridCell extends StatelessWidget {
                 placeholderIcon: placeholderIcon,
                 coverId: coverId,
                 downloadStatus: downloadStatus,
-                menuOptions: menuOptions,
                 bottomLeft: bottomLeft,
                 bottomRight: bottomRight,
                 topLeft: topLeft,

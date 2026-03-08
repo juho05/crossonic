@@ -13,13 +13,13 @@ enum AlbumsPageMode {
   recentlyAdded,
   recentlyPlayed,
   frequentlyPlayed,
-  genre
+  genre,
 }
 
 class AlbumsViewModel extends ChangeNotifier {
   final SubsonicRepository _subsonic;
 
-  static final int _pageSize = 100;
+  static final int _pageSize = 250;
 
   AlbumsPageMode _mode;
   AlbumsPageMode get mode => _mode;
@@ -46,16 +46,17 @@ class AlbumsViewModel extends ChangeNotifier {
     required SubsonicRepository subsonic,
     required AlbumsPageMode mode,
     String? initialSeed,
-  })  : _subsonic = subsonic,
-        _mode = mode,
-        _genre = "",
-        _initialSeed =
-            subsonic.supports.randomSeed && mode == AlbumsPageMode.random
-                ? initialSeed
-                : null {
+  }) : _subsonic = subsonic,
+       _mode = mode,
+       _genre = "",
+       _initialSeed =
+           subsonic.supports.randomSeed && mode == AlbumsPageMode.random
+           ? initialSeed
+           : null {
     if (mode == AlbumsPageMode.genre) {
       throw Exception(
-          "cannot set genre mode in default constructor, use genre constructor instead");
+        "cannot set genre mode in default constructor, use genre constructor instead",
+      );
     }
     this.mode = mode;
   }
@@ -63,10 +64,10 @@ class AlbumsViewModel extends ChangeNotifier {
   AlbumsViewModel.genre({
     required SubsonicRepository subsonic,
     required String genre,
-  })  : _subsonic = subsonic,
-        _mode = AlbumsPageMode.genre,
-        _genre = genre,
-        _initialSeed = null {
+  }) : _subsonic = subsonic,
+       _mode = AlbumsPageMode.genre,
+       _genre = genre,
+       _initialSeed = null {
     _fetch(0);
   }
 
@@ -101,8 +102,11 @@ class AlbumsViewModel extends ChangeNotifier {
     notifyListeners();
     final Result<Iterable<Album>> result;
     if (_mode == AlbumsPageMode.genre) {
-      result =
-          await _subsonic.getAlbumsByGenre(_genre, _pageSize, page * _pageSize);
+      result = await _subsonic.getAlbumsByGenre(
+        _genre,
+        _pageSize,
+        page * _pageSize,
+      );
     } else {
       result = await _subsonic.getAlbums(
         switch (_mode) {
