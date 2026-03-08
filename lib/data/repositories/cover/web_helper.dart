@@ -87,12 +87,18 @@ class WebHelper {
   ///Download the file from the url
   Stream<FileResponse> _updateFile(String coverId, int size) async* {
     DateTime? lastDownload;
-    if (await _coverRepo.cacheFileExists(coverId, size)) {
-      final cacheObj = await _db.managers.coverCacheTable
-          .filter((f) => f.coverId(coverId) & f.size(size))
-          .getSingleOrNull();
-      lastDownload = cacheObj?.downloadTime;
-    } else {
+    final cacheObj = await _db.managers.coverCacheTable
+        .filter((f) => f.coverId(coverId) & f.size(size))
+        .getSingleOrNull();
+    if (cacheObj != null && await _coverRepo.cacheFileExists(coverId, size)) {
+      lastDownload = cacheObj.downloadTime;
+    }
+
+    final uri = _subsonic.getCoverUri(coverId, size: size);
+    try {
+      final response = await _download(uri, lastDownload: lastDownload);
+      yield* _manageResponse(coverId, size, uri, response);
+    } catch (e) {
       final largerCacheObj = await _db.managers.coverCacheTable
           .filter((f) => f.coverId(coverId) & f.size.isBiggerThan(size))
           .orderBy((o) => o.size.asc())
@@ -107,15 +113,9 @@ class WebHelper {
         );
         if (response != null) {
           yield response;
-          if (largerCacheObj.validTill.isAfter(DateTime.now())) {
-            return;
-          }
         }
       }
     }
-    final uri = _subsonic.getCoverUri(coverId, size: size);
-    final response = await _download(uri, lastDownload: lastDownload);
-    yield* _manageResponse(coverId, size, uri, response);
   }
 
   Future<FileResponse?> _resizeExistingCover(
@@ -183,7 +183,9 @@ class WebHelper {
 
     final req = http.Request("GET", uri);
     req.headers.addAll(headers);
-    final httpResponse = await _http.send(req);
+    final httpResponse = await _http
+        .send(req)
+        .timeout(const Duration(seconds: 10));
     if (statusCodesNewFile.contains(httpResponse.statusCode)) {
       if (httpResponse.headers["content-type"]?.startsWith("application/") ??
           false) {
