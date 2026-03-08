@@ -111,7 +111,7 @@ class _CoverArtDecoratedState extends State<CoverArtDecorated> {
                             DecoratedIcon(
                               decoration: const IconDecoration(
                                 border: IconBorder(
-                                  color: Colors.black87,
+                                  color: Colors.black,
                                   width: 1,
                                 ),
                               ),
@@ -120,12 +120,6 @@ class _CoverArtDecoratedState extends State<CoverArtDecorated> {
                                         DownloadStatus.downloading
                                     ? Icons.downloading_outlined
                                     : Icons.download_for_offline_outlined,
-                                shadows: [
-                                  const Shadow(
-                                    blurRadius: 3,
-                                    color: Colors.black87,
-                                  ),
-                                ],
                                 size: largeLayout ? 26 : 20,
                                 color: const Color.fromARGB(255, 248, 248, 248),
                               ),
