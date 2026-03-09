@@ -151,10 +151,11 @@ class LogsPageViewModel extends ChangeNotifier {
       final timeStr = DateFormat("yyyy-MM-dd_HH-mm-ss").format(sessionTime);
       final bytes = utf8.encode(_exportLog(filtered: filtered));
 
-      if (kIsWeb) {
+      if (kIsWeb || Platform.isAndroid || Platform.isIOS) {
         final outputFile = await FilePicker.platform.saveFile(
           fileName: "crossonic-logs_$timeStr.txt",
           bytes: bytes,
+          dialogTitle: "Export crossonic logs",
         );
         return Result.ok(outputFile != null);
       }

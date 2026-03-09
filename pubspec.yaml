@@ -52,7 +52,7 @@ dependencies:
   package_info_plus: ^9.0.0
   dbus: ^0.7.11
   dbus_secrets: ^0.0.2
-  cryptography_plus: ^2.7.1
+  cryptography_plus: ^3.0.0
   xdg_directories: ^1.1.0
   collection: ^1.19.1
   logger: ^2.6.1
