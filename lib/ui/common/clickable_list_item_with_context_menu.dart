@@ -16,6 +16,7 @@ class ClickableListItemWithContextMenu extends StatefulWidget {
   final DownloadStatus downloadStatus;
   final Color? backgroundColor;
   final bool opaque;
+  final bool contextMenuOnLongPress;
 
   final Iterable<ContextMenuOption> options;
 
@@ -33,6 +34,7 @@ class ClickableListItemWithContextMenu extends StatefulWidget {
     this.downloadStatus = DownloadStatus.none,
     this.backgroundColor,
     this.opaque = false,
+    this.contextMenuOnLongPress = true,
   });
 
   @override
@@ -46,6 +48,7 @@ class _ClickableListItemWithContextMenuState
   Widget build(BuildContext context) {
     return WithContextMenu(
       options: widget.options,
+      openOnLongTap: widget.contextMenuOnLongPress,
       child: ClickableListItem(
         title: widget.title,
         titleBold: widget.titleBold,

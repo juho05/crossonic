@@ -115,6 +115,7 @@ class _SongListItemState extends State<SongListItem> {
             title: widget.song.title,
             titleBold: viewModel.playbackStatus != null,
             opaque: widget.opaque,
+            contextMenuOnLongPress: !widget.enableLongPressReorder,
             extraInfo: [
               if (widget.showArtist) s.displayArtist,
               if (widget.showAlbum) s.album?.name ?? "Unknown album",

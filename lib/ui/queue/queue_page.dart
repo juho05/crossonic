@@ -46,24 +46,21 @@ class _QueuePageState extends State<QueuePage> {
             final theme = Theme.of(context);
 
             Widget songListItem(int i, Song s, {bool floating = false}) {
-              return ReorderableDelayedDragStartListener(
-                key: ValueKey("$i${s.id}"),
-                index: i,
-                enabled: !floating,
-                child: SongListItem(
-                  song: s,
-                  opaque: floating,
-                  reorderIndex: i,
-                  showDragHandle: true,
-                  showPlaybackStatus: false,
-                  showRemoveButton: true,
-                  onRemove: () {
-                    _viewModel.remove(i);
-                  },
-                  onTap: (_) {
-                    _viewModel.goto(i);
-                  },
-                ),
+              return SongListItem(
+                song: s,
+                key: ValueKey("$i-${s.id}"),
+                enableLongPressReorder: !floating,
+                opaque: floating,
+                reorderIndex: i,
+                showDragHandle: true,
+                showPlaybackStatus: false,
+                showRemoveButton: true,
+                onRemove: () {
+                  _viewModel.remove(i);
+                },
+                onTap: (_) {
+                  _viewModel.goto(i);
+                },
               );
             }
 
@@ -72,7 +69,7 @@ class _QueuePageState extends State<QueuePage> {
                 SliverList.list(
                   children: [
                     Padding(
-                      padding: const EdgeInsets.only(left: 8.0),
+                      padding: const EdgeInsets.only(left: 8),
                       child: Text(
                         "Current",
                         style: theme.textTheme.headlineSmall!.copyWith(
@@ -86,9 +83,12 @@ class _QueuePageState extends State<QueuePage> {
                         song: _viewModel.currentSong!,
                       ),
                     if (_viewModel.currentSong == null)
-                      const Text("Inactive playback"),
+                      const Padding(
+                        padding: EdgeInsets.all(8),
+                        child: Text("Inactive playback"),
+                      ),
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
                       child: Row(
                         children: [
                           Expanded(
@@ -155,7 +155,7 @@ class _QueuePageState extends State<QueuePage> {
                     if (i == _viewModel.priorityQueue.length) {
                       return Padding(
                         key: _queueSeparatorKey,
-                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
                         child: Row(
                           children: [
                             Expanded(
