@@ -20,6 +20,15 @@ class VersionChecker extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<VersionCheckerViewModel>(
       builder: (context, viewModel, _) {
+        if (viewModel.showUpdateSuccessful) {
+          SchedulerBinding.instance.addPostFrameCallback((_) {
+            viewModel.showUpdateSuccessful = false;
+            Toast.show(
+              context,
+              "Successfully updated to v${viewModel.current}!",
+            );
+          });
+        }
         if (viewModel.newVersionAvailable && !viewModel.isOpen) {
           SchedulerBinding.instance.addPostFrameCallback((_) {
             final actions = [
@@ -43,7 +52,7 @@ class VersionChecker extends StatelessWidget {
                   onPressed: () =>
                       Navigator.pop(context, VersionDialogChoice.install),
                   child: const Text("Install"),
-                )
+                ),
             ];
             viewModel.isOpen = true;
             showAdaptiveDialog<VersionDialogChoice>(
@@ -53,7 +62,8 @@ class VersionChecker extends StatelessWidget {
                 return AlertDialog.adaptive(
                   title: const Text("New version available"),
                   content: Text(
-                      "Current: v${viewModel.current}\nLatest: v${viewModel.latest}"),
+                    "Current: v${viewModel.current}\nLatest: v${viewModel.latest}",
+                  ),
                   actions: actions,
                 );
               },
@@ -63,13 +73,16 @@ class VersionChecker extends StatelessWidget {
                 case VersionDialogChoice.ignore:
                   await viewModel.ignoreVersion();
                   if (context.mounted) {
-                    Toast.show(context,
-                        "You won't be reminded about this version again");
+                    Toast.show(
+                      context,
+                      "You won't be reminded about this version again",
+                    );
                   }
                   break;
                 case VersionDialogChoice.view:
                   launchUrl(
-                      Uri.https("github.com", "/juho05/crossonic/releases"));
+                    Uri.https("github.com", "/juho05/crossonic/releases"),
+                  );
                 case null:
                 case VersionDialogChoice.remind:
                   // default behavior

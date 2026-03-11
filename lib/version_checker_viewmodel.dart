@@ -10,6 +10,7 @@ import 'package:flutter/foundation.dart';
 class VersionCheckerViewModel extends ChangeNotifier {
   static const String _keyLastDisplayedDialog = "version.last_displayed_dialog";
   static const String _keyIgnoreVersion = "version.ignore_version";
+  static const String _keyCurrentVersion = "version.current";
 
   final KeyValueRepository _keyValue;
   final VersionRepository _versionRepo;
@@ -22,9 +23,8 @@ class VersionCheckerViewModel extends ChangeNotifier {
   Version? get latest => _latest;
   bool get newVersionAvailable => _current != null && _latest != null;
 
-  bool _isOpen = false;
-  bool get isOpen => _isOpen;
-  set isOpen(bool value) => _isOpen = value;
+  bool isOpen = false;
+  bool showUpdateSuccessful = false;
 
   VersionCheckerViewModel({
     required KeyValueRepository keyValue,
@@ -47,6 +47,19 @@ class VersionCheckerViewModel extends ChangeNotifier {
   Future<void> check() async {
     if (_checked) return;
     _checked = true;
+
+    _current = await VersionRepository.getCurrentVersion();
+    final prevCurrent = await _keyValue.loadObject(
+      _keyCurrentVersion,
+      Version.fromJson,
+    );
+    if (prevCurrent != null && _current! > prevCurrent) {
+      showUpdateSuccessful = true;
+      notifyListeners();
+    }
+    if (prevCurrent != _current) {
+      await _keyValue.store(_keyCurrentVersion, current!);
+    }
 
     final lastDisplayed = await _keyValue.loadDateTime(_keyLastDisplayedDialog);
     if (lastDisplayed != null &&
@@ -72,13 +85,10 @@ class VersionCheckerViewModel extends ChangeNotifier {
     }
     await _keyValue.remove(_keyIgnoreVersion);
 
-    final current = await VersionRepository.getCurrentVersion();
+    Log.debug("[Version check] latest: ${latest.tryValue}; current: $_current");
 
-    Log.debug("[Version check] latest: ${latest.tryValue}; current: $current");
-
-    if (latest.tryValue! > current) {
+    if (latest.tryValue! > _current!) {
       _latest = latest.tryValue;
-      _current = current;
       notifyListeners();
     }
   }
