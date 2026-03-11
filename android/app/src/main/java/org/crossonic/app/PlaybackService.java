@@ -20,7 +20,6 @@ import java.util.Map;
 
 public class PlaybackService extends MediaLibraryService {
     private MediaLibrarySession mediaSession;
-    private MediaLibrarySession.Callback callback;
 
     private static final SessionCommand CUSTOM_COMMAND_STOP = new SessionCommand("ACTION_STOP", Bundle.EMPTY);
 
@@ -36,7 +35,7 @@ public class PlaybackService extends MediaLibraryService {
         Intent intent = new Intent(this, MainActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
-        callback = new SessionCallback();
+        final MediaLibrarySession.Callback callback = new SessionCallback();
         mediaSession = new MediaLibrarySession.Builder(this, player, callback).
                 setSessionActivity(pendingIntent).
                 setMediaButtonPreferences(ImmutableList.of(stopButton)).build();
@@ -72,8 +71,9 @@ public class PlaybackService extends MediaLibraryService {
 
         @OptIn(markerClass = UnstableApi.class)
         @Override
+        @SuppressWarnings("unchecked")
         public @NonNull ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> onGetChildren(@NonNull MediaLibrarySession session, MediaSession.@NonNull ControllerInfo browser, @NonNull String parentId, int page, int pageSize, @Nullable MediaLibraryService.LibraryParams params) {
-            final HashMap<Object, Object> msgParams = new HashMap<>();
+            final Map<Object, Object> msgParams = new HashMap<>();
             msgParams.put("parentId", parentId);
             if (pageSize < Integer.MAX_VALUE) {
                 msgParams.put("page", page);
@@ -85,12 +85,13 @@ public class PlaybackService extends MediaLibraryService {
                 msgParams.put("isSuggested", params.isSuggested);
             }
             final var future = FlutterIntegration.invokeMethod("onGetChildren", msgParams);
-            return Futures.transformAsync(future, result -> Futures.immediateFuture(Mappings.buildLibraryResultMediaItemsFromMsg((Map<Object,Object>)result)), MoreExecutors.directExecutor());
+            return Futures.transformAsync(future, result -> Futures.immediateFuture(Mappings.buildLibraryResultMediaItemsFromMsg((Map<Object,Object>) result)), MoreExecutors.directExecutor());
         }
 
         @Override
+        @SuppressWarnings("unchecked")
         public @NonNull ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> onGetSearchResult(@NonNull MediaLibrarySession session, MediaSession.@NonNull ControllerInfo browser, @NonNull String query, int page, int pageSize, @Nullable MediaLibraryService.LibraryParams params) {
-            final HashMap<Object, Object> msgParams = new HashMap<>();
+            final Map<Object, Object> msgParams = new HashMap<>();
             msgParams.put("query", query);
             if (pageSize < Integer.MAX_VALUE) {
                 msgParams.put("page", page);
@@ -107,7 +108,7 @@ public class PlaybackService extends MediaLibraryService {
 
         @Override
         public @NonNull ListenableFuture<LibraryResult<Void>> onSearch(@NonNull MediaLibrarySession session, MediaSession.@NonNull ControllerInfo browser, @NonNull String query, @Nullable MediaLibraryService.LibraryParams params) {
-            final HashMap<Object, Object> msgParams = new HashMap<>();
+            final Map<Object, Object> msgParams = new HashMap<>();
             msgParams.put("query", query);
             if (params != null) {
                 msgParams.put("isOffline", params.isOffline);
@@ -122,7 +123,7 @@ public class PlaybackService extends MediaLibraryService {
         }
 
         @Override
-        public ListenableFuture<List<MediaItem>> onAddMediaItems(MediaSession mediaSession, MediaSession.ControllerInfo controller, List<MediaItem> mediaItems) {
+        public @NonNull ListenableFuture<List<MediaItem>> onAddMediaItems(@NonNull MediaSession mediaSession, MediaSession.@NonNull ControllerInfo controller, @NonNull List<MediaItem> mediaItems) {
             return Futures.immediateFuture(mediaItems);
         }
 
@@ -141,7 +142,7 @@ public class PlaybackService extends MediaLibraryService {
         }
 
         @Override
-        public @NonNull ListenableFuture<SessionResult> onCustomCommand(@NonNull MediaSession session, MediaSession.@NonNull ControllerInfo controller, SessionCommand customCommand, Bundle args) {
+        public @NonNull ListenableFuture<SessionResult> onCustomCommand(@NonNull MediaSession session, MediaSession.@NonNull ControllerInfo controller, SessionCommand customCommand, @NonNull Bundle args) {
             if (customCommand.customAction.equals(CUSTOM_COMMAND_STOP.customAction)) {
                 session.getPlayer().stop();
                 return Futures.immediateFuture(new SessionResult(SessionResult.RESULT_SUCCESS));
