@@ -39,6 +39,7 @@ public class PlaybackService extends MediaLibraryService {
         mediaSession = new MediaLibrarySession.Builder(this, player, callback).
                 setSessionActivity(pendingIntent).
                 setMediaButtonPreferences(ImmutableList.of(stopButton)).build();
+        CLog.debug("PlaybackService.onCreate", "Created media session", null);
     }
 
     @Override
@@ -51,6 +52,7 @@ public class PlaybackService extends MediaLibraryService {
         mediaSession.getPlayer().release();
         mediaSession.release();
         mediaSession = null;
+        CLog.debug("PlaybackService.onDestroy", "Media session released", null);
         super.onDestroy();
     }
 
@@ -58,6 +60,8 @@ public class PlaybackService extends MediaLibraryService {
         @OptIn(markerClass = UnstableApi.class)
         @Override
         public @NonNull ListenableFuture<LibraryResult<MediaItem>> onGetLibraryRoot(@NonNull MediaLibrarySession session, MediaSession.@NonNull ControllerInfo browser, @Nullable MediaLibraryService.LibraryParams params) {
+            CLog.debug("SessionCallback.onGetLibraryRoot", "System requested library root", null);
+
             final var metadata = new MediaMetadata.Builder().setIsPlayable(false).setIsBrowsable(true).build();
             final var item = new MediaItem.Builder().setMediaId("crossonic_root").setMediaMetadata(metadata).build();
 
@@ -73,6 +77,7 @@ public class PlaybackService extends MediaLibraryService {
         @Override
         @SuppressWarnings("unchecked")
         public @NonNull ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> onGetChildren(@NonNull MediaLibrarySession session, MediaSession.@NonNull ControllerInfo browser, @NonNull String parentId, int page, int pageSize, @Nullable MediaLibraryService.LibraryParams params) {
+            CLog.debug("SessionCallback.onGetChildren", "System requested children for " + parentId, null);
             final Map<Object, Object> msgParams = new HashMap<>();
             msgParams.put("parentId", parentId);
             if (pageSize < Integer.MAX_VALUE) {
@@ -91,6 +96,7 @@ public class PlaybackService extends MediaLibraryService {
         @Override
         @SuppressWarnings("unchecked")
         public @NonNull ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> onGetSearchResult(@NonNull MediaLibrarySession session, MediaSession.@NonNull ControllerInfo browser, @NonNull String query, int page, int pageSize, @Nullable MediaLibraryService.LibraryParams params) {
+            CLog.debug("SessionCallback.onGetChildren", "System requested search result for query: " + query, null);
             final Map<Object, Object> msgParams = new HashMap<>();
             msgParams.put("query", query);
             if (pageSize < Integer.MAX_VALUE) {
@@ -108,6 +114,7 @@ public class PlaybackService extends MediaLibraryService {
 
         @Override
         public @NonNull ListenableFuture<LibraryResult<Void>> onSearch(@NonNull MediaLibrarySession session, MediaSession.@NonNull ControllerInfo browser, @NonNull String query, @Nullable MediaLibraryService.LibraryParams params) {
+            CLog.debug("SessionCallback.onGetChildren", "System requested search for query: " + query, null);
             final Map<Object, Object> msgParams = new HashMap<>();
             msgParams.put("query", query);
             if (params != null) {
@@ -124,6 +131,7 @@ public class PlaybackService extends MediaLibraryService {
 
         @Override
         public @NonNull ListenableFuture<List<MediaItem>> onAddMediaItems(@NonNull MediaSession mediaSession, MediaSession.@NonNull ControllerInfo controller, @NonNull List<MediaItem> mediaItems) {
+            CLog.trace("SessionCallback.onAddMediaItems", "Immediately returning media items without modification", null);
             return Futures.immediateFuture(mediaItems);
         }
 
@@ -131,22 +139,27 @@ public class PlaybackService extends MediaLibraryService {
         @Override
         public MediaSession.@NonNull ConnectionResult onConnect(@NonNull MediaSession session, MediaSession.@NonNull ControllerInfo controller) {
             if (!controller.isTrusted()) {
+                CLog.error("SessionCallback.onConnect", "Rejected connection attempt by " + controller.getPackageName() + " because it is not trusted", null);
                 return MediaSession.ConnectionResult.reject();
             }
             if (session.isMediaNotificationController(controller)) {
+                CLog.debug("SessionCallback.onConnect", "Connected to " + controller.getPackageName() + " with session commands", null);
                 return new MediaSession.ConnectionResult.AcceptedResultBuilder(session)
                         .setAvailableSessionCommands(MediaSession.ConnectionResult.DEFAULT_SESSION_COMMANDS.buildUpon().add(CUSTOM_COMMAND_STOP).build())
                         .build();
             }
+            CLog.debug("SessionCallback.onConnect", "Connected to " + controller.getPackageName() + " without session commands", null);
             return new MediaSession.ConnectionResult.AcceptedResultBuilder(session).build();
         }
 
         @Override
         public @NonNull ListenableFuture<SessionResult> onCustomCommand(@NonNull MediaSession session, MediaSession.@NonNull ControllerInfo controller, SessionCommand customCommand, @NonNull Bundle args) {
             if (customCommand.customAction.equals(CUSTOM_COMMAND_STOP.customAction)) {
+                CLog.debug("SessionCallback.onCustomCommand", "Received stop command, stopping player", null);
                 session.getPlayer().stop();
                 return Futures.immediateFuture(new SessionResult(SessionResult.RESULT_SUCCESS));
             }
+            CLog.warn("SessionCallback.onCustomCommand", "Received unknown custom command: " + customCommand.customAction, null);
             return MediaLibrarySession.Callback.super.onCustomCommand(session, controller, customCommand, args);
         }
     }

@@ -15,6 +15,7 @@ public class MainActivity extends FlutterActivity {
     @Override
     protected void onStart() {
         super.onStart();
+        CLog.debug("MainActivity.onStart", "Connecting to playback service", null);
         SessionToken sessionToken = new SessionToken(this, new ComponentName(this, PlaybackService.class));
         mediaControllerFuture = new MediaController.Builder(this, sessionToken).buildAsync();
     }
@@ -22,11 +23,13 @@ public class MainActivity extends FlutterActivity {
     @Override
     protected void onStop() {
         super.onStop();
+        CLog.debug("MainActivity.onStop", "Releasing playback service", null);
         MediaController.releaseFuture(mediaControllerFuture);
     }
 
     @Override
     public FlutterEngine provideFlutterEngine(@NonNull Context context) {
+        CLog.trace("MainActivity", "provideFlutterEngine", null);
         return FlutterIntegration.getEngine(context);
     }
 }

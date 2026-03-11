@@ -40,7 +40,7 @@ void main() async {
     await _migrateAppSupportDir();
   }
 
-  Log.init(logRepository);
+  Log.init(logRepository, methodChannelService);
   Log.info(
     "App started. Engine ID: ${PlatformDispatcher.instance.engineId}, Configuration: ${kDebugMode
         ? "debug"

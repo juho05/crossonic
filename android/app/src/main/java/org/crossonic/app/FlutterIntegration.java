@@ -3,7 +3,6 @@ package org.crossonic.app;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
-import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.concurrent.futures.CallbackToFutureAdapter;
@@ -42,6 +41,7 @@ public class FlutterIntegration {
         if (flutterEngine != null) {
             return flutterEngine;
         }
+        CLog.debug("FlutterIntegration.getEngine", "Creating new engine", null);
         flutterEngine = new FlutterEngine(context.getApplicationContext());
         FlutterEngineCache.getInstance().put(ENGINE_ID, flutterEngine);
         methodChannel = new MethodChannel(flutterEngine.getDartExecutor().getBinaryMessenger(), "org.crossonic.app.player.methods");
@@ -56,6 +56,7 @@ public class FlutterIntegration {
                 eventSink = null;
             }
         });
+        CLog.debug("FlutterIntegration.getEngine", "Executing dart entrypoint", null);
         flutterEngine.getDartExecutor().executeDartEntrypoint(DartExecutor.DartEntrypoint.createDefault());
         return flutterEngine;
     }
@@ -70,36 +71,25 @@ public class FlutterIntegration {
         eventSink.success(map);
     }
 
-    public static void sendError(String errorCode, String errorMessage, Object errorDetails) {
-        if (eventSink == null) return;
-        eventSink.error(errorCode, errorMessage, errorDetails);
-    }
-
     private static final Handler mainThreadHandler = new Handler(Looper.getMainLooper());
     public static ListenableFuture<Object> invokeMethod(String method, @Nullable Object arguments) {
         return CallbackToFutureAdapter.getFuture(completer->{
-            Log.e("ANDROIDAUTO", "invoke method");
-            mainThreadHandler.post(()->{
-                methodChannel.invokeMethod(method, arguments, new MethodChannel.Result() {
-                    @Override
-                    public void success(@Nullable @org.jspecify.annotations.Nullable Object result) {
-                        Log.e("ANDROIDAUTO", "invoke method success");
-                        completer.set(result);
-                    }
+            mainThreadHandler.post(()-> methodChannel.invokeMethod(method, arguments, new MethodChannel.Result() {
+                @Override
+                public void success(@Nullable @org.jspecify.annotations.Nullable Object result) {
+                    completer.set(result);
+                }
 
-                    @Override
-                    public void error(@NonNull @org.jspecify.annotations.NonNull String errorCode, @Nullable @org.jspecify.annotations.Nullable String errorMessage, @Nullable @org.jspecify.annotations.Nullable Object errorDetails) {
-                        Log.e("ANDROIDAUTO", "invoke method error: " + errorMessage);
-                        completer.setException(new Exception(errorMessage));
-                    }
+                @Override
+                public void error(@NonNull @org.jspecify.annotations.NonNull String errorCode, @Nullable @org.jspecify.annotations.Nullable String errorMessage, @Nullable @org.jspecify.annotations.Nullable Object errorDetails) {
+                    completer.setException(new Exception(errorMessage));
+                }
 
-                    @Override
-                    public void notImplemented() {
-                        Log.e("ANDROIDAUTO", "invoke method not implemented");
-                        completer.setException(new Exception("method " + method + " not implemented"));
-                    }
-                });
-            });
+                @Override
+                public void notImplemented() {
+                    completer.setException(new Exception("method " + method + " not implemented"));
+                }
+            }));
             return "async invoke method";
         });
     }
@@ -108,6 +98,7 @@ public class FlutterIntegration {
         methodCallbacks.put(methodName, callback);
         final var calls = unhandledCalls.get(methodName);
         if (calls != null) {
+            CLog.debug("FlutterIntegration.setMethodCallback", "Executing " + calls.size() + " unhandled calls for method '" + methodName + "'", null);
             unhandledCalls.remove(methodName);
             for (MCall c : calls) {
                 callback.onMethodCall(c.call, c.result);
@@ -122,6 +113,7 @@ public class FlutterIntegration {
     private static void onMethodCall(@NonNull MethodCall call, @NonNull MethodChannel.Result result) {
         final MethodCallback callback = methodCallbacks.get(call.method);
         if (callback == null) {
+            CLog.debug("FlutterIntegration.onMethodCall", "Received '" + call.method + "' but no handler registered yet, storing for later", null);
             unhandledCalls.putIfAbsent(call.method, new LinkedList<>());
             Objects.requireNonNull(unhandledCalls.get(call.method)).add(new MCall(call, result));
             return;

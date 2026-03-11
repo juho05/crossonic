@@ -3,7 +3,6 @@ package org.crossonic.app;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Looper;
-import android.util.Log;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -53,6 +52,7 @@ public class CrossonicPlayer implements Player {
         player.addListener(new PlayerListener());
         registerMethodHandlers();
         FlutterIntegration.sendEvent("playerCreated", null);
+        CLog.debug("CrossonicPlayer", "player created", null);
     }
 
     private Player buildPlayer(Context context) {
@@ -107,6 +107,7 @@ public class CrossonicPlayer implements Player {
         FlutterIntegration.setMethodCallback("seek", this::handleSeek);
         FlutterIntegration.setMethodCallback("stop", this::handleStop);
         FlutterIntegration.setMethodCallback("dispose", this::handleDispose);
+        CLog.trace("CrossonicPlayer.registerMethodHandlers", "method call handlers registered", null);
     }
 
     private void unregisterMethodHandlers() {
@@ -123,6 +124,7 @@ public class CrossonicPlayer implements Player {
         FlutterIntegration.removeMethodCallback("seek");
         FlutterIntegration.removeMethodCallback("stop");
         FlutterIntegration.removeMethodCallback("dispose");
+        CLog.trace("CrossonicPlayer.unregisterMethodHandlers", "method callbacks unregistered", null);
     }
 
     private void handleConfigure(MethodCall call, MethodChannel.Result result) {
@@ -135,6 +137,7 @@ public class CrossonicPlayer implements Player {
         if (call.hasArgument("treatStopAsPause")) {
             treatStopAsPause = Boolean.TRUE.equals(call.argument("treatStopAsPause"));
         }
+        CLog.debug("CrossonicPlayer.handleConfigure", "received config: timeOffset: " + supportsTimeOffset + ", timeOffsetMs: " + supportsTimeOffsetMs + ", stopAsPause: " + treatStopAsPause, null);
         result.success(null);
     }
 
@@ -174,6 +177,7 @@ public class CrossonicPlayer implements Player {
         currentBuilder.setUri(streamUri);
         final var currentMediaItem = currentBuilder.build();
 
+        CLog.debug("CrossonicPlayer.setCurrent", "Setting new current media item (canSeek: " + canSeek(streamUri) + ")", null);
         player.setMediaItem(currentMediaItem, canSeek(streamUri) ? pos : C.TIME_UNSET);
         positionOffsetMs = !canSeek(streamUri) ? pos : 0;
 
@@ -190,6 +194,7 @@ public class CrossonicPlayer implements Player {
         final var nextBuilder = new MediaItem.Builder();
         Mappings.buildMediaItemFromMsg(nextBuilder, next);
         final var nextMediaItem = nextBuilder.build();
+        CLog.debug("CrossonicPlayer.setCurrent", "Setting new next media item", null);
         player.addMediaItem(nextMediaItem);
         result.success(null);
     }
@@ -197,6 +202,7 @@ public class CrossonicPlayer implements Player {
     private void handleSetNext(MethodCall call, MethodChannel.Result result) {
         final Map<Object, Object> next = call.argument("next");
         if (next == null) {
+            CLog.debug("CrossonicPlayer", "Clearing next media item", null);
             player.removeMediaItems(player.getCurrentMediaItemIndex()+1, Integer.MAX_VALUE);
             result.success(null);
             return;
@@ -204,6 +210,7 @@ public class CrossonicPlayer implements Player {
 
         final var nextBuilder = new MediaItem.Builder();
         Mappings.buildMediaItemFromMsg(nextBuilder, next);
+        CLog.debug("CrossonicPlayer.handleSetNext", "Settings next media item", null);
         player.replaceMediaItems(player.getCurrentMediaItemIndex()+1, Integer.MAX_VALUE, Collections.singletonList(nextBuilder.build()));
         result.success(null);
     }
@@ -219,10 +226,12 @@ public class CrossonicPlayer implements Player {
         final var nextMediaItem = player.hasNextMediaItem() ? player.getMediaItemAt(nextIndex) : null;
 
         if (currentMediaItem != null && currentMediaItem.mediaId.equals(songId)) {
+            CLog.debug("CrossonicPlayer.handleUpdateCover", "Replacing cover of current media item", null);
             player.replaceMediaItem(currentIndex, currentMediaItem.buildUpon().
                     setMediaMetadata(currentMediaItem.mediaMetadata.buildUpon().setArtworkData(coverBytes, PICTURE_TYPE_FRONT_COVER).build()).build());
         }
         if (nextMediaItem != null && nextMediaItem.mediaId.equals(songId)) {
+            CLog.debug("CrossonicPlayer.handleUpdateCover", "Replacing cover of next media item", null);
             player.replaceMediaItem(nextIndex, nextMediaItem.buildUpon().
                     setMediaMetadata(nextMediaItem.mediaMetadata.buildUpon().setArtworkData(coverBytes, PICTURE_TYPE_FRONT_COVER).build()).build());
         }
@@ -371,6 +380,9 @@ public class CrossonicPlayer implements Player {
     @Override
     public void setMediaItems(@NonNull List<MediaItem> mediaItems) {
         if (mediaItems.isEmpty()) return;
+        if (mediaItems.size() > 1) {
+            CLog.warn("CrossonicPlayer.setMediaItems", "called with multiple media items but currently only lists of length 1 are supported", null);
+        }
 
         // TODO properly implement this method
         setMediaItem(mediaItems.get(0));
@@ -396,7 +408,9 @@ public class CrossonicPlayer implements Player {
     public void setMediaItem(@NonNull MediaItem mediaItem, long startPositionMs) {
         final Map<String, Object> args = new HashMap<>();
         if (mediaItem.requestMetadata.searchQuery != null) {
-            args.put("query", mediaItem.requestMetadata.searchQuery);
+            final var query = mediaItem.requestMetadata.searchQuery;
+            CLog.debug("CrossonicPlayer.setMediaItem", "Received search query: "+query, null);
+            args.put("query", query);
             FlutterIntegration.invokeMethod("playFromSearch", args);
             return;
         }
@@ -404,6 +418,7 @@ public class CrossonicPlayer implements Player {
         if (startPositionMs != C.TIME_UNSET) {
             args.put("startPositionMs", startPositionMs);
         }
+        CLog.debug("CrossonicPlayer.setMediaItem", "Received native media item request: " + mediaItem.mediaId, null);
         FlutterIntegration.invokeMethod("setMediaItem", args);
     }
 
@@ -413,37 +428,59 @@ public class CrossonicPlayer implements Player {
     }
 
     @Override
-    public void addMediaItem(@NonNull MediaItem mediaItem) {}
+    public void addMediaItem(@NonNull MediaItem mediaItem) {
+        CLog.warn("CrossonicPlayer.addMediaItem", "Called but not implemented", null);
+    }
 
     @Override
-    public void addMediaItem(int index, @NonNull MediaItem mediaItem) {}
+    public void addMediaItem(int index, @NonNull MediaItem mediaItem) {
+        CLog.warn("CrossonicPlayer.addMediaItem", "Called but not implemented", null);
+    }
 
     @Override
-    public void addMediaItems(@NonNull List<MediaItem> mediaItems) {}
+    public void addMediaItems(@NonNull List<MediaItem> mediaItems) {
+        CLog.warn("CrossonicPlayer.addMediaItems", "Called but not implemented", null);
+    }
 
     @Override
-    public void addMediaItems(int index, @NonNull List<MediaItem> mediaItems) {}
+    public void addMediaItems(int index, @NonNull List<MediaItem> mediaItems) {
+        CLog.warn("CrossonicPlayer.addMediaItems", "Called but not implemented", null);
+    }
 
     @Override
-    public void moveMediaItem(int currentIndex, int newIndex) {}
+    public void moveMediaItem(int currentIndex, int newIndex) {
+        CLog.warn("CrossonicPlayer.moveMediaItem", "Called but not implemented", null);
+    }
 
     @Override
-    public void moveMediaItems(int fromIndex, int toIndex, int newIndex) {}
+    public void moveMediaItems(int fromIndex, int toIndex, int newIndex) {
+        CLog.warn("CrossonicPlayer.moveMediaItems", "Called but not implemented", null);
+    }
 
     @Override
-    public void replaceMediaItem(int index, @NonNull MediaItem mediaItem) {}
+    public void replaceMediaItem(int index, @NonNull MediaItem mediaItem) {
+        CLog.warn("CrossonicPlayer.replaceMediaItem", "Called but not implemented", null);
+    }
 
     @Override
-    public void replaceMediaItems(int fromIndex, int toIndex, @NonNull List<MediaItem> mediaItems) {}
+    public void replaceMediaItems(int fromIndex, int toIndex, @NonNull List<MediaItem> mediaItems) {
+        CLog.warn("CrossonicPlayer.replaceMediaItems", "Called but not implemented", null);
+    }
 
     @Override
-    public void removeMediaItem(int index) {}
+    public void removeMediaItem(int index) {
+        CLog.warn("CrossonicPlayer.removeMediaItem", "Called but not implemented", null);
+    }
 
     @Override
-    public void removeMediaItems(int fromIndex, int toIndex) {}
+    public void removeMediaItems(int fromIndex, int toIndex) {
+        CLog.warn("CrossonicPlayer.removeMediaItem", "Called but not implemented", null);
+    }
 
     @Override
-    public void clearMediaItems() {}
+    public void clearMediaItems() {
+        CLog.warn("CrossonicPlayer.clearMediaItems", "Called but not implemented", null);
+    }
 
     @Override
     public boolean isCommandAvailable(int command) {
@@ -482,7 +519,7 @@ public class CrossonicPlayer implements Player {
 
     @Nullable
     @Override
-    public @org.jspecify.annotations.Nullable PlaybackException getPlayerError() {
+    public PlaybackException getPlayerError() {
         return player.getPlayerError();
     }
 
@@ -519,7 +556,7 @@ public class CrossonicPlayer implements Player {
 
     @Override
     public void setShuffleModeEnabled(boolean shuffleModeEnabled) {
-        // not supported
+        CLog.warn("CrossonicPlayer.setShuffleModeEnabled", "Called but not implemented", null);
     }
 
     @Override
@@ -548,6 +585,7 @@ public class CrossonicPlayer implements Player {
             positionMs = 0;
         }
         if (player.isCurrentMediaItemSeekable() && positionOffsetMs == 0) {
+            CLog.debug("CrossonicPlayer.seekTo", "performing native player seek", null);
             player.seekTo(positionMs);
             return;
         }
@@ -556,12 +594,13 @@ public class CrossonicPlayer implements Player {
         final Uri uri = mediaItem.localConfiguration.uri;
         final Uri newUri = setUriTimeOffset(uri, positionMs);
         positionOffsetMs = positionMs;
+        CLog.debug("CrossonicPlayer.seekTo", "performing timeOffset seek", null);
         player.replaceMediaItem(player.getCurrentMediaItemIndex(), mediaItem.buildUpon().setUri(newUri).build());
     }
 
     @Override
     public void seekTo(int mediaItemIndex, long positionMs) {
-        // TODO
+        CLog.warn("CrossonicPlayer.seekTo(mediaItemIndex, positionMs)", "Called but not implemented", null);
     }
 
     @Override
@@ -571,7 +610,7 @@ public class CrossonicPlayer implements Player {
 
     @Override
     public void seekBack() {
-        // TODO handle by calling seek to
+        CLog.warn("CrossonicPlayer.seekBack", "Called but not implemented", null);
     }
 
     @Override
@@ -581,7 +620,7 @@ public class CrossonicPlayer implements Player {
 
     @Override
     public void seekForward() {
-        // TODO handle by calling seek to
+        CLog.warn("CrossonicPlayer.seekForward", "Called but not implemented", null);
     }
 
     @Override
@@ -640,6 +679,7 @@ public class CrossonicPlayer implements Player {
     @Override
     public void setPlaybackSpeed(float speed) {
         // not supported (because UI relies on 1x speed)
+        CLog.warn("CrossonicPlayer.setPlaybackSpeed", "Called but not implemented", null);
     }
 
     @Override
@@ -650,15 +690,18 @@ public class CrossonicPlayer implements Player {
     @Override
     public void stop() {
         if (treatStopAsPause) {
+            CLog.debug("CrossonicPlayer.stop", "Stop signal received from system, pausing because treatStopAsPause workaround is active", null);
             pause();
             return;
         }
+        CLog.debug("CrossonicPlayer.stop", "Stop signal received from system", null);
         player.clearMediaItems();
         player.stop();
     }
 
     @Override
     public void release() {
+        CLog.debug("CrossonicPlayer.release", "releasing player resources", null);
         unregisterMethodHandlers();
         player.release();
     }
@@ -696,8 +739,8 @@ public class CrossonicPlayer implements Player {
     @Nullable
     @Override
     public @org.jspecify.annotations.Nullable Object getCurrentManifest() {
+        CLog.warn("CrossonicPlayer.getCurrentManifest", "Called but not implemented", null);
         return null;
-        // return player.getCurrentManifest();
     }
 
     @Override
@@ -1058,6 +1101,7 @@ public class CrossonicPlayer implements Player {
 
         @Override
         public void onPlaybackStateChanged(@State int playbackState) {
+            CLog.trace("CrossonicPlayer.PlayerListener.onPlaybackStateChanged", "New playback state: " + playbackState, null);
             switch (playbackState) {
                 case STATE_IDLE, STATE_ENDED -> {
                     player.setPlayWhenReady(false);
@@ -1107,8 +1151,7 @@ public class CrossonicPlayer implements Player {
 
         @Override
         public void onPlayerError(@NonNull PlaybackException error) {
-            // TODO send to flutter
-            Log.e("Player Error", error.toString());
+            CLog.error("CrossonicPlayer.CrossonicListener.onPlayerError", "A player error occured", error);
             listeners.forEach(listener -> listener.onPlayerError(error));
         }
 
@@ -1128,6 +1171,7 @@ public class CrossonicPlayer implements Player {
         public void onPositionDiscontinuity(
                 @NonNull PositionInfo oldPosition, @NonNull PositionInfo newPosition, @DiscontinuityReason int reason) {
             if (reason == Player.DISCONTINUITY_REASON_INTERNAL && newPosition.positionMs < oldPosition.positionMs && newPosition.positionMs < 2000) {
+                CLog.warn("CrossonicPlayer.PlayerListener.onPositionDiscontinuity", "Encountered unexpected position discontinuity to start of media file, recovering by calling seekTo", null);
                 seekTo(oldPosition.positionMs+positionOffsetMs);
                 return;
             }
