@@ -1,4 +1,5 @@
 import 'package:crossonic/data/repositories/cover/cover_repository.dart';
+import 'package:crossonic/data/repositories/playlist/playlist_repository.dart';
 import 'package:crossonic/data/repositories/settings/settings_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
@@ -6,6 +7,7 @@ import 'package:logger/logger.dart';
 class DebugViewModel extends ChangeNotifier {
   final SettingsRepository _settings;
   final CoverRepository _coverRepo;
+  final PlaylistRepository _playlistRepo;
 
   Level _level;
   Level get level => _level;
@@ -16,10 +18,12 @@ class DebugViewModel extends ChangeNotifier {
   DebugViewModel({
     required SettingsRepository settings,
     required CoverRepository coverRepo,
+    required PlaylistRepository playlistRepo,
   }) : _settings = settings,
        _level = settings.logging.level,
        _stopIsPause = settings.workarounds.stopIsPause,
-       _coverRepo = coverRepo {
+       _coverRepo = coverRepo,
+       _playlistRepo = playlistRepo {
     _settings.logging.addListener(_onSettingsChanged);
     _settings.workarounds.addListener(_onSettingsChanged);
   }
@@ -51,5 +55,6 @@ class DebugViewModel extends ChangeNotifier {
 
   Future<void> clearCoverCache() async {
     await _coverRepo.emptyCache();
+    _playlistRepo.downloadCovers();
   }
 }

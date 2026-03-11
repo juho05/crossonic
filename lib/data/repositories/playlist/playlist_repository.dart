@@ -51,7 +51,7 @@ class PlaylistRepository extends ChangeNotifier {
       addListener(() => _songDownloader.update());
     }
     _songDownloader.update();
-    _downloadCovers();
+    downloadCovers();
   }
 
   final Set<String> _playlistIdsNeedUpdate = {};
@@ -111,7 +111,7 @@ class PlaylistRepository extends ChangeNotifier {
               .get();
           _coverRepository.downloadCovers(songs);
         }
-        _downloadCovers();
+        downloadCovers();
       }
       return const Result.ok(null);
     } on Exception catch (e) {
@@ -731,7 +731,7 @@ class PlaylistRepository extends ChangeNotifier {
         );
       });
 
-      _downloadCovers();
+      downloadCovers();
 
       notifyListeners();
       return const Result.ok(null);
@@ -740,7 +740,7 @@ class PlaylistRepository extends ChangeNotifier {
     }
   }
 
-  Future<void> _downloadCovers() async {
+  Future<void> downloadCovers() async {
     final playlistCovers =
         await (_db.selectOnly(_db.playlistTable)
               ..addColumns([_db.playlistTable.coverArt])
@@ -761,10 +761,12 @@ class PlaylistRepository extends ChangeNotifier {
               ))
             .map((p) => p.read(_db.playlistTable.coverArt))
             .get();
-    Log.debug(
-      "downloading covers for ${playlistCovers.length} downloaded playlists...",
-    );
-    await _coverRepository.downloadCovers(playlistCovers);
+    if (playlistCovers.isNotEmpty) {
+      Log.debug(
+        "downloading covers for ${playlistCovers.length} downloaded playlists...",
+      );
+      await _coverRepository.downloadCovers(playlistCovers);
+    }
 
     final downloadCoverIdsQuery = _db.selectOnly(
       _db.playlistSongTable,
@@ -790,10 +792,12 @@ class PlaylistRepository extends ChangeNotifier {
     final downloadCoverIds = await downloadCoverIdsQuery
         .map((row) => row.read(_db.playlistSongTable.coverId))
         .get();
-    Log.debug(
-      "downloading covers for ${downloadCoverIds.length} downloaded songs...",
-    );
-    await _coverRepository.downloadCovers(downloadCoverIds);
+    if (downloadCoverIds.isNotEmpty) {
+      Log.debug(
+        "downloading covers for ${downloadCoverIds.length} downloaded songs...",
+      );
+      await _coverRepository.downloadCovers(downloadCoverIds);
+    }
   }
 
   Future<Result<List<ChildModel>>> _loadPlaylistSongs(String playlistId) async {

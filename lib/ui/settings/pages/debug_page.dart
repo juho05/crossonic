@@ -26,6 +26,7 @@ class _DebugPageState extends State<DebugPage> {
     _viewModel = DebugViewModel(
       settings: context.read(),
       coverRepo: context.read(),
+      playlistRepo: context.read(),
     );
   }
 
