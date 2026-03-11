@@ -88,7 +88,7 @@ class LogsPageViewModel extends ChangeNotifier {
   void search(String query) {
     _searchDebounce?.cancel();
     _searchDebounce = Timer(const Duration(milliseconds: 250), () {
-      _searchText = query;
+      _searchText = query.toLowerCase();
       _updateFilteredLogMessages();
     });
   }
@@ -194,8 +194,8 @@ class LogsPageViewModel extends ChangeNotifier {
           (m) =>
               enabledLevels.contains(m.level) &&
               (searchText.isEmpty ||
-                  m.tag.contains(searchText) ||
-                  m.message.contains(searchText)),
+                  m.tag.toLowerCase().contains(searchText) ||
+                  m.message.toLowerCase().contains(searchText)),
         )
         .toList();
     notifyListeners();
