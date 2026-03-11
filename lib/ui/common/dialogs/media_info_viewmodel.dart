@@ -134,7 +134,7 @@ class MediaInfoDialogViewModel extends ChangeNotifier {
       if (s.bpm != null && s.bpm != 0) ("BPM", s.bpm!.toString(), null),
       if (s.replayGain != null && s.replayGain!.trackGain != null)
         ("Track gain", "${formatDouble(s.replayGain!.trackGain!)} dB", null),
-      if (s.replayGain != null && s.replayGain!.trackGain != null)
+      if (s.replayGain != null && s.replayGain!.albumGain != null)
         ("Album gain", "${formatDouble(s.replayGain!.albumGain!)} dB", null),
       if (s.replayGain != null && s.replayGain!.fallbackGain != null)
         (
