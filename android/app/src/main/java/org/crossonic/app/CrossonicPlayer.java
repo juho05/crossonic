@@ -1059,14 +1059,12 @@ public class CrossonicPlayer implements Player {
         @Override
         public void onPlaybackStateChanged(@State int playbackState) {
             switch (playbackState) {
-                case STATE_IDLE -> {
+                case STATE_IDLE, STATE_ENDED -> {
+                    player.setPlayWhenReady(false);
                     FlutterIntegration.sendEvent("state", Map.of(
-                            "state", "stopped"
+                        "state", "stopped"
                     ));
                 }
-                case STATE_ENDED -> FlutterIntegration.sendEvent("state", Map.of(
-                        "state", "stopped"
-                ));
                 case STATE_BUFFERING ->  FlutterIntegration.sendEvent("state", Map.of(
                         "state", "loading"
                 ));
