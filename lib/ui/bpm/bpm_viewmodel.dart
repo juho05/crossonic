@@ -21,8 +21,10 @@ class BpmViewModel extends ChangeNotifier {
     _bpmRange = range;
     notifyListeners();
     _rangeChangeDebounce?.cancel();
-    _rangeChangeDebounce =
-        Timer(const Duration(milliseconds: 500), () => refresh());
+    _rangeChangeDebounce = Timer(
+      const Duration(milliseconds: 500),
+      () => refresh(),
+    );
   }
 
   final List<Song> songs = [];
@@ -36,8 +38,8 @@ class BpmViewModel extends ChangeNotifier {
   BpmViewModel({
     required SubsonicRepository subsonic,
     required AudioHandler audioHandler,
-  })  : _subsonic = subsonic,
-        _audioHandler = audioHandler;
+  }) : _subsonic = subsonic,
+       _audioHandler = audioHandler;
 
   Future<void> nextPage() async {
     if (_reachedEnd) return;
@@ -55,10 +57,21 @@ class BpmViewModel extends ChangeNotifier {
     _audioHandler.queue.replace(songs);
   }
 
-  void shuffle() async {
-    final s = List.of(songs)..shuffle();
+  Future<Result<void>> shuffle() async {
+    final result = await _subsonic.getSongs(
+      sort: SongsSortMode.random,
+      count: 500,
+      minBpm: bpmRange.start < 50 ? 0 : bpmRange.start.round(),
+      maxBpm: bpmRange.end > 200 ? null : bpmRange.end.round(),
+    );
+    switch (result) {
+      case Err():
+        return Result.error(result.error);
+      case Ok():
+    }
     _audioHandler.playOnNextMediaChange();
-    _audioHandler.queue.replace(s);
+    _audioHandler.queue.replace(result.value);
+    return const Result.ok(null);
   }
 
   void addToQueue(bool priority) async {

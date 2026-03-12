@@ -4,6 +4,7 @@ import 'package:crossonic/ui/common/buttons.dart';
 import 'package:crossonic/ui/common/refresh_scroll_view.dart';
 import 'package:crossonic/ui/common/song_list_sliver.dart';
 import 'package:crossonic/ui/common/toast.dart';
+import 'package:crossonic/utils/result_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -98,8 +99,10 @@ class _BpmPageState extends State<BpmPage> {
                       ),
                       Button(
                         icon: Icons.shuffle,
-                        onPressed: () {
-                          _viewModel.shuffle();
+                        onPressed: () async {
+                          final result = await _viewModel.shuffle();
+                          if (!context.mounted) return;
+                          toastResult(context, result);
                         },
                         child: const Text("Shuffle"),
                       ),

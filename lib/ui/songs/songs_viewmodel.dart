@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:crossonic/data/repositories/audio/audio_handler.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
 import 'package:crossonic/data/repositories/subsonic/subsonic_repository.dart';
+import 'package:crossonic/data/services/opensubsonic/subsonic_service.dart';
 import 'package:crossonic/utils/fetch_status.dart';
 import 'package:crossonic/utils/result.dart';
 import 'package:flutter/material.dart';
@@ -95,6 +96,18 @@ class SongsViewModel extends ChangeNotifier {
     Iterable<Song> s;
     if (_mode == SongsPageMode.all || _mode == SongsPageMode.random) {
       final result = await _subsonic.getRandomSongs(count: 500);
+      switch (result) {
+        case Err():
+          return Result.error(result.error);
+        case Ok():
+      }
+      s = result.value;
+    } else if (_mode == SongsPageMode.genre && _subsonic.supports.getSongs) {
+      final result = await _subsonic.getSongs(
+        count: 500,
+        genres: [_genre],
+        sort: SongsSortMode.random,
+      );
       switch (result) {
         case Err():
           return Result.error(result.error);
