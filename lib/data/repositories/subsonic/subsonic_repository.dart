@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:collection/collection.dart';
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
 import 'package:crossonic/data/repositories/logger/log.dart';
+import 'package:crossonic/data/repositories/song/song_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/favorites_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/models/album.dart';
 import 'package:crossonic/data/repositories/subsonic/models/album_info.dart';
@@ -17,7 +18,6 @@ import 'package:crossonic/data/services/opensubsonic/auth.dart';
 import 'package:crossonic/data/services/opensubsonic/exceptions.dart';
 import 'package:crossonic/data/services/opensubsonic/models/albumid3_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/artistid3_model.dart';
-import 'package:crossonic/data/services/opensubsonic/models/child_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/random_songs_model.dart';
 import 'package:crossonic/data/services/opensubsonic/subsonic_service.dart';
 import 'package:crossonic/utils/result.dart';
@@ -50,6 +50,7 @@ class SubsonicRepository {
   final AuthRepository _auth;
   final SubsonicService _service;
   final FavoritesRepository _favorites;
+  final SongRepository _songs;
 
   ServerSupport get supports => ServerSupport(features: _auth.serverFeatures);
 
@@ -57,9 +58,11 @@ class SubsonicRepository {
     required AuthRepository authRepository,
     required SubsonicService subsonicService,
     required FavoritesRepository favoritesRepository,
+    required SongRepository songRepository,
   }) : _auth = authRepository,
        _service = subsonicService,
-       _favorites = favoritesRepository;
+       _favorites = favoritesRepository,
+       _songs = songRepository;
 
   Future<Result<Lyrics?>> getLyricsLines(Song song) async {
     if (!supports.songLyricsById) {
@@ -156,10 +159,8 @@ class SubsonicRepository {
         return Result.error(result.error);
       case Ok():
     }
-    _updateSongFavorites(result.value.song);
-    return Result.ok(
-      (result.value.song ?? []).map((c) => Song.fromChildModel(c)).toList(),
-    );
+    final songs = await _songs.songsFromChildModels(result.value.song ?? []);
+    return Result.ok(songs.toList());
   }
 
   Future<Result<List<Song>>> getSongsByGenre(
@@ -178,10 +179,8 @@ class SubsonicRepository {
         return Result.error(result.error);
       case Ok():
     }
-    _updateSongFavorites(result.value.song);
-    return Result.ok(
-      (result.value.song ?? []).map((c) => Song.fromChildModel(c)).toList(),
-    );
+    final songs = await _songs.songsFromChildModels(result.value.song ?? []);
+    return Result.ok(songs.toList());
   }
 
   Future<Result<List<Genre>>> getGenres() async {
@@ -296,10 +295,8 @@ class SubsonicRepository {
         return Result.error(result.error);
       case Ok():
     }
-    _updateSongFavorites(result.value.song);
-    return Result.ok(
-      (result.value.song ?? []).map((c) => Song.fromChildModel(c)),
-    );
+    final songs = await _songs.songsFromChildModels(result.value.song ?? []);
+    return Result.ok(songs.toList());
   }
 
   Future<Result<Iterable<Artist>>> getStarredArtists() async {
@@ -340,11 +337,12 @@ class SubsonicRepository {
         return Result.error(result.error);
       case Ok():
     }
+    final songs = await _songs.songsFromChildModels(result.value.song ?? []);
+
     _updateArtistFavorites(result.value.artist);
     _updateAlbumFavorites(result.value.album);
-    _updateSongFavorites(result.value.song);
     return Result.ok((
-      songs: result.value.song?.map((c) => Song.fromChildModel(c)) ?? [],
+      songs: songs,
       albums: result.value.album?.map((a) => Album.fromAlbumID3Model(a)) ?? [],
       artists:
           result.value.artist?.map((a) => Artist.fromArtistID3Model(a)) ?? [],
@@ -471,7 +469,8 @@ class SubsonicRepository {
       case Ok():
     }
     _updateAlbumFavorites([result.value]);
-    return Result.ok(Album.fromAlbumID3Model(result.value));
+    final songs = await _songs.songsFromChildModels(result.value.song ?? []);
+    return Result.ok(Album.fromAlbumID3Model(result.value, songs: songs));
   }
 
   Future<Result<AlbumInfo>> getAlbumInfo(String id) async {
@@ -500,10 +499,8 @@ class SubsonicRepository {
         return Result.error(result.error);
       case Ok<RandomSongsModel>():
     }
-    _updateSongFavorites(result.value.song);
-    return Result.ok(
-      (result.value.song ?? []).map((c) => Song.fromChildModel(c)).toList(),
-    );
+    final songs = await _songs.songsFromChildModels(result.value.song ?? []);
+    return Result.ok(songs.toList());
   }
 
   Uri getCoverUri(String id, {int? size, bool constantSalt = false}) {
@@ -656,15 +653,6 @@ class SubsonicRepository {
     _favorites.updateAll(
       (albums ?? []).map(
         (a) => (type: FavoriteType.album, id: a.id, starred: a.starred),
-      ),
-    );
-    _updateSongFavorites((albums ?? []).expand((a) => a.song ?? []));
-  }
-
-  void _updateSongFavorites(Iterable<ChildModel>? songs) {
-    _favorites.updateAll(
-      (songs ?? []).map(
-        (c) => (type: FavoriteType.song, id: c.id, starred: c.starred),
       ),
     );
   }

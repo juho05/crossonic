@@ -428,10 +428,12 @@ class CoverRepository extends BaseCacheManager {
       final select = _db.select(_db.coverCacheTable)
         ..join([
           leftOuterJoin(
+            _db.songTable,
+            _db.songTable.coverId.equalsExp(_db.coverCacheTable.coverId),
+          ),
+          leftOuterJoin(
             _db.playlistSongTable,
-            _db.playlistSongTable.coverId.equalsExp(
-              _db.coverCacheTable.coverId,
-            ),
+            _db.playlistSongTable.songId.equalsExp(_db.songTable.id),
           ),
           leftOuterJoin(
             _db.playlistTable,
@@ -444,7 +446,8 @@ class CoverRepository extends BaseCacheManager {
             f.downloadTime.isSmallerThanValue(
               startTime.subtract(const Duration(minutes: 10)),
             ) &
-            (_db.playlistSongTable.coverId.isNull() |
+            (_db.songTable.coverId.isNull() |
+                _db.playlistTable.id.isNull() |
                 _db.playlistTable.download.not()),
       );
       select.orderBy([(o) => OrderingTerm.asc(o.downloadTime)]);

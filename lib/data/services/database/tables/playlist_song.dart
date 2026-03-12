@@ -1,14 +1,16 @@
 import 'package:crossonic/data/services/database/tables/playlist.dart';
+import 'package:crossonic/data/services/database/tables/song_table.dart';
 import 'package:drift/drift.dart';
 
 class PlaylistSongTable extends Table {
   late final id = integer().autoIncrement()();
-  late final playlistId =
-      text().references(PlaylistTable, #id, onDelete: KeyAction.cascade)();
+  late final playlistId = text().references(
+    PlaylistTable,
+    #id,
+    onDelete: KeyAction.cascade,
+  )();
   late final index = integer()();
-  late final songId = text()();
-  late final coverId = text().nullable()();
-  late final childModelJson = text()();
+  late final songId = text().references(SongTable, #id)();
 
   @override
   String? get tableName => "playlist_song";

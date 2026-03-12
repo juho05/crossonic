@@ -15,6 +15,7 @@ class KeyValue extends Table with TableInfo<KeyValue, KeyValueData> {
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
   );
   late final GeneratedColumn<String> value = GeneratedColumn<String>(
     'value',
@@ -22,6 +23,7 @@ class KeyValue extends Table with TableInfo<KeyValue, KeyValueData> {
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
   );
   @override
   List<GeneratedColumn> get $columns => [key, value];
@@ -51,6 +53,11 @@ class KeyValue extends Table with TableInfo<KeyValue, KeyValueData> {
   KeyValue createAlias(String alias) {
     return KeyValue(attachedDatabase, alias);
   }
+
+  @override
+  List<String> get customConstraints => const ['PRIMARY KEY("key")'];
+  @override
+  bool get dontWriteConstraints => true;
 }
 
 class KeyValueData extends DataClass implements Insertable<KeyValueData> {
@@ -192,13 +199,15 @@ class Scrobble extends Table with TableInfo<Scrobble, ScrobbleData> {
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
   );
-  late final GeneratedColumn<DateTime> startTime = GeneratedColumn<DateTime>(
+  late final GeneratedColumn<String> startTime = GeneratedColumn<String>(
     'start_time',
     aliasedName,
     false,
-    type: DriftSqlType.dateTime,
+    type: DriftSqlType.string,
     requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
   );
   late final GeneratedColumn<int> listenDurationMs = GeneratedColumn<int>(
     'listen_duration_ms',
@@ -206,6 +215,7 @@ class Scrobble extends Table with TableInfo<Scrobble, ScrobbleData> {
     false,
     type: DriftSqlType.int,
     requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
   );
   late final GeneratedColumn<int> songDurationMs = GeneratedColumn<int>(
     'song_duration_ms',
@@ -213,6 +223,7 @@ class Scrobble extends Table with TableInfo<Scrobble, ScrobbleData> {
     true,
     type: DriftSqlType.int,
     requiredDuringInsert: false,
+    $customConstraints: 'NULL',
   );
   @override
   List<GeneratedColumn> get $columns => [
@@ -237,7 +248,7 @@ class Scrobble extends Table with TableInfo<Scrobble, ScrobbleData> {
         data['${effectivePrefix}song_id'],
       )!,
       startTime: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
+        DriftSqlType.string,
         data['${effectivePrefix}start_time'],
       )!,
       listenDurationMs: attachedDatabase.typeMapping.read(
@@ -255,11 +266,18 @@ class Scrobble extends Table with TableInfo<Scrobble, ScrobbleData> {
   Scrobble createAlias(String alias) {
     return Scrobble(attachedDatabase, alias);
   }
+
+  @override
+  List<String> get customConstraints => const [
+    'PRIMARY KEY(song_id, start_time)',
+  ];
+  @override
+  bool get dontWriteConstraints => true;
 }
 
 class ScrobbleData extends DataClass implements Insertable<ScrobbleData> {
   final String songId;
-  final DateTime startTime;
+  final String startTime;
   final int listenDurationMs;
   final int? songDurationMs;
   const ScrobbleData({
@@ -272,7 +290,7 @@ class ScrobbleData extends DataClass implements Insertable<ScrobbleData> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['song_id'] = Variable<String>(songId);
-    map['start_time'] = Variable<DateTime>(startTime);
+    map['start_time'] = Variable<String>(startTime);
     map['listen_duration_ms'] = Variable<int>(listenDurationMs);
     if (!nullToAbsent || songDurationMs != null) {
       map['song_duration_ms'] = Variable<int>(songDurationMs);
@@ -298,7 +316,7 @@ class ScrobbleData extends DataClass implements Insertable<ScrobbleData> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return ScrobbleData(
       songId: serializer.fromJson<String>(json['songId']),
-      startTime: serializer.fromJson<DateTime>(json['startTime']),
+      startTime: serializer.fromJson<String>(json['startTime']),
       listenDurationMs: serializer.fromJson<int>(json['listenDurationMs']),
       songDurationMs: serializer.fromJson<int?>(json['songDurationMs']),
     );
@@ -308,7 +326,7 @@ class ScrobbleData extends DataClass implements Insertable<ScrobbleData> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'songId': serializer.toJson<String>(songId),
-      'startTime': serializer.toJson<DateTime>(startTime),
+      'startTime': serializer.toJson<String>(startTime),
       'listenDurationMs': serializer.toJson<int>(listenDurationMs),
       'songDurationMs': serializer.toJson<int?>(songDurationMs),
     };
@@ -316,7 +334,7 @@ class ScrobbleData extends DataClass implements Insertable<ScrobbleData> {
 
   ScrobbleData copyWith({
     String? songId,
-    DateTime? startTime,
+    String? startTime,
     int? listenDurationMs,
     Value<int?> songDurationMs = const Value.absent(),
   }) => ScrobbleData(
@@ -366,7 +384,7 @@ class ScrobbleData extends DataClass implements Insertable<ScrobbleData> {
 
 class ScrobbleCompanion extends UpdateCompanion<ScrobbleData> {
   final Value<String> songId;
-  final Value<DateTime> startTime;
+  final Value<String> startTime;
   final Value<int> listenDurationMs;
   final Value<int?> songDurationMs;
   final Value<int> rowid;
@@ -379,7 +397,7 @@ class ScrobbleCompanion extends UpdateCompanion<ScrobbleData> {
   });
   ScrobbleCompanion.insert({
     required String songId,
-    required DateTime startTime,
+    required String startTime,
     required int listenDurationMs,
     this.songDurationMs = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -388,7 +406,7 @@ class ScrobbleCompanion extends UpdateCompanion<ScrobbleData> {
        listenDurationMs = Value(listenDurationMs);
   static Insertable<ScrobbleData> custom({
     Expression<String>? songId,
-    Expression<DateTime>? startTime,
+    Expression<String>? startTime,
     Expression<int>? listenDurationMs,
     Expression<int>? songDurationMs,
     Expression<int>? rowid,
@@ -404,7 +422,7 @@ class ScrobbleCompanion extends UpdateCompanion<ScrobbleData> {
 
   ScrobbleCompanion copyWith({
     Value<String>? songId,
-    Value<DateTime>? startTime,
+    Value<String>? startTime,
     Value<int>? listenDurationMs,
     Value<int?>? songDurationMs,
     Value<int>? rowid,
@@ -425,7 +443,7 @@ class ScrobbleCompanion extends UpdateCompanion<ScrobbleData> {
       map['song_id'] = Variable<String>(songId.value);
     }
     if (startTime.present) {
-      map['start_time'] = Variable<DateTime>(startTime.value);
+      map['start_time'] = Variable<String>(startTime.value);
     }
     if (listenDurationMs.present) {
       map['listen_duration_ms'] = Variable<int>(listenDurationMs.value);
@@ -463,6 +481,7 @@ class Playlist extends Table with TableInfo<Playlist, PlaylistData> {
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
   );
   late final GeneratedColumn<String> name = GeneratedColumn<String>(
     'name',
@@ -470,6 +489,7 @@ class Playlist extends Table with TableInfo<Playlist, PlaylistData> {
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
   );
   late final GeneratedColumn<String> comment = GeneratedColumn<String>(
     'comment',
@@ -477,6 +497,7 @@ class Playlist extends Table with TableInfo<Playlist, PlaylistData> {
     true,
     type: DriftSqlType.string,
     requiredDuringInsert: false,
+    $customConstraints: 'NULL',
   );
   late final GeneratedColumn<int> songCount = GeneratedColumn<int>(
     'song_count',
@@ -484,6 +505,7 @@ class Playlist extends Table with TableInfo<Playlist, PlaylistData> {
     false,
     type: DriftSqlType.int,
     requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
   );
   late final GeneratedColumn<int> durationMs = GeneratedColumn<int>(
     'duration_ms',
@@ -491,20 +513,23 @@ class Playlist extends Table with TableInfo<Playlist, PlaylistData> {
     false,
     type: DriftSqlType.int,
     requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
   );
-  late final GeneratedColumn<DateTime> created = GeneratedColumn<DateTime>(
+  late final GeneratedColumn<String> created = GeneratedColumn<String>(
     'created',
     aliasedName,
     false,
-    type: DriftSqlType.dateTime,
+    type: DriftSqlType.string,
     requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
   );
-  late final GeneratedColumn<DateTime> changed = GeneratedColumn<DateTime>(
+  late final GeneratedColumn<String> changed = GeneratedColumn<String>(
     'changed',
     aliasedName,
     false,
-    type: DriftSqlType.dateTime,
+    type: DriftSqlType.string,
     requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
   );
   late final GeneratedColumn<String> coverArt = GeneratedColumn<String>(
     'cover_art',
@@ -512,16 +537,15 @@ class Playlist extends Table with TableInfo<Playlist, PlaylistData> {
     true,
     type: DriftSqlType.string,
     requiredDuringInsert: false,
+    $customConstraints: 'NULL',
   );
-  late final GeneratedColumn<bool> download = GeneratedColumn<bool>(
+  late final GeneratedColumn<int> download = GeneratedColumn<int>(
     'download',
     aliasedName,
     false,
-    type: DriftSqlType.bool,
+    type: DriftSqlType.int,
     requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'CHECK ("download" IN (0, 1))',
-    ),
+    $customConstraints: 'NOT NULL DEFAULT 0 CHECK (download IN (0, 1))',
     defaultValue: const CustomExpression('0'),
   );
   @override
@@ -568,11 +592,11 @@ class Playlist extends Table with TableInfo<Playlist, PlaylistData> {
         data['${effectivePrefix}duration_ms'],
       )!,
       created: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
+        DriftSqlType.string,
         data['${effectivePrefix}created'],
       )!,
       changed: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
+        DriftSqlType.string,
         data['${effectivePrefix}changed'],
       )!,
       coverArt: attachedDatabase.typeMapping.read(
@@ -580,7 +604,7 @@ class Playlist extends Table with TableInfo<Playlist, PlaylistData> {
         data['${effectivePrefix}cover_art'],
       ),
       download: attachedDatabase.typeMapping.read(
-        DriftSqlType.bool,
+        DriftSqlType.int,
         data['${effectivePrefix}download'],
       )!,
     );
@@ -590,6 +614,11 @@ class Playlist extends Table with TableInfo<Playlist, PlaylistData> {
   Playlist createAlias(String alias) {
     return Playlist(attachedDatabase, alias);
   }
+
+  @override
+  List<String> get customConstraints => const ['PRIMARY KEY(id)'];
+  @override
+  bool get dontWriteConstraints => true;
 }
 
 class PlaylistData extends DataClass implements Insertable<PlaylistData> {
@@ -598,10 +627,10 @@ class PlaylistData extends DataClass implements Insertable<PlaylistData> {
   final String? comment;
   final int songCount;
   final int durationMs;
-  final DateTime created;
-  final DateTime changed;
+  final String created;
+  final String changed;
   final String? coverArt;
-  final bool download;
+  final int download;
   const PlaylistData({
     required this.id,
     required this.name,
@@ -623,12 +652,12 @@ class PlaylistData extends DataClass implements Insertable<PlaylistData> {
     }
     map['song_count'] = Variable<int>(songCount);
     map['duration_ms'] = Variable<int>(durationMs);
-    map['created'] = Variable<DateTime>(created);
-    map['changed'] = Variable<DateTime>(changed);
+    map['created'] = Variable<String>(created);
+    map['changed'] = Variable<String>(changed);
     if (!nullToAbsent || coverArt != null) {
       map['cover_art'] = Variable<String>(coverArt);
     }
-    map['download'] = Variable<bool>(download);
+    map['download'] = Variable<int>(download);
     return map;
   }
 
@@ -661,10 +690,10 @@ class PlaylistData extends DataClass implements Insertable<PlaylistData> {
       comment: serializer.fromJson<String?>(json['comment']),
       songCount: serializer.fromJson<int>(json['songCount']),
       durationMs: serializer.fromJson<int>(json['durationMs']),
-      created: serializer.fromJson<DateTime>(json['created']),
-      changed: serializer.fromJson<DateTime>(json['changed']),
+      created: serializer.fromJson<String>(json['created']),
+      changed: serializer.fromJson<String>(json['changed']),
       coverArt: serializer.fromJson<String?>(json['coverArt']),
-      download: serializer.fromJson<bool>(json['download']),
+      download: serializer.fromJson<int>(json['download']),
     );
   }
   @override
@@ -676,10 +705,10 @@ class PlaylistData extends DataClass implements Insertable<PlaylistData> {
       'comment': serializer.toJson<String?>(comment),
       'songCount': serializer.toJson<int>(songCount),
       'durationMs': serializer.toJson<int>(durationMs),
-      'created': serializer.toJson<DateTime>(created),
-      'changed': serializer.toJson<DateTime>(changed),
+      'created': serializer.toJson<String>(created),
+      'changed': serializer.toJson<String>(changed),
       'coverArt': serializer.toJson<String?>(coverArt),
-      'download': serializer.toJson<bool>(download),
+      'download': serializer.toJson<int>(download),
     };
   }
 
@@ -689,10 +718,10 @@ class PlaylistData extends DataClass implements Insertable<PlaylistData> {
     Value<String?> comment = const Value.absent(),
     int? songCount,
     int? durationMs,
-    DateTime? created,
-    DateTime? changed,
+    String? created,
+    String? changed,
     Value<String?> coverArt = const Value.absent(),
-    bool? download,
+    int? download,
   }) => PlaylistData(
     id: id ?? this.id,
     name: name ?? this.name,
@@ -769,10 +798,10 @@ class PlaylistCompanion extends UpdateCompanion<PlaylistData> {
   final Value<String?> comment;
   final Value<int> songCount;
   final Value<int> durationMs;
-  final Value<DateTime> created;
-  final Value<DateTime> changed;
+  final Value<String> created;
+  final Value<String> changed;
   final Value<String?> coverArt;
-  final Value<bool> download;
+  final Value<int> download;
   final Value<int> rowid;
   const PlaylistCompanion({
     this.id = const Value.absent(),
@@ -792,8 +821,8 @@ class PlaylistCompanion extends UpdateCompanion<PlaylistData> {
     this.comment = const Value.absent(),
     required int songCount,
     required int durationMs,
-    required DateTime created,
-    required DateTime changed,
+    required String created,
+    required String changed,
     this.coverArt = const Value.absent(),
     this.download = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -809,10 +838,10 @@ class PlaylistCompanion extends UpdateCompanion<PlaylistData> {
     Expression<String>? comment,
     Expression<int>? songCount,
     Expression<int>? durationMs,
-    Expression<DateTime>? created,
-    Expression<DateTime>? changed,
+    Expression<String>? created,
+    Expression<String>? changed,
     Expression<String>? coverArt,
-    Expression<bool>? download,
+    Expression<int>? download,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -835,10 +864,10 @@ class PlaylistCompanion extends UpdateCompanion<PlaylistData> {
     Value<String?>? comment,
     Value<int>? songCount,
     Value<int>? durationMs,
-    Value<DateTime>? created,
-    Value<DateTime>? changed,
+    Value<String>? created,
+    Value<String>? changed,
     Value<String?>? coverArt,
-    Value<bool>? download,
+    Value<int>? download,
     Value<int>? rowid,
   }) {
     return PlaylistCompanion(
@@ -874,16 +903,16 @@ class PlaylistCompanion extends UpdateCompanion<PlaylistData> {
       map['duration_ms'] = Variable<int>(durationMs.value);
     }
     if (created.present) {
-      map['created'] = Variable<DateTime>(created.value);
+      map['created'] = Variable<String>(created.value);
     }
     if (changed.present) {
-      map['changed'] = Variable<DateTime>(changed.value);
+      map['changed'] = Variable<String>(changed.value);
     }
     if (coverArt.present) {
       map['cover_art'] = Variable<String>(coverArt.value);
     }
     if (download.present) {
-      map['download'] = Variable<bool>(download.value);
+      map['download'] = Variable<int>(download.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -909,6 +938,840 @@ class PlaylistCompanion extends UpdateCompanion<PlaylistData> {
   }
 }
 
+class Song extends Table with TableInfo<Song, SongData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  Song(this.attachedDatabase, [this._alias]);
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  late final GeneratedColumn<String> coverId = GeneratedColumn<String>(
+    'cover_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+    'title',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  late final GeneratedColumn<String> displayArtist = GeneratedColumn<String>(
+    'display_artist',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  late final GeneratedColumn<String> artists = GeneratedColumn<String>(
+    'artists',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  late final GeneratedColumn<String> albumId = GeneratedColumn<String>(
+    'album_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: 'NULL',
+  );
+  late final GeneratedColumn<String> albumName = GeneratedColumn<String>(
+    'album_name',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: 'NULL',
+  );
+  late final GeneratedColumn<String> genres = GeneratedColumn<String>(
+    'genres',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  late final GeneratedColumn<int> durationMs = GeneratedColumn<int>(
+    'duration_ms',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: 'NULL',
+  );
+  late final GeneratedColumn<int> bpm = GeneratedColumn<int>(
+    'bpm',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: 'NULL',
+  );
+  late final GeneratedColumn<int> trackNr = GeneratedColumn<int>(
+    'track_nr',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: 'NULL',
+  );
+  late final GeneratedColumn<int> discNr = GeneratedColumn<int>(
+    'disc_nr',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: 'NULL',
+  );
+  late final GeneratedColumn<double> trackGain = GeneratedColumn<double>(
+    'track_gain',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    $customConstraints: 'NULL',
+  );
+  late final GeneratedColumn<double> albumGain = GeneratedColumn<double>(
+    'album_gain',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    $customConstraints: 'NULL',
+  );
+  late final GeneratedColumn<double> fallbackGain = GeneratedColumn<double>(
+    'fallback_gain',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    $customConstraints: 'NULL',
+  );
+  late final GeneratedColumn<String> originalDate = GeneratedColumn<String>(
+    'original_date',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: 'NULL',
+  );
+  late final GeneratedColumn<String> releaseDate = GeneratedColumn<String>(
+    'release_date',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: 'NULL',
+  );
+  late final GeneratedColumn<String> updated = GeneratedColumn<String>(
+    'updated',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    coverId,
+    title,
+    displayArtist,
+    artists,
+    albumId,
+    albumName,
+    genres,
+    durationMs,
+    bpm,
+    trackNr,
+    discNr,
+    trackGain,
+    albumGain,
+    fallbackGain,
+    originalDate,
+    releaseDate,
+    updated,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'song';
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  SongData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SongData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      coverId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}cover_id'],
+      )!,
+      title: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}title'],
+      )!,
+      displayArtist: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}display_artist'],
+      )!,
+      artists: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}artists'],
+      )!,
+      albumId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}album_id'],
+      ),
+      albumName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}album_name'],
+      ),
+      genres: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}genres'],
+      )!,
+      durationMs: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}duration_ms'],
+      ),
+      bpm: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}bpm'],
+      ),
+      trackNr: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}track_nr'],
+      ),
+      discNr: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}disc_nr'],
+      ),
+      trackGain: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}track_gain'],
+      ),
+      albumGain: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}album_gain'],
+      ),
+      fallbackGain: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}fallback_gain'],
+      ),
+      originalDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}original_date'],
+      ),
+      releaseDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}release_date'],
+      ),
+      updated: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}updated'],
+      )!,
+    );
+  }
+
+  @override
+  Song createAlias(String alias) {
+    return Song(attachedDatabase, alias);
+  }
+
+  @override
+  List<String> get customConstraints => const ['PRIMARY KEY(id)'];
+  @override
+  bool get dontWriteConstraints => true;
+}
+
+class SongData extends DataClass implements Insertable<SongData> {
+  final String id;
+  final String coverId;
+  final String title;
+  final String displayArtist;
+  final String artists;
+  final String? albumId;
+  final String? albumName;
+  final String genres;
+  final int? durationMs;
+  final int? bpm;
+  final int? trackNr;
+  final int? discNr;
+  final double? trackGain;
+  final double? albumGain;
+  final double? fallbackGain;
+  final String? originalDate;
+  final String? releaseDate;
+  final String updated;
+  const SongData({
+    required this.id,
+    required this.coverId,
+    required this.title,
+    required this.displayArtist,
+    required this.artists,
+    this.albumId,
+    this.albumName,
+    required this.genres,
+    this.durationMs,
+    this.bpm,
+    this.trackNr,
+    this.discNr,
+    this.trackGain,
+    this.albumGain,
+    this.fallbackGain,
+    this.originalDate,
+    this.releaseDate,
+    required this.updated,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['cover_id'] = Variable<String>(coverId);
+    map['title'] = Variable<String>(title);
+    map['display_artist'] = Variable<String>(displayArtist);
+    map['artists'] = Variable<String>(artists);
+    if (!nullToAbsent || albumId != null) {
+      map['album_id'] = Variable<String>(albumId);
+    }
+    if (!nullToAbsent || albumName != null) {
+      map['album_name'] = Variable<String>(albumName);
+    }
+    map['genres'] = Variable<String>(genres);
+    if (!nullToAbsent || durationMs != null) {
+      map['duration_ms'] = Variable<int>(durationMs);
+    }
+    if (!nullToAbsent || bpm != null) {
+      map['bpm'] = Variable<int>(bpm);
+    }
+    if (!nullToAbsent || trackNr != null) {
+      map['track_nr'] = Variable<int>(trackNr);
+    }
+    if (!nullToAbsent || discNr != null) {
+      map['disc_nr'] = Variable<int>(discNr);
+    }
+    if (!nullToAbsent || trackGain != null) {
+      map['track_gain'] = Variable<double>(trackGain);
+    }
+    if (!nullToAbsent || albumGain != null) {
+      map['album_gain'] = Variable<double>(albumGain);
+    }
+    if (!nullToAbsent || fallbackGain != null) {
+      map['fallback_gain'] = Variable<double>(fallbackGain);
+    }
+    if (!nullToAbsent || originalDate != null) {
+      map['original_date'] = Variable<String>(originalDate);
+    }
+    if (!nullToAbsent || releaseDate != null) {
+      map['release_date'] = Variable<String>(releaseDate);
+    }
+    map['updated'] = Variable<String>(updated);
+    return map;
+  }
+
+  SongCompanion toCompanion(bool nullToAbsent) {
+    return SongCompanion(
+      id: Value(id),
+      coverId: Value(coverId),
+      title: Value(title),
+      displayArtist: Value(displayArtist),
+      artists: Value(artists),
+      albumId: albumId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(albumId),
+      albumName: albumName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(albumName),
+      genres: Value(genres),
+      durationMs: durationMs == null && nullToAbsent
+          ? const Value.absent()
+          : Value(durationMs),
+      bpm: bpm == null && nullToAbsent ? const Value.absent() : Value(bpm),
+      trackNr: trackNr == null && nullToAbsent
+          ? const Value.absent()
+          : Value(trackNr),
+      discNr: discNr == null && nullToAbsent
+          ? const Value.absent()
+          : Value(discNr),
+      trackGain: trackGain == null && nullToAbsent
+          ? const Value.absent()
+          : Value(trackGain),
+      albumGain: albumGain == null && nullToAbsent
+          ? const Value.absent()
+          : Value(albumGain),
+      fallbackGain: fallbackGain == null && nullToAbsent
+          ? const Value.absent()
+          : Value(fallbackGain),
+      originalDate: originalDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(originalDate),
+      releaseDate: releaseDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(releaseDate),
+      updated: Value(updated),
+    );
+  }
+
+  factory SongData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SongData(
+      id: serializer.fromJson<String>(json['id']),
+      coverId: serializer.fromJson<String>(json['coverId']),
+      title: serializer.fromJson<String>(json['title']),
+      displayArtist: serializer.fromJson<String>(json['displayArtist']),
+      artists: serializer.fromJson<String>(json['artists']),
+      albumId: serializer.fromJson<String?>(json['albumId']),
+      albumName: serializer.fromJson<String?>(json['albumName']),
+      genres: serializer.fromJson<String>(json['genres']),
+      durationMs: serializer.fromJson<int?>(json['durationMs']),
+      bpm: serializer.fromJson<int?>(json['bpm']),
+      trackNr: serializer.fromJson<int?>(json['trackNr']),
+      discNr: serializer.fromJson<int?>(json['discNr']),
+      trackGain: serializer.fromJson<double?>(json['trackGain']),
+      albumGain: serializer.fromJson<double?>(json['albumGain']),
+      fallbackGain: serializer.fromJson<double?>(json['fallbackGain']),
+      originalDate: serializer.fromJson<String?>(json['originalDate']),
+      releaseDate: serializer.fromJson<String?>(json['releaseDate']),
+      updated: serializer.fromJson<String>(json['updated']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'coverId': serializer.toJson<String>(coverId),
+      'title': serializer.toJson<String>(title),
+      'displayArtist': serializer.toJson<String>(displayArtist),
+      'artists': serializer.toJson<String>(artists),
+      'albumId': serializer.toJson<String?>(albumId),
+      'albumName': serializer.toJson<String?>(albumName),
+      'genres': serializer.toJson<String>(genres),
+      'durationMs': serializer.toJson<int?>(durationMs),
+      'bpm': serializer.toJson<int?>(bpm),
+      'trackNr': serializer.toJson<int?>(trackNr),
+      'discNr': serializer.toJson<int?>(discNr),
+      'trackGain': serializer.toJson<double?>(trackGain),
+      'albumGain': serializer.toJson<double?>(albumGain),
+      'fallbackGain': serializer.toJson<double?>(fallbackGain),
+      'originalDate': serializer.toJson<String?>(originalDate),
+      'releaseDate': serializer.toJson<String?>(releaseDate),
+      'updated': serializer.toJson<String>(updated),
+    };
+  }
+
+  SongData copyWith({
+    String? id,
+    String? coverId,
+    String? title,
+    String? displayArtist,
+    String? artists,
+    Value<String?> albumId = const Value.absent(),
+    Value<String?> albumName = const Value.absent(),
+    String? genres,
+    Value<int?> durationMs = const Value.absent(),
+    Value<int?> bpm = const Value.absent(),
+    Value<int?> trackNr = const Value.absent(),
+    Value<int?> discNr = const Value.absent(),
+    Value<double?> trackGain = const Value.absent(),
+    Value<double?> albumGain = const Value.absent(),
+    Value<double?> fallbackGain = const Value.absent(),
+    Value<String?> originalDate = const Value.absent(),
+    Value<String?> releaseDate = const Value.absent(),
+    String? updated,
+  }) => SongData(
+    id: id ?? this.id,
+    coverId: coverId ?? this.coverId,
+    title: title ?? this.title,
+    displayArtist: displayArtist ?? this.displayArtist,
+    artists: artists ?? this.artists,
+    albumId: albumId.present ? albumId.value : this.albumId,
+    albumName: albumName.present ? albumName.value : this.albumName,
+    genres: genres ?? this.genres,
+    durationMs: durationMs.present ? durationMs.value : this.durationMs,
+    bpm: bpm.present ? bpm.value : this.bpm,
+    trackNr: trackNr.present ? trackNr.value : this.trackNr,
+    discNr: discNr.present ? discNr.value : this.discNr,
+    trackGain: trackGain.present ? trackGain.value : this.trackGain,
+    albumGain: albumGain.present ? albumGain.value : this.albumGain,
+    fallbackGain: fallbackGain.present ? fallbackGain.value : this.fallbackGain,
+    originalDate: originalDate.present ? originalDate.value : this.originalDate,
+    releaseDate: releaseDate.present ? releaseDate.value : this.releaseDate,
+    updated: updated ?? this.updated,
+  );
+  SongData copyWithCompanion(SongCompanion data) {
+    return SongData(
+      id: data.id.present ? data.id.value : this.id,
+      coverId: data.coverId.present ? data.coverId.value : this.coverId,
+      title: data.title.present ? data.title.value : this.title,
+      displayArtist: data.displayArtist.present
+          ? data.displayArtist.value
+          : this.displayArtist,
+      artists: data.artists.present ? data.artists.value : this.artists,
+      albumId: data.albumId.present ? data.albumId.value : this.albumId,
+      albumName: data.albumName.present ? data.albumName.value : this.albumName,
+      genres: data.genres.present ? data.genres.value : this.genres,
+      durationMs: data.durationMs.present
+          ? data.durationMs.value
+          : this.durationMs,
+      bpm: data.bpm.present ? data.bpm.value : this.bpm,
+      trackNr: data.trackNr.present ? data.trackNr.value : this.trackNr,
+      discNr: data.discNr.present ? data.discNr.value : this.discNr,
+      trackGain: data.trackGain.present ? data.trackGain.value : this.trackGain,
+      albumGain: data.albumGain.present ? data.albumGain.value : this.albumGain,
+      fallbackGain: data.fallbackGain.present
+          ? data.fallbackGain.value
+          : this.fallbackGain,
+      originalDate: data.originalDate.present
+          ? data.originalDate.value
+          : this.originalDate,
+      releaseDate: data.releaseDate.present
+          ? data.releaseDate.value
+          : this.releaseDate,
+      updated: data.updated.present ? data.updated.value : this.updated,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SongData(')
+          ..write('id: $id, ')
+          ..write('coverId: $coverId, ')
+          ..write('title: $title, ')
+          ..write('displayArtist: $displayArtist, ')
+          ..write('artists: $artists, ')
+          ..write('albumId: $albumId, ')
+          ..write('albumName: $albumName, ')
+          ..write('genres: $genres, ')
+          ..write('durationMs: $durationMs, ')
+          ..write('bpm: $bpm, ')
+          ..write('trackNr: $trackNr, ')
+          ..write('discNr: $discNr, ')
+          ..write('trackGain: $trackGain, ')
+          ..write('albumGain: $albumGain, ')
+          ..write('fallbackGain: $fallbackGain, ')
+          ..write('originalDate: $originalDate, ')
+          ..write('releaseDate: $releaseDate, ')
+          ..write('updated: $updated')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    coverId,
+    title,
+    displayArtist,
+    artists,
+    albumId,
+    albumName,
+    genres,
+    durationMs,
+    bpm,
+    trackNr,
+    discNr,
+    trackGain,
+    albumGain,
+    fallbackGain,
+    originalDate,
+    releaseDate,
+    updated,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SongData &&
+          other.id == this.id &&
+          other.coverId == this.coverId &&
+          other.title == this.title &&
+          other.displayArtist == this.displayArtist &&
+          other.artists == this.artists &&
+          other.albumId == this.albumId &&
+          other.albumName == this.albumName &&
+          other.genres == this.genres &&
+          other.durationMs == this.durationMs &&
+          other.bpm == this.bpm &&
+          other.trackNr == this.trackNr &&
+          other.discNr == this.discNr &&
+          other.trackGain == this.trackGain &&
+          other.albumGain == this.albumGain &&
+          other.fallbackGain == this.fallbackGain &&
+          other.originalDate == this.originalDate &&
+          other.releaseDate == this.releaseDate &&
+          other.updated == this.updated);
+}
+
+class SongCompanion extends UpdateCompanion<SongData> {
+  final Value<String> id;
+  final Value<String> coverId;
+  final Value<String> title;
+  final Value<String> displayArtist;
+  final Value<String> artists;
+  final Value<String?> albumId;
+  final Value<String?> albumName;
+  final Value<String> genres;
+  final Value<int?> durationMs;
+  final Value<int?> bpm;
+  final Value<int?> trackNr;
+  final Value<int?> discNr;
+  final Value<double?> trackGain;
+  final Value<double?> albumGain;
+  final Value<double?> fallbackGain;
+  final Value<String?> originalDate;
+  final Value<String?> releaseDate;
+  final Value<String> updated;
+  final Value<int> rowid;
+  const SongCompanion({
+    this.id = const Value.absent(),
+    this.coverId = const Value.absent(),
+    this.title = const Value.absent(),
+    this.displayArtist = const Value.absent(),
+    this.artists = const Value.absent(),
+    this.albumId = const Value.absent(),
+    this.albumName = const Value.absent(),
+    this.genres = const Value.absent(),
+    this.durationMs = const Value.absent(),
+    this.bpm = const Value.absent(),
+    this.trackNr = const Value.absent(),
+    this.discNr = const Value.absent(),
+    this.trackGain = const Value.absent(),
+    this.albumGain = const Value.absent(),
+    this.fallbackGain = const Value.absent(),
+    this.originalDate = const Value.absent(),
+    this.releaseDate = const Value.absent(),
+    this.updated = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  SongCompanion.insert({
+    required String id,
+    required String coverId,
+    required String title,
+    required String displayArtist,
+    required String artists,
+    this.albumId = const Value.absent(),
+    this.albumName = const Value.absent(),
+    required String genres,
+    this.durationMs = const Value.absent(),
+    this.bpm = const Value.absent(),
+    this.trackNr = const Value.absent(),
+    this.discNr = const Value.absent(),
+    this.trackGain = const Value.absent(),
+    this.albumGain = const Value.absent(),
+    this.fallbackGain = const Value.absent(),
+    this.originalDate = const Value.absent(),
+    this.releaseDate = const Value.absent(),
+    required String updated,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       coverId = Value(coverId),
+       title = Value(title),
+       displayArtist = Value(displayArtist),
+       artists = Value(artists),
+       genres = Value(genres),
+       updated = Value(updated);
+  static Insertable<SongData> custom({
+    Expression<String>? id,
+    Expression<String>? coverId,
+    Expression<String>? title,
+    Expression<String>? displayArtist,
+    Expression<String>? artists,
+    Expression<String>? albumId,
+    Expression<String>? albumName,
+    Expression<String>? genres,
+    Expression<int>? durationMs,
+    Expression<int>? bpm,
+    Expression<int>? trackNr,
+    Expression<int>? discNr,
+    Expression<double>? trackGain,
+    Expression<double>? albumGain,
+    Expression<double>? fallbackGain,
+    Expression<String>? originalDate,
+    Expression<String>? releaseDate,
+    Expression<String>? updated,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (coverId != null) 'cover_id': coverId,
+      if (title != null) 'title': title,
+      if (displayArtist != null) 'display_artist': displayArtist,
+      if (artists != null) 'artists': artists,
+      if (albumId != null) 'album_id': albumId,
+      if (albumName != null) 'album_name': albumName,
+      if (genres != null) 'genres': genres,
+      if (durationMs != null) 'duration_ms': durationMs,
+      if (bpm != null) 'bpm': bpm,
+      if (trackNr != null) 'track_nr': trackNr,
+      if (discNr != null) 'disc_nr': discNr,
+      if (trackGain != null) 'track_gain': trackGain,
+      if (albumGain != null) 'album_gain': albumGain,
+      if (fallbackGain != null) 'fallback_gain': fallbackGain,
+      if (originalDate != null) 'original_date': originalDate,
+      if (releaseDate != null) 'release_date': releaseDate,
+      if (updated != null) 'updated': updated,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  SongCompanion copyWith({
+    Value<String>? id,
+    Value<String>? coverId,
+    Value<String>? title,
+    Value<String>? displayArtist,
+    Value<String>? artists,
+    Value<String?>? albumId,
+    Value<String?>? albumName,
+    Value<String>? genres,
+    Value<int?>? durationMs,
+    Value<int?>? bpm,
+    Value<int?>? trackNr,
+    Value<int?>? discNr,
+    Value<double?>? trackGain,
+    Value<double?>? albumGain,
+    Value<double?>? fallbackGain,
+    Value<String?>? originalDate,
+    Value<String?>? releaseDate,
+    Value<String>? updated,
+    Value<int>? rowid,
+  }) {
+    return SongCompanion(
+      id: id ?? this.id,
+      coverId: coverId ?? this.coverId,
+      title: title ?? this.title,
+      displayArtist: displayArtist ?? this.displayArtist,
+      artists: artists ?? this.artists,
+      albumId: albumId ?? this.albumId,
+      albumName: albumName ?? this.albumName,
+      genres: genres ?? this.genres,
+      durationMs: durationMs ?? this.durationMs,
+      bpm: bpm ?? this.bpm,
+      trackNr: trackNr ?? this.trackNr,
+      discNr: discNr ?? this.discNr,
+      trackGain: trackGain ?? this.trackGain,
+      albumGain: albumGain ?? this.albumGain,
+      fallbackGain: fallbackGain ?? this.fallbackGain,
+      originalDate: originalDate ?? this.originalDate,
+      releaseDate: releaseDate ?? this.releaseDate,
+      updated: updated ?? this.updated,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (coverId.present) {
+      map['cover_id'] = Variable<String>(coverId.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (displayArtist.present) {
+      map['display_artist'] = Variable<String>(displayArtist.value);
+    }
+    if (artists.present) {
+      map['artists'] = Variable<String>(artists.value);
+    }
+    if (albumId.present) {
+      map['album_id'] = Variable<String>(albumId.value);
+    }
+    if (albumName.present) {
+      map['album_name'] = Variable<String>(albumName.value);
+    }
+    if (genres.present) {
+      map['genres'] = Variable<String>(genres.value);
+    }
+    if (durationMs.present) {
+      map['duration_ms'] = Variable<int>(durationMs.value);
+    }
+    if (bpm.present) {
+      map['bpm'] = Variable<int>(bpm.value);
+    }
+    if (trackNr.present) {
+      map['track_nr'] = Variable<int>(trackNr.value);
+    }
+    if (discNr.present) {
+      map['disc_nr'] = Variable<int>(discNr.value);
+    }
+    if (trackGain.present) {
+      map['track_gain'] = Variable<double>(trackGain.value);
+    }
+    if (albumGain.present) {
+      map['album_gain'] = Variable<double>(albumGain.value);
+    }
+    if (fallbackGain.present) {
+      map['fallback_gain'] = Variable<double>(fallbackGain.value);
+    }
+    if (originalDate.present) {
+      map['original_date'] = Variable<String>(originalDate.value);
+    }
+    if (releaseDate.present) {
+      map['release_date'] = Variable<String>(releaseDate.value);
+    }
+    if (updated.present) {
+      map['updated'] = Variable<String>(updated.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SongCompanion(')
+          ..write('id: $id, ')
+          ..write('coverId: $coverId, ')
+          ..write('title: $title, ')
+          ..write('displayArtist: $displayArtist, ')
+          ..write('artists: $artists, ')
+          ..write('albumId: $albumId, ')
+          ..write('albumName: $albumName, ')
+          ..write('genres: $genres, ')
+          ..write('durationMs: $durationMs, ')
+          ..write('bpm: $bpm, ')
+          ..write('trackNr: $trackNr, ')
+          ..write('discNr: $discNr, ')
+          ..write('trackGain: $trackGain, ')
+          ..write('albumGain: $albumGain, ')
+          ..write('fallbackGain: $fallbackGain, ')
+          ..write('originalDate: $originalDate, ')
+          ..write('releaseDate: $releaseDate, ')
+          ..write('updated: $updated, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class PlaylistSong extends Table
     with TableInfo<PlaylistSong, PlaylistSongData> {
   @override
@@ -922,9 +1785,7 @@ class PlaylistSong extends Table
     hasAutoIncrement: true,
     type: DriftSqlType.int,
     requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'PRIMARY KEY AUTOINCREMENT',
-    ),
+    $customConstraints: 'NOT NULL PRIMARY KEY AUTOINCREMENT',
   );
   late final GeneratedColumn<String> playlistId = GeneratedColumn<String>(
     'playlist_id',
@@ -932,9 +1793,7 @@ class PlaylistSong extends Table
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES playlist (id) ON DELETE CASCADE',
-    ),
+    $customConstraints: 'NOT NULL REFERENCES playlist(id)ON DELETE CASCADE',
   );
   late final GeneratedColumn<int> index = GeneratedColumn<int>(
     'index',
@@ -942,6 +1801,7 @@ class PlaylistSong extends Table
     false,
     type: DriftSqlType.int,
     requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
   );
   late final GeneratedColumn<String> songId = GeneratedColumn<String>(
     'song_id',
@@ -949,22 +1809,10 @@ class PlaylistSong extends Table
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
-  );
-  late final GeneratedColumn<String> childModelJson = GeneratedColumn<String>(
-    'child_model_json',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL REFERENCES song(id)',
   );
   @override
-  List<GeneratedColumn> get $columns => [
-    id,
-    playlistId,
-    index,
-    songId,
-    childModelJson,
-  ];
+  List<GeneratedColumn> get $columns => [id, playlistId, index, songId];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -992,10 +1840,6 @@ class PlaylistSong extends Table
         DriftSqlType.string,
         data['${effectivePrefix}song_id'],
       )!,
-      childModelJson: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}child_model_json'],
-      )!,
     );
   }
 
@@ -1003,6 +1847,9 @@ class PlaylistSong extends Table
   PlaylistSong createAlias(String alias) {
     return PlaylistSong(attachedDatabase, alias);
   }
+
+  @override
+  bool get dontWriteConstraints => true;
 }
 
 class PlaylistSongData extends DataClass
@@ -1011,13 +1858,11 @@ class PlaylistSongData extends DataClass
   final String playlistId;
   final int index;
   final String songId;
-  final String childModelJson;
   const PlaylistSongData({
     required this.id,
     required this.playlistId,
     required this.index,
     required this.songId,
-    required this.childModelJson,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -1026,7 +1871,6 @@ class PlaylistSongData extends DataClass
     map['playlist_id'] = Variable<String>(playlistId);
     map['index'] = Variable<int>(index);
     map['song_id'] = Variable<String>(songId);
-    map['child_model_json'] = Variable<String>(childModelJson);
     return map;
   }
 
@@ -1036,7 +1880,6 @@ class PlaylistSongData extends DataClass
       playlistId: Value(playlistId),
       index: Value(index),
       songId: Value(songId),
-      childModelJson: Value(childModelJson),
     );
   }
 
@@ -1050,7 +1893,6 @@ class PlaylistSongData extends DataClass
       playlistId: serializer.fromJson<String>(json['playlistId']),
       index: serializer.fromJson<int>(json['index']),
       songId: serializer.fromJson<String>(json['songId']),
-      childModelJson: serializer.fromJson<String>(json['childModelJson']),
     );
   }
   @override
@@ -1061,7 +1903,6 @@ class PlaylistSongData extends DataClass
       'playlistId': serializer.toJson<String>(playlistId),
       'index': serializer.toJson<int>(index),
       'songId': serializer.toJson<String>(songId),
-      'childModelJson': serializer.toJson<String>(childModelJson),
     };
   }
 
@@ -1070,13 +1911,11 @@ class PlaylistSongData extends DataClass
     String? playlistId,
     int? index,
     String? songId,
-    String? childModelJson,
   }) => PlaylistSongData(
     id: id ?? this.id,
     playlistId: playlistId ?? this.playlistId,
     index: index ?? this.index,
     songId: songId ?? this.songId,
-    childModelJson: childModelJson ?? this.childModelJson,
   );
   PlaylistSongData copyWithCompanion(PlaylistSongCompanion data) {
     return PlaylistSongData(
@@ -1086,9 +1925,6 @@ class PlaylistSongData extends DataClass
           : this.playlistId,
       index: data.index.present ? data.index.value : this.index,
       songId: data.songId.present ? data.songId.value : this.songId,
-      childModelJson: data.childModelJson.present
-          ? data.childModelJson.value
-          : this.childModelJson,
     );
   }
 
@@ -1098,15 +1934,13 @@ class PlaylistSongData extends DataClass
           ..write('id: $id, ')
           ..write('playlistId: $playlistId, ')
           ..write('index: $index, ')
-          ..write('songId: $songId, ')
-          ..write('childModelJson: $childModelJson')
+          ..write('songId: $songId')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, playlistId, index, songId, childModelJson);
+  int get hashCode => Object.hash(id, playlistId, index, songId);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1114,8 +1948,7 @@ class PlaylistSongData extends DataClass
           other.id == this.id &&
           other.playlistId == this.playlistId &&
           other.index == this.index &&
-          other.songId == this.songId &&
-          other.childModelJson == this.childModelJson);
+          other.songId == this.songId);
 }
 
 class PlaylistSongCompanion extends UpdateCompanion<PlaylistSongData> {
@@ -1123,37 +1956,31 @@ class PlaylistSongCompanion extends UpdateCompanion<PlaylistSongData> {
   final Value<String> playlistId;
   final Value<int> index;
   final Value<String> songId;
-  final Value<String> childModelJson;
   const PlaylistSongCompanion({
     this.id = const Value.absent(),
     this.playlistId = const Value.absent(),
     this.index = const Value.absent(),
     this.songId = const Value.absent(),
-    this.childModelJson = const Value.absent(),
   });
   PlaylistSongCompanion.insert({
     this.id = const Value.absent(),
     required String playlistId,
     required int index,
     required String songId,
-    required String childModelJson,
   }) : playlistId = Value(playlistId),
        index = Value(index),
-       songId = Value(songId),
-       childModelJson = Value(childModelJson);
+       songId = Value(songId);
   static Insertable<PlaylistSongData> custom({
     Expression<int>? id,
     Expression<String>? playlistId,
     Expression<int>? index,
     Expression<String>? songId,
-    Expression<String>? childModelJson,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (playlistId != null) 'playlist_id': playlistId,
       if (index != null) 'index': index,
       if (songId != null) 'song_id': songId,
-      if (childModelJson != null) 'child_model_json': childModelJson,
     });
   }
 
@@ -1162,14 +1989,12 @@ class PlaylistSongCompanion extends UpdateCompanion<PlaylistSongData> {
     Value<String>? playlistId,
     Value<int>? index,
     Value<String>? songId,
-    Value<String>? childModelJson,
   }) {
     return PlaylistSongCompanion(
       id: id ?? this.id,
       playlistId: playlistId ?? this.playlistId,
       index: index ?? this.index,
       songId: songId ?? this.songId,
-      childModelJson: childModelJson ?? this.childModelJson,
     );
   }
 
@@ -1188,9 +2013,6 @@ class PlaylistSongCompanion extends UpdateCompanion<PlaylistSongData> {
     if (songId.present) {
       map['song_id'] = Variable<String>(songId.value);
     }
-    if (childModelJson.present) {
-      map['child_model_json'] = Variable<String>(childModelJson.value);
-    }
     return map;
   }
 
@@ -1200,8 +2022,7 @@ class PlaylistSongCompanion extends UpdateCompanion<PlaylistSongData> {
           ..write('id: $id, ')
           ..write('playlistId: $playlistId, ')
           ..write('index: $index, ')
-          ..write('songId: $songId, ')
-          ..write('childModelJson: $childModelJson')
+          ..write('songId: $songId')
           ..write(')'))
         .toString();
   }
@@ -1219,6 +2040,7 @@ class DownloadTask extends Table
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
   );
   late final GeneratedColumn<String> type = GeneratedColumn<String>(
     'type',
@@ -1226,6 +2048,7 @@ class DownloadTask extends Table
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
   );
   late final GeneratedColumn<String> object = GeneratedColumn<String>(
     'object',
@@ -1233,6 +2056,7 @@ class DownloadTask extends Table
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
   );
   late final GeneratedColumn<String> group = GeneratedColumn<String>(
     'group',
@@ -1240,6 +2064,7 @@ class DownloadTask extends Table
     true,
     type: DriftSqlType.string,
     requiredDuringInsert: false,
+    $customConstraints: 'NULL',
   );
   late final GeneratedColumn<String> status = GeneratedColumn<String>(
     'status',
@@ -1247,13 +2072,15 @@ class DownloadTask extends Table
     true,
     type: DriftSqlType.string,
     requiredDuringInsert: false,
+    $customConstraints: 'NULL',
   );
-  late final GeneratedColumn<DateTime> updated = GeneratedColumn<DateTime>(
+  late final GeneratedColumn<String> updated = GeneratedColumn<String>(
     'updated',
     aliasedName,
     false,
-    type: DriftSqlType.dateTime,
+    type: DriftSqlType.string,
     requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
   );
   @override
   List<GeneratedColumn> get $columns => [
@@ -1296,7 +2123,7 @@ class DownloadTask extends Table
         data['${effectivePrefix}status'],
       ),
       updated: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
+        DriftSqlType.string,
         data['${effectivePrefix}updated'],
       )!,
     );
@@ -1306,6 +2133,11 @@ class DownloadTask extends Table
   DownloadTask createAlias(String alias) {
     return DownloadTask(attachedDatabase, alias);
   }
+
+  @override
+  List<String> get customConstraints => const ['PRIMARY KEY(task_id, type)'];
+  @override
+  bool get dontWriteConstraints => true;
 }
 
 class DownloadTaskData extends DataClass
@@ -1315,7 +2147,7 @@ class DownloadTaskData extends DataClass
   final String object;
   final String? group;
   final String? status;
-  final DateTime updated;
+  final String updated;
   const DownloadTaskData({
     required this.taskId,
     required this.type,
@@ -1336,7 +2168,7 @@ class DownloadTaskData extends DataClass
     if (!nullToAbsent || status != null) {
       map['status'] = Variable<String>(status);
     }
-    map['updated'] = Variable<DateTime>(updated);
+    map['updated'] = Variable<String>(updated);
     return map;
   }
 
@@ -1366,7 +2198,7 @@ class DownloadTaskData extends DataClass
       object: serializer.fromJson<String>(json['object']),
       group: serializer.fromJson<String?>(json['group']),
       status: serializer.fromJson<String?>(json['status']),
-      updated: serializer.fromJson<DateTime>(json['updated']),
+      updated: serializer.fromJson<String>(json['updated']),
     );
   }
   @override
@@ -1378,7 +2210,7 @@ class DownloadTaskData extends DataClass
       'object': serializer.toJson<String>(object),
       'group': serializer.toJson<String?>(group),
       'status': serializer.toJson<String?>(status),
-      'updated': serializer.toJson<DateTime>(updated),
+      'updated': serializer.toJson<String>(updated),
     };
   }
 
@@ -1388,7 +2220,7 @@ class DownloadTaskData extends DataClass
     String? object,
     Value<String?> group = const Value.absent(),
     Value<String?> status = const Value.absent(),
-    DateTime? updated,
+    String? updated,
   }) => DownloadTaskData(
     taskId: taskId ?? this.taskId,
     type: type ?? this.type,
@@ -1441,7 +2273,7 @@ class DownloadTaskCompanion extends UpdateCompanion<DownloadTaskData> {
   final Value<String> object;
   final Value<String?> group;
   final Value<String?> status;
-  final Value<DateTime> updated;
+  final Value<String> updated;
   final Value<int> rowid;
   const DownloadTaskCompanion({
     this.taskId = const Value.absent(),
@@ -1458,7 +2290,7 @@ class DownloadTaskCompanion extends UpdateCompanion<DownloadTaskData> {
     required String object,
     this.group = const Value.absent(),
     this.status = const Value.absent(),
-    required DateTime updated,
+    required String updated,
     this.rowid = const Value.absent(),
   }) : taskId = Value(taskId),
        type = Value(type),
@@ -1470,7 +2302,7 @@ class DownloadTaskCompanion extends UpdateCompanion<DownloadTaskData> {
     Expression<String>? object,
     Expression<String>? group,
     Expression<String>? status,
-    Expression<DateTime>? updated,
+    Expression<String>? updated,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -1490,7 +2322,7 @@ class DownloadTaskCompanion extends UpdateCompanion<DownloadTaskData> {
     Value<String>? object,
     Value<String?>? group,
     Value<String?>? status,
-    Value<DateTime>? updated,
+    Value<String>? updated,
     Value<int>? rowid,
   }) {
     return DownloadTaskCompanion(
@@ -1523,7 +2355,7 @@ class DownloadTaskCompanion extends UpdateCompanion<DownloadTaskData> {
       map['status'] = Variable<String>(status.value);
     }
     if (updated.present) {
-      map['updated'] = Variable<DateTime>(updated.value);
+      map['updated'] = Variable<String>(updated.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -1557,13 +2389,15 @@ class Favorites extends Table with TableInfo<Favorites, FavoritesData> {
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
   );
-  late final GeneratedColumn<DateTime> starred = GeneratedColumn<DateTime>(
+  late final GeneratedColumn<String> starred = GeneratedColumn<String>(
     'starred',
     aliasedName,
     false,
-    type: DriftSqlType.dateTime,
+    type: DriftSqlType.string,
     requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
   );
   late final GeneratedColumn<String> type = GeneratedColumn<String>(
     'type',
@@ -1571,6 +2405,7 @@ class Favorites extends Table with TableInfo<Favorites, FavoritesData> {
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
   );
   @override
   List<GeneratedColumn> get $columns => [id, starred, type];
@@ -1590,7 +2425,7 @@ class Favorites extends Table with TableInfo<Favorites, FavoritesData> {
         data['${effectivePrefix}id'],
       )!,
       starred: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
+        DriftSqlType.string,
         data['${effectivePrefix}starred'],
       )!,
       type: attachedDatabase.typeMapping.read(
@@ -1604,11 +2439,16 @@ class Favorites extends Table with TableInfo<Favorites, FavoritesData> {
   Favorites createAlias(String alias) {
     return Favorites(attachedDatabase, alias);
   }
+
+  @override
+  List<String> get customConstraints => const ['PRIMARY KEY(id, type)'];
+  @override
+  bool get dontWriteConstraints => true;
 }
 
 class FavoritesData extends DataClass implements Insertable<FavoritesData> {
   final String id;
-  final DateTime starred;
+  final String starred;
   final String type;
   const FavoritesData({
     required this.id,
@@ -1619,7 +2459,7 @@ class FavoritesData extends DataClass implements Insertable<FavoritesData> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
-    map['starred'] = Variable<DateTime>(starred);
+    map['starred'] = Variable<String>(starred);
     map['type'] = Variable<String>(type);
     return map;
   }
@@ -1639,7 +2479,7 @@ class FavoritesData extends DataClass implements Insertable<FavoritesData> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return FavoritesData(
       id: serializer.fromJson<String>(json['id']),
-      starred: serializer.fromJson<DateTime>(json['starred']),
+      starred: serializer.fromJson<String>(json['starred']),
       type: serializer.fromJson<String>(json['type']),
     );
   }
@@ -1648,12 +2488,12 @@ class FavoritesData extends DataClass implements Insertable<FavoritesData> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
-      'starred': serializer.toJson<DateTime>(starred),
+      'starred': serializer.toJson<String>(starred),
       'type': serializer.toJson<String>(type),
     };
   }
 
-  FavoritesData copyWith({String? id, DateTime? starred, String? type}) =>
+  FavoritesData copyWith({String? id, String? starred, String? type}) =>
       FavoritesData(
         id: id ?? this.id,
         starred: starred ?? this.starred,
@@ -1690,7 +2530,7 @@ class FavoritesData extends DataClass implements Insertable<FavoritesData> {
 
 class FavoritesCompanion extends UpdateCompanion<FavoritesData> {
   final Value<String> id;
-  final Value<DateTime> starred;
+  final Value<String> starred;
   final Value<String> type;
   final Value<int> rowid;
   const FavoritesCompanion({
@@ -1701,7 +2541,7 @@ class FavoritesCompanion extends UpdateCompanion<FavoritesData> {
   });
   FavoritesCompanion.insert({
     required String id,
-    required DateTime starred,
+    required String starred,
     required String type,
     this.rowid = const Value.absent(),
   }) : id = Value(id),
@@ -1709,7 +2549,7 @@ class FavoritesCompanion extends UpdateCompanion<FavoritesData> {
        type = Value(type);
   static Insertable<FavoritesData> custom({
     Expression<String>? id,
-    Expression<DateTime>? starred,
+    Expression<String>? starred,
     Expression<String>? type,
     Expression<int>? rowid,
   }) {
@@ -1723,7 +2563,7 @@ class FavoritesCompanion extends UpdateCompanion<FavoritesData> {
 
   FavoritesCompanion copyWith({
     Value<String>? id,
-    Value<DateTime>? starred,
+    Value<String>? starred,
     Value<String>? type,
     Value<int>? rowid,
   }) {
@@ -1742,7 +2582,7 @@ class FavoritesCompanion extends UpdateCompanion<FavoritesData> {
       map['id'] = Variable<String>(id.value);
     }
     if (starred.present) {
-      map['starred'] = Variable<DateTime>(starred.value);
+      map['starred'] = Variable<String>(starred.value);
     }
     if (type.present) {
       map['type'] = Variable<String>(type.value);
@@ -1777,24 +2617,23 @@ class LogMessage extends Table with TableInfo<LogMessage, LogMessageData> {
     hasAutoIncrement: true,
     type: DriftSqlType.int,
     requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'PRIMARY KEY AUTOINCREMENT',
-    ),
+    $customConstraints: 'NOT NULL PRIMARY KEY AUTOINCREMENT',
   );
-  late final GeneratedColumn<DateTime> sessionStartTime =
-      GeneratedColumn<DateTime>(
-        'session_start_time',
-        aliasedName,
-        false,
-        type: DriftSqlType.dateTime,
-        requiredDuringInsert: true,
-      );
-  late final GeneratedColumn<DateTime> time = GeneratedColumn<DateTime>(
+  late final GeneratedColumn<String> sessionStartTime = GeneratedColumn<String>(
+    'session_start_time',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  late final GeneratedColumn<String> time = GeneratedColumn<String>(
     'time',
     aliasedName,
     false,
-    type: DriftSqlType.dateTime,
+    type: DriftSqlType.string,
     requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
   );
   late final GeneratedColumn<String> level = GeneratedColumn<String>(
     'level',
@@ -1802,6 +2641,7 @@ class LogMessage extends Table with TableInfo<LogMessage, LogMessageData> {
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
   );
   late final GeneratedColumn<String> tag = GeneratedColumn<String>(
     'tag',
@@ -1809,6 +2649,7 @@ class LogMessage extends Table with TableInfo<LogMessage, LogMessageData> {
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
   );
   late final GeneratedColumn<String> message = GeneratedColumn<String>(
     'message',
@@ -1816,6 +2657,7 @@ class LogMessage extends Table with TableInfo<LogMessage, LogMessageData> {
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
   );
   late final GeneratedColumn<String> stackTrace = GeneratedColumn<String>(
     'stack_trace',
@@ -1823,6 +2665,7 @@ class LogMessage extends Table with TableInfo<LogMessage, LogMessageData> {
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
   );
   late final GeneratedColumn<String> exception = GeneratedColumn<String>(
     'exception',
@@ -1830,6 +2673,7 @@ class LogMessage extends Table with TableInfo<LogMessage, LogMessageData> {
     true,
     type: DriftSqlType.string,
     requiredDuringInsert: false,
+    $customConstraints: 'NULL',
   );
   @override
   List<GeneratedColumn> get $columns => [
@@ -1858,11 +2702,11 @@ class LogMessage extends Table with TableInfo<LogMessage, LogMessageData> {
         data['${effectivePrefix}id'],
       )!,
       sessionStartTime: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
+        DriftSqlType.string,
         data['${effectivePrefix}session_start_time'],
       )!,
       time: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
+        DriftSqlType.string,
         data['${effectivePrefix}time'],
       )!,
       level: attachedDatabase.typeMapping.read(
@@ -1892,12 +2736,15 @@ class LogMessage extends Table with TableInfo<LogMessage, LogMessageData> {
   LogMessage createAlias(String alias) {
     return LogMessage(attachedDatabase, alias);
   }
+
+  @override
+  bool get dontWriteConstraints => true;
 }
 
 class LogMessageData extends DataClass implements Insertable<LogMessageData> {
   final int id;
-  final DateTime sessionStartTime;
-  final DateTime time;
+  final String sessionStartTime;
+  final String time;
   final String level;
   final String tag;
   final String message;
@@ -1917,8 +2764,8 @@ class LogMessageData extends DataClass implements Insertable<LogMessageData> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
-    map['session_start_time'] = Variable<DateTime>(sessionStartTime);
-    map['time'] = Variable<DateTime>(time);
+    map['session_start_time'] = Variable<String>(sessionStartTime);
+    map['time'] = Variable<String>(time);
     map['level'] = Variable<String>(level);
     map['tag'] = Variable<String>(tag);
     map['message'] = Variable<String>(message);
@@ -1951,8 +2798,8 @@ class LogMessageData extends DataClass implements Insertable<LogMessageData> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return LogMessageData(
       id: serializer.fromJson<int>(json['id']),
-      sessionStartTime: serializer.fromJson<DateTime>(json['sessionStartTime']),
-      time: serializer.fromJson<DateTime>(json['time']),
+      sessionStartTime: serializer.fromJson<String>(json['sessionStartTime']),
+      time: serializer.fromJson<String>(json['time']),
       level: serializer.fromJson<String>(json['level']),
       tag: serializer.fromJson<String>(json['tag']),
       message: serializer.fromJson<String>(json['message']),
@@ -1965,8 +2812,8 @@ class LogMessageData extends DataClass implements Insertable<LogMessageData> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
-      'sessionStartTime': serializer.toJson<DateTime>(sessionStartTime),
-      'time': serializer.toJson<DateTime>(time),
+      'sessionStartTime': serializer.toJson<String>(sessionStartTime),
+      'time': serializer.toJson<String>(time),
       'level': serializer.toJson<String>(level),
       'tag': serializer.toJson<String>(tag),
       'message': serializer.toJson<String>(message),
@@ -1977,8 +2824,8 @@ class LogMessageData extends DataClass implements Insertable<LogMessageData> {
 
   LogMessageData copyWith({
     int? id,
-    DateTime? sessionStartTime,
-    DateTime? time,
+    String? sessionStartTime,
+    String? time,
     String? level,
     String? tag,
     String? message,
@@ -2053,8 +2900,8 @@ class LogMessageData extends DataClass implements Insertable<LogMessageData> {
 
 class LogMessageCompanion extends UpdateCompanion<LogMessageData> {
   final Value<int> id;
-  final Value<DateTime> sessionStartTime;
-  final Value<DateTime> time;
+  final Value<String> sessionStartTime;
+  final Value<String> time;
   final Value<String> level;
   final Value<String> tag;
   final Value<String> message;
@@ -2072,8 +2919,8 @@ class LogMessageCompanion extends UpdateCompanion<LogMessageData> {
   });
   LogMessageCompanion.insert({
     this.id = const Value.absent(),
-    required DateTime sessionStartTime,
-    required DateTime time,
+    required String sessionStartTime,
+    required String time,
     required String level,
     required String tag,
     required String message,
@@ -2087,8 +2934,8 @@ class LogMessageCompanion extends UpdateCompanion<LogMessageData> {
        stackTrace = Value(stackTrace);
   static Insertable<LogMessageData> custom({
     Expression<int>? id,
-    Expression<DateTime>? sessionStartTime,
-    Expression<DateTime>? time,
+    Expression<String>? sessionStartTime,
+    Expression<String>? time,
     Expression<String>? level,
     Expression<String>? tag,
     Expression<String>? message,
@@ -2109,8 +2956,8 @@ class LogMessageCompanion extends UpdateCompanion<LogMessageData> {
 
   LogMessageCompanion copyWith({
     Value<int>? id,
-    Value<DateTime>? sessionStartTime,
-    Value<DateTime>? time,
+    Value<String>? sessionStartTime,
+    Value<String>? time,
     Value<String>? level,
     Value<String>? tag,
     Value<String>? message,
@@ -2136,10 +2983,10 @@ class LogMessageCompanion extends UpdateCompanion<LogMessageData> {
       map['id'] = Variable<int>(id.value);
     }
     if (sessionStartTime.present) {
-      map['session_start_time'] = Variable<DateTime>(sessionStartTime.value);
+      map['session_start_time'] = Variable<String>(sessionStartTime.value);
     }
     if (time.present) {
-      map['time'] = Variable<DateTime>(time.value);
+      map['time'] = Variable<String>(time.value);
     }
     if (level.present) {
       map['level'] = Variable<String>(level.value);
@@ -2175,15 +3022,372 @@ class LogMessageCompanion extends UpdateCompanion<LogMessageData> {
   }
 }
 
-class DatabaseAtV6 extends GeneratedDatabase {
-  DatabaseAtV6(QueryExecutor e) : super(e);
+class CoverCache extends Table with TableInfo<CoverCache, CoverCacheData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  CoverCache(this.attachedDatabase, [this._alias]);
+  late final GeneratedColumn<String> coverId = GeneratedColumn<String>(
+    'cover_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  late final GeneratedColumn<int> size = GeneratedColumn<int>(
+    'size',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  late final GeneratedColumn<int> fileFullyWritten = GeneratedColumn<int>(
+    'file_fully_written',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL CHECK (file_fully_written IN (0, 1))',
+  );
+  late final GeneratedColumn<String> downloadTime = GeneratedColumn<String>(
+    'download_time',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  late final GeneratedColumn<String> validTill = GeneratedColumn<String>(
+    'valid_till',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  late final GeneratedColumn<int> fileSizeKB = GeneratedColumn<int>(
+    'file_size_k_b',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    coverId,
+    size,
+    fileFullyWritten,
+    downloadTime,
+    validTill,
+    fileSizeKB,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'cover_cache';
+  @override
+  Set<GeneratedColumn> get $primaryKey => {coverId, size};
+  @override
+  CoverCacheData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return CoverCacheData(
+      coverId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}cover_id'],
+      )!,
+      size: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}size'],
+      )!,
+      fileFullyWritten: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}file_fully_written'],
+      )!,
+      downloadTime: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}download_time'],
+      )!,
+      validTill: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}valid_till'],
+      )!,
+      fileSizeKB: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}file_size_k_b'],
+      )!,
+    );
+  }
+
+  @override
+  CoverCache createAlias(String alias) {
+    return CoverCache(attachedDatabase, alias);
+  }
+
+  @override
+  List<String> get customConstraints => const ['PRIMARY KEY(cover_id, size)'];
+  @override
+  bool get dontWriteConstraints => true;
+}
+
+class CoverCacheData extends DataClass implements Insertable<CoverCacheData> {
+  final String coverId;
+  final int size;
+  final int fileFullyWritten;
+  final String downloadTime;
+  final String validTill;
+  final int fileSizeKB;
+  const CoverCacheData({
+    required this.coverId,
+    required this.size,
+    required this.fileFullyWritten,
+    required this.downloadTime,
+    required this.validTill,
+    required this.fileSizeKB,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['cover_id'] = Variable<String>(coverId);
+    map['size'] = Variable<int>(size);
+    map['file_fully_written'] = Variable<int>(fileFullyWritten);
+    map['download_time'] = Variable<String>(downloadTime);
+    map['valid_till'] = Variable<String>(validTill);
+    map['file_size_k_b'] = Variable<int>(fileSizeKB);
+    return map;
+  }
+
+  CoverCacheCompanion toCompanion(bool nullToAbsent) {
+    return CoverCacheCompanion(
+      coverId: Value(coverId),
+      size: Value(size),
+      fileFullyWritten: Value(fileFullyWritten),
+      downloadTime: Value(downloadTime),
+      validTill: Value(validTill),
+      fileSizeKB: Value(fileSizeKB),
+    );
+  }
+
+  factory CoverCacheData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return CoverCacheData(
+      coverId: serializer.fromJson<String>(json['coverId']),
+      size: serializer.fromJson<int>(json['size']),
+      fileFullyWritten: serializer.fromJson<int>(json['fileFullyWritten']),
+      downloadTime: serializer.fromJson<String>(json['downloadTime']),
+      validTill: serializer.fromJson<String>(json['validTill']),
+      fileSizeKB: serializer.fromJson<int>(json['fileSizeKB']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'coverId': serializer.toJson<String>(coverId),
+      'size': serializer.toJson<int>(size),
+      'fileFullyWritten': serializer.toJson<int>(fileFullyWritten),
+      'downloadTime': serializer.toJson<String>(downloadTime),
+      'validTill': serializer.toJson<String>(validTill),
+      'fileSizeKB': serializer.toJson<int>(fileSizeKB),
+    };
+  }
+
+  CoverCacheData copyWith({
+    String? coverId,
+    int? size,
+    int? fileFullyWritten,
+    String? downloadTime,
+    String? validTill,
+    int? fileSizeKB,
+  }) => CoverCacheData(
+    coverId: coverId ?? this.coverId,
+    size: size ?? this.size,
+    fileFullyWritten: fileFullyWritten ?? this.fileFullyWritten,
+    downloadTime: downloadTime ?? this.downloadTime,
+    validTill: validTill ?? this.validTill,
+    fileSizeKB: fileSizeKB ?? this.fileSizeKB,
+  );
+  CoverCacheData copyWithCompanion(CoverCacheCompanion data) {
+    return CoverCacheData(
+      coverId: data.coverId.present ? data.coverId.value : this.coverId,
+      size: data.size.present ? data.size.value : this.size,
+      fileFullyWritten: data.fileFullyWritten.present
+          ? data.fileFullyWritten.value
+          : this.fileFullyWritten,
+      downloadTime: data.downloadTime.present
+          ? data.downloadTime.value
+          : this.downloadTime,
+      validTill: data.validTill.present ? data.validTill.value : this.validTill,
+      fileSizeKB: data.fileSizeKB.present
+          ? data.fileSizeKB.value
+          : this.fileSizeKB,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CoverCacheData(')
+          ..write('coverId: $coverId, ')
+          ..write('size: $size, ')
+          ..write('fileFullyWritten: $fileFullyWritten, ')
+          ..write('downloadTime: $downloadTime, ')
+          ..write('validTill: $validTill, ')
+          ..write('fileSizeKB: $fileSizeKB')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    coverId,
+    size,
+    fileFullyWritten,
+    downloadTime,
+    validTill,
+    fileSizeKB,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is CoverCacheData &&
+          other.coverId == this.coverId &&
+          other.size == this.size &&
+          other.fileFullyWritten == this.fileFullyWritten &&
+          other.downloadTime == this.downloadTime &&
+          other.validTill == this.validTill &&
+          other.fileSizeKB == this.fileSizeKB);
+}
+
+class CoverCacheCompanion extends UpdateCompanion<CoverCacheData> {
+  final Value<String> coverId;
+  final Value<int> size;
+  final Value<int> fileFullyWritten;
+  final Value<String> downloadTime;
+  final Value<String> validTill;
+  final Value<int> fileSizeKB;
+  final Value<int> rowid;
+  const CoverCacheCompanion({
+    this.coverId = const Value.absent(),
+    this.size = const Value.absent(),
+    this.fileFullyWritten = const Value.absent(),
+    this.downloadTime = const Value.absent(),
+    this.validTill = const Value.absent(),
+    this.fileSizeKB = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  CoverCacheCompanion.insert({
+    required String coverId,
+    required int size,
+    required int fileFullyWritten,
+    required String downloadTime,
+    required String validTill,
+    required int fileSizeKB,
+    this.rowid = const Value.absent(),
+  }) : coverId = Value(coverId),
+       size = Value(size),
+       fileFullyWritten = Value(fileFullyWritten),
+       downloadTime = Value(downloadTime),
+       validTill = Value(validTill),
+       fileSizeKB = Value(fileSizeKB);
+  static Insertable<CoverCacheData> custom({
+    Expression<String>? coverId,
+    Expression<int>? size,
+    Expression<int>? fileFullyWritten,
+    Expression<String>? downloadTime,
+    Expression<String>? validTill,
+    Expression<int>? fileSizeKB,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (coverId != null) 'cover_id': coverId,
+      if (size != null) 'size': size,
+      if (fileFullyWritten != null) 'file_fully_written': fileFullyWritten,
+      if (downloadTime != null) 'download_time': downloadTime,
+      if (validTill != null) 'valid_till': validTill,
+      if (fileSizeKB != null) 'file_size_k_b': fileSizeKB,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  CoverCacheCompanion copyWith({
+    Value<String>? coverId,
+    Value<int>? size,
+    Value<int>? fileFullyWritten,
+    Value<String>? downloadTime,
+    Value<String>? validTill,
+    Value<int>? fileSizeKB,
+    Value<int>? rowid,
+  }) {
+    return CoverCacheCompanion(
+      coverId: coverId ?? this.coverId,
+      size: size ?? this.size,
+      fileFullyWritten: fileFullyWritten ?? this.fileFullyWritten,
+      downloadTime: downloadTime ?? this.downloadTime,
+      validTill: validTill ?? this.validTill,
+      fileSizeKB: fileSizeKB ?? this.fileSizeKB,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (coverId.present) {
+      map['cover_id'] = Variable<String>(coverId.value);
+    }
+    if (size.present) {
+      map['size'] = Variable<int>(size.value);
+    }
+    if (fileFullyWritten.present) {
+      map['file_fully_written'] = Variable<int>(fileFullyWritten.value);
+    }
+    if (downloadTime.present) {
+      map['download_time'] = Variable<String>(downloadTime.value);
+    }
+    if (validTill.present) {
+      map['valid_till'] = Variable<String>(validTill.value);
+    }
+    if (fileSizeKB.present) {
+      map['file_size_k_b'] = Variable<int>(fileSizeKB.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CoverCacheCompanion(')
+          ..write('coverId: $coverId, ')
+          ..write('size: $size, ')
+          ..write('fileFullyWritten: $fileFullyWritten, ')
+          ..write('downloadTime: $downloadTime, ')
+          ..write('validTill: $validTill, ')
+          ..write('fileSizeKB: $fileSizeKB, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class DatabaseAtV8 extends GeneratedDatabase {
+  DatabaseAtV8(QueryExecutor e) : super(e);
   late final KeyValue keyValue = KeyValue(this);
   late final Scrobble scrobble = Scrobble(this);
   late final Playlist playlist = Playlist(this);
+  late final Song song = Song(this);
   late final PlaylistSong playlistSong = PlaylistSong(this);
   late final DownloadTask downloadTask = DownloadTask(this);
   late final Favorites favorites = Favorites(this);
   late final LogMessage logMessage = LogMessage(this);
+  late final CoverCache coverCache = CoverCache(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -2192,13 +3396,25 @@ class DatabaseAtV6 extends GeneratedDatabase {
     keyValue,
     scrobble,
     playlist,
+    song,
     playlistSong,
     downloadTask,
     favorites,
     logMessage,
+    coverCache,
   ];
   @override
-  int get schemaVersion => 6;
+  StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'playlist',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('playlist_song', kind: UpdateKind.delete)],
+    ),
+  ]);
+  @override
+  int get schemaVersion => 8;
   @override
   DriftDatabaseOptions get options =>
       const DriftDatabaseOptions(storeDateTimeAsText: true);

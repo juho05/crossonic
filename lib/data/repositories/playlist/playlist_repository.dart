@@ -1,17 +1,16 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:collection/collection.dart';
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
 import 'package:crossonic/data/repositories/cover/cover_repository.dart';
 import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/data/repositories/playlist/models/playlist.dart';
 import 'package:crossonic/data/repositories/playlist/sequential_request_queue.dart';
 import 'package:crossonic/data/repositories/playlist/song_downloader.dart';
-import 'package:crossonic/data/repositories/subsonic/favorites_repository.dart';
+import 'package:crossonic/data/repositories/song/song_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
 import 'package:crossonic/data/services/database/database.dart';
-import 'package:crossonic/data/services/opensubsonic/models/child_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/playlist_model.dart';
 import 'package:crossonic/data/services/opensubsonic/subsonic_service.dart';
 import 'package:crossonic/utils/result.dart';
@@ -22,28 +21,28 @@ enum PlaylistOrderBy { alphabetical, updated, created }
 
 class PlaylistRepository extends ChangeNotifier {
   final SubsonicService _subsonic;
-  final FavoritesRepository _favorites;
   final AuthRepository _auth;
   final CoverRepository _coverRepository;
   final Database _db;
   final SongDownloader _songDownloader;
+  final SongRepository _songRepo;
   late final SequentialRequestQueue _requestQueue;
 
   bool get changeCoverSupported => _auth.serverFeatures.isCrossonic;
 
   PlaylistRepository({
     required SubsonicService subsonic,
-    required FavoritesRepository favorites,
     required AuthRepository auth,
     required Database db,
     required CoverRepository coverRepository,
     required SongDownloader songDownloader,
+    required SongRepository songRepository,
   }) : _subsonic = subsonic,
-       _favorites = favorites,
        _auth = auth,
        _db = db,
        _coverRepository = coverRepository,
-       _songDownloader = songDownloader {
+       _songDownloader = songDownloader,
+       _songRepo = songRepository {
     _requestQueue = SequentialRequestQueue(onAllDone: _onRequestQueueDone);
     _auth.addListener(_onAuthChanged);
     _onAuthChanged();
@@ -105,10 +104,19 @@ class PlaylistRepository extends ChangeNotifier {
                   .map((p) => p.read(_db.playlistTable.coverArt))
                   .getSingleOrNull();
           _coverRepository.downloadCovers([playlistCover]);
-          final songs = await _db.managers.playlistSongTable
-              .filter((f) => f.playlistId.id(id) & f.coverId.isNotNull())
-              .map((p) => p.coverId)
-              .get();
+          final songs =
+              await (_db.selectOnly(_db.playlistSongTable)
+                    ..addColumns([_db.songTable.coverId])
+                    ..join([
+                      innerJoin(
+                        _db.songTable,
+                        _db.songTable.id.equalsExp(
+                          _db.playlistSongTable.songId,
+                        ),
+                      ),
+                    ]))
+                  .map((row) => row.read(_db.songTable.coverId))
+                  .get();
           _coverRepository.downloadCovers(songs);
         }
         downloadCovers();
@@ -253,12 +261,8 @@ class PlaylistRepository extends ChangeNotifier {
           );
         }
         await _db.managers.playlistSongTable.create(
-          (o) => o(
-            playlistId: playlist.id,
-            songId: song.songId,
-            index: newIndex,
-            childModelJson: song.childModelJson,
-          ),
+          (o) =>
+              o(playlistId: playlist.id, songId: song.songId, index: newIndex),
         );
       });
     } on Exception catch (e) {
@@ -278,12 +282,10 @@ class PlaylistRepository extends ChangeNotifier {
               (s) => o(
                 id: Value(s.id),
                 index: s.index,
-                childModelJson: s.childModelJson,
                 songId: s.songId,
                 playlistId: s.playlistId,
               ),
             ),
-            mode: InsertMode.replace,
           );
         });
       } on Exception catch (e, st) {
@@ -329,7 +331,7 @@ class PlaylistRepository extends ChangeNotifier {
       ),
     );
     final downloaded = await _db.managers.playlistTable
-        .filter((f) => f.id(id) & f.download.isTrue() & f.coverArt.isNotNull())
+        .filter((f) => f.id(id) & f.download.isTrue())
         .exists();
     if (downloaded) {
       _coverRepository.downloadCovers(songs.map((s) => s.coverId));
@@ -370,7 +372,6 @@ class PlaylistRepository extends ChangeNotifier {
             );
             await _db.managers.playlistSongTable.create(
               (o) => o(
-                childModelJson: song!.childModelJson,
                 index: song!.index,
                 playlistId: song!.playlistId,
                 songId: song!.songId,
@@ -518,21 +519,24 @@ class PlaylistRepository extends ChangeNotifier {
     try {
       final playlist = await _db.managers.playlistTable
           .filter((f) => f.id(id))
-          .withReferences()
           .getSingleOrNull();
       if (playlist == null) return const Result.ok(null);
-      final dbSongs = await playlist.$2.playlistSongTableRefs
-          .orderBy((o) => o.index.asc())
-          .get();
-      final p = playlist.$1;
 
-      final songs = dbSongs
-          .map(
-            (s) => Song.fromChildModel(
-              ChildModel.fromJson(jsonDecode(s.childModelJson)),
+      final dbSongs = await _db
+          .select(_db.songTable)
+          .join([
+            innerJoin(
+              _db.playlistSongTable,
+              _db.playlistSongTable.playlistId.equals(id) &
+                  _db.playlistSongTable.songId.equalsExp(_db.songTable.id),
             ),
-          )
-          .toList();
+          ])
+          .map((p) {
+            return p.readTable(_db.songTable);
+          })
+          .get();
+
+      final songs = dbSongs.map((s) => _songRepo.songFromDBModel(s)).toList();
 
       Duration duration = Duration.zero;
       for (final s in songs) {
@@ -541,15 +545,15 @@ class PlaylistRepository extends ChangeNotifier {
 
       return Result.ok((
         playlist: Playlist(
-          id: p.id,
-          name: p.name,
-          comment: p.comment,
-          created: p.created,
-          changed: p.changed,
+          id: playlist.id,
+          name: playlist.name,
+          comment: playlist.comment,
+          created: playlist.created,
+          changed: playlist.changed,
           duration: duration,
           songCount: songs.length,
-          coverId: p.coverArt,
-          download: p.download,
+          coverId: playlist.coverArt,
+          download: playlist.download,
         ),
         tracks: songs,
       ));
@@ -588,6 +592,12 @@ class PlaylistRepository extends ChangeNotifier {
     }
     if (!_requestQueue.done) {
       Log.trace("new playlist request started, aborting refresh");
+      _forceUpdate |= forceRefresh;
+      if (refreshIds.isEmpty) {
+        _updateAll = true;
+      } else {
+        _playlistIdsNeedUpdate.addAll(refreshIds);
+      }
       return const Result.ok(null);
     }
 
@@ -631,7 +641,7 @@ class PlaylistRepository extends ChangeNotifier {
         return const Result.ok(null);
       }
 
-      Map<String, List<ChildModel>> playlistSongs = {};
+      Map<String, Iterable<Song>> playlistSongs = {};
 
       Log.trace("loading playlist songs");
       final results = await Future.wait(
@@ -655,6 +665,12 @@ class PlaylistRepository extends ChangeNotifier {
       }
       if (!_requestQueue.done) {
         Log.trace("new playlist request started, aborting refresh");
+        _forceUpdate |= forceRefresh;
+        if (refreshIds.isEmpty) {
+          _updateAll = true;
+        } else {
+          _playlistIdsNeedUpdate.addAll(refreshIds);
+        }
         return const Result.ok(null);
       }
 
@@ -716,15 +732,8 @@ class PlaylistRepository extends ChangeNotifier {
           toUpdate.map((p) async {
             final songs = (playlistSongs[p.id] ?? []);
             await _db.managers.playlistSongTable.bulkCreate(
-              (o) => List.generate(
-                songs.length,
-                (i) => o(
-                  playlistId: p.id,
-                  songId: songs[i].id,
-                  coverId: Value(songs[i].coverArt),
-                  childModelJson: jsonEncode(songs[i]),
-                  index: i,
-                ),
+              (o) => songs.mapIndexed(
+                (i, s) => o(playlistId: p.id, songId: s.id, index: i),
               ),
             );
           }),
@@ -771,26 +780,30 @@ class PlaylistRepository extends ChangeNotifier {
     final downloadCoverIdsQuery = _db.selectOnly(
       _db.playlistSongTable,
       distinct: true,
-    )..addColumns([_db.playlistSongTable.coverId]);
+    )..addColumns([_db.songTable.coverId]);
     downloadCoverIdsQuery.join([
+      innerJoin(
+        _db.songTable,
+        _db.songTable.id.equalsExp(_db.playlistSongTable.songId),
+      ),
       innerJoin(
         _db.playlistTable,
         _db.playlistTable.id.equalsExp(_db.playlistSongTable.playlistId),
       ),
       leftOuterJoin(
         _db.coverCacheTable,
-        _db.coverCacheTable.coverId.equalsExp(_db.playlistSongTable.coverId) &
+        _db.coverCacheTable.coverId.equalsExp(_db.songTable.coverId) &
             _db.coverCacheTable.size.equals(1024) &
             _db.coverCacheTable.fileFullyWritten,
       ),
     ]);
     downloadCoverIdsQuery.where(
-      _db.playlistSongTable.coverId.isNotNull() &
+      _db.songTable.coverId.isNotNull() &
           _db.playlistTable.download &
           _db.coverCacheTable.coverId.isNull(),
     );
     final downloadCoverIds = await downloadCoverIdsQuery
-        .map((row) => row.read(_db.playlistSongTable.coverId))
+        .map((row) => row.read(_db.songTable.coverId))
         .get();
     if (downloadCoverIds.isNotEmpty) {
       Log.debug(
@@ -800,18 +813,15 @@ class PlaylistRepository extends ChangeNotifier {
     }
   }
 
-  Future<Result<List<ChildModel>>> _loadPlaylistSongs(String playlistId) async {
+  Future<Result<Iterable<Song>>> _loadPlaylistSongs(String playlistId) async {
     final result = await _subsonic.getPlaylist(_auth.con, playlistId);
     switch (result) {
       case Err():
         return Result.error(result.error);
       case Ok():
-        _favorites.updateAll(
-          (result.value.entry ?? []).map(
-            (c) => (type: FavoriteType.song, id: c.id, starred: c.starred),
-          ),
+        return Result.ok(
+          await _songRepo.songsFromChildModels(result.value.entry ?? []),
         );
-        return Result.ok(result.value.entry ?? []);
     }
   }
 

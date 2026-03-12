@@ -36,12 +36,17 @@ class Album {
     required this.musicBrainzId,
   });
 
-  factory Album.fromAlbumID3Model(AlbumID3Model album) {
+  factory Album.fromAlbumID3Model(
+    AlbumID3Model album, {
+    Iterable<Song>? songs,
+  }) {
     ReleaseType releaseType = ReleaseType.album;
     for (String type in album.releaseTypes ?? []) {
       type = type.toLowerCase().trim();
-      final t = ReleaseType.values
-          .firstWhere((t) => t.name == type, orElse: () => ReleaseType.album);
+      final t = ReleaseType.values.firstWhere(
+        (t) => t.name == type,
+        orElse: () => ReleaseType.album,
+      );
       if (t.index < releaseType.index) {
         releaseType = t;
       }
@@ -76,21 +81,23 @@ class Album {
       id: album.id,
       name: album.name,
       coverId: album.coverArt ?? album.id,
-      displayArtist: emptyToNull(album.displayArtist) ??
+      displayArtist:
+          emptyToNull(album.displayArtist) ??
           album.artists?.map((a) => a.name).join(", ") ??
           album.artist ??
           "Unknown artist",
-      artists: album.artists ??
+      artists:
+          album.artists ??
           (album.artist != null && album.artistId != null
               ? [(id: album.artistId!, name: album.artist!)]
               : []),
       originalDate: originalDate,
       releaseDate: releaseDate,
-      songs: album.song?.map((c) => Song.fromChildModel(c)).toList(),
+      songs: songs?.toList(),
       songCount: album.songCount,
       discTitles: {
         for (var d in album.discTitles ?? <({int disc, String title})>[])
-          d.disc: d.title
+          d.disc: d.title,
       },
       releaseType: releaseType,
       version: emptyToNull(album.version),

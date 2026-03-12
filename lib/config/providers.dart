@@ -17,6 +17,7 @@ import 'package:crossonic/data/repositories/playlist/playlist_repository.dart';
 import 'package:crossonic/data/repositories/playlist/song_downloader.dart';
 import 'package:crossonic/data/repositories/scrobble/scrobbler.dart';
 import 'package:crossonic/data/repositories/settings/settings_repository.dart';
+import 'package:crossonic/data/repositories/song/song_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/favorites_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/subsonic_repository.dart';
 import 'package:crossonic/data/repositories/themeManager/theme_manager.dart';
@@ -75,10 +76,16 @@ Future<List<SingleChildWidget>> createProviders({
     database: database,
   );
 
+  final songRepository = SongRepository(
+    db: database,
+    favorites: favoritesRepository,
+  );
+
   final subsonicRepository = SubsonicRepository(
     authRepository: authRepository,
     subsonicService: subsonicService,
     favoritesRepository: favoritesRepository,
+    songRepository: songRepository,
   );
 
   final settings = SettingsRepository(
@@ -110,11 +117,11 @@ Future<List<SingleChildWidget>> createProviders({
 
   final playlistRepository = PlaylistRepository(
     subsonic: subsonicService,
-    favorites: favoritesRepository,
     auth: authRepository,
     db: database,
     coverRepository: coverRepository,
     songDownloader: songDownloader,
+    songRepository: songRepository,
   );
 
   final MediaIntegration mediaIntegration;
