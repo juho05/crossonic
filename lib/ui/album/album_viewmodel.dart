@@ -39,13 +39,13 @@ class AlbumViewModel extends ChangeNotifier {
   Iterable<Album> _alternatives = [];
   Iterable<Album> get alternatives => _alternatives;
 
-  AlbumViewModel(
-      {required FavoritesRepository favoritesRepository,
-      required SubsonicRepository subsonicRepository,
-      required AudioHandler audioHandler})
-      : _favorites = favoritesRepository,
-        _subsonic = subsonicRepository,
-        _audioHandler = audioHandler {
+  AlbumViewModel({
+    required FavoritesRepository favoritesRepository,
+    required SubsonicRepository subsonicRepository,
+    required AudioHandler audioHandler,
+  }) : _favorites = favoritesRepository,
+       _subsonic = subsonicRepository,
+       _audioHandler = audioHandler {
     _favorites.addListener(_onFavoritesChanged);
     _onFavoritesChanged();
   }
@@ -92,7 +92,9 @@ class AlbumViewModel extends ChangeNotifier {
           assert(insertIndex == _listItems.length);
         } else {
           _listItems = List.generate(
-              _songs.length, (index) => (null, (_songs[index], index)));
+            _songs.length,
+            (index) => (null, (_songs[index], index)),
+          );
         }
 
         _status = FetchStatus.success;
@@ -148,8 +150,11 @@ class AlbumViewModel extends ChangeNotifier {
   Future<Result<void>> toggleFavorite() async {
     _favorite = !_favorite;
     notifyListeners();
-    final result =
-        await _favorites.setFavorite(FavoriteType.album, _albumId!, favorite);
+    final result = await _favorites.setFavorite(
+      FavoriteType.album,
+      _albumId!,
+      favorite,
+    );
     if (result is Err) {
       _favorite = !_favorite;
       notifyListeners();

@@ -118,7 +118,7 @@ class CoverRepository extends BaseCacheManager {
 
     final cachedObj = _memCache[key];
     if (cachedObj != null && cachedObj.validTill.isAfter(DateTime.now())) {
-      return SynchronousFuture(cachedObj);
+      return cachedObj;
     }
 
     final id = _idFromKey(key);

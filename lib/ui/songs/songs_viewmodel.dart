@@ -118,7 +118,7 @@ class SongsViewModel extends ChangeNotifier {
       s = List.of(songs)..shuffle();
     }
     _audioHandler.playOnNextMediaChange();
-    _audioHandler.queue.replace(s);
+    await _audioHandler.queue.replace(s);
     return const Result.ok(null);
   }
 

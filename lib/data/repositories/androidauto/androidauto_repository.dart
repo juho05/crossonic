@@ -59,7 +59,7 @@ class AndroidAutoRepository {
       if (songs.isEmpty) return;
       songs.shuffle();
       _audioHandler.playOnNextMediaChange();
-      _audioHandler.queue.replace(songs);
+      await _audioHandler.queue.replace(songs);
       return;
     }
 
@@ -252,7 +252,7 @@ class AndroidAutoRepository {
     if (songs.isEmpty) return;
     songs.shuffle();
     _audioHandler.playOnNextMediaChange();
-    _audioHandler.queue.replace(songs);
+    await _audioHandler.queue.replace(songs);
     return;
   }
 

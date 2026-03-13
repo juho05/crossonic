@@ -51,13 +51,13 @@ class ArtistViewModel extends ChangeNotifier {
   bool _favorite = false;
   bool get favorite => _favorite;
 
-  ArtistViewModel(
-      {required SubsonicRepository subsonicRepository,
-      required FavoritesRepository favoritesRepository,
-      required AudioHandler audioHandler})
-      : _subsonic = subsonicRepository,
-        _favorites = favoritesRepository,
-        _audioHandler = audioHandler {
+  ArtistViewModel({
+    required SubsonicRepository subsonicRepository,
+    required FavoritesRepository favoritesRepository,
+    required AudioHandler audioHandler,
+  }) : _subsonic = subsonicRepository,
+       _favorites = favoritesRepository,
+       _audioHandler = audioHandler {
     _favorites.addListener(_onFavoritesChanged);
     _onFavoritesChanged();
   }
@@ -92,16 +92,19 @@ class ArtistViewModel extends ChangeNotifier {
     if (albums != null) {
       albums.sort((a, b) {
         if (a.releaseType != b.releaseType) {
-          return (_releaseTypeOrder[a.releaseType] ?? 0)
-              .compareTo(_releaseTypeOrder[b.releaseType] ?? 0);
+          return (_releaseTypeOrder[a.releaseType] ?? 0).compareTo(
+            _releaseTypeOrder[b.releaseType] ?? 0,
+          );
         }
-        final result = (b.originalDate ?? Date(year: 0))
-            .compareTo(a.originalDate ?? Date(year: 0));
+        final result = (b.originalDate ?? Date(year: 0)).compareTo(
+          a.originalDate ?? Date(year: 0),
+        );
         if (result != 0) {
           return result;
         }
-        return (b.releaseDate ?? Date(year: 0))
-            .compareTo(a.releaseDate ?? Date(year: 0));
+        return (b.releaseDate ?? Date(year: 0)).compareTo(
+          a.releaseDate ?? Date(year: 0),
+        );
       });
     }
 
@@ -111,26 +114,40 @@ class ArtistViewModel extends ChangeNotifier {
     _loadAppearsOn(artistId);
   }
 
-  Future<Result<void>> playReleases(ReleaseType releaseType,
-      {bool shuffleReleases = false, bool shuffleSongs = false}) {
-    return _queueAlbums(_getAlbumsByReleaseType(releaseType),
-        play: true,
-        shuffleReleases: shuffleReleases,
-        shuffleSongs: shuffleSongs);
+  Future<Result<void>> playReleases(
+    ReleaseType releaseType, {
+    bool shuffleReleases = false,
+    bool shuffleSongs = false,
+  }) {
+    return _queueAlbums(
+      _getAlbumsByReleaseType(releaseType),
+      play: true,
+      shuffleReleases: shuffleReleases,
+      shuffleSongs: shuffleSongs,
+    );
   }
 
   Future<Result<void>> addReleasesToQueue(
-      ReleaseType releaseType, bool priority) {
-    return _queueAlbums(_getAlbumsByReleaseType(releaseType),
-        play: false, priorityQueue: priority);
+    ReleaseType releaseType,
+    bool priority,
+  ) {
+    return _queueAlbums(
+      _getAlbumsByReleaseType(releaseType),
+      play: false,
+      priorityQueue: priority,
+    );
   }
 
-  Future<Result<void>> playAppearsOn(
-      {bool shuffleReleases = false, bool shuffleSongs = false}) {
-    return _queueAlbums(_appearsOn,
-        play: true,
-        shuffleReleases: shuffleReleases,
-        shuffleSongs: shuffleSongs);
+  Future<Result<void>> playAppearsOn({
+    bool shuffleReleases = false,
+    bool shuffleSongs = false,
+  }) {
+    return _queueAlbums(
+      _appearsOn,
+      play: true,
+      shuffleReleases: shuffleReleases,
+      shuffleSongs: shuffleSongs,
+    );
   }
 
   Future<Result<void>> addAppearsOnToQueue(bool priority) {
@@ -153,24 +170,34 @@ class ArtistViewModel extends ChangeNotifier {
     return albums;
   }
 
-  Future<Result<void>> play(
-      {bool shuffleReleases = false, bool shuffleSongs = false}) {
-    return _queueAlbums(artist!.albums ?? _appearsOn,
-        play: true,
-        shuffleReleases: shuffleReleases,
-        shuffleSongs: shuffleSongs);
+  Future<Result<void>> play({
+    bool shuffleReleases = false,
+    bool shuffleSongs = false,
+  }) {
+    return _queueAlbums(
+      artist!.albums ?? _appearsOn,
+      play: true,
+      shuffleReleases: shuffleReleases,
+      shuffleSongs: shuffleSongs,
+    );
   }
 
   Future<Result<void>> addToQueue(bool priority) {
-    return _queueAlbums(artist!.albums ?? _appearsOn,
-        play: false, priorityQueue: priority);
+    return _queueAlbums(
+      artist!.albums ?? _appearsOn,
+      play: false,
+      priorityQueue: priority,
+    );
   }
 
   Future<Result<void>> toggleFavorite() async {
     _favorite = !_favorite;
     notifyListeners();
-    final result =
-        await _favorites.setFavorite(FavoriteType.artist, artist!.id, favorite);
+    final result = await _favorites.setFavorite(
+      FavoriteType.artist,
+      artist!.id,
+      favorite,
+    );
     if (result is Err) {
       _favorite = !_favorite;
       notifyListeners();
@@ -178,20 +205,22 @@ class ArtistViewModel extends ChangeNotifier {
     return result;
   }
 
-  Future<Result<void>> _queueAlbums(Iterable<Album> albums,
-      {required bool play,
-      bool priorityQueue = false,
-      bool shuffleReleases = false,
-      bool shuffleSongs = false}) async {
+  Future<Result<void>> _queueAlbums(
+    Iterable<Album> albums, {
+    required bool play,
+    bool priorityQueue = false,
+    bool shuffleReleases = false,
+    bool shuffleSongs = false,
+  }) async {
     return _subsonic.incrementallyLoadSongs(
       albums,
       (songs, firstBatch) async {
         if (firstBatch && play) {
           _audioHandler.playOnNextMediaChange();
-          _audioHandler.queue.replace(songs);
+          await _audioHandler.queue.replace(songs);
           return;
         }
-        _audioHandler.queue.addAll(songs, priorityQueue);
+        await _audioHandler.queue.addAll(songs, priorityQueue);
       },
       shuffleAlbums: shuffleReleases,
       shuffleSongs: shuffleSongs,

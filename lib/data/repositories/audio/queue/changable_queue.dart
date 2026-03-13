@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:crossonic/data/repositories/audio/queue/media_queue.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:rxdart/rxdart.dart';
 
 class ChangableQueue extends ChangeNotifier implements MediaQueue {
@@ -16,22 +16,24 @@ class ChangableQueue extends ChangeNotifier implements MediaQueue {
   ValueStream<Song?> get current => _current.stream;
 
   final BehaviorSubject<
-          ({Song? current, Song? next, bool currentChanged, bool fromAdvance})>
-      _currentAndNext;
+    ({Song? current, Song? next, bool currentChanged, bool fromAdvance})
+  >
+  _currentAndNext;
   @override
   ValueStream<
-          ({Song? current, Song? next, bool currentChanged, bool fromAdvance})>
-      get currentAndNext => _currentAndNext.stream;
+    ({Song? current, Song? next, bool currentChanged, bool fromAdvance})
+  >
+  get currentAndNext => _currentAndNext.stream;
 
   final BehaviorSubject<bool> _looping;
   @override
   ValueStream<bool> get looping => _looping.stream;
 
   ChangableQueue(MediaQueue queue)
-      : _queue = queue,
-        _current = BehaviorSubject.seeded(queue.current.value),
-        _currentAndNext = BehaviorSubject.seeded(queue.currentAndNext.value),
-        _looping = BehaviorSubject.seeded(queue.looping.value) {
+    : _queue = queue,
+      _current = BehaviorSubject.seeded(queue.current.value),
+      _currentAndNext = BehaviorSubject.seeded(queue.currentAndNext.value),
+      _looping = BehaviorSubject.seeded(queue.looping.value) {
     change(queue);
   }
 
@@ -45,10 +47,12 @@ class ChangableQueue extends ChangeNotifier implements MediaQueue {
 
     _queue.addListener(notifyListeners);
 
-    _currentSubscription =
-        _queue.current.listen((event) => _current.add(event));
-    _currentAndNextSubscription =
-        _queue.currentAndNext.listen((event) => _currentAndNext.add(event));
+    _currentSubscription = _queue.current.listen(
+      (event) => _current.add(event),
+    );
+    _currentAndNextSubscription = _queue.currentAndNext.listen(
+      (event) => _currentAndNext.add(event),
+    );
     _loopingSubscription = _queue.looping.listen((loop) {
       _looping.add(loop);
     });
@@ -60,105 +64,115 @@ class ChangableQueue extends ChangeNotifier implements MediaQueue {
   }
 
   @override
-  void setLoop(bool loop) {
-    _queue.setLoop(loop);
+  Future<void> setLoop(bool loop) {
+    return _queue.setLoop(loop);
   }
 
   @override
-  void add(Song song, bool priority) {
-    _queue.add(song, priority);
+  Future<void> add(Song song, bool priority) {
+    return _queue.add(song, priority);
   }
 
   @override
-  void addAll(Iterable<Song> songs, bool priority) {
-    _queue.addAll(songs, priority);
+  Future<void> addAll(Iterable<Song> songs, bool priority) {
+    return _queue.addAll(songs, priority);
   }
 
   @override
-  void advance() {
-    _queue.advance();
+  Future<void> advance() {
+    return _queue.advance();
   }
 
   @override
-  bool get canAdvance => _queue.canAdvance;
+  Future<bool> get canAdvance => _queue.canAdvance;
 
   @override
-  bool get canGoBack => _queue.canGoBack;
+  Future<bool> get canGoBack => _queue.canGoBack;
 
   @override
-  void clear(
-      {bool queue = true, int fromIndex = 0, bool priorityQueue = true}) {
-    _queue.clear(
-        queue: queue, fromIndex: fromIndex, priorityQueue: priorityQueue);
+  Future<void> clear({
+    bool queue = true,
+    int fromIndex = 0,
+    bool priorityQueue = true,
+  }) {
+    return _queue.clear(
+      queue: queue,
+      fromIndex: fromIndex,
+      priorityQueue: priorityQueue,
+    );
   }
 
   @override
-  int get currentIndex => _queue.currentIndex;
+  Future<int> get currentIndex => _queue.currentIndex;
 
   @override
-  void goTo(int index) {
-    _queue.goTo(index);
+  Future<void> goTo(int index) {
+    return _queue.goTo(index);
   }
 
   @override
-  void goToPriority(int index) {
-    _queue.goToPriority(index);
+  Future<void> goToPriority(int index) {
+    return _queue.goToPriority(index);
   }
 
   @override
-  void insert(int index, Song song, bool priority) {
-    _queue.insert(index, song, priority);
+  Future<void> insert(int index, Song song, bool priority) {
+    return _queue.insert(index, song, priority);
   }
 
   @override
-  void insertAll(int index, Iterable<Song> songs, bool priority) {
-    _queue.insertAll(index, songs, priority);
+  Future<void> insertAll(int index, Iterable<Song> songs, bool priority) {
+    return _queue.insertAll(index, songs, priority);
   }
 
   @override
-  int get length => _queue.length;
+  Future<int> get length => _queue.length;
 
   @override
-  Iterable<Song> get priority => _queue.priority;
+  Future<int> get priorityLength => _queue.priorityLength;
 
   @override
-  int get priorityLength => _queue.priorityLength;
-
-  @override
-  Iterable<Song> get regular => _queue.regular;
-
-  @override
-  void remove(int index) {
-    _queue.remove(index);
+  Future<void> remove(int index) {
+    return _queue.remove(index);
   }
 
   @override
-  void removeFromPriorityQueue(int index) {
-    _queue.removeFromPriorityQueue(index);
+  Future<void> removeFromPriorityQueue(int index) {
+    return _queue.removeFromPriorityQueue(index);
   }
 
   @override
-  void replace(Iterable<Song> songs, [int startIndex = 0]) {
-    _queue.replace(songs, startIndex);
+  Future<void> replace(Iterable<Song> songs, [int startIndex = 0]) {
+    return _queue.replace(songs, startIndex);
   }
 
   @override
-  void shuffleFollowing() {
-    _queue.shuffleFollowing();
+  Future<void> shuffleFollowing() {
+    return _queue.shuffleFollowing();
   }
 
   @override
-  void shufflePriority() {
-    _queue.shufflePriority();
+  Future<void> shufflePriority() {
+    return _queue.shufflePriority();
   }
 
   @override
-  void skipNext() {
-    _queue.skipNext();
+  Future<void> skipNext() {
+    return _queue.skipNext();
   }
 
   @override
-  void skipPrev() {
-    _queue.skipPrev();
+  Future<void> skipPrev() {
+    return _queue.skipPrev();
+  }
+
+  @override
+  Future<Iterable<Song>> getRegularSongs({int? limit, int offset = 0}) {
+    return _queue.getRegularSongs(limit: limit, offset: offset);
+  }
+
+  @override
+  Future<Iterable<Song>> getPrioritySongs({int? limit, int offset = 0}) {
+    return _queue.getPrioritySongs(limit: limit, offset: offset);
   }
 }

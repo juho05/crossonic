@@ -170,7 +170,7 @@ class PlaylistsViewModel extends ChangeNotifier {
       result.value.shuffle();
     }
     _audioHandler.playOnNextMediaChange();
-    _audioHandler.queue.replace(result.value);
+    await _audioHandler.queue.replace(result.value);
     return const Result.ok(null);
   }
 
@@ -181,7 +181,7 @@ class PlaylistsViewModel extends ChangeNotifier {
         return Result.error(result.error);
       case Ok():
     }
-    _audioHandler.queue.addAll(result.value, priority);
+    await _audioHandler.queue.addAll(result.value, priority);
     return const Result.ok(null);
   }
 

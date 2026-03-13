@@ -114,10 +114,10 @@ class AudioHandler {
         playNextHandler: playNext,
         playPrevHandler: playPrev,
         setVolumeHandler: (volume) async => volumeLinear = volume,
-        setLoopHandler: (loop) async => _queue.setLoop(loop),
+        setLoopHandler: (loop) async => await _queue.setLoop(loop),
         setQueueHandler: (songs) async {
           playOnNextMediaChange();
-          _queue.replace(songs);
+          await _queue.replace(songs);
         },
         restartPlayback: () async {
           await _restartPlayback(
@@ -133,10 +133,10 @@ class AudioHandler {
         integration: integration,
         playNextHandler: playNext,
         playPrevHandler: playPrev,
-        setLoopHandler: (loop) async => _queue.setLoop(loop),
+        setLoopHandler: (loop) async => await _queue.setLoop(loop),
         setQueueHandler: (songs) async {
           playOnNextMediaChange();
-          _queue.replace(songs);
+          await _queue.replace(songs);
         },
         setVolumeHandler: (volume) async => volumeLinear = volume,
       );
@@ -220,7 +220,7 @@ class AudioHandler {
     if (_restoredQueue) {
       await _clearPersistentQueueData();
     }
-    _queue.clear();
+    await _queue.clear();
     await _player.stop();
   }
 
@@ -247,17 +247,17 @@ class AudioHandler {
 
   Future<void> playNext() async {
     Log.trace("play next");
-    if (!_queue.canAdvance) {
+    if (!await _queue.canAdvance) {
       Log.warn("ignoring play next request because there is not next song");
       return;
     }
-    _queue.skipNext();
+    await _queue.skipNext();
   }
 
   Future<void> playPrev() async {
     Log.trace("play prev");
-    if (position.inSeconds > 3 || !_queue.canGoBack) {
-      if (!_queue.canGoBack) {
+    if (position.inSeconds > 3 || !await _queue.canGoBack) {
+      if (!await _queue.canGoBack) {
         Log.trace(
           "seeking back to beginning of current song because there is no previous song",
         );
@@ -270,7 +270,7 @@ class AudioHandler {
       return;
     }
     Log.trace("going back one song in the queue");
-    _queue.skipPrev();
+    await _queue.skipPrev();
   }
 
   // ================ callbacks ================
@@ -280,7 +280,7 @@ class AudioHandler {
     Log.trace("player event received: ${event.name}");
     if (event == AudioPlayerEvent.advance) {
       await _updatePosition(Duration.zero);
-      _queue.advance();
+      await _queue.advance();
       return;
     }
 
@@ -457,8 +457,11 @@ class AudioHandler {
 
       if (media.album != null) {
         bool previousIsSameAlbum = true;
-        if (_queue.currentIndex > 0) {
-          final previous = _queue.regular.skip(_queue.currentIndex - 1).first;
+        if (await _queue.currentIndex > 0) {
+          final previous = (await _queue.getRegularSongs(
+            limit: 1,
+            offset: await _queue.currentIndex - 1,
+          )).first;
           previousIsSameAlbum = previous.album?.id == media.album!.id;
         }
 
@@ -466,7 +469,7 @@ class AudioHandler {
         bool nextIsSameAlbum =
             next == null || next.album?.id == media.album!.id;
 
-        if (previousIsSameAlbum && nextIsSameAlbum && _queue.length > 1) {
+        if (previousIsSameAlbum && nextIsSameAlbum && await _queue.length > 1) {
           mode = ReplayGainMode.album;
         }
       }
@@ -550,7 +553,7 @@ class AudioHandler {
 
     if (currentSong == null || index == null) {
       Log.debug("no queue to restore, initializing empty queue");
-      _queue.setLoop(looping);
+      await _queue.setLoop(looping);
       await _clearPersistentQueueData();
       _restoredQueue = true;
       return;
@@ -585,10 +588,16 @@ class AudioHandler {
         Log.trace("storing current queue state in database");
         final looping = _queue.looping.value;
         await Future.wait([
-          _keyValue.store(_queueSongsKey, _queue.regular.toList()),
-          _keyValue.store(_priorityQueueSongsKey, _queue.priority.toList()),
+          _keyValue.store(
+            _queueSongsKey,
+            (await _queue.getRegularSongs()).toList(),
+          ),
+          _keyValue.store(
+            _priorityQueueSongsKey,
+            (await _queue.getPrioritySongs()).toList(),
+          ),
           _keyValue.store(_queueLoopingKey, looping),
-          _keyValue.store(_queueIndexKey, _queue.currentIndex),
+          _keyValue.store(_queueIndexKey, await _queue.currentIndex),
           _keyValue.store(_queueCurrentSongKey, _queue.current.value),
         ]);
       },

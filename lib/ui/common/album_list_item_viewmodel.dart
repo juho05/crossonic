@@ -23,9 +23,9 @@ class AlbumListItemViewModel extends ChangeNotifier {
     required AudioHandler audioHandler,
     required SubsonicRepository subsonicRepository,
     required this.album,
-  })  : _favoritesRepository = favoritesRepository,
-        _audioHandler = audioHandler,
-        _subsonic = subsonicRepository {
+  }) : _favoritesRepository = favoritesRepository,
+       _audioHandler = audioHandler,
+       _subsonic = subsonicRepository {
     _favoritesRepository.addListener(_updateFavoriteStatus);
     _updateFavoriteStatus();
   }
@@ -34,7 +34,10 @@ class AlbumListItemViewModel extends ChangeNotifier {
     _favorite = !favorite;
     notifyListeners();
     final result = await _favoritesRepository.setFavorite(
-        FavoriteType.album, album.id, favorite);
+      FavoriteType.album,
+      album.id,
+      favorite,
+    );
     if (result is Err) {
       _favorite = !favorite;
       notifyListeners();
@@ -43,8 +46,10 @@ class AlbumListItemViewModel extends ChangeNotifier {
   }
 
   void _updateFavoriteStatus() {
-    final favorite =
-        _favoritesRepository.isFavorite(FavoriteType.album, album.id);
+    final favorite = _favoritesRepository.isFavorite(
+      FavoriteType.album,
+      album.id,
+    );
     if (favorite != _favorite) {
       _favorite = favorite;
       notifyListeners();
@@ -62,7 +67,7 @@ class AlbumListItemViewModel extends ChangeNotifier {
       result.value.shuffle();
     }
     _audioHandler.playOnNextMediaChange();
-    _audioHandler.queue.replace(result.value);
+    await _audioHandler.queue.replace(result.value);
     return const Result.ok(null);
   }
 
@@ -73,7 +78,7 @@ class AlbumListItemViewModel extends ChangeNotifier {
         return Result.error(result.error);
       case Ok():
     }
-    _audioHandler.queue.addAll(result.value, priority);
+    await _audioHandler.queue.addAll(result.value, priority);
     return const Result.ok(null);
   }
 

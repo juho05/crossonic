@@ -70,7 +70,7 @@ class BpmViewModel extends ChangeNotifier {
       case Ok():
     }
     _audioHandler.playOnNextMediaChange();
-    _audioHandler.queue.replace(result.value);
+    await _audioHandler.queue.replace(result.value);
     return const Result.ok(null);
   }
 

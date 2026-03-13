@@ -1,9 +1,10 @@
 import 'dart:collection';
+import 'dart:math';
 
 import 'package:crossonic/data/repositories/audio/queue/media_queue.dart';
 import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:rxdart/rxdart.dart';
 
 class LocalQueue extends ChangeNotifier implements MediaQueue {
@@ -63,7 +64,7 @@ class LocalQueue extends ChangeNotifier implements MediaQueue {
   ValueStream<bool> get looping => _looping.stream;
 
   @override
-  void setLoop(bool loop) {
+  Future<void> setLoop(bool loop) async {
     if (_looping.value == loop) return;
     Log.trace("loop: $loop");
     _looping.add(loop);
@@ -72,12 +73,12 @@ class LocalQueue extends ChangeNotifier implements MediaQueue {
   }
 
   @override
-  void add(Song song, bool priority) {
+  Future<void> add(Song song, bool priority) async {
     addAll([song], priority);
   }
 
   @override
-  void addAll(Iterable<Song> songs, bool priority) {
+  Future<void> addAll(Iterable<Song> songs, bool priority) async {
     if (priority) {
       _insertPrio(_priorityQueue.length, songs);
     } else {
@@ -86,12 +87,12 @@ class LocalQueue extends ChangeNotifier implements MediaQueue {
   }
 
   @override
-  void insert(int index, Song song, bool priority) {
+  Future<void> insert(int index, Song song, bool priority) async {
     insertAll(index, [song], priority);
   }
 
   @override
-  void insertAll(int index, Iterable<Song> songs, bool priority) {
+  Future<void> insertAll(int index, Iterable<Song> songs, bool priority) async {
     if (priority) {
       _insertPrio(index, songs);
     } else {
@@ -100,7 +101,7 @@ class LocalQueue extends ChangeNotifier implements MediaQueue {
   }
 
   @override
-  void replace(Iterable<Song> songs, [int startIndex = 0]) {
+  Future<void> replace(Iterable<Song> songs, [int startIndex = 0]) async {
     if (songs.isEmpty) {
       clear(priorityQueue: false);
       return;
@@ -120,11 +121,11 @@ class LocalQueue extends ChangeNotifier implements MediaQueue {
   }
 
   @override
-  void clear({
+  Future<void> clear({
     bool queue = true,
     int fromIndex = 0,
     bool priorityQueue = true,
-  }) {
+  }) async {
     if (priorityQueue) {
       _priorityQueue.clear();
     }
@@ -148,7 +149,7 @@ class LocalQueue extends ChangeNotifier implements MediaQueue {
   }
 
   @override
-  void goTo(int index) {
+  Future<void> goTo(int index) async {
     if (index < 0 || index >= _queue.length) {
       throw IndexError.withLength(
         index,
@@ -163,7 +164,7 @@ class LocalQueue extends ChangeNotifier implements MediaQueue {
   }
 
   @override
-  void goToPriority(int index) {
+  Future<void> goToPriority(int index) async {
     if (index < 0 || index >= _priorityQueue.length) {
       throw IndexError.withLength(
         index,
@@ -179,7 +180,7 @@ class LocalQueue extends ChangeNotifier implements MediaQueue {
   }
 
   @override
-  void remove(int index) {
+  Future<void> remove(int index) async {
     if (index < 0 || index >= _queue.length) {
       throw IndexError.withLength(
         index,
@@ -198,7 +199,7 @@ class LocalQueue extends ChangeNotifier implements MediaQueue {
   }
 
   @override
-  void removeFromPriorityQueue(int index) {
+  Future<void> removeFromPriorityQueue(int index) async {
     if (index < 0 || index >= _priorityQueue.length) {
       throw IndexError.withLength(
         index,
@@ -223,7 +224,7 @@ class LocalQueue extends ChangeNotifier implements MediaQueue {
     notifyListeners();
   }
 
-  void _insert(int index, Iterable<Song> songs) {
+  Future<void> _insert(int index, Iterable<Song> songs) async {
     if (songs.isEmpty) return;
     Log.trace(
       "insert ${songs.length} songs into regular queue at position $index/${_queue.length}",
@@ -272,7 +273,7 @@ class LocalQueue extends ChangeNotifier implements MediaQueue {
   }
 
   @override
-  void shuffleFollowing() {
+  Future<void> shuffleFollowing() async {
     Log.trace("shuffle following songs in queue");
     if (_currentIndex >= _queue.length - 1) {
       Log.warn("no following songs to shuffle");
@@ -287,7 +288,7 @@ class LocalQueue extends ChangeNotifier implements MediaQueue {
   }
 
   @override
-  void shufflePriority() {
+  Future<void> shufflePriority() async {
     if (_priorityQueue.isEmpty) return;
     Log.trace("shuffle songs in priority queue");
     final newQueue = _priorityQueue.toList()..shuffle();
@@ -298,17 +299,17 @@ class LocalQueue extends ChangeNotifier implements MediaQueue {
   }
 
   @override
-  void advance() {
+  Future<void> advance() async {
     _advance(true);
   }
 
   @override
-  void skipNext() {
+  Future<void> skipNext() async {
     _advance(false);
   }
 
-  void _advance(bool fromAdvance) {
-    if (!canAdvance && !fromAdvance) {
+  void _advance(bool fromAdvance) async {
+    if (!await canAdvance && !fromAdvance) {
       throw StateError("End of queue already reached");
     }
     if (_priorityQueue.isNotEmpty) {
@@ -323,8 +324,8 @@ class LocalQueue extends ChangeNotifier implements MediaQueue {
   }
 
   @override
-  void skipPrev() {
-    if (!canGoBack) throw StateError("Cannot go back in empty queue");
+  Future<void> skipPrev() async {
+    if (!await canGoBack) throw StateError("Cannot go back in empty queue");
     _decrementCurrentIndex();
     _currentChanged(_queue[_currentIndex]);
     notifyListeners();
@@ -354,27 +355,35 @@ class LocalQueue extends ChangeNotifier implements MediaQueue {
   }
 
   @override
-  bool get canGoBack =>
+  Future<bool> get canGoBack async =>
       _queue.isNotEmpty && (looping.value || _currentIndex > 0);
 
   @override
-  bool get canAdvance =>
+  Future<bool> get canAdvance async =>
       _priorityQueue.isNotEmpty || _nextIndex < _queue.length;
 
   @override
-  int get length => _queue.length;
+  Future<int> get length async => _queue.length;
 
   @override
-  int get priorityLength => _priorityQueue.length;
+  Future<int> get priorityLength async => _priorityQueue.length;
 
   @override
-  Iterable<Song> get regular => _queue;
+  Future<int> get currentIndex async => _currentIndex;
 
   @override
-  Iterable<Song> get priority => _priorityQueue;
+  Future<Iterable<Song>> getRegularSongs({int? limit, int offset = 0}) async {
+    final start = min(offset, _queue.length);
+    final end = min((limit ?? _queue.length) + start, _queue.length);
+    return _queue.getRange(start, end);
+  }
 
   @override
-  int get currentIndex => _currentIndex;
+  Future<Iterable<Song>> getPrioritySongs({int? limit, int offset = 0}) async {
+    return _priorityQueue
+        .skip(min(offset, _queue.length))
+        .take(limit ?? _queue.length);
+  }
 
   void _currentChanged(Song? current, {bool fromAdvance = false}) {
     _current.add(current);

@@ -23,9 +23,9 @@ class ArtistListItemViewModel extends ChangeNotifier {
     required SubsonicRepository subsonicRepository,
     required AudioHandler audioHandler,
     required this.artist,
-  })  : _favorites = favoritesRepository,
-        _subsonic = subsonicRepository,
-        _audioHandler = audioHandler {
+  }) : _favorites = favoritesRepository,
+       _subsonic = subsonicRepository,
+       _audioHandler = audioHandler {
     _favorites.addListener(_updateFavoriteStatus);
     _updateFavoriteStatus();
   }
@@ -33,8 +33,11 @@ class ArtistListItemViewModel extends ChangeNotifier {
   Future<Result<void>> toggleFavorite() async {
     _favorite = !favorite;
     notifyListeners();
-    final result =
-        await _favorites.setFavorite(FavoriteType.artist, artist.id, favorite);
+    final result = await _favorites.setFavorite(
+      FavoriteType.artist,
+      artist.id,
+      favorite,
+    );
     if (result is Err) {
       _favorite = !favorite;
       notifyListeners();
@@ -59,21 +62,24 @@ class ArtistListItemViewModel extends ChangeNotifier {
   Future<Result<void>> onAddToQueue(bool priority) async {
     return _subsonic.incrementallyLoadArtistSongs(
       artist,
-      (songs, firstBatch) async => _audioHandler.queue.addAll(songs, priority),
+      (songs, firstBatch) async =>
+          await _audioHandler.queue.addAll(songs, priority),
     );
   }
 
-  Future<Result<void>> play(
-      {bool shuffleAlbums = false, bool shuffleSongs = false}) async {
+  Future<Result<void>> play({
+    bool shuffleAlbums = false,
+    bool shuffleSongs = false,
+  }) async {
     return _subsonic.incrementallyLoadArtistSongs(
       artist,
       (songs, firstBatch) async {
         if (firstBatch) {
           _audioHandler.playOnNextMediaChange();
-          _audioHandler.queue.replace(songs);
+          await _audioHandler.queue.replace(songs);
           return;
         }
-        _audioHandler.queue.addAll(songs, false);
+        await _audioHandler.queue.addAll(songs, false);
       },
       shuffleReleases: shuffleAlbums,
       shuffleSongs: shuffleSongs,
