@@ -142,7 +142,6 @@ class DbQueue extends ChangeNotifier implements MediaQueue {
     });
     _regularLength += songs.length;
     if (current.value == null) {
-      await _updateCurrentIndex(0);
       await _currentChanged(songs.first);
     } else if (_currentIndex >= index) {
       await _updateCurrentIndex(_currentIndex + songs.length);
@@ -188,8 +187,7 @@ class DbQueue extends ChangeNotifier implements MediaQueue {
     if (index == 0) {
       if (newCurrent != null) {
         await _currentChanged(newCurrent);
-        // TODO is this correct?
-        await _updateCurrentIndex(0);
+        await _updateCurrentIndex(-1);
       } else {
         await _updateNext(next: songs.first);
       }
