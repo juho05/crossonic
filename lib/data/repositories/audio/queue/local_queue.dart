@@ -309,7 +309,7 @@ class LocalQueue extends ChangeNotifier implements MediaQueue {
   }
 
   void _advance(bool fromAdvance) async {
-    if (!await canAdvance && !fromAdvance) {
+    if (!canAdvance && !fromAdvance) {
       throw StateError("End of queue already reached");
     }
     if (_priorityQueue.isNotEmpty) {
@@ -325,7 +325,7 @@ class LocalQueue extends ChangeNotifier implements MediaQueue {
 
   @override
   Future<void> skipPrev() async {
-    if (!await canGoBack) throw StateError("Cannot go back in empty queue");
+    if (!canGoBack) throw StateError("Cannot go back in empty queue");
     _decrementCurrentIndex();
     _currentChanged(_queue[_currentIndex]);
     notifyListeners();
@@ -355,21 +355,21 @@ class LocalQueue extends ChangeNotifier implements MediaQueue {
   }
 
   @override
-  Future<bool> get canGoBack async =>
+  bool get canGoBack =>
       _queue.isNotEmpty && (looping.value || _currentIndex > 0);
 
   @override
-  Future<bool> get canAdvance async =>
+  bool get canAdvance =>
       _priorityQueue.isNotEmpty || _nextIndex < _queue.length;
 
   @override
-  Future<int> get length async => _queue.length;
+  int get length => _queue.length;
 
   @override
-  Future<int> get priorityLength async => _priorityQueue.length;
+  int get priorityLength => _priorityQueue.length;
 
   @override
-  Future<int> get currentIndex async => _currentIndex;
+  int get currentIndex => _currentIndex;
 
   @override
   Future<Iterable<Song>> getRegularSongs({int? limit, int offset = 0}) async {

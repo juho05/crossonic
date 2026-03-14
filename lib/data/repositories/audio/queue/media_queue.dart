@@ -71,10 +71,10 @@ abstract interface class MediaQueue extends ChangeNotifier {
   Future<void> advance();
 
   /// Whether there is a song before the current one.
-  Future<bool> get canGoBack;
+  bool get canGoBack;
 
   /// Whether there is a song after the current one.
-  Future<bool> get canAdvance;
+  bool get canAdvance;
 
   /// Whether the first song will be played after the last song in the regular queue.
   ValueStream<bool> get looping;
@@ -83,10 +83,10 @@ abstract interface class MediaQueue extends ChangeNotifier {
   Future<void> setLoop(bool loop);
 
   /// The number of songs in the regular queue.
-  Future<int> get length;
+  int get length;
 
   /// The number of songs in the priority queue.
-  Future<int> get priorityLength;
+  int get priorityLength;
 
   /// Returns the first [limit] (or all if null) songs of the regular queue starting with index [offset]
   Future<Iterable<Song>> getRegularSongs({int? limit, int offset = 0});
@@ -95,5 +95,5 @@ abstract interface class MediaQueue extends ChangeNotifier {
   Future<Iterable<Song>> getPrioritySongs({int? limit, int offset = 0});
 
   /// The current index in the regular queue.
-  Future<int> get currentIndex;
+  int get currentIndex;
 }

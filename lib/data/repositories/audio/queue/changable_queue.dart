@@ -84,10 +84,10 @@ class ChangableQueue extends ChangeNotifier implements MediaQueue {
   }
 
   @override
-  Future<bool> get canAdvance => _queue.canAdvance;
+  bool get canAdvance => _queue.canAdvance;
 
   @override
-  Future<bool> get canGoBack => _queue.canGoBack;
+  bool get canGoBack => _queue.canGoBack;
 
   @override
   Future<void> clear({
@@ -103,7 +103,7 @@ class ChangableQueue extends ChangeNotifier implements MediaQueue {
   }
 
   @override
-  Future<int> get currentIndex => _queue.currentIndex;
+  int get currentIndex => _queue.currentIndex;
 
   @override
   Future<void> goTo(int index) {
@@ -126,10 +126,10 @@ class ChangableQueue extends ChangeNotifier implements MediaQueue {
   }
 
   @override
-  Future<int> get length => _queue.length;
+  int get length => _queue.length;
 
   @override
-  Future<int> get priorityLength => _queue.priorityLength;
+  int get priorityLength => _queue.priorityLength;
 
   @override
   Future<void> remove(int index) {

@@ -320,7 +320,7 @@ class DbQueue extends ChangeNotifier implements MediaQueue {
   }
 
   Future<void> _advance(bool fromAdvance) async {
-    if (!await canAdvance && !fromAdvance) {
+    if (!canAdvance && !fromAdvance) {
       throw StateError("End of queue already reached");
     }
     if (_prioLength > 0) {
@@ -337,11 +337,10 @@ class DbQueue extends ChangeNotifier implements MediaQueue {
   }
 
   @override
-  Future<bool> get canAdvance async =>
-      _prioLength > 0 || _nextIndex < _regularLength;
+  bool get canAdvance => _prioLength > 0 || _nextIndex < _regularLength;
 
   @override
-  Future<bool> get canGoBack async =>
+  bool get canGoBack =>
       _regularLength > 0 && (looping.value || _currentIndex > 0);
 
   @override
@@ -370,24 +369,29 @@ class DbQueue extends ChangeNotifier implements MediaQueue {
       _prioLength = 0;
     }
     if (queue && fromIndex <= _currentIndex) {
-      // TODO properly update current index
       if (_prioLength > 0) {
         final song = await _extractPrioSong();
+        await _updateCurrentIndex(fromIndex - 1);
         await _currentChanged(song!);
       } else if (_nextIndex < fromIndex) {
         await _updateCurrentIndex(_currentIndex + 1);
         final song = await _getSongAt(_currentIndex);
         await _currentChanged(song);
       } else if (_current.value != null) {
-        await _currentChanged(null);
+        await _updateCurrentIndex(fromIndex - 1);
+        await _currentChanged(await _getSongAt(_currentIndex));
+      } else {
+        await _updateNext();
       }
+    } else {
+      await _updateNext();
     }
-    await _updateNext();
+
     notifyListeners();
   }
 
   @override
-  Future<int> get currentIndex async => _currentIndex;
+  int get currentIndex => _currentIndex;
 
   @override
   Future<Iterable<Song>> getPrioritySongs({int? limit, int offset = 0}) async {
@@ -450,10 +454,10 @@ class DbQueue extends ChangeNotifier implements MediaQueue {
   }
 
   @override
-  Future<int> get length async => _regularLength;
+  int get length => _regularLength;
 
   @override
-  Future<int> get priorityLength async => _prioLength;
+  int get priorityLength => _prioLength;
 
   int get _nextIndex {
     if (!looping.value || _regularLength == 0) return _currentIndex + 1;
@@ -488,7 +492,7 @@ class DbQueue extends ChangeNotifier implements MediaQueue {
       if (_prioLength > 0) {
         await _updateCurrentIndex(_currentIndex - 1);
       }
-      if (await canAdvance) {
+      if (canAdvance) {
         await _advance(false);
       } else {
         await _currentChanged(null, fromAdvance: false);
@@ -589,7 +593,7 @@ class DbQueue extends ChangeNotifier implements MediaQueue {
 
   @override
   Future<void> skipPrev() async {
-    if (!await canGoBack) throw StateError("Cannot go back in empty queue");
+    if (!canGoBack) throw StateError("Cannot go back in empty queue");
     await _updateCurrentIndex(_currentIndex - 1);
     await _currentChanged(await _getSongAt(_currentIndex));
     notifyListeners();

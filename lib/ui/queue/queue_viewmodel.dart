@@ -23,14 +23,15 @@ class QueueViewModel extends ChangeNotifier {
     : _audioHandler = audioHandler {
     _audioHandler.queue.addListener(_queueChanged);
     _currentSubscription = _audioHandler.queue.current.listen(_currentChanged);
-    _queueChanged();
-    _currentChanged(_audioHandler.queue.current.value);
+    _queueChanged().then((value) {
+      _currentChanged(_audioHandler.queue.current.value);
+    });
   }
 
   Future<void> clearQueue() async {
     await _audioHandler.queue.clear(
       priorityQueue: false,
-      fromIndex: await _audioHandler.queue.currentIndex + 1,
+      fromIndex: _audioHandler.queue.currentIndex + 1,
     );
   }
 
@@ -47,46 +48,61 @@ class QueueViewModel extends ChangeNotifier {
   }
 
   Future<void> remove(int index) async {
-    if (await _isPriorityQueue(index)) {
+    if (_isPriorityQueue(index)) {
       await _audioHandler.queue.removeFromPriorityQueue(index);
     } else {
-      await _audioHandler.queue.remove(await _toQueueIndex(index));
+      await _audioHandler.queue.remove(_toQueueIndex(index));
     }
   }
 
   Future<void> goto(int index) async {
     _audioHandler.playOnNextMediaChange();
-    if (await _isPriorityQueue(index)) {
+    if (_isPriorityQueue(index)) {
       _audioHandler.queue.goToPriority(index);
     } else {
-      _audioHandler.queue.goTo(await _toQueueIndex(index));
+      _audioHandler.queue.goTo(_toQueueIndex(index));
     }
   }
 
   Future<void> reorder(int oldIndex, int newIndex) async {
     _reordering = true;
+
     final Song song;
-    if (await _isPriorityQueue(oldIndex)) {
-      song = priorityQueue[oldIndex];
-      await _audioHandler.queue.removeFromPriorityQueue(oldIndex);
-    } else if (await _isQueue(oldIndex)) {
-      song = queue[oldIndex - priorityQueue.length - 1];
-      await _audioHandler.queue.remove(await _toQueueIndex(oldIndex));
+
+    // local reorder
+    if (_isPriorityQueue(oldIndex)) {
+      song = _priorityQueue.removeAt(oldIndex);
+    } else if (_isQueue(oldIndex)) {
+      song = _queue.removeAt(oldIndex - priorityQueue.length - 1);
     } else {
       return;
     }
+
     if (oldIndex < newIndex) {
       newIndex--;
     }
-    if (await _isPriorityQueue(newIndex - 1)) {
-      await _audioHandler.queue.insert(newIndex, song, true);
-    } else if (await _isQueue(newIndex)) {
-      await _audioHandler.queue.insert(
-        await _toQueueIndex(newIndex),
-        song,
-        false,
-      );
+
+    if (_isPriorityQueue(newIndex - 1)) {
+      _priorityQueue.insert(newIndex, song);
+    } else if (_isQueue(newIndex)) {
+      _queue.insert(newIndex - priorityQueue.length - 1, song);
     }
+
+    notifyListeners();
+
+    // actual reorder
+    if (_isPriorityQueue(oldIndex)) {
+      await _audioHandler.queue.removeFromPriorityQueue(oldIndex);
+    } else if (_isQueue(oldIndex)) {
+      await _audioHandler.queue.remove(_toQueueIndex(oldIndex));
+    }
+
+    if (_isPriorityQueue(newIndex - 1)) {
+      await _audioHandler.queue.insert(newIndex, song, true);
+    } else if (_isQueue(newIndex)) {
+      await _audioHandler.queue.insert(_toQueueIndex(newIndex), song, false);
+    }
+
     _reordering = false;
     _queueChanged();
   }
@@ -94,7 +110,7 @@ class QueueViewModel extends ChangeNotifier {
   Future<void> _queueChanged() async {
     if (_reordering) return;
     _queue = (await _audioHandler.queue.getRegularSongs(
-      offset: await _audioHandler.queue.currentIndex + 1,
+      offset: _audioHandler.queue.currentIndex + 1,
     )).toList();
     _priorityQueue = (await _audioHandler.queue.getPrioritySongs()).toList();
     notifyListeners();
@@ -105,15 +121,14 @@ class QueueViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<int> _toQueueIndex(int index) async {
-    index -= await _audioHandler.queue.priorityLength + 1;
-    return await _audioHandler.queue.currentIndex + index + 1;
+  int _toQueueIndex(int index) {
+    index -= _audioHandler.queue.priorityLength + 1;
+    return _audioHandler.queue.currentIndex + index + 1;
   }
 
-  Future<bool> _isPriorityQueue(int index) async =>
-      index < await _audioHandler.queue.priorityLength;
-  Future<bool> _isQueue(int index) async =>
-      index > await _audioHandler.queue.priorityLength;
+  bool _isPriorityQueue(int index) =>
+      index < _audioHandler.queue.priorityLength;
+  bool _isQueue(int index) => index > _audioHandler.queue.priorityLength;
 
   @override
   Future<void> dispose() async {

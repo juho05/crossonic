@@ -256,7 +256,7 @@ class AudioHandler {
 
   Future<void> playNext() async {
     Log.trace("play next");
-    if (!await _queue.canAdvance) {
+    if (!_queue.canAdvance) {
       Log.warn("ignoring play next request because there is not next song");
       return;
     }
@@ -265,8 +265,8 @@ class AudioHandler {
 
   Future<void> playPrev() async {
     Log.trace("play prev");
-    if (position.inSeconds > 3 || !await _queue.canGoBack) {
-      if (!await _queue.canGoBack) {
+    if (position.inSeconds > 3 || !_queue.canGoBack) {
+      if (!_queue.canGoBack) {
         Log.trace(
           "seeking back to beginning of current song because there is no previous song",
         );
