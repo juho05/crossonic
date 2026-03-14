@@ -5,6 +5,7 @@ import 'package:crossonic/ui/common/help_button.dart';
 import 'package:crossonic/ui/common/section_header.dart';
 import 'package:crossonic/ui/common/toast.dart';
 import 'package:crossonic/ui/settings/pages/debug_viewmodel.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
@@ -105,23 +106,25 @@ class _DebugPageState extends State<DebugPage> {
                   ),
                 ),
               ),
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 16),
-                child: SectionHeader(text: "Actions"),
-              ),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Button(
-                  onPressed: () async {
-                    await _viewModel.clearCoverCache();
-                    if (!context.mounted) return;
-                    Toast.show(context, "Successfully cleared cover cache!");
-                  },
-                  darkTonal: true,
-                  icon: Icons.image_not_supported_outlined,
-                  child: const Text("Clear cover cache"),
+              if (!kIsWeb) // TODO remove when there are actions available on web
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                  child: SectionHeader(text: "Actions"),
                 ),
-              ),
+              if (!kIsWeb)
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Button(
+                    onPressed: () async {
+                      await _viewModel.clearCoverCache();
+                      if (!context.mounted) return;
+                      Toast.show(context, "Successfully cleared cover cache!");
+                    },
+                    darkTonal: true,
+                    icon: Icons.image_not_supported_outlined,
+                    child: const Text("Clear cover cache"),
+                  ),
+                ),
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 16),
                 child: SectionHeader(
