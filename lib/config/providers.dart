@@ -193,6 +193,8 @@ Future<List<SingleChildWidget>> createProviders({
         settingsRepository: context.read(),
         songDownloader: context.read(),
         keyValueRepository: context.read(),
+        songRepository: songRepository,
+        database: database,
       ),
       lazy: false,
     ),

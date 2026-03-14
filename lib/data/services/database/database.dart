@@ -13,6 +13,9 @@ import 'package:crossonic/data/services/database/tables/key_value.dart';
 import 'package:crossonic/data/services/database/tables/log_message.dart';
 import 'package:crossonic/data/services/database/tables/playlist.dart';
 import 'package:crossonic/data/services/database/tables/playlist_song.dart';
+import 'package:crossonic/data/services/database/tables/priority_queue.dart';
+import 'package:crossonic/data/services/database/tables/queue.dart';
+import 'package:crossonic/data/services/database/tables/queue_song.dart';
 import 'package:crossonic/data/services/database/tables/scrobble.dart';
 import 'package:crossonic/data/services/database/tables/song_table.dart';
 import 'package:drift/drift.dart';
@@ -35,13 +38,16 @@ part 'database.g.dart';
     LogMessageTable,
     CoverCacheTable,
     SongTable,
+    QueueTable,
+    QueueSongTable,
+    PriorityQueueSongTable,
   ],
 )
 class Database extends _$Database {
   Database([QueryExecutor? e]) : super(e ?? _openConnection());
 
   @override
-  int get schemaVersion => 8;
+  int get schemaVersion => 9;
 
   Future<void> clearAll() async {
     customStatement("PRAGMA foreign_keys = OFF");
@@ -108,6 +114,12 @@ class Database extends _$Database {
               await m.createTable(schema.song);
               await m.deleteTable(schema.playlistSong.actualTableName);
               await m.createTable(schema.playlistSong);
+            },
+            from8To9: (m, schema) async {
+              await m.createTable(schema.queue);
+              await m.createTable(schema.queueSong);
+              await m.createTable(schema.priorityQueue);
+              await m.createIndex(playlistSongIndex);
             },
           ),
         ),

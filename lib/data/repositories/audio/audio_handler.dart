@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:collection';
 import 'dart:io';
 import 'dart:math';
 
@@ -7,6 +6,7 @@ import 'package:crossonic/data/repositories/audio/players/android_player.dart';
 import 'package:crossonic/data/repositories/audio/players/mediakit_player.dart';
 import 'package:crossonic/data/repositories/audio/players/player.dart';
 import 'package:crossonic/data/repositories/audio/queue/changable_queue.dart';
+import 'package:crossonic/data/repositories/audio/queue/db_queue.dart';
 import 'package:crossonic/data/repositories/audio/queue/local_queue.dart';
 import 'package:crossonic/data/repositories/audio/queue/media_queue.dart';
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
@@ -17,11 +17,12 @@ import 'package:crossonic/data/repositories/playlist/song_downloader.dart';
 import 'package:crossonic/data/repositories/settings/replay_gain.dart';
 import 'package:crossonic/data/repositories/settings/settings_repository.dart';
 import 'package:crossonic/data/repositories/settings/transcoding.dart';
+import 'package:crossonic/data/repositories/song/song_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
 import 'package:crossonic/data/repositories/subsonic/subsonic_repository.dart';
+import 'package:crossonic/data/services/database/database.dart';
 import 'package:crossonic/data/services/media_integration/media_integration.dart';
 import 'package:crossonic/data/services/methodchannel/method_channel_service.dart';
-import 'package:crossonic/utils/throttle.dart';
 import 'package:flutter/foundation.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -96,6 +97,8 @@ class AudioHandler {
     required SettingsRepository settingsRepository,
     required SongDownloader songDownloader,
     required KeyValueRepository keyValueRepository,
+    required Database database,
+    required SongRepository songRepository,
   }) : _integration = integration,
        _auth = authRepository,
        _subsonic = subsonicRepository,
@@ -105,6 +108,16 @@ class AudioHandler {
          settingsRepository.transcoding.maxBitRate,
        ),
        _keyValue = keyValueRepository {
+    final dbQueue = DbQueue(
+      db: database,
+      songRepo: songRepository,
+      keyValue: keyValueRepository,
+    );
+
+    // TODO remove in v0.5.0
+    // remove old queue store
+    _removeOldQueueStore();
+
     if (!kIsWeb && Platform.isAndroid) {
       _player = AudioPlayerAndroid(
         methodChannel: methodChannel,
@@ -171,15 +184,14 @@ class AudioHandler {
           _settings.transcoding.addListener(_onTranscodingChanged);
           _onTranscodingChanged();
 
-          await _restoreQueue();
-
-          _queue.addListener(_persistQueue);
-          _queue.currentAndNext.listen((_) => _persistQueue());
           _queue.looping.listen((loop) {
             _integration.updateLoop(loop);
-            _persistQueue();
           });
         });
+
+    dbQueue.init().then((_) {
+      changeQueue(dbQueue);
+    });
   }
 
   // ================ playback controls ================
@@ -217,9 +229,6 @@ class AudioHandler {
     _integration.updatePosition(Duration.zero);
     _playbackStatus.add(PlaybackStatus.stopped);
     _updatePosition(Duration.zero);
-    if (_restoredQueue) {
-      await _clearPersistentQueueData();
-    }
     await _queue.clear();
     await _player.stop();
   }
@@ -524,97 +533,18 @@ class AudioHandler {
     await _queue.change(queue);
   }
 
-  static const String _queueCurrentSongKey = "queue_state.current_song";
-  static const String _queueSongsKey = "queue_state.regular.songs";
-  static const String _priorityQueueSongsKey = "queue_state.priority.songs";
-  static const String _queueIndexKey = "queue_state.index";
-  static const String _queueLoopingKey = "queue_state.looping";
+  Future<void> _removeOldQueueStore() async {
+    const String queueCurrentSongKey = "queue_state.current_song";
+    const String queueSongsKey = "queue_state.regular.songs";
+    const String priorityQueueSongsKey = "queue_state.priority.songs";
+    const String queueIndexKey = "queue_state.index";
+    const String queueLoopingKey = "queue_state.looping";
 
-  bool _restoredQueue = false;
-  Future<void> _restoreQueue() async {
-    Log.trace("restoring queue");
-    final regular =
-        (await _keyValue.loadObjectList(_queueSongsKey, Song.fromJson) ?? [])
-            .toList();
-    final priority = Queue<Song>.from(
-      ((await _keyValue.loadObjectList(
-            _priorityQueueSongsKey,
-            Song.fromJson,
-          )) ??
-          []),
-    );
-    final index = await _keyValue.loadInt(_queueIndexKey);
-    final looping = (await _keyValue.loadBool(_queueLoopingKey)) ?? false;
-
-    final currentSong = await _keyValue.loadObject(
-      _queueCurrentSongKey,
-      Song.fromJson,
-    );
-
-    if (currentSong == null || index == null) {
-      Log.debug("no queue to restore, initializing empty queue");
-      await _queue.setLoop(looping);
-      await _clearPersistentQueueData();
-      _restoredQueue = true;
-      return;
-    }
-
-    Log.debug("restoring queue from database");
-    final loadedQueue = LocalQueue.withInitialData(
-      regularQueue: regular.toList(),
-      priorityQueue: priority,
-      currentIndex: index,
-      currentSong: currentSong,
-      looping: looping,
-    );
-
-    await changeQueue(loadedQueue);
-
-    _restoredQueue = true;
-  }
-
-  Throttle? _persistQueueThrottle;
-  void _persistQueue() async {
-    if (!_restoredQueue) return;
-    _persistQueueThrottle ??= Throttle(
-      action: () async {
-        if (_queue.current.value == null) {
-          Log.trace(
-            "clearing queue in database because current queue is empty",
-          );
-          await _clearPersistentQueueData();
-          return;
-        }
-        Log.trace("storing current queue state in database");
-        final looping = _queue.looping.value;
-        await Future.wait([
-          _keyValue.store(
-            _queueSongsKey,
-            (await _queue.getRegularSongs()).toList(),
-          ),
-          _keyValue.store(
-            _priorityQueueSongsKey,
-            (await _queue.getPrioritySongs()).toList(),
-          ),
-          _keyValue.store(_queueLoopingKey, looping),
-          _keyValue.store(_queueIndexKey, await _queue.currentIndex),
-          _keyValue.store(_queueCurrentSongKey, _queue.current.value),
-        ]);
-      },
-      delay: const Duration(milliseconds: 500),
-      leading: false,
-      trailing: true,
-    );
-    _persistQueueThrottle?.call();
-  }
-
-  Future<void> _clearPersistentQueueData() async {
-    await Future.wait([
-      _keyValue.remove(_queueCurrentSongKey),
-      _keyValue.remove(_queueSongsKey),
-      _keyValue.remove(_priorityQueueSongsKey),
-      _keyValue.remove(_queueIndexKey),
-    ]);
+    await _keyValue.remove(queueCurrentSongKey);
+    await _keyValue.remove(queueSongsKey);
+    await _keyValue.remove(priorityQueueSongsKey);
+    await _keyValue.remove(queueIndexKey);
+    await _keyValue.remove(queueLoopingKey);
   }
 
   double _volumeToLinear(double volume) {
