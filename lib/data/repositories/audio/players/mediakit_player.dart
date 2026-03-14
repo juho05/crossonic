@@ -221,6 +221,7 @@ class AudioPlayerMediaKit extends AudioPlayer {
     final currentUrl = constructStreamUri(current, pos: !canSeek ? pos : null);
     final nextUrl = constructStreamUri(next);
     _positionOffset = !canSeek ? pos : Duration.zero;
+    _currentChanged = true;
     await _player!.open(
       Playlist([
         Media(
