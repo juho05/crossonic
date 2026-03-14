@@ -184,9 +184,9 @@ class AudioHandler {
           _queue.looping.listen((loop) {
             _integration.updateLoop(loop);
           });
-        });
 
-    _queue.init();
+          _queue.init();
+        });
   }
 
   // ================ playback controls ================
@@ -219,8 +219,10 @@ class AudioHandler {
   }
 
   Future<void> stop() async {
+    if (_playbackStatus.value == PlaybackStatus.stopped) return;
     Log.trace("stop");
     _playOnNextMediaChange = false;
+    _hasPlayed = false;
     _integration.updatePosition(Duration.zero);
     _playbackStatus.add(PlaybackStatus.stopped);
     _updatePosition(Duration.zero);
@@ -279,12 +281,17 @@ class AudioHandler {
 
   // ================ callbacks ================
 
+  bool _hasPlayed = false;
+
   AudioPlayerEvent? _previousAudioPlayerEvent;
   Future<void> _playerEvent(AudioPlayerEvent event) async {
     Log.trace("player event received: ${event.name}");
     if (event == AudioPlayerEvent.advance) {
-      await _updatePosition(Duration.zero);
-      await _queue.advance();
+      // prevent advance immediately after loading queue
+      if (_hasPlayed) {
+        await _updatePosition(Duration.zero);
+        await _queue.advance();
+      }
       return;
     }
 
@@ -315,6 +322,7 @@ class AudioHandler {
     _playbackStatus.add(status);
 
     if (status == PlaybackStatus.playing) {
+      _hasPlayed = true;
       _updatePosition();
     } else {
       _updatePosition(lastPos);

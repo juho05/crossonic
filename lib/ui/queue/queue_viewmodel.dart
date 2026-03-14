@@ -18,8 +18,14 @@ class QueueViewModel extends ChangeNotifier {
   List<Song> _queue = [];
   List<Song> _priorityQueue = [];
 
-  int get queueLength => _audioHandler.queue.length;
-  int get prioQueueLength => _audioHandler.queue.priorityLength;
+  int? _reorderQueueLengthOverride;
+  int? _reorderPrioQueueLengthOverride;
+
+  int get queueLength =>
+      _reorderQueueLengthOverride ??
+      max(_audioHandler.queue.length - _audioHandler.queue.currentIndex - 1, 0);
+  int get prioQueueLength =>
+      _reorderPrioQueueLengthOverride ?? _audioHandler.queue.priorityLength;
 
   bool _reordering = false;
 
@@ -65,7 +71,7 @@ class QueueViewModel extends ChangeNotifier {
 
     final songs = await _audioHandler.queue.getRegularSongs(
       limit: _pageSize,
-      offset: _queue.length,
+      offset: _audioHandler.queue.currentIndex + 1 + _queue.length,
     );
 
     if (changedBefore == _queueLastChanged) {
@@ -136,13 +142,21 @@ class QueueViewModel extends ChangeNotifier {
     if (_fetchingQueuePage || _fetchingPrioQueuePage) return;
     _reordering = true;
 
+    bool oldIsPrio = _isPriorityQueue(oldIndex);
+    bool oldIsQueue = _isQueue(oldIndex);
+
+    bool newIsPrio = _isPriorityQueue(newIndex - 1);
+    bool newIsQueue = _isQueue(newIndex);
+
     final Song song;
 
     // local reorder
-    if (_isPriorityQueue(oldIndex)) {
+    if (oldIsPrio) {
       song = _priorityQueue.removeAt(oldIndex);
-    } else if (_isQueue(oldIndex)) {
+      _reorderPrioQueueLengthOverride = prioQueueLength - 1;
+    } else if (oldIsQueue) {
       song = _queue.removeAt(oldIndex - prioQueueLength - 1);
+      _reorderQueueLengthOverride = queueLength - 1;
     } else {
       return;
     }
@@ -151,24 +165,26 @@ class QueueViewModel extends ChangeNotifier {
       newIndex--;
     }
 
-    if (_isPriorityQueue(newIndex - 1)) {
+    if (newIsPrio) {
       _priorityQueue.insert(newIndex, song);
-    } else if (_isQueue(newIndex)) {
+      _reorderPrioQueueLengthOverride = prioQueueLength + 1;
+    } else if (newIsQueue) {
       _queue.insert(newIndex - prioQueueLength - 1, song);
+      _reorderQueueLengthOverride = queueLength + 1;
     }
 
     notifyListeners();
 
     // actual reorder
-    if (_isPriorityQueue(oldIndex)) {
+    if (oldIsPrio) {
       await _audioHandler.queue.removeFromPriorityQueue(oldIndex);
-    } else if (_isQueue(oldIndex)) {
+    } else if (oldIsQueue) {
       await _audioHandler.queue.remove(_toQueueIndex(oldIndex));
     }
 
-    if (_isPriorityQueue(newIndex - 1)) {
+    if (newIsPrio) {
       await _audioHandler.queue.insert(newIndex, song, true);
-    } else if (_isQueue(newIndex)) {
+    } else if (newIsQueue) {
       await _audioHandler.queue.insert(_toQueueIndex(newIndex), song, false);
     }
 
@@ -187,6 +203,8 @@ class QueueViewModel extends ChangeNotifier {
     )).toList();
     _queueLastChanged = DateTime.now();
     _queue = queue;
+    _reorderQueueLengthOverride = null;
+    _reorderPrioQueueLengthOverride = null;
     _priorityQueue = prioQueue;
     notifyListeners();
   }
@@ -201,9 +219,8 @@ class QueueViewModel extends ChangeNotifier {
     return _audioHandler.queue.currentIndex + index + 1;
   }
 
-  bool _isPriorityQueue(int index) =>
-      index < _audioHandler.queue.priorityLength;
-  bool _isQueue(int index) => index > _audioHandler.queue.priorityLength;
+  bool _isPriorityQueue(int index) => index < prioQueueLength;
+  bool _isQueue(int index) => index > prioQueueLength;
 
   @override
   Future<void> dispose() async {

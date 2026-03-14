@@ -573,15 +573,30 @@ class DbQueue extends ChangeNotifier implements MediaQueue {
   }
 
   @override
-  Future<void> shuffleFollowing() {
-    // TODO: implement shuffleFollowing
-    throw UnimplementedError();
+  Future<void> shuffleFollowing() async {
+    await _db.customUpdate(
+      "WITH shuffled_indices AS (SELECT \"index\", ROW_NUMBER() OVER (ORDER BY RANDOM()) + ? AS new_index FROM queue_song WHERE queue_song.\"index\" > ?)"
+      "UPDATE queue_song SET \"index\" = (SELECT new_index FROM shuffled_indices WHERE shuffled_indices.\"index\" = queue_song.\"index\") WHERE queue_song.\"index\" > ?",
+      updateKind: UpdateKind.update,
+      updates: {_db.queueSongTable},
+      variables: [
+        Variable(_currentIndex),
+        Variable(_currentIndex),
+        Variable(_currentIndex),
+      ],
+    );
+    notifyListeners();
   }
 
   @override
-  Future<void> shufflePriority() {
-    // TODO: implement shufflePriority
-    throw UnimplementedError();
+  Future<void> shufflePriority() async {
+    await _db.customUpdate(
+      "WITH shuffled_indices AS (SELECT \"index\", ROW_NUMBER() OVER (ORDER BY RANDOM()) AS new_index FROM priority_queue)"
+      "UPDATE priority_queue SET \"index\" = (SELECT new_index FROM shuffled_indices WHERE shuffled_indices.\"index\" = priority_queue.\"index\")",
+      updateKind: UpdateKind.update,
+      updates: {_db.priorityQueueSongTable},
+    );
+    notifyListeners();
   }
 
   @override
