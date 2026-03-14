@@ -5,9 +5,7 @@ import 'dart:math';
 import 'package:crossonic/data/repositories/audio/players/android_player.dart';
 import 'package:crossonic/data/repositories/audio/players/mediakit_player.dart';
 import 'package:crossonic/data/repositories/audio/players/player.dart';
-import 'package:crossonic/data/repositories/audio/queue/changable_queue.dart';
 import 'package:crossonic/data/repositories/audio/queue/db_queue.dart';
-import 'package:crossonic/data/repositories/audio/queue/local_queue.dart';
 import 'package:crossonic/data/repositories/audio/queue/media_queue.dart';
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
 import 'package:crossonic/data/repositories/cover/cover_repository.dart';
@@ -63,7 +61,7 @@ class AudioHandler {
 
   Future<Duration> get bufferedPosition async => await _player.bufferedPosition;
 
-  final ChangableQueue _queue = ChangableQueue(LocalQueue());
+  final DbQueue _queue;
   StreamSubscription? _queueCurrentSubscription;
 
   bool _playOnNextMediaChange = false;
@@ -107,13 +105,12 @@ class AudioHandler {
          settingsRepository.transcoding.codec,
          settingsRepository.transcoding.maxBitRate,
        ),
-       _keyValue = keyValueRepository {
-    final dbQueue = DbQueue(
-      db: database,
-      songRepo: songRepository,
-      keyValue: keyValueRepository,
-    );
-
+       _keyValue = keyValueRepository,
+       _queue = DbQueue(
+         db: database,
+         keyValue: keyValueRepository,
+         songRepo: songRepository,
+       ) {
     // TODO remove in v0.5.0
     // remove old queue store
     _removeOldQueueStore();
@@ -189,9 +186,7 @@ class AudioHandler {
           });
         });
 
-    dbQueue.init().then((_) {
-      changeQueue(dbQueue);
-    });
+    _queue.init();
   }
 
   // ================ playback controls ================
@@ -466,10 +461,10 @@ class AudioHandler {
 
       if (media.album != null) {
         bool previousIsSameAlbum = true;
-        if (await _queue.currentIndex > 0) {
+        if (_queue.currentIndex > 0) {
           final previous = (await _queue.getRegularSongs(
             limit: 1,
-            offset: await _queue.currentIndex - 1,
+            offset: _queue.currentIndex - 1,
           )).first;
           previousIsSameAlbum = previous.album?.id == media.album!.id;
         }
@@ -478,7 +473,7 @@ class AudioHandler {
         bool nextIsSameAlbum =
             next == null || next.album?.id == media.album!.id;
 
-        if (previousIsSameAlbum && nextIsSameAlbum && await _queue.length > 1) {
+        if (previousIsSameAlbum && nextIsSameAlbum && _queue.length > 1) {
           mode = ReplayGainMode.album;
         }
       }
@@ -526,12 +521,6 @@ class AudioHandler {
   // ================ queue ================
 
   MediaQueue get queue => _queue;
-
-  Future<void> changeQueue(MediaQueue queue) async {
-    Log.trace("changing queue");
-    _playOnNextMediaChange = false;
-    await _queue.change(queue);
-  }
 
   Future<void> _removeOldQueueStore() async {
     const String queueCurrentSongKey = "queue_state.current_song";
