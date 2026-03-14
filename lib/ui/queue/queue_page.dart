@@ -45,7 +45,20 @@ class _QueuePageState extends State<QueuePage> {
           builder: (context, _) {
             final theme = Theme.of(context);
 
-            Widget songListItem(int i, Song s, {bool floating = false}) {
+            Widget songListItem(int i, Song? s, {bool floating = false}) {
+              if (s == null) {
+                return Padding(
+                  key: ValueKey("$i-loading"),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(5),
+                    child: const ShimmerLoading(child: Material()),
+                  ),
+                );
+              }
               return SongListItem(
                 song: s,
                 key: ValueKey("$i-${s.id}"),
@@ -93,13 +106,13 @@ class _QueuePageState extends State<QueuePage> {
                         children: [
                           Expanded(
                             child: Text(
-                              "Priority queue (${_viewModel.priorityQueue.length})",
+                              "Priority queue (${_viewModel.prioQueueLength})",
                               style: theme.textTheme.headlineSmall!.copyWith(
                                 fontSize: 20,
                               ),
                             ),
                           ),
-                          if (_viewModel.priorityQueue.isNotEmpty)
+                          if (_viewModel.prioQueueLength > 0)
                             IconButton(
                               onPressed: () async {
                                 if (!(await ConfirmationDialog.showCancel(
@@ -112,7 +125,7 @@ class _QueuePageState extends State<QueuePage> {
                               },
                               icon: const Icon(Icons.shuffle),
                             ),
-                          if (_viewModel.priorityQueue.isNotEmpty)
+                          if (_viewModel.prioQueueLength > 0)
                             IconButton(
                               onPressed: () async {
                                 if (!(await ConfirmationDialog.showCancel(
@@ -132,27 +145,25 @@ class _QueuePageState extends State<QueuePage> {
                 ),
                 SliverReorderableList(
                   itemCount:
-                      _viewModel.priorityQueue.length +
-                      1 +
-                      _viewModel.queue.length,
+                      _viewModel.prioQueueLength + 1 + _viewModel.queueLength,
                   itemExtentBuilder: (index, dimensions) {
-                    if (index == _viewModel.priorityQueue.length) return 40;
+                    if (index == _viewModel.prioQueueLength) return 40;
                     return ClickableListItem.verticalExtent;
                   },
                   proxyDecorator: (child, index, animation) {
-                    final song = index < _viewModel.priorityQueue.length
-                        ? _viewModel.priorityQueue[index]
-                        : _viewModel.queue[index -
-                              1 -
-                              _viewModel.priorityQueue.length];
+                    final song = index < _viewModel.prioQueueLength
+                        ? _viewModel.getPrioSong(index)
+                        : _viewModel.getSong(
+                            index - 1 - _viewModel.prioQueueLength,
+                          );
                     return songListItem(index, song, floating: true);
                   },
                   itemBuilder: (context, i) {
-                    if (i < _viewModel.priorityQueue.length) {
-                      final s = _viewModel.priorityQueue[i];
+                    if (i < _viewModel.prioQueueLength) {
+                      final s = _viewModel.getPrioSong(i);
                       return songListItem(i, s);
                     }
-                    if (i == _viewModel.priorityQueue.length) {
+                    if (i == _viewModel.prioQueueLength) {
                       return Padding(
                         key: _queueSeparatorKey,
                         padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -160,13 +171,13 @@ class _QueuePageState extends State<QueuePage> {
                           children: [
                             Expanded(
                               child: Text(
-                                "Queue (${_viewModel.queue.length})",
+                                "Queue (${_viewModel.queueLength})",
                                 style: theme.textTheme.headlineSmall!.copyWith(
                                   fontSize: 20,
                                 ),
                               ),
                             ),
-                            if (_viewModel.queue.isNotEmpty)
+                            if (_viewModel.queueLength > 0)
                               IconButton(
                                 onPressed: () async {
                                   if (!(await ConfirmationDialog.showCancel(
@@ -179,7 +190,7 @@ class _QueuePageState extends State<QueuePage> {
                                 },
                                 icon: const Icon(Icons.shuffle),
                               ),
-                            if (_viewModel.queue.isNotEmpty)
+                            if (_viewModel.queueLength > 0)
                               IconButton(
                                 onPressed: () async {
                                   if (!(await ConfirmationDialog.showCancel(
@@ -196,8 +207,9 @@ class _QueuePageState extends State<QueuePage> {
                         ),
                       );
                     }
-                    final s = _viewModel
-                        .queue[i - 1 - _viewModel.priorityQueue.length];
+                    final s = _viewModel.getSong(
+                      i - 1 - _viewModel.prioQueueLength,
+                    );
                     return songListItem(i, s);
                   },
                   onReorderStart: (_) {

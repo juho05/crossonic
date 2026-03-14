@@ -1,10 +1,14 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:crossonic/data/repositories/audio/audio_handler.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
 import 'package:flutter/material.dart';
 
 class QueueViewModel extends ChangeNotifier {
+  static const int _pageSize = 500;
+  static const int _pageBuffer = 50;
+
   final AudioHandler _audioHandler;
   late final StreamSubscription _currentSubscription;
 
@@ -12,12 +16,14 @@ class QueueViewModel extends ChangeNotifier {
   Song? get currentSong => _currentSong;
 
   List<Song> _queue = [];
-  List<Song> get queue => _queue;
-
   List<Song> _priorityQueue = [];
-  List<Song> get priorityQueue => _priorityQueue;
+
+  int get queueLength => _audioHandler.queue.length;
+  int get prioQueueLength => _audioHandler.queue.priorityLength;
 
   bool _reordering = false;
+
+  DateTime _queueLastChanged = DateTime.now();
 
   QueueViewModel({required AudioHandler audioHandler})
     : _audioHandler = audioHandler {
@@ -26,6 +32,68 @@ class QueueViewModel extends ChangeNotifier {
     _queueChanged().then((value) {
       _currentChanged(_audioHandler.queue.current.value);
     });
+  }
+
+  Song? getSong(int queueIndex) {
+    if (queueIndex >= queueLength || queueIndex < 0) return null;
+
+    if (queueIndex > _queue.length - _pageBuffer &&
+        _queue.length < queueLength) {
+      _fetchNextQueuePage();
+    }
+
+    return _queue.elementAtOrNull(queueIndex);
+  }
+
+  Song? getPrioSong(int prioQueueIndex) {
+    if (prioQueueIndex >= prioQueueLength || prioQueueIndex < 0) return null;
+
+    if (prioQueueIndex > _priorityQueue.length - _pageBuffer &&
+        _priorityQueue.length < prioQueueLength) {
+      _fetchNextPrioQueuePage();
+    }
+
+    return _priorityQueue.elementAtOrNull(prioQueueIndex);
+  }
+
+  bool _fetchingQueuePage = false;
+  Future<void> _fetchNextQueuePage() async {
+    if (_fetchingQueuePage) return;
+    _fetchingQueuePage = true;
+
+    final changedBefore = _queueLastChanged;
+
+    final songs = await _audioHandler.queue.getRegularSongs(
+      limit: _pageSize,
+      offset: _queue.length,
+    );
+
+    if (changedBefore == _queueLastChanged) {
+      _queue.addAll(songs);
+    }
+
+    _fetchingQueuePage = false;
+    notifyListeners();
+  }
+
+  bool _fetchingPrioQueuePage = false;
+  Future<void> _fetchNextPrioQueuePage() async {
+    if (_fetchingPrioQueuePage) return;
+    _fetchingPrioQueuePage = true;
+
+    final changedBefore = _queueLastChanged;
+
+    final songs = await _audioHandler.queue.getPrioritySongs(
+      limit: _pageSize,
+      offset: _priorityQueue.length,
+    );
+
+    if (changedBefore == _queueLastChanged) {
+      _priorityQueue.addAll(songs);
+    }
+
+    _fetchingPrioQueuePage = false;
+    notifyListeners();
   }
 
   Future<void> clearQueue() async {
@@ -65,6 +133,7 @@ class QueueViewModel extends ChangeNotifier {
   }
 
   Future<void> reorder(int oldIndex, int newIndex) async {
+    if (_fetchingQueuePage || _fetchingPrioQueuePage) return;
     _reordering = true;
 
     final Song song;
@@ -73,7 +142,7 @@ class QueueViewModel extends ChangeNotifier {
     if (_isPriorityQueue(oldIndex)) {
       song = _priorityQueue.removeAt(oldIndex);
     } else if (_isQueue(oldIndex)) {
-      song = _queue.removeAt(oldIndex - priorityQueue.length - 1);
+      song = _queue.removeAt(oldIndex - prioQueueLength - 1);
     } else {
       return;
     }
@@ -85,7 +154,7 @@ class QueueViewModel extends ChangeNotifier {
     if (_isPriorityQueue(newIndex - 1)) {
       _priorityQueue.insert(newIndex, song);
     } else if (_isQueue(newIndex)) {
-      _queue.insert(newIndex - priorityQueue.length - 1, song);
+      _queue.insert(newIndex - prioQueueLength - 1, song);
     }
 
     notifyListeners();
@@ -109,10 +178,16 @@ class QueueViewModel extends ChangeNotifier {
 
   Future<void> _queueChanged() async {
     if (_reordering) return;
-    _queue = (await _audioHandler.queue.getRegularSongs(
+    final queue = (await _audioHandler.queue.getRegularSongs(
+      limit: max(_pageSize, _queue.length),
       offset: _audioHandler.queue.currentIndex + 1,
     )).toList();
-    _priorityQueue = (await _audioHandler.queue.getPrioritySongs()).toList();
+    final prioQueue = (await _audioHandler.queue.getPrioritySongs(
+      limit: max(_pageSize, _priorityQueue.length),
+    )).toList();
+    _queueLastChanged = DateTime.now();
+    _queue = queue;
+    _priorityQueue = prioQueue;
     notifyListeners();
   }
 
