@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:crossonic/data/repositories/audio/audio_handler.dart';
+import 'package:crossonic/data/repositories/audio/queue/queue.dart';
 import 'package:crossonic/data/repositories/subsonic/favorites_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
 import 'package:crossonic/utils/result.dart';
@@ -27,6 +28,10 @@ class NowPlayingViewModel extends ChangeNotifier {
 
   Song? _song;
   Song? get song => _song;
+
+  Queue? _currentQueue;
+  String get currentQueueName => _currentQueue?.name ?? "Default";
+  bool get isDefaultQueue => _currentQueue?.isDefault ?? true;
 
   String get songTitle => _song?.title ?? "";
   ({String id, String name})? get album => _song?.album;
@@ -85,11 +90,19 @@ class NowPlayingViewModel extends ChangeNotifier {
     _positionUpdateSubscription = _audioHandler.positionUpdateStream.listen(
       (_) => _updatePosition(),
     );
+    _audioHandler.queue.addListener(_onQueueChanged);
 
-    _onSongChanged(song);
+    _onSongChanged(_audioHandler.queue.current.value);
     _onStatusChanged(_audioHandler.playbackStatus.value);
+    _onQueueChanged();
     _loop = _audioHandler.queue.looping.value;
     _volume = _audioHandler.volumeCubic;
+    notifyListeners();
+  }
+
+  Future<void> _onQueueChanged() async {
+    if (_currentQueue?.id == _audioHandler.queue.currentQueueId) return;
+    _currentQueue = await _audioHandler.queue.getCurrentQueue();
     notifyListeners();
   }
 
@@ -186,6 +199,7 @@ class NowPlayingViewModel extends ChangeNotifier {
   @override
   Future<void> dispose() async {
     _favoritesRepository.removeListener(_onFavoriteChanged);
+    _audioHandler.queue.removeListener(_onQueueChanged);
     await _positionUpdateSubscription.cancel();
     await _volumeSubscription.cancel();
     await _loopSubscription.cancel();

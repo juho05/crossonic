@@ -85,6 +85,7 @@ class QueueManager extends ChangeNotifier {
           .getSingle();
       await _currentChanged(_songRepo.songFromDBModel(currentSong));
     }
+    notifyListeners();
   }
 
   Future<Queue> createNewQueue(String name) async {

@@ -209,11 +209,26 @@ class NowPlayingExpanded extends StatelessWidget {
                         },
                         icon: const Icon(Icons.lyrics_outlined),
                       ),
-                      IconButton(
-                        onPressed: () {
-                          context.router.push(const QueueRoute());
-                        },
-                        icon: const Icon(Icons.queue_music),
+                      OptionalTooltip(
+                        message: _viewModel.currentQueueName,
+                        child: _viewModel.isDefaultQueue
+                            ? IconButton(
+                                onPressed: () {
+                                  context.router.push(const QueueRoute());
+                                },
+                                padding: EdgeInsets.zero,
+                                icon: const Icon(Icons.queue_music),
+                              )
+                            : IconButton.filledTonal(
+                                onPressed: () {
+                                  context.router.push(const QueueRoute());
+                                },
+                                padding: EdgeInsets.zero,
+                                icon: Icon(
+                                  Icons.queue_music,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                              ),
                       ),
                       IconButton(
                         onPressed: () {
