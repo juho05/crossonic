@@ -1,5 +1,5 @@
 import 'package:collection/collection.dart';
-import 'package:crossonic/data/repositories/audio/queue/media_queue.dart';
+import 'package:crossonic/data/repositories/audio/queue/queue.dart';
 import 'package:crossonic/data/repositories/keyvalue/key_value_repository.dart';
 import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/data/repositories/song/song_repository.dart';
@@ -8,17 +8,18 @@ import 'package:crossonic/data/services/database/database.dart';
 import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:uuid/uuid.dart';
 
-class DbQueue extends ChangeNotifier implements MediaQueue {
+class QueueManager extends ChangeNotifier {
   static const _defaultQueueId = "crossonic_default";
-  static const _currentSongIdKey = "dbqueue.current_song";
+  static const _currentSongIdKey = "queue_manager.current_song";
 
   final Database _db;
   final SongRepository _songRepo;
   final KeyValueRepository _keyValue;
 
   final BehaviorSubject<Song?> _current = BehaviorSubject.seeded(null);
-  @override
+
   ValueStream<Song?> get current => _current.stream;
 
   final BehaviorSubject<
@@ -30,23 +31,24 @@ class DbQueue extends ChangeNotifier implements MediaQueue {
     currentChanged: false,
     fromAdvance: false,
   ));
-  @override
+
   ValueStream<
     ({Song? current, Song? next, bool currentChanged, bool fromAdvance})
   >
   get currentAndNext => _currentAndNext.stream;
 
   final BehaviorSubject<bool> _looping = BehaviorSubject.seeded(false);
-  @override
+
   ValueStream<bool> get looping => _looping.stream;
 
   String _currentQueueId = _defaultQueueId;
+  String get currentQueueId => _currentQueueId;
 
   int _currentIndex = -1;
   int _regularLength = 0;
   int _prioLength = 0;
 
-  DbQueue({
+  QueueManager({
     required Database db,
     required SongRepository songRepo,
     required KeyValueRepository keyValue,
@@ -81,12 +83,151 @@ class DbQueue extends ChangeNotifier implements MediaQueue {
     }
   }
 
-  @override
+  Future<Queue> createNewQueue(String name, {bool copyCurrent = false}) async {
+    final id = const Uuid().v4();
+
+    final currentQueue = _currentQueueId;
+
+    bool? loop;
+    int? currentIndex;
+    if (copyCurrent) {
+      final current = await _db.managers.queueTable
+          .filter((f) => f.id(currentQueue))
+          .getSingle();
+      loop = current.loop;
+      currentIndex = current.currentIndex;
+    }
+
+    await _db.transaction(() async {
+      await _db.managers.queueTable.create(
+        (o) => o(
+          id: id,
+          name: name,
+          loop: Value.absentIfNull(loop),
+          currentIndex: Value.absentIfNull(currentIndex),
+        ),
+      );
+      if (copyCurrent) {
+        final idVariable = Variable(id);
+        await _db
+            .into(_db.queueSongTable)
+            .insertFromSelect(
+              _db.selectOnly(_db.queueSongTable)
+                ..where(_db.queueSongTable.queueId.equals(currentQueue))
+                ..addColumns([
+                  _db.queueSongTable.index,
+                  _db.queueSongTable.songId,
+                  idVariable,
+                ]),
+              columns: {
+                _db.queueSongTable.queueId: idVariable,
+                _db.queueSongTable.index: _db.queueSongTable.index,
+                _db.queueSongTable.songId: _db.queueSongTable.songId,
+              },
+            );
+      }
+    });
+
+    int songCount = 0;
+    if (copyCurrent) {
+      songCount = await _db.managers.queueTable.filter((f) => f.id(id)).count();
+    }
+
+    await switchQueue(id, updateCurrent: !copyCurrent);
+
+    return Queue(
+      id: id,
+      name: name,
+      songCount: songCount,
+      currentIndex: currentIndex ?? -1,
+      isDefault: false,
+    );
+  }
+
+  Future<void> switchQueue(
+    String queueId, {
+    bool notify = true,
+    bool updateCurrent = true,
+  }) async {
+    final queue = await _db.managers.queueTable
+        .filter((f) => f.id(queueId))
+        .getSingle();
+    final queueLength = await _db.managers.queueSongTable
+        .filter((f) => f.queueId.id(queueId))
+        .count();
+    final currentSong = await _getSongAt(queue.currentIndex, queueId: queue.id);
+    _currentQueueId = queue.id;
+    _currentIndex = queue.currentIndex;
+    _regularLength = queueLength;
+    _looping.add(queue.loop);
+    if (updateCurrent) {
+      await _currentChanged(currentSong);
+    }
+    if (notify) {
+      notifyListeners();
+    }
+  }
+
+  Future<List<Queue>> getQueues({
+    String filter = "",
+    int? limit,
+    int offset = 0,
+  }) async {
+    final songCountExp = _db.queueSongTable.id.count();
+    final query = _db.select(_db.queueTable).join([
+      leftOuterJoin(
+        _db.queueSongTable,
+        _db.queueSongTable.queueId.equalsExp(_db.queueTable.id),
+        useColumns: false,
+      ),
+    ]);
+    query.addColumns([songCountExp]);
+    if (filter.isNotEmpty) {
+      query.where(_db.queueTable.name.contains(filter));
+    }
+    query.groupBy([_db.queueTable.id]);
+    if (limit != null) {
+      query.limit(limit, offset: offset);
+    }
+    query.orderBy([
+      OrderingTerm(
+        expression: _db.queueTable.id.equals(_defaultQueueId),
+        mode: OrderingMode.desc,
+      ),
+      OrderingTerm.asc(_db.queueTable.name.lower()),
+      OrderingTerm.asc(_db.queueTable.id),
+    ]);
+    final result = await query.map((row) {
+      final queue = row.readTable(_db.queueTable);
+      final songCount = row.read(songCountExp);
+      return Queue(
+        id: queue.id,
+        name: queue.name,
+        songCount: songCount ?? 0,
+        isDefault: queue.id == _defaultQueueId,
+        currentIndex: queue.currentIndex,
+      );
+    }).get();
+    return result;
+  }
+
+  Future<void> deleteQueue(String id, {bool notify = true}) async {
+    if (id == _defaultQueueId) {
+      throw ArgumentError("Cannot delete default queue");
+    }
+    if (id == _currentQueueId) {
+      await switchQueue(_defaultQueueId, updateCurrent: true, notify: false);
+    }
+    await _db.managers.queueTable.filter((f) => f.id(id)).delete();
+    if (notify) {
+      notifyListeners();
+    }
+  }
+
   Future<void> add(Song song, bool priority) {
     return addAll([song], priority);
   }
 
-  @override
   Future<void> addAll(Iterable<Song> songs, bool priority) {
     if (priority) {
       return _insertPrio(_prioLength, songs);
@@ -95,12 +236,10 @@ class DbQueue extends ChangeNotifier implements MediaQueue {
     }
   }
 
-  @override
   Future<void> insert(int index, Song song, bool priority) {
     return insertAll(index, [song], priority);
   }
 
-  @override
   Future<void> insertAll(int index, Iterable<Song> songs, bool priority) {
     if (priority) {
       return _insertPrio(index, songs);
@@ -270,7 +409,6 @@ class DbQueue extends ChangeNotifier implements MediaQueue {
     return _songRepo.songFromDBModel(dbSong);
   }
 
-  @override
   Future<void> advance() {
     return _advance(true);
   }
@@ -303,14 +441,18 @@ class DbQueue extends ChangeNotifier implements MediaQueue {
     return null;
   }
 
-  Future<Song?> _getSongAt(int index) async {
+  Future<Song?> _getSongAt(int index, {String? queueId}) async {
+    queueId ??= _currentQueueId;
     final song =
         await (_db.select(_db.queueSongTable).join([
               innerJoin(
                 _db.songTable,
                 _db.queueSongTable.songId.equalsExp(_db.songTable.id),
               ),
-            ])..where(_db.queueSongTable.index.equals(index)))
+            ])..where(
+              _db.queueSongTable.queueId.equals(queueId) &
+                  _db.queueSongTable.index.equals(index),
+            ))
             .map((row) => row.readTable(_db.songTable))
             .getSingleOrNull();
     if (song == null) return null;
@@ -334,19 +476,26 @@ class DbQueue extends ChangeNotifier implements MediaQueue {
     notifyListeners();
   }
 
-  @override
   bool get canAdvance => _prioLength > 0 || _nextIndex < _regularLength;
 
-  @override
   bool get canGoBack =>
       _regularLength > 0 && (looping.value || _currentIndex > 0);
 
-  @override
   Future<void> clear({
     bool queue = true,
     int fromIndex = 0,
     bool priorityQueue = true,
   }) async {
+    if (queue && fromIndex == 0 && _currentQueueId != _defaultQueueId) {
+      await deleteQueue(_currentQueueId);
+      await clear(
+        queue: queue,
+        fromIndex: fromIndex,
+        priorityQueue: priorityQueue,
+      );
+      return;
+    }
+
     int deletedRegular = 0;
     await _db.transaction(() async {
       if (queue) {
@@ -366,7 +515,7 @@ class DbQueue extends ChangeNotifier implements MediaQueue {
     if (priorityQueue) {
       _prioLength = 0;
     }
-    if (queue && fromIndex <= _currentIndex) {
+    if (queue && (fromIndex == 0 || fromIndex <= _currentIndex)) {
       if (_prioLength > 0) {
         final song = await _extractPrioSong();
         await _updateCurrentIndex(fromIndex - 1);
@@ -388,10 +537,8 @@ class DbQueue extends ChangeNotifier implements MediaQueue {
     notifyListeners();
   }
 
-  @override
   int get currentIndex => _currentIndex;
 
-  @override
   Future<Iterable<Song>> getPrioritySongs({int? limit, int offset = 0}) async {
     final q = _db.select(_db.priorityQueueSongTable).join([
       innerJoin(
@@ -406,7 +553,6 @@ class DbQueue extends ChangeNotifier implements MediaQueue {
         .get();
   }
 
-  @override
   Future<Iterable<Song>> getRegularSongs({int? limit, int offset = 0}) async {
     final q = _db.select(_db.queueSongTable).join([
       innerJoin(
@@ -422,7 +568,6 @@ class DbQueue extends ChangeNotifier implements MediaQueue {
         .get();
   }
 
-  @override
   Future<void> goTo(int index) async {
     if (index < 0 || index >= _regularLength) {
       throw IndexError.withLength(
@@ -437,7 +582,6 @@ class DbQueue extends ChangeNotifier implements MediaQueue {
     notifyListeners();
   }
 
-  @override
   Future<void> goToPriority(int index) async {
     if (index < 0 || index >= _prioLength) {
       throw IndexError.withLength(
@@ -451,10 +595,8 @@ class DbQueue extends ChangeNotifier implements MediaQueue {
     notifyListeners();
   }
 
-  @override
   int get length => _regularLength;
 
-  @override
   int get priorityLength => _prioLength;
 
   int get _nextIndex {
@@ -462,7 +604,6 @@ class DbQueue extends ChangeNotifier implements MediaQueue {
     return (_currentIndex + 1) % _regularLength;
   }
 
-  @override
   Future<void> remove(int index) async {
     if (index < 0 || index >= _regularLength) {
       throw IndexError.withLength(
@@ -501,7 +642,6 @@ class DbQueue extends ChangeNotifier implements MediaQueue {
     notifyListeners();
   }
 
-  @override
   Future<void> removeFromPriorityQueue(int index) async {
     if (index < 0 || index >= _prioLength) {
       throw IndexError.withLength(
@@ -529,7 +669,6 @@ class DbQueue extends ChangeNotifier implements MediaQueue {
     notifyListeners();
   }
 
-  @override
   Future<void> replace(Iterable<Song> songs, [int startIndex = 0]) async {
     if (songs.isEmpty) {
       await clear(priorityQueue: false);
@@ -542,6 +681,11 @@ class DbQueue extends ChangeNotifier implements MediaQueue {
         message: "startIndex out of bounds",
       );
     }
+
+    if (_currentQueueId != _defaultQueueId) {
+      await switchQueue(_defaultQueueId, notify: false, updateCurrent: false);
+    }
+
     final queueId = _currentQueueId;
     await _db.transaction(() async {
       await _db.managers.queueSongTable
@@ -559,7 +703,6 @@ class DbQueue extends ChangeNotifier implements MediaQueue {
     notifyListeners();
   }
 
-  @override
   Future<void> setLoop(bool loop) async {
     if (loop == looping.value) return;
     await _db.managers.queueTable
@@ -572,7 +715,6 @@ class DbQueue extends ChangeNotifier implements MediaQueue {
     notifyListeners();
   }
 
-  @override
   Future<void> shuffleFollowing() async {
     await _db.customUpdate(
       "WITH shuffled_indices AS (SELECT \"index\", ROW_NUMBER() OVER (ORDER BY RANDOM()) + ? AS new_index FROM queue_song WHERE queue_song.\"index\" > ?)"
@@ -588,7 +730,6 @@ class DbQueue extends ChangeNotifier implements MediaQueue {
     notifyListeners();
   }
 
-  @override
   Future<void> shufflePriority() async {
     await _db.customUpdate(
       "WITH shuffled_indices AS (SELECT \"index\", ROW_NUMBER() OVER (ORDER BY RANDOM()) AS new_index FROM priority_queue)"
@@ -599,12 +740,10 @@ class DbQueue extends ChangeNotifier implements MediaQueue {
     notifyListeners();
   }
 
-  @override
   Future<void> skipNext() {
     return _advance(false);
   }
 
-  @override
   Future<void> skipPrev() async {
     if (!canGoBack) throw StateError("Cannot go back in empty queue");
     await _updateCurrentIndex(_currentIndex - 1);

@@ -41,8 +41,8 @@ class ClickableListItem extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 4),
             child: Row(
               children: [
-                if (leading != null) leading!,
-                if (leading != null) const SizedBox(width: 12),
+                ?leading,
+                const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,

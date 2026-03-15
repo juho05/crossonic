@@ -14,27 +14,24 @@ class ChooseLogSessionPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-        create: (context) => ChooseLogSessionPageViewModel(
-              logRepository: context.read(),
-            ),
-        builder: (context, _) {
-          return Scaffold(
-            appBar: AppBar(
-              title: const Text("Choose Session"),
-            ),
-            body: SafeArea(
-              child: Consumer<ChooseLogSessionPageViewModel>(
-                  builder: (context, viewModel, _) {
+      create: (context) =>
+          ChooseLogSessionPageViewModel(logRepository: context.read()),
+      builder: (context, _) {
+        return Scaffold(
+          appBar: AppBar(title: const Text("Choose Session")),
+          body: SafeArea(
+            child: Consumer<ChooseLogSessionPageViewModel>(
+              builder: (context, viewModel, _) {
                 return ListView.builder(
                   itemBuilder: (BuildContext context, int index) {
                     final s = viewModel
                         .sessions[viewModel.sessions.length - 1 - index];
-                    final title = formatDateTime(s) +
+                    final title =
+                        formatDateTime(s) +
                         (s == Log.sessionStartTime ? " (Current)" : "");
                     return ClickableListItem(
                       title: title,
                       titleBold: s == highlight,
-                      leading: const SizedBox(),
                       onTap: () {
                         context.router.maybePop<DateTime>(s);
                       },
@@ -49,9 +46,11 @@ class ChooseLogSessionPage extends StatelessWidget {
                   itemCount: viewModel.sessions.length,
                   itemExtent: ClickableListItem.verticalExtent,
                 );
-              }),
+              },
             ),
-          );
-        });
+          ),
+        );
+      },
+    );
   }
 }

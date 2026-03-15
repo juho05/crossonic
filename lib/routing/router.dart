@@ -6,14 +6,13 @@ import 'package:crossonic/routing/router.gr.dart';
 @AutoRouterConfig(replaceInRouteName: 'Screen|Page,Route')
 class AppRouter extends RootStackRouter {
   final AuthRepository _authRepository;
-  AppRouter({
-    required AuthRepository authRepository,
-  }) : _authRepository = authRepository;
+  AppRouter({required AuthRepository authRepository})
+    : _authRepository = authRepository;
 
   @override
   List<AutoRouteGuard> get guards => [
-        AuthGuard(authRepository: _authRepository),
-      ];
+    AuthGuard(authRepository: _authRepository),
+  ];
 
   final List<AutoRoute> _childRoutes = [
     AutoRoute(
@@ -86,150 +85,156 @@ class AppRouter extends RootStackRouter {
 
   @override
   List<AutoRoute> get routes => [
+    AutoRoute(
+      initial: true,
+      path: "/",
+      page: MainRoute.page,
+      children: [
         AutoRoute(
-          initial: true,
-          path: "/",
-          page: MainRoute.page,
+          path: "home",
+          page: const EmptyShellRoute("HomeTab"),
+          title: (context, data) => "",
           children: [
             AutoRoute(
-              path: "home",
-              page: const EmptyShellRoute("HomeTab"),
-              title: (context, data) => "",
-              children: [
-                AutoRoute(
-                  page: HomeRoute.page,
-                  path: "",
-                  title: (context, data) => "Home",
-                ),
-                ..._childRoutes,
-              ],
-              restorationId: (match) => match.fullPath,
+              page: HomeRoute.page,
+              path: "",
+              title: (context, data) => "Home",
             ),
-            AutoRoute(
-              path: "browse",
-              page: const EmptyShellRoute("BrowseTab"),
-              title: (context, data) => "",
-              children: [
-                AutoRoute(
-                  page: BrowseRoute.page,
-                  path: "",
-                  title: (context, data) => "Browse",
-                ),
-                ..._childRoutes,
-              ],
-              restorationId: (match) => match.fullPath,
-            ),
-            AutoRoute(
-              path: "playlists",
-              page: const EmptyShellRoute("PlaylistTab"),
-              title: (context, data) => "",
-              children: [
-                AutoRoute(
-                  page: PlaylistsRoute.page,
-                  path: "",
-                  title: (context, data) => "Playlists",
-                ),
-                ..._childRoutes,
-              ],
-              restorationId: (match) => match.fullPath,
-            ),
+            ..._childRoutes,
           ],
-        ),
-        AutoRoute(
-          path: "/auth/connect",
-          page: ConnectServerRoute.page,
-          title: (context, data) => "Connect Server",
           restorationId: (match) => match.fullPath,
         ),
         AutoRoute(
-          path: "/auth/login",
-          page: LoginRoute.page,
-          title: (context, data) => "Login",
+          path: "browse",
+          page: const EmptyShellRoute("BrowseTab"),
+          title: (context, data) => "",
+          children: [
+            AutoRoute(
+              page: BrowseRoute.page,
+              path: "",
+              title: (context, data) => "Browse",
+            ),
+            ..._childRoutes,
+          ],
           restorationId: (match) => match.fullPath,
         ),
         AutoRoute(
-          path: "/queue",
-          page: QueueRoute.page,
-          title: (context, data) => "Queue",
+          path: "playlists",
+          page: const EmptyShellRoute("PlaylistTab"),
+          title: (context, data) => "",
+          children: [
+            AutoRoute(
+              page: PlaylistsRoute.page,
+              path: "",
+              title: (context, data) => "Playlists",
+            ),
+            ..._childRoutes,
+          ],
           restorationId: (match) => match.fullPath,
         ),
-        AutoRoute(
-          path: "/settings",
-          page: SettingsRoute.page,
-          title: (context, data) => "Settings",
-          restorationId: (match) => match.fullPath,
-        ),
-        AutoRoute(
-          path: "/settings/homeLayout",
-          page: HomeLayoutRoute.page,
-          title: (context, data) => "Home Layout",
-          restorationId: (match) => match.fullPath,
-        ),
-        AutoRoute(
-          path: "/settings/appearance",
-          page: AppearanceRoute.page,
-          title: (context, data) => "Appearance",
-          restorationId: (match) => match.fullPath,
-        ),
-        AutoRoute(
-          path: "/settings/transcoding",
-          page: TranscodingRoute.page,
-          title: (context, data) => "Transcoding",
-          restorationId: (match) => match.fullPath,
-        ),
-        AutoRoute(
-          path: "/settings/replayGain",
-          page: ReplayGainRoute.page,
-          title: (context, data) => "Replay Gain",
-          restorationId: (match) => match.fullPath,
-        ),
-        AutoRoute(
-          path: "/settings/scan",
-          page: ScanRoute.page,
-          title: (context, data) => "Scan",
-          restorationId: (match) => match.fullPath,
-        ),
-        AutoRoute(
-          path: "/settings/listenBrainz",
-          page: ListenBrainzRoute.page,
-          title: (context, data) => "ListenBrainz",
-          restorationId: (match) => match.fullPath,
-        ),
-        AutoRoute(
-          path: "/settings/debug",
-          page: DebugRoute.page,
-          title: (context, data) => "Debug",
-          restorationId: (match) => match.fullPath,
-        ),
-        AutoRoute(
-          path: "/settings/debug/logs",
-          page: LogsRoute.page,
-          title: (context, data) => "Logs",
-          restorationId: (match) => match.fullPath,
-        ),
-        AutoRoute(
-          path: "/settings/debug/logs/chooseSession",
-          page: ChooseLogSessionRoute.page,
-          title: (context, data) => "Choose Session",
-          restorationId: (match) => match.fullPath,
-        ),
-        AutoRoute(
-          path: "/settings/debug/logs/details",
-          page: LogDetailsRoute.page,
-          title: (context, data) => "Message Details",
-          restorationId: (match) => match.fullPath,
-        ),
-        AutoRoute(
-          path: "/lyrics",
-          page: LyricsRoute.page,
-          title: (context, data) => "Lyrics",
-          restorationId: (match) => match.fullPath,
-        ),
-        AutoRoute(
-          path: "/installUpdate",
-          page: InstallUpdateRoute.page,
-          title: (context, data) => "Install Update",
-          restorationId: (match) => match.fullPath,
-        )
-      ];
+      ],
+    ),
+    AutoRoute(
+      path: "/auth/connect",
+      page: ConnectServerRoute.page,
+      title: (context, data) => "Connect Server",
+      restorationId: (match) => match.fullPath,
+    ),
+    AutoRoute(
+      path: "/auth/login",
+      page: LoginRoute.page,
+      title: (context, data) => "Login",
+      restorationId: (match) => match.fullPath,
+    ),
+    AutoRoute(
+      path: "/queue",
+      page: QueueRoute.page,
+      title: (context, data) => "Queue",
+      restorationId: (match) => match.fullPath,
+    ),
+    AutoRoute(
+      path: "/queue/select",
+      page: SelectQueueRoute.page,
+      title: (context, data) => "Select Queue",
+      restorationId: (match) => match.fullPath,
+    ),
+    AutoRoute(
+      path: "/settings",
+      page: SettingsRoute.page,
+      title: (context, data) => "Settings",
+      restorationId: (match) => match.fullPath,
+    ),
+    AutoRoute(
+      path: "/settings/homeLayout",
+      page: HomeLayoutRoute.page,
+      title: (context, data) => "Home Layout",
+      restorationId: (match) => match.fullPath,
+    ),
+    AutoRoute(
+      path: "/settings/appearance",
+      page: AppearanceRoute.page,
+      title: (context, data) => "Appearance",
+      restorationId: (match) => match.fullPath,
+    ),
+    AutoRoute(
+      path: "/settings/transcoding",
+      page: TranscodingRoute.page,
+      title: (context, data) => "Transcoding",
+      restorationId: (match) => match.fullPath,
+    ),
+    AutoRoute(
+      path: "/settings/replayGain",
+      page: ReplayGainRoute.page,
+      title: (context, data) => "Replay Gain",
+      restorationId: (match) => match.fullPath,
+    ),
+    AutoRoute(
+      path: "/settings/scan",
+      page: ScanRoute.page,
+      title: (context, data) => "Scan",
+      restorationId: (match) => match.fullPath,
+    ),
+    AutoRoute(
+      path: "/settings/listenBrainz",
+      page: ListenBrainzRoute.page,
+      title: (context, data) => "ListenBrainz",
+      restorationId: (match) => match.fullPath,
+    ),
+    AutoRoute(
+      path: "/settings/debug",
+      page: DebugRoute.page,
+      title: (context, data) => "Debug",
+      restorationId: (match) => match.fullPath,
+    ),
+    AutoRoute(
+      path: "/settings/debug/logs",
+      page: LogsRoute.page,
+      title: (context, data) => "Logs",
+      restorationId: (match) => match.fullPath,
+    ),
+    AutoRoute(
+      path: "/settings/debug/logs/chooseSession",
+      page: ChooseLogSessionRoute.page,
+      title: (context, data) => "Choose Session",
+      restorationId: (match) => match.fullPath,
+    ),
+    AutoRoute(
+      path: "/settings/debug/logs/details",
+      page: LogDetailsRoute.page,
+      title: (context, data) => "Message Details",
+      restorationId: (match) => match.fullPath,
+    ),
+    AutoRoute(
+      path: "/lyrics",
+      page: LyricsRoute.page,
+      title: (context, data) => "Lyrics",
+      restorationId: (match) => match.fullPath,
+    ),
+    AutoRoute(
+      path: "/installUpdate",
+      page: InstallUpdateRoute.page,
+      title: (context, data) => "Install Update",
+      restorationId: (match) => match.fullPath,
+    ),
+  ];
 }

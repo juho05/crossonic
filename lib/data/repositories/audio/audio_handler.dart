@@ -5,8 +5,7 @@ import 'dart:math';
 import 'package:crossonic/data/repositories/audio/players/android_player.dart';
 import 'package:crossonic/data/repositories/audio/players/mediakit_player.dart';
 import 'package:crossonic/data/repositories/audio/players/player.dart';
-import 'package:crossonic/data/repositories/audio/queue/db_queue.dart';
-import 'package:crossonic/data/repositories/audio/queue/media_queue.dart';
+import 'package:crossonic/data/repositories/audio/queue/queue_manager.dart';
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
 import 'package:crossonic/data/repositories/cover/cover_repository.dart';
 import 'package:crossonic/data/repositories/keyvalue/key_value_repository.dart';
@@ -61,7 +60,7 @@ class AudioHandler {
 
   Future<Duration> get bufferedPosition async => await _player.bufferedPosition;
 
-  final DbQueue _queue;
+  final QueueManager _queue;
   StreamSubscription? _queueCurrentSubscription;
 
   bool _playOnNextMediaChange = false;
@@ -106,7 +105,7 @@ class AudioHandler {
          settingsRepository.transcoding.maxBitRate,
        ),
        _keyValue = keyValueRepository,
-       _queue = DbQueue(
+       _queue = QueueManager(
          db: database,
          keyValue: keyValueRepository,
          songRepo: songRepository,
@@ -528,7 +527,7 @@ class AudioHandler {
 
   // ================ queue ================
 
-  MediaQueue get queue => _queue;
+  QueueManager get queue => _queue;
 
   Future<void> _removeOldQueueStore() async {
     const String queueCurrentSongKey = "queue_state.current_song";
