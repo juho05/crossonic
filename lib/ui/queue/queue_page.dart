@@ -1,12 +1,15 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
 import 'package:crossonic/routing/router.gr.dart';
+import 'package:crossonic/ui/common/buttons.dart';
 import 'package:crossonic/ui/common/clickable_list_item.dart';
+import 'package:crossonic/ui/common/dialogs/add_to_playlist.dart';
 import 'package:crossonic/ui/common/dialogs/confirmation.dart';
 import 'package:crossonic/ui/common/shimmer.dart';
 import 'package:crossonic/ui/common/song_list_item.dart';
 import 'package:crossonic/ui/queue/create_queue_dialog.dart';
 import 'package:crossonic/ui/queue/queue_viewmodel.dart';
+import 'package:crossonic/utils/result.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -39,23 +42,7 @@ class _QueuePageState extends State<QueuePage> {
   Widget build(BuildContext context) {
     final shimmerGradient = Shimmer.createGradient(context);
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Queue"),
-        actions: [
-          IconButton(
-            onPressed: () {
-              context.router.push(const SelectQueueRoute());
-            },
-            icon: const Icon(Icons.video_collection_outlined),
-          ),
-          IconButton(
-            onPressed: () {
-              CreateQueueDialog.show(context);
-            },
-            icon: const Icon(Icons.save_as_outlined),
-          ),
-        ],
-      ),
+      appBar: AppBar(title: const Text("Queue")),
       body: SafeArea(
         child: Shimmer(
           linearGradient: shimmerGradient,
@@ -96,9 +83,51 @@ class _QueuePageState extends State<QueuePage> {
                 );
               }
 
-              // TODO display current queue name somewhere
               return CustomScrollView(
                 slivers: [
+                  SliverPadding(
+                    padding: const EdgeInsets.only(left: 8, bottom: 8),
+                    sliver: SliverToBoxAdapter(
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          spacing: 4,
+                          children: [
+                            Button(
+                              onPressed: () {
+                                context.router.push(const SelectQueueRoute());
+                              },
+                              icon: Icons.queue_music,
+                              outlined: _viewModel.isDefaultQueue,
+                              child: Text(_viewModel.currentQueueName),
+                            ),
+                            OutlinedButton.icon(
+                              onPressed: () {
+                                CreateQueueDialog.show(context);
+                              },
+                              label: const Text("Save"),
+                              icon: const Icon(Icons.save_as_outlined),
+                            ),
+                            OutlinedButton.icon(
+                              onPressed: () async {
+                                AddToPlaylistDialog.show(
+                                  context,
+                                  "Queue",
+                                  () async {
+                                    return Result.ok(
+                                      await _viewModel.getAllSongs(),
+                                    );
+                                  },
+                                );
+                              },
+                              label: const Text("Playlist"),
+                              icon: const Icon(Icons.playlist_add),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
                   SliverList.list(
                     children: [
                       Padding(

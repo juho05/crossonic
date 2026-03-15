@@ -230,6 +230,31 @@ class QueueManager extends ChangeNotifier {
     }
   }
 
+  Future<Queue> getCurrentQueue() async {
+    final songCountExp = _db.queueSongTable.id.count();
+    final query = _db.select(_db.queueTable).join([
+      leftOuterJoin(
+        _db.queueSongTable,
+        _db.queueSongTable.queueId.equalsExp(_db.queueTable.id),
+        useColumns: false,
+      ),
+    ]);
+    query.addColumns([songCountExp]);
+    query.where(_db.queueTable.id.equals(_currentQueueId));
+    final result = await query.map((row) {
+      final queue = row.readTable(_db.queueTable);
+      final songCount = row.read(songCountExp);
+      return Queue(
+        id: queue.id,
+        name: queue.name,
+        songCount: songCount ?? 0,
+        isDefault: queue.id == _defaultQueueId,
+        currentIndex: queue.currentIndex,
+      );
+    }).getSingle();
+    return result;
+  }
+
   Future<void> add(Song song, bool priority) {
     return addAll([song], priority);
   }

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:crossonic/data/repositories/audio/audio_handler.dart';
+import 'package:crossonic/data/repositories/audio/queue/queue.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
 import 'package:flutter/material.dart';
 
@@ -30,6 +31,10 @@ class QueueViewModel extends ChangeNotifier {
   bool _reordering = false;
 
   DateTime _queueLastChanged = DateTime.now();
+
+  Queue? _currentQueue;
+  String get currentQueueName => _currentQueue?.name ?? "Default";
+  bool get isDefaultQueue => _currentQueue?.isDefault ?? true;
 
   QueueViewModel({required AudioHandler audioHandler})
     : _audioHandler = audioHandler {
@@ -192,8 +197,15 @@ class QueueViewModel extends ChangeNotifier {
     _queueChanged();
   }
 
+  Future<Iterable<Song>> getAllSongs() async {
+    return await _audioHandler.queue.getRegularSongs();
+  }
+
   Future<void> _queueChanged() async {
     if (_reordering) return;
+    if (_audioHandler.queue.currentQueueId != _currentQueue?.id) {
+      _currentQueue = await _audioHandler.queue.getCurrentQueue();
+    }
     final queue = (await _audioHandler.queue.getRegularSongs(
       limit: max(_pageSize, _queue.length),
       offset: _audioHandler.queue.currentIndex + 1,

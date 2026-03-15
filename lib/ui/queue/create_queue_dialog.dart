@@ -55,7 +55,7 @@ class _CreateQueueDialogContentState extends State<_CreateQueueDialogContent> {
             spacing: 8,
             children: [
               Text(
-                "Create queue",
+                "Save queue",
                 overflow: TextOverflow.ellipsis,
                 style: textTheme.headlineSmall,
               ),
