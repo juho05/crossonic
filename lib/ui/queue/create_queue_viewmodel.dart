@@ -10,19 +10,12 @@ class CreateQueueViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  bool _copyCurrent = true;
-  bool get copyCurrent => _copyCurrent;
-  set copyCurrent(bool value) {
-    _copyCurrent = value;
-    notifyListeners();
-  }
-
   bool get isValid => _name.isNotEmpty;
 
   CreateQueueViewModel({required AudioHandler audioHandler})
     : _audioHandler = audioHandler;
 
   Future<void> create() async {
-    await _audioHandler.queue.createNewQueue(_name, copyCurrent: _copyCurrent);
+    await _audioHandler.queue.createNewQueue(_name);
   }
 }

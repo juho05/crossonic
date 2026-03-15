@@ -53,7 +53,7 @@ class SelectQueuePage extends StatelessWidget {
                               : queue.name,
                           extraInfo: [
                             "Songs: ${queue.songCount}",
-                            "Position: ${queue.currentIndex}",
+                            "Position: ${queue.currentIndex + 1}",
                           ],
                           titleBold: selected,
                           trailing: !queue.isDefault

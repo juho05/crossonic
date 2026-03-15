@@ -78,11 +78,6 @@ class _CreateQueueDialogContentState extends State<_CreateQueueDialogContent> {
                   onChanged: (value) => widget._viewModel.name = value.trim(),
                 ),
               ),
-              SwitchListTile(
-                value: widget._viewModel.copyCurrent,
-                onChanged: (value) => widget._viewModel.copyCurrent = value,
-                title: const Text("Copy current queue"),
-              ),
               const Divider(height: 1),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,

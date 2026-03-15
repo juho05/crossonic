@@ -13,6 +13,7 @@ import 'package:uuid/uuid.dart';
 class QueueManager extends ChangeNotifier {
   static const _defaultQueueId = "crossonic_default";
   static const _currentSongIdKey = "queue_manager.current_song";
+  static const _currentQueueIdKey = "queue_manager.current_queue";
 
   final Database _db;
   final SongRepository _songRepo;
@@ -62,6 +63,9 @@ class QueueManager extends ChangeNotifier {
       mode: InsertMode.insertOrIgnore,
     );
 
+    _currentQueueId =
+        await _keyValue.loadString(_currentQueueIdKey) ?? _defaultQueueId;
+
     final queue = await _db.managers.queueTable
         .filter((f) => f.id(_currentQueueId))
         .getSingle();
@@ -83,20 +87,18 @@ class QueueManager extends ChangeNotifier {
     }
   }
 
-  Future<Queue> createNewQueue(String name, {bool copyCurrent = false}) async {
+  Future<Queue> createNewQueue(String name) async {
     final id = const Uuid().v4();
 
     final currentQueue = _currentQueueId;
 
     bool? loop;
     int? currentIndex;
-    if (copyCurrent) {
-      final current = await _db.managers.queueTable
-          .filter((f) => f.id(currentQueue))
-          .getSingle();
-      loop = current.loop;
-      currentIndex = current.currentIndex;
-    }
+    final current = await _db.managers.queueTable
+        .filter((f) => f.id(currentQueue))
+        .getSingle();
+    loop = current.loop;
+    currentIndex = current.currentIndex;
 
     await _db.transaction(() async {
       await _db.managers.queueTable.create(
@@ -107,33 +109,30 @@ class QueueManager extends ChangeNotifier {
           currentIndex: Value.absentIfNull(currentIndex),
         ),
       );
-      if (copyCurrent) {
-        final idVariable = Variable(id);
-        await _db
-            .into(_db.queueSongTable)
-            .insertFromSelect(
-              _db.selectOnly(_db.queueSongTable)
-                ..where(_db.queueSongTable.queueId.equals(currentQueue))
-                ..addColumns([
-                  _db.queueSongTable.index,
-                  _db.queueSongTable.songId,
-                  idVariable,
-                ]),
-              columns: {
-                _db.queueSongTable.queueId: idVariable,
-                _db.queueSongTable.index: _db.queueSongTable.index,
-                _db.queueSongTable.songId: _db.queueSongTable.songId,
-              },
-            );
-      }
+      final idVariable = Variable(id);
+      await _db
+          .into(_db.queueSongTable)
+          .insertFromSelect(
+            _db.selectOnly(_db.queueSongTable)
+              ..where(_db.queueSongTable.queueId.equals(currentQueue))
+              ..addColumns([
+                _db.queueSongTable.index,
+                _db.queueSongTable.songId,
+                idVariable,
+              ]),
+            columns: {
+              _db.queueSongTable.queueId: idVariable,
+              _db.queueSongTable.index: _db.queueSongTable.index,
+              _db.queueSongTable.songId: _db.queueSongTable.songId,
+            },
+          );
     });
 
-    int songCount = 0;
-    if (copyCurrent) {
-      songCount = await _db.managers.queueTable.filter((f) => f.id(id)).count();
-    }
+    final songCount = await _db.managers.queueTable
+        .filter((f) => f.id(id))
+        .count();
 
-    await switchQueue(id, updateCurrent: !copyCurrent);
+    await switchQueue(id, updateCurrent: false);
 
     return Queue(
       id: id,
@@ -160,6 +159,13 @@ class QueueManager extends ChangeNotifier {
     _currentIndex = queue.currentIndex;
     _regularLength = queueLength;
     _looping.add(queue.loop);
+
+    if (_currentQueueId != _defaultQueueId) {
+      await _keyValue.store(_currentQueueIdKey, queueId);
+    } else {
+      await _keyValue.remove(_currentQueueIdKey);
+    }
+
     if (updateCurrent) {
       await _currentChanged(currentSong);
     }
