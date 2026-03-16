@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
 import 'package:crossonic/routing/auth_guard.dart';
+import 'package:crossonic/routing/main_toplevel_guard.dart';
 import 'package:crossonic/routing/router.gr.dart';
 
 @AutoRouterConfig(replaceInRouteName: 'Screen|Page,Route')
@@ -89,6 +90,7 @@ class AppRouter extends RootStackRouter {
       initial: true,
       path: "/",
       page: MainRoute.page,
+      guards: [const MainTopLevelGuard()],
       children: [
         AutoRoute(
           path: "home",
