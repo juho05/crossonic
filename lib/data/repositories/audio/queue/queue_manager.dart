@@ -256,6 +256,13 @@ class QueueManager extends ChangeNotifier {
     return result;
   }
 
+  Future<bool> hasNamedQueues() async {
+    if (_currentQueueId != _defaultQueueId) return true;
+    return await _db.managers.queueTable
+        .filter((f) => f.id.equals(_defaultQueueId).not())
+        .exists();
+  }
+
   Future<void> add(Song song, bool priority) {
     return addAll([song], priority);
   }

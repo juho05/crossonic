@@ -33,6 +33,9 @@ class NowPlayingViewModel extends ChangeNotifier {
   String get currentQueueName => _currentQueue?.name ?? "Default";
   bool get isDefaultQueue => _currentQueue?.isDefault ?? true;
 
+  bool _hasNamedQueues = false;
+  bool get hasNamedQueues => _hasNamedQueues;
+
   String get songTitle => _song?.title ?? "";
   ({String id, String name})? get album => _song?.album;
   String get displayArtist => _song?.displayArtist ?? "";
@@ -151,6 +154,11 @@ class NowPlayingViewModel extends ChangeNotifier {
   Future<void> _onStatusChanged(PlaybackStatus status) async {
     _playbackStatus = status;
     notifyListeners();
+    if (status == PlaybackStatus.stopped) {
+      _hasNamedQueues = await _audioHandler.queue.hasNamedQueues();
+      notifyListeners();
+    }
+
     if (status == PlaybackStatus.playing) {
       _positionTimer ??= Timer.periodic(
         const Duration(milliseconds: 50),

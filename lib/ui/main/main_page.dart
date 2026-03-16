@@ -11,6 +11,7 @@ import 'package:crossonic/ui/main/now_playing/now_playing_collapsed.dart';
 import 'package:crossonic/ui/main/now_playing/now_playing_desktop.dart';
 import 'package:crossonic/ui/main/now_playing/now_playing_expanded.dart';
 import 'package:crossonic/ui/main/now_playing/now_playing_viewmodel.dart';
+import 'package:crossonic/ui/main/queue_fab.dart';
 import 'package:crossonic/version_checker.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -241,6 +242,9 @@ class _MainPageState extends State<MainPage> {
                                         ),
                                     ],
                                   ),
+                                  floatingActionButton: QueueFab(
+                                    nowPlayingViewModel: _nowPlayingViewModel,
+                                  ),
                                   body: Column(
                                     children: [
                                       Expanded(
@@ -318,6 +322,15 @@ class _MainPageState extends State<MainPage> {
                                   Expanded(
                                     child: Scaffold(
                                       body: body,
+                                      floatingActionButton: QueueFab(
+                                        nowPlayingViewModel:
+                                            _nowPlayingViewModel,
+                                        hide:
+                                            tabsRouter.activeIndex == 2 &&
+                                            !tabsRouter.activeRouterCanPop(
+                                              ignorePagelessRoutes: true,
+                                            ),
+                                      ),
                                       bottomNavigationBar:
                                           orientation == Orientation.portrait
                                           ? BottomNavigationBar(
