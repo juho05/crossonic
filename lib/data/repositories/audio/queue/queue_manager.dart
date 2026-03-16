@@ -218,6 +218,15 @@ class QueueManager extends ChangeNotifier {
     return result;
   }
 
+  Future<int> countQueues({String filter = ""}) async {
+    return await _db.managers.queueTable
+        .filter(
+          (f) =>
+              filter.isEmpty ? const Constant(true) : f.name.contains(filter),
+        )
+        .count();
+  }
+
   Future<void> deleteQueue(String id, {bool notify = true}) async {
     if (id == _defaultQueueId) {
       throw ArgumentError("Cannot delete default queue");

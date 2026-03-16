@@ -63,6 +63,13 @@ class AndroidAutoRepository {
       return;
     }
 
+    if (id.startsWith("crossonic_queue:")) {
+      final queueId = id.substring("crossonic_queue:".length);
+      _audioHandler.playOnNextMediaChange();
+      await _audioHandler.queue.switchQueue(queueId);
+      return;
+    }
+
     return;
   }
 
@@ -96,6 +103,13 @@ class AndroidAutoRepository {
             playable: false,
             browsable: true,
             contentStyle: AndroidLibraryContentStyle.grid,
+          ),
+          AndroidMediaItem(
+            id: "crossonic_queues",
+            title: "Queues",
+            playable: false,
+            browsable: true,
+            contentStyle: AndroidLibraryContentStyle.list,
           ),
         ],
       ).toMsgData();
@@ -143,6 +157,26 @@ class AndroidAutoRepository {
       ).toMsgData();
     }
 
+    if (parentId == "crossonic_queues") {
+      final result = await _audioHandler.queue.getQueues(
+        limit: pageSize ?? 100,
+        offset: pageSize != null && page != null ? page * pageSize : 0,
+      );
+      return AndroidLibraryResult(
+        params: AndroidLibraryParams(isOffline: params.isOffline),
+        mediaItems: result
+            .map(
+              (q) => AndroidMediaItem(
+                id: "crossonic_queue:${q.id}",
+                browsable: false,
+                playable: true,
+                title: q.name,
+              ),
+            )
+            .toList(),
+      ).toMsgData();
+    }
+
     return const AndroidLibraryResult(mediaItems: []).toMsgData();
   }
 
@@ -154,46 +188,67 @@ class AndroidAutoRepository {
     int? pageSize = args["pageSize"];
     final params = AndroidLibraryParams.fromMsgData(args["params"]);
 
-    final result = await _playlistRepo.getPlaylists(
+    final playlistResult = await _playlistRepo.getPlaylists(
       limit: pageSize ?? 100,
       offset: page != null && pageSize != null ? page * pageSize : null,
       orderBy: PlaylistOrderBy.alphabetical,
       query: query,
       download: params.isOffline ? true : null,
     );
-    switch (result) {
+    switch (playlistResult) {
       case Err():
         Log.error(
           "failed to get playlist search results for Android Auto",
-          e: result.error,
+          e: playlistResult.error,
         );
         return const AndroidLibraryResult(
           resultCode: AndroidLibraryResultCode.unknown,
         ).toMsgData();
       case Ok():
     }
+
+    final queues = await _audioHandler.queue.getQueues(
+      filter: query,
+      limit: pageSize ?? 100,
+      offset: page != null && pageSize != null ? page * pageSize : 0,
+    );
+
+    List<AndroidMediaItem> mediaItems = [
+      ...playlistResult.value.map(
+        (p) => AndroidMediaItem(
+          id: "crossonic_playlist:${p.id}",
+          browsable: false,
+          playable: true,
+          durationMs: p.duration.inMilliseconds,
+          title: p.name,
+          artworkContentUri: p.coverId != null
+              ? Uri(
+                  scheme: "content",
+                  host: kDebugMode
+                      ? "org.crossonic.app.debug.covers"
+                      : "org.crossonic.app.covers",
+                  pathSegments: [p.coverId!],
+                )
+              : null,
+        ),
+      ),
+      ...queues.map(
+        (q) => AndroidMediaItem(
+          id: "crossonic_queue:${q.id}",
+          browsable: false,
+          playable: true,
+          title: q.name,
+        ),
+      ),
+    ];
+
+    mediaItems.sort(
+      (a, b) => a.title!.toLowerCase().compareTo(b.title!.toLowerCase()),
+    );
+
     return AndroidLibraryResult(
       params: AndroidLibraryParams(isOffline: params.isOffline),
-      mediaItems: result.value
-          .map(
-            (p) => AndroidMediaItem(
-              id: "crossonic_playlist:${p.id}",
-              browsable: false,
-              playable: true,
-              durationMs: p.duration.inMilliseconds,
-              title: p.name,
-              artworkContentUri: p.coverId != null
-                  ? Uri(
-                      scheme: "content",
-                      host: kDebugMode
-                          ? "org.crossonic.app.debug.covers"
-                          : "org.crossonic.app.covers",
-                      pathSegments: [p.coverId!],
-                    )
-                  : null,
-            ),
-          )
-          .toList(),
+      mediaItems: mediaItems,
     ).toMsgData();
   }
 
@@ -201,22 +256,25 @@ class AndroidAutoRepository {
     String query = args!["query"];
     final params = AndroidLibraryParams.fromMsgData(args["params"]);
 
-    final result = await _playlistRepo.countPlaylists(
+    final playlistResult = await _playlistRepo.countPlaylists(
       query: query,
       download: params.isOffline ? true : null,
     );
-    switch (result) {
+    switch (playlistResult) {
       case Err():
         Log.error(
           "failed to search playlists for Android Auto",
-          e: result.error,
+          e: playlistResult.error,
         );
         return const AndroidLibraryResult(
           resultCode: AndroidLibraryResultCode.unknown,
         ).toMsgData();
       case Ok():
     }
-    return result.value;
+
+    final queues = await _audioHandler.queue.countQueues(filter: query);
+
+    return playlistResult.value + queues;
   }
 
   Future<void> _playFromSearch(Map<Object?, dynamic>? args) async {
