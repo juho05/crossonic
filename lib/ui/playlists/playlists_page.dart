@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:crossonic/routing/router.gr.dart';
 import 'package:crossonic/ui/common/albums_grid_delegate.dart';
+import 'package:crossonic/ui/common/auto_hide_fab.dart';
 import 'package:crossonic/ui/common/buttons.dart';
 import 'package:crossonic/ui/common/dialogs/add_to_playlist.dart';
 import 'package:crossonic/ui/common/dialogs/confirmation.dart';
@@ -53,11 +54,11 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
         wasDesktop = isDesktop;
         return Scaffold(
           floatingActionButton: !isDesktop
-              ? FloatingActionButton(
+              ? AutoHideFAB(
                   onPressed: () {
                     context.router.push(CreatePlaylistRoute());
                   },
-                  tooltip: "Create Playlist",
+                  tooltip: "Create playlist",
                   child: const Icon(Icons.add),
                 )
               : null,

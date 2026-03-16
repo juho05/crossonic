@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:crossonic/data/repositories/audio/audio_handler.dart';
 import 'package:crossonic/routing/router.gr.dart';
+import 'package:crossonic/ui/common/auto_hide_fab.dart';
 import 'package:crossonic/ui/main/now_playing/now_playing_viewmodel.dart';
 import 'package:flutter/material.dart';
 
@@ -25,11 +26,11 @@ class QueueFab extends StatelessWidget {
             !_nowPlayingViewModel.hasNamedQueues) {
           return const SizedBox.shrink();
         }
-        return FloatingActionButton(
-          heroTag: null,
+        return AutoHideFAB(
           onPressed: () {
             context.router.push(const SelectQueueRoute());
           },
+          tooltip: "Select queue",
           child: const Icon(Icons.queue_music),
         );
       },

@@ -106,6 +106,7 @@ class NowPlayingViewModel extends ChangeNotifier {
   Future<void> _onQueueChanged() async {
     if (_currentQueue?.id == _audioHandler.queue.currentQueueId) return;
     _currentQueue = await _audioHandler.queue.getCurrentQueue();
+    _hasNamedQueues = await _audioHandler.queue.hasNamedQueues();
     notifyListeners();
   }
 
