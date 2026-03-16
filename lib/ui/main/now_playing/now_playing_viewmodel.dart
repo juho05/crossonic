@@ -104,10 +104,18 @@ class NowPlayingViewModel extends ChangeNotifier {
   }
 
   Future<void> _onQueueChanged() async {
-    if (_currentQueue?.id == _audioHandler.queue.currentQueueId) return;
-    _currentQueue = await _audioHandler.queue.getCurrentQueue();
-    _hasNamedQueues = await _audioHandler.queue.hasNamedQueues();
-    notifyListeners();
+    bool changed = false;
+    if (playbackStatus == PlaybackStatus.stopped) {
+      _hasNamedQueues = await _audioHandler.queue.hasNamedQueues();
+      changed = true;
+    }
+    if (_currentQueue?.id != _audioHandler.queue.currentQueueId) {
+      _currentQueue = await _audioHandler.queue.getCurrentQueue();
+      changed = true;
+    }
+    if (changed) {
+      notifyListeners();
+    }
   }
 
   void toggleLoop() async {
