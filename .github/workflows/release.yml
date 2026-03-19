@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 
 env:
-  FLUTTER_VERSION: "3.41.4"
+  FLUTTER_VERSION: "3.41.5"
   APK_BUILD_DIR: "/tmp/build"
 
 jobs:
@@ -449,6 +449,7 @@ jobs:
           name: v${{ needs.build.outputs.version }}
           tag_name: v${{ needs.build.outputs.version }}
           preserve_order: true
+          draft: true
           files: |
             uploads/Crossonic-${{ needs.build.outputs.version }}-android-arm64v8.apk
             uploads/Crossonic-${{ needs.build.outputs.version }}-android-arm32v7.apk
