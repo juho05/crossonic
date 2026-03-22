@@ -757,7 +757,7 @@ class QueueManager extends ChangeNotifier {
         .filter((f) => f.id(_currentQueueId))
         .update((o) => o(loop: Value(loop)));
     _looping.add(loop);
-    if (_nextIndex < _currentIndex) {
+    if (_nextIndex <= _currentIndex) {
       await _updateNext();
     }
     notifyListeners();
