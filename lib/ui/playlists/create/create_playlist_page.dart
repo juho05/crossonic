@@ -1,3 +1,11 @@
+/*
+ * Copyright 2024-2026 Julian Hofmann (+ Crossonic contributors).
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import 'package:auto_route/auto_route.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
 import 'package:crossonic/routing/router.gr.dart';
@@ -14,10 +22,7 @@ import 'package:provider/provider.dart';
 @RoutePage()
 class CreatePlaylistPage extends StatefulWidget {
   final Iterable<Song> songs;
-  const CreatePlaylistPage({
-    super.key,
-    this.songs = const [],
-  });
+  const CreatePlaylistPage({super.key, this.songs = const []});
 
   @override
   State<CreatePlaylistPage> createState() => _CreatePlaylistPageState();
@@ -89,9 +94,11 @@ class _CreatePlaylistPageState extends State<CreatePlaylistPage> {
     if (!_formKey.currentState!.saveAndValidate()) {
       return;
     }
-    final result = await _viewModel.create(_formKey.currentState!.value["name"],
-        songs: widget.songs,
-        description: _formKey.currentState!.value["description"] ?? "");
+    final result = await _viewModel.create(
+      _formKey.currentState!.value["name"],
+      songs: widget.songs,
+      description: _formKey.currentState!.value["description"] ?? "",
+    );
     if (context.mounted) {
       switch (result) {
         case Err():

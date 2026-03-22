@@ -1,3 +1,11 @@
+/*
+ * Copyright 2024-2026 Julian Hofmann (+ Crossonic contributors).
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
 import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/utils/command.dart';
@@ -18,9 +26,8 @@ class ConnectServerViewModel extends ChangeNotifier {
   String? _serverUrl;
   String? get serverUrl => _serverUrl;
 
-  ConnectServerViewModel({
-    required AuthRepository authRepository,
-  }) : _authRepository = authRepository {
+  ConnectServerViewModel({required AuthRepository authRepository})
+    : _authRepository = authRepository {
     connect = Command1(_connect);
     tryCurrentUrlOnWeb();
   }

@@ -1,3 +1,11 @@
+/*
+ * Copyright 2024-2026 Julian Hofmann (+ Crossonic contributors).
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import 'package:crossonic/data/repositories/version/exception.dart';
 import 'package:json_annotation/json_annotation.dart';
 
@@ -31,10 +39,7 @@ class Version implements Comparable {
 
       int major = int.parse(parts[0].split("-")[0]);
       if (parts.length == 1) {
-        return Version(
-          major: major,
-          isFullVersion: !parts[0].contains("-"),
-        );
+        return Version(major: major, isFullVersion: !parts[0].contains("-"));
       }
       int minor = int.parse(parts[1].split("-")[0]);
       if (parts.length == 2) {

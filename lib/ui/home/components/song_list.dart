@@ -1,3 +1,11 @@
+/*
+ * Copyright 2024-2026 Julian Hofmann (+ Crossonic contributors).
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import 'package:auto_route/auto_route.dart';
 import 'package:crossonic/ui/common/clickable_list_item.dart';
 import 'package:crossonic/ui/common/song_list_sliver.dart';
@@ -11,11 +19,7 @@ class HomeSongList extends StatelessWidget {
   final String title;
   final PageRouteInfo? route;
 
-  const HomeSongList({
-    super.key,
-    required this.title,
-    required this.route,
-  });
+  const HomeSongList({super.key, required this.title, required this.route});
 
   @override
   Widget build(BuildContext context) {
@@ -28,9 +32,7 @@ class HomeSongList extends StatelessWidget {
             return const SliverToBoxAdapter(
               child: SizedBox(
                 height: ClickableListItem.verticalExtent * 10,
-                child: Center(
-                  child: Icon(Icons.wifi_off),
-                ),
+                child: Center(child: Icon(Icons.wifi_off)),
               ),
             );
           }
@@ -38,9 +40,7 @@ class HomeSongList extends StatelessWidget {
             return const SliverToBoxAdapter(
               child: SizedBox(
                 height: ClickableListItem.verticalExtent * 10,
-                child: Center(
-                  child: CircularProgressIndicator.adaptive(),
-                ),
+                child: Center(child: CircularProgressIndicator.adaptive()),
               ),
             );
           }
@@ -49,9 +49,7 @@ class HomeSongList extends StatelessWidget {
             return const SliverToBoxAdapter(
               child: SizedBox(
                 height: ClickableListItem.verticalExtent,
-                child: Center(
-                  child: Text("No songs found"),
-                ),
+                child: Center(child: Text("No songs found")),
               ),
             );
           }

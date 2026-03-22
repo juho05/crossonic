@@ -1,3 +1,11 @@
+/*
+ * Copyright 2024-2026 Julian Hofmann (+ Crossonic contributors).
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import 'package:auto_route/auto_route.dart';
 import 'package:crossonic/ui/common/artist_grid_cell.dart';
 import 'package:crossonic/ui/home/components/artist_list_viewmodel.dart';
@@ -10,11 +18,7 @@ class HomeArtistList extends StatelessWidget {
   final String title;
   final PageRouteInfo? route;
 
-  const HomeArtistList({
-    super.key,
-    required this.title,
-    required this.route,
-  });
+  const HomeArtistList({super.key, required this.title, required this.route});
 
   static const double _itemHeight = 180;
 
@@ -29,9 +33,7 @@ class HomeArtistList extends StatelessWidget {
             return const SliverToBoxAdapter(
               child: SizedBox(
                 height: _itemHeight,
-                child: Center(
-                  child: Icon(Icons.wifi_off),
-                ),
+                child: Center(child: Icon(Icons.wifi_off)),
               ),
             );
           }
@@ -39,9 +41,7 @@ class HomeArtistList extends StatelessWidget {
             return const SliverToBoxAdapter(
               child: SizedBox(
                 height: _itemHeight,
-                child: Center(
-                  child: CircularProgressIndicator.adaptive(),
-                ),
+                child: Center(child: CircularProgressIndicator.adaptive()),
               ),
             );
           }
@@ -50,9 +50,7 @@ class HomeArtistList extends StatelessWidget {
             return const SliverToBoxAdapter(
               child: SizedBox(
                 height: _itemHeight,
-                child: Center(
-                  child: Text("No artists found"),
-                ),
+                child: Center(child: Text("No artists found")),
               ),
             );
           }
@@ -70,9 +68,7 @@ class HomeArtistList extends StatelessWidget {
                     return AspectRatio(
                       key: ValueKey("${a.id}-$index"),
                       aspectRatio: 4.0 / 5,
-                      child: ArtistGridCell(
-                        artist: a,
-                      ),
+                      child: ArtistGridCell(artist: a),
                     );
                   },
                 ),

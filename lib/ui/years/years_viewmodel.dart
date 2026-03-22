@@ -1,3 +1,11 @@
+/*
+ * Copyright 2024-2026 Julian Hofmann (+ Crossonic contributors).
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import 'package:crossonic/data/repositories/subsonic/models/album.dart';
 import 'package:crossonic/data/repositories/subsonic/subsonic_repository.dart';
 import 'package:crossonic/utils/fetch_status.dart';
@@ -25,9 +33,9 @@ class YearsViewModel extends ChangeNotifier {
   }
 
   YearsViewModel({required SubsonicRepository subsonic})
-      : _fromYear = DateTime.now().year - 10,
-        _toYear = DateTime.now().year,
-        _subsonic = subsonic;
+    : _fromYear = DateTime.now().year - 10,
+      _toYear = DateTime.now().year,
+      _subsonic = subsonic;
 
   static final int _pageSize = 100;
 
@@ -56,7 +64,11 @@ class YearsViewModel extends ChangeNotifier {
     }
     notifyListeners();
     final result = await _subsonic.getAlbumsByYears(
-        fromYear, toYear, _pageSize, page * _pageSize);
+      fromYear,
+      toYear,
+      _pageSize,
+      page * _pageSize,
+    );
     switch (result) {
       case Err():
         _status = FetchStatus.failure;

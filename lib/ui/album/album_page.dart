@@ -1,3 +1,11 @@
+/*
+ * Copyright 2024-2026 Julian Hofmann (+ Crossonic contributors).
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import 'package:auto_route/auto_route.dart';
 import 'package:collection/collection.dart';
 import 'package:crossonic/routing/router.gr.dart';
@@ -64,15 +72,16 @@ class _AlbumPageState extends State<AlbumPage> {
             case FetchStatus.success:
           }
 
-          final maxTrackDigitCount = (_viewModel.listItems.map((e) {
-                    if (e.$1 != null) {
-                      return 0;
-                    }
-                    return e.$2!.$1.trackNr ?? e.$2!.$2;
-                  }).maxOrNull ??
-                  1)
-              .toString()
-              .length;
+          final maxTrackDigitCount =
+              (_viewModel.listItems.map((e) {
+                        if (e.$1 != null) {
+                          return 0;
+                        }
+                        return e.$2!.$1.trackNr ?? e.$2!.$2;
+                      }).maxOrNull ??
+                      1)
+                  .toString()
+                  .length;
 
           return CollectionPage(
             name: _viewModel.album.name,
@@ -105,8 +114,10 @@ class _AlbumPageState extends State<AlbumPage> {
                   icon: Icons.playlist_play,
                   onSelected: () {
                     _viewModel.addToQueue(true);
-                    Toast.show(context,
-                        "Added '${_viewModel.album.name}' to priority queue");
+                    Toast.show(
+                      context,
+                      "Added '${_viewModel.album.name}' to priority queue",
+                    );
                   },
                 ),
                 ContextMenuOption(
@@ -115,15 +126,18 @@ class _AlbumPageState extends State<AlbumPage> {
                   onSelected: () {
                     _viewModel.addToQueue(false);
                     Toast.show(
-                        context, "Added '${_viewModel.album.name}' to queue");
+                      context,
+                      "Added '${_viewModel.album.name}' to queue",
+                    );
                   },
                 ),
                 ContextMenuOption(
                   title: _viewModel.favorite
                       ? "Remove from favorites"
                       : "Add to favorites",
-                  icon:
-                      _viewModel.favorite ? Icons.heart_broken : Icons.favorite,
+                  icon: _viewModel.favorite
+                      ? Icons.heart_broken
+                      : Icons.favorite,
                   onSelected: () async {
                     final result = await _viewModel.toggleFavorite();
                     if (!context.mounted) return;
@@ -134,8 +148,11 @@ class _AlbumPageState extends State<AlbumPage> {
                   title: "Add to playlist",
                   icon: Icons.playlist_add,
                   onSelected: () {
-                    AddToPlaylistDialog.show(context, _viewModel.album.name,
-                        () async => Result.ok(_viewModel.album.songs ?? []));
+                    AddToPlaylistDialog.show(
+                      context,
+                      _viewModel.album.name,
+                      () async => Result.ok(_viewModel.album.songs ?? []),
+                    );
                   },
                 ),
                 ContextMenuOption(
@@ -144,7 +161,9 @@ class _AlbumPageState extends State<AlbumPage> {
                   onSelected: () async {
                     final router = context.router;
                     final artistId = await ChooserDialog.chooseArtist(
-                        context, _viewModel.album.artists.toList());
+                      context,
+                      _viewModel.album.artists.toList(),
+                    );
                     if (artistId == null) return;
                     router.push(ArtistRoute(artistId: artistId));
                   },
@@ -155,19 +174,22 @@ class _AlbumPageState extends State<AlbumPage> {
                   onSelected: () {
                     MediaInfoDialog.showAlbum(context, _viewModel.album.id);
                   },
-                )
+                ),
               ],
             ),
             extraInfo: [
               CollectionExtraInfo(
-                text: _viewModel.album.displayArtist +
+                text:
+                    _viewModel.album.displayArtist +
                     (_viewModel.album.originalDate != null
                         ? ' • ${_viewModel.album.originalDate!.year}'
                         : ''),
                 onClick: () async {
                   final router = context.router;
                   final artistId = await ChooserDialog.chooseArtist(
-                      context, _viewModel.album.artists.toList());
+                    context,
+                    _viewModel.album.artists.toList(),
+                  );
                   if (artistId == null) return;
                   router.push(ArtistRoute(artistId: artistId));
                 },
@@ -178,15 +200,16 @@ class _AlbumPageState extends State<AlbumPage> {
                   _viewModel.album.version != null ||
                   _viewModel.alternatives.isNotEmpty)
                 CollectionExtraInfo(
-                  text: _viewModel.album.releaseDate == null ||
-                          (_viewModel.album.version?.contains(_viewModel
-                                  .album.releaseDate!.year
-                                  .toString()) ??
+                  text:
+                      _viewModel.album.releaseDate == null ||
+                          (_viewModel.album.version?.contains(
+                                _viewModel.album.releaseDate!.year.toString(),
+                              ) ??
                               false)
                       ? _viewModel.album.version!
                       : (_viewModel.album.version == null
-                          ? "Release: ${_viewModel.album.releaseDate!.toString()}"
-                          : "${_viewModel.album.version} • ${_viewModel.album.originalDate?.year == _viewModel.album.releaseDate?.year ? _viewModel.album.releaseDate : _viewModel.album.releaseDate?.year}"),
+                            ? "Release: ${_viewModel.album.releaseDate!.toString()}"
+                            : "${_viewModel.album.version} • ${_viewModel.album.originalDate?.year == _viewModel.album.releaseDate?.year ? _viewModel.album.releaseDate : _viewModel.album.releaseDate?.year}"),
                   badgeText: _viewModel.alternatives.isNotEmpty
                       ? "+${_viewModel.alternatives.length}"
                       : null,
@@ -215,8 +238,10 @@ class _AlbumPageState extends State<AlbumPage> {
                 icon: Icons.playlist_play,
                 onClick: () {
                   _viewModel.addToQueue(true);
-                  Toast.show(context,
-                      "Added '${_viewModel.album.name}' to priority queue");
+                  Toast.show(
+                    context,
+                    "Added '${_viewModel.album.name}' to priority queue",
+                  );
                 },
               ),
               CollectionAction(
@@ -225,7 +250,9 @@ class _AlbumPageState extends State<AlbumPage> {
                 onClick: () {
                   _viewModel.addToQueue(false);
                   Toast.show(
-                      context, "Added '${_viewModel.album.name}' to queue");
+                    context,
+                    "Added '${_viewModel.album.name}' to queue",
+                  );
                 },
               ),
             ],
@@ -257,8 +284,10 @@ class _AlbumPageState extends State<AlbumPage> {
                           icon: Icons.playlist_play,
                           onSelected: () {
                             _viewModel.addDiscToQueue(discNr, true);
-                            Toast.show(context,
-                                "Added '${_viewModel.discTitles[discNr] ?? "Disc $discNr"}' to priority queue");
+                            Toast.show(
+                              context,
+                              "Added '${_viewModel.discTitles[discNr] ?? "Disc $discNr"}' to priority queue",
+                            );
                           },
                         ),
                         ContextMenuOption(
@@ -266,14 +295,18 @@ class _AlbumPageState extends State<AlbumPage> {
                           icon: Icons.playlist_add,
                           onSelected: () {
                             _viewModel.addDiscToQueue(discNr, false);
-                            Toast.show(context,
-                                "Added '${_viewModel.discTitles[discNr] ?? "Disc $discNr"}' to queue");
+                            Toast.show(
+                              context,
+                              "Added '${_viewModel.discTitles[discNr] ?? "Disc $discNr"}' to queue",
+                            );
                           },
                         ),
                       ],
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 8),
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
                         child: Row(
                           children: [
                             const Icon(Icons.album),

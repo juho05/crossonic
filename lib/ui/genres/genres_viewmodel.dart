@@ -1,3 +1,11 @@
+/*
+ * Copyright 2024-2026 Julian Hofmann (+ Crossonic contributors).
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import 'package:crossonic/data/repositories/subsonic/models/genre.dart';
 import 'package:crossonic/data/repositories/subsonic/subsonic_repository.dart';
 import 'package:crossonic/utils/fetch_status.dart';
@@ -30,7 +38,7 @@ class GenresViewModel extends ChangeNotifier {
   }
 
   GenresViewModel({required SubsonicRepository subsonic})
-      : _subsonic = subsonic;
+    : _subsonic = subsonic;
 
   Future<void> load() async {
     if (_status == FetchStatus.loading) return;

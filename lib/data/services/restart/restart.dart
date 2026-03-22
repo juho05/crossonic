@@ -1,3 +1,11 @@
+/*
+ * Copyright 2024-2026 Julian Hofmann (+ Crossonic contributors).
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import 'dart:io';
 
 import 'package:crossonic/data/repositories/appimage/appimage_repository.dart';
@@ -21,7 +29,7 @@ class Restart {
 
     Process.run("/bin/bash", [
       "-c",
-      "/bin/bash -c \"sleep 2 && ${AppImageRepository.appImageFile.path.replaceAll(" ", "\\ ")}\" & disown"
+      "/bin/bash -c \"sleep 2 && ${AppImageRepository.appImageFile.path.replaceAll(" ", "\\ ")}\" & disown",
     ]);
 
     await Future.delayed(const Duration(milliseconds: 250), () => exit(0));

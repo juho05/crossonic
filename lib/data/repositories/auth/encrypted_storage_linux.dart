@@ -1,3 +1,11 @@
+/*
+ * Copyright 2024-2026 Julian Hofmann (+ Crossonic contributors).
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import 'dart:convert';
 
 import 'package:crossonic/data/repositories/auth/encrypted_storage.dart';
@@ -9,24 +17,26 @@ import 'package:flutter/foundation.dart';
 
 class EncryptedStorageLinux implements EncryptedStorage {
   // login secrets will be encrypted with this key if dbus secret service does not work
-  static final SecretKey _fallbackKey = SecretKey(Uint8List.fromList([
-    0x6b,
-    0xb9,
-    0x73,
-    0xbd,
-    0x07,
-    0x33,
-    0xc5,
-    0xb1,
-    0x91,
-    0x3b,
-    0xdc,
-    0x5c,
-    0x68,
-    0x9f,
-    0xab,
-    0x6b,
-  ]));
+  static final SecretKey _fallbackKey = SecretKey(
+    Uint8List.fromList([
+      0x6b,
+      0xb9,
+      0x73,
+      0xbd,
+      0x07,
+      0x33,
+      0xc5,
+      0xb1,
+      0x91,
+      0x3b,
+      0xdc,
+      0x5c,
+      0x68,
+      0x9f,
+      0xab,
+      0x6b,
+    ]),
+  );
   static const String _keyValuePrefix = "encrypted_storage";
 
   final KeyValueRepository _keyValue;
@@ -37,10 +47,9 @@ class EncryptedStorageLinux implements EncryptedStorage {
   DBusSecrets? _storage;
   final AesGcm _fallbackEncryption;
 
-  EncryptedStorageLinux({
-    required KeyValueRepository keyValueRepo,
-  })  : _keyValue = keyValueRepo,
-        _fallbackEncryption = AesGcm.with128bits();
+  EncryptedStorageLinux({required KeyValueRepository keyValueRepo})
+    : _keyValue = keyValueRepo,
+      _fallbackEncryption = AesGcm.with128bits();
 
   @override
   Future<String?> read(String key) async {
@@ -92,8 +101,11 @@ class EncryptedStorageLinux implements EncryptedStorage {
 
   Future<String> _encryptValue(String value) async {
     final nonce = _fallbackEncryption.newNonce();
-    final secretBox = await _fallbackEncryption.encrypt(value.codeUnits,
-        secretKey: _fallbackKey, nonce: nonce);
+    final secretBox = await _fallbackEncryption.encrypt(
+      value.codeUnits,
+      secretKey: _fallbackKey,
+      nonce: nonce,
+    );
 
     final bytes = secretBox.concatenation();
 
@@ -104,10 +116,15 @@ class EncryptedStorageLinux implements EncryptedStorage {
     final parts = value.split(".");
     assert(parts.length == 3);
     final bytes = base64.decode(parts[2]);
-    final secretBox = SecretBox.fromConcatenation(bytes,
-        nonceLength: int.parse(parts[0]), macLength: int.parse(parts[1]));
-    return await _fallbackEncryption.decryptString(secretBox,
-        secretKey: _fallbackKey);
+    final secretBox = SecretBox.fromConcatenation(
+      bytes,
+      nonceLength: int.parse(parts[0]),
+      macLength: int.parse(parts[1]),
+    );
+    return await _fallbackEncryption.decryptString(
+      secretBox,
+      secretKey: _fallbackKey,
+    );
   }
 
   Future<void> _ensureInitialized() async {
@@ -119,17 +136,20 @@ class EncryptedStorageLinux implements EncryptedStorage {
       if (!await _storage!.initialize()) {
         _useFallback = true;
         Log.error(
-            "Failed to initialize dbus secret storage, falling back to insecure storage in database");
+          "Failed to initialize dbus secret storage, falling back to insecure storage in database",
+        );
       }
       if (!await _storage!.unlock()) {
         _useFallback = true;
         Log.error(
-            "Failed to unlock dbus secret storage, falling back to insecure storage in database");
+          "Failed to unlock dbus secret storage, falling back to insecure storage in database",
+        );
       }
     } catch (e) {
       Log.error(
-          "Failed to initialize dbus secret storage, falling back to insecure storage in database",
-          e: e);
+        "Failed to initialize dbus secret storage, falling back to insecure storage in database",
+        e: e,
+      );
       _useFallback = true;
     }
 
@@ -138,9 +158,10 @@ class EncryptedStorageLinux implements EncryptedStorage {
         await _migrateFallbackToDbus();
       } catch (e, st) {
         Log.error(
-            "Failed to migrate fallback encrypted storage to dbus secret storage",
-            e: e,
-            st: st);
+          "Failed to migrate fallback encrypted storage to dbus secret storage",
+          e: e,
+          st: st,
+        );
       }
     }
   }
@@ -152,7 +173,8 @@ class EncryptedStorageLinux implements EncryptedStorage {
         final key = k.substring(_keyValuePrefix.length + 1);
         final value = await _keyValue.loadString(k);
         Log.debug(
-            "Migrating $key from fallback encrypted database storage to dbus secret service");
+          "Migrating $key from fallback encrypted database storage to dbus secret service",
+        );
         await write(key, await _decryptValue(value!));
         await _keyValue.remove(k);
       }

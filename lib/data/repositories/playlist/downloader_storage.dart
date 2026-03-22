@@ -1,3 +1,11 @@
+/*
+ * Copyright 2024-2026 Julian Hofmann (+ Crossonic contributors).
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import 'dart:convert';
 
 import 'package:background_downloader/background_downloader.dart';
@@ -9,9 +17,9 @@ import 'package:flutter/foundation.dart';
 class DownloaderStorage implements PersistentStorage {
   static Future<void> register(db.Database db) async {
     if (kIsWeb) return;
-    final ready =
-        await FileDownloader(persistentStorage: DownloaderStorage(db: db))
-            .ready;
+    final ready = await FileDownloader(
+      persistentStorage: DownloaderStorage(db: db),
+    ).ready;
     if (!ready) {
       throw const AppException("Failed to initialize file downloader");
     }
@@ -117,8 +125,9 @@ class DownloaderStorage implements PersistentStorage {
     );
   }
 
-  Future<void> _purgeOldRecords(
-      {Duration age = const Duration(days: 30)}) async {
+  Future<void> _purgeOldRecords({
+    Duration age = const Duration(days: 30),
+  }) async {
     final cutOff = DateTime.now().subtract(age);
     await _db.managers.downloadTask
         .filter((f) => f.updated.isBefore(cutOff))
@@ -136,16 +145,22 @@ class DownloaderStorage implements PersistentStorage {
   }
 
   Future<List<T>> _retrieveAll<T>(
-      String type, T Function(Map<String, dynamic>) fromJson) async {
-    final records =
-        await _db.managers.downloadTask.filter((f) => f.type(type)).get();
+    String type,
+    T Function(Map<String, dynamic>) fromJson,
+  ) async {
+    final records = await _db.managers.downloadTask
+        .filter((f) => f.type(type))
+        .get();
     return records
         .map((r) => fromJson(jsonDecode(r.object)))
         .toList(growable: false);
   }
 
-  Future<T?> _retrieveSingle<T>(String type, String taskId,
-      T Function(Map<String, dynamic>) fromJson) async {
+  Future<T?> _retrieveSingle<T>(
+    String type,
+    String taskId,
+    T Function(Map<String, dynamic>) fromJson,
+  ) async {
     final record = await _db.managers.downloadTask
         .filter((f) => f.type(type) & f.taskId(taskId))
         .getSingleOrNull();

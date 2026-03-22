@@ -1,3 +1,11 @@
+/*
+ * Copyright 2024-2026 Julian Hofmann (+ Crossonic contributors).
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import 'package:auto_route/auto_route.dart';
 import 'package:crossonic/ui/common/buttons.dart';
 import 'package:crossonic/ui/common/form_page_body.dart';
@@ -95,8 +103,10 @@ class _UpdatePlaylistPageState extends State<UpdatePlaylistPage> {
     if (!_formKey.currentState!.saveAndValidate()) {
       return;
     }
-    final result = await _viewModel.update(_formKey.currentState!.value["name"],
-        _formKey.currentState!.value["description"] ?? "");
+    final result = await _viewModel.update(
+      _formKey.currentState!.value["name"],
+      _formKey.currentState!.value["description"] ?? "",
+    );
     if (context.mounted) {
       switch (result) {
         case Err():

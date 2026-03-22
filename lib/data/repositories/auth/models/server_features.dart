@@ -1,3 +1,11 @@
+/*
+ * Copyright 2024-2026 Julian Hofmann (+ Crossonic contributors).
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import 'package:crossonic/data/repositories/version/version.dart';
 import 'package:json_annotation/json_annotation.dart';
 
@@ -50,20 +58,19 @@ class ServerFeatures {
     Set<int>? songLyrics,
     Set<int>? apiKeyAuthentication,
     required Version? crossonicVersion,
-  }) =>
-      ServerFeatures(
-        isOpenSubsonic: isOpenSubsonic ?? this.isOpenSubsonic,
-        isCrossonic: isCrossonic ?? this.isCrossonic,
-        isNavidrome: isNavidrome ?? this.isNavidrome,
-        supportsPasswordAuth: supportsPasswordAuth ?? this.supportsPasswordAuth,
-        supportsTokenAuth: supportsTokenAuth ?? this.supportsTokenAuth,
-        loadedExtensions: loadedExtensions ?? this.loadedExtensions,
-        formPost: formPost ?? this.formPost,
-        transcodeOffset: transcodeOffset ?? this.transcodeOffset,
-        songLyrics: songLyrics ?? this.songLyrics,
-        apiKeyAuthentication: apiKeyAuthentication ?? this.apiKeyAuthentication,
-        crossonicVersion: crossonicVersion,
-      );
+  }) => ServerFeatures(
+    isOpenSubsonic: isOpenSubsonic ?? this.isOpenSubsonic,
+    isCrossonic: isCrossonic ?? this.isCrossonic,
+    isNavidrome: isNavidrome ?? this.isNavidrome,
+    supportsPasswordAuth: supportsPasswordAuth ?? this.supportsPasswordAuth,
+    supportsTokenAuth: supportsTokenAuth ?? this.supportsTokenAuth,
+    loadedExtensions: loadedExtensions ?? this.loadedExtensions,
+    formPost: formPost ?? this.formPost,
+    transcodeOffset: transcodeOffset ?? this.transcodeOffset,
+    songLyrics: songLyrics ?? this.songLyrics,
+    apiKeyAuthentication: apiKeyAuthentication ?? this.apiKeyAuthentication,
+    crossonicVersion: crossonicVersion,
+  );
 
   factory ServerFeatures.fromJson(Map<String, dynamic> json) =>
       _$ServerFeaturesFromJson(json);

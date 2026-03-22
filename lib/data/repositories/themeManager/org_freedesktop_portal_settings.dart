@@ -1,3 +1,11 @@
+/*
+ * Copyright 2024-2026 Julian Hofmann (+ Crossonic contributors).
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import 'package:dbus/dbus.dart';
 
 // Original code from
@@ -40,21 +48,26 @@ class OrgFreedesktopPortalSettings extends DBusRemoteObject {
   /// Stream of org.freedesktop.portal.Settings.SettingChanged signals.
   late final Stream<OrgFreedesktopPortalSettingsSettingChanged> settingChanged;
 
-  OrgFreedesktopPortalSettings(super.client, String destination,
-      {super.path = const DBusObjectPath.unchecked('/')})
-      : super(name: destination) {
+  OrgFreedesktopPortalSettings(
+    super.client,
+    String destination, {
+    super.path = const DBusObjectPath.unchecked('/'),
+  }) : super(name: destination) {
     settingChanged = DBusRemoteObjectSignalStream(
-            object: this,
-            interface: 'org.freedesktop.portal.Settings',
-            name: 'SettingChanged',
-            signature: DBusSignature('ssv'))
-        .map((signal) => OrgFreedesktopPortalSettingsSettingChanged(signal));
+      object: this,
+      interface: 'org.freedesktop.portal.Settings',
+      name: 'SettingChanged',
+      signature: DBusSignature('ssv'),
+    ).map((signal) => OrgFreedesktopPortalSettingsSettingChanged(signal));
   }
 
   /// Gets org.freedesktop.portal.Settings.version
   Future<int> getversion() async {
-    var value = await getProperty('org.freedesktop.portal.Settings', 'version',
-        signature: DBusSignature('u'));
+    var value = await getProperty(
+      'org.freedesktop.portal.Settings',
+      'version',
+      signature: DBusSignature('u'),
+    );
     return (value as DBusUint32).value;
   }
 
@@ -67,19 +80,27 @@ class OrgFreedesktopPortalSettings extends DBusRemoteObject {
   ///     If @namespaces is an empty array or contains an empty string it matches all. Globbing is supported but only for
   ///     trailing sections, e.g. "org.example.*".
   Future<Map<String, Map<String, DBusValue>>> callReadAll(
-      List<String> namespaces,
-      {bool noAutoStart = false,
-      bool allowInteractiveAuthorization = false}) async {
-    var result = await callMethod('org.freedesktop.portal.Settings', 'ReadAll',
-        [DBusArray.string(namespaces)],
-        replySignature: DBusSignature('a{sa{sv}}'),
-        noAutoStart: noAutoStart,
-        allowInteractiveAuthorization: allowInteractiveAuthorization);
-    return (result.returnValues[0] as DBusDict).children.map((key, value) =>
-        MapEntry(
-            (key as DBusString).value,
-            (value as DBusDict).children.map((key, value) => MapEntry(
-                (key as DBusString).value, (value as DBusVariant).value))));
+    List<String> namespaces, {
+    bool noAutoStart = false,
+    bool allowInteractiveAuthorization = false,
+  }) async {
+    var result = await callMethod(
+      'org.freedesktop.portal.Settings',
+      'ReadAll',
+      [DBusArray.string(namespaces)],
+      replySignature: DBusSignature('a{sa{sv}}'),
+      noAutoStart: noAutoStart,
+      allowInteractiveAuthorization: allowInteractiveAuthorization,
+    );
+    return (result.returnValues[0] as DBusDict).children.map(
+      (key, value) => MapEntry(
+        (key as DBusString).value,
+        (value as DBusDict).children.map(
+          (key, value) =>
+              MapEntry((key as DBusString).value, (value as DBusVariant).value),
+        ),
+      ),
+    );
   }
 
   /// Invokes org.freedesktop.portal.Settings.Read()
@@ -90,14 +111,20 @@ class OrgFreedesktopPortalSettings extends DBusRemoteObject {
   ///     @value: The value @key is set to.
   ///
   ///     Reads a single value. Returns an error on any unknown namespace or key.
-  Future<DBusValue> callRead(String namespace, String key,
-      {bool noAutoStart = false,
-      bool allowInteractiveAuthorization = false}) async {
-    var result = await callMethod('org.freedesktop.portal.Settings', 'Read',
-        [DBusString(namespace), DBusString(key)],
-        replySignature: DBusSignature('v'),
-        noAutoStart: noAutoStart,
-        allowInteractiveAuthorization: allowInteractiveAuthorization);
+  Future<DBusValue> callRead(
+    String namespace,
+    String key, {
+    bool noAutoStart = false,
+    bool allowInteractiveAuthorization = false,
+  }) async {
+    var result = await callMethod(
+      'org.freedesktop.portal.Settings',
+      'Read',
+      [DBusString(namespace), DBusString(key)],
+      replySignature: DBusSignature('v'),
+      noAutoStart: noAutoStart,
+      allowInteractiveAuthorization: allowInteractiveAuthorization,
+    );
     return (result.returnValues[0] as DBusVariant).value;
   }
 }
@@ -116,10 +143,11 @@ class OrgFreedesktopPortalSettingsSettingChanged extends DBusSignal {
   DBusValue get value => (values[2] as DBusVariant).value;
 
   OrgFreedesktopPortalSettingsSettingChanged(DBusSignal signal)
-      : super(
-            sender: signal.sender,
-            path: signal.path,
-            interface: signal.interface,
-            name: signal.name,
-            values: signal.values);
+    : super(
+        sender: signal.sender,
+        path: signal.path,
+        interface: signal.interface,
+        name: signal.name,
+        values: signal.values,
+      );
 }

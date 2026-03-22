@@ -1,3 +1,11 @@
+/*
+ * Copyright 2024-2026 Julian Hofmann (+ Crossonic contributors).
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import 'package:crossonic/ui/common/adaptive_dialog_action.dart';
 import 'package:flutter/material.dart';
 
@@ -11,8 +19,12 @@ class InformationDialog extends StatelessWidget {
     required this.btnTitle,
   });
 
-  static Future<bool> show(BuildContext context, String title,
-      {String? message, String? btnTitle}) async {
+  static Future<bool> show(
+    BuildContext context,
+    String title, {
+    String? message,
+    String? btnTitle,
+  }) async {
     final result = await showAdaptiveDialog<bool>(
       context: context,
       barrierDismissible: true,
@@ -36,7 +48,7 @@ class InformationDialog extends StatelessWidget {
         AdaptiveDialogAction(
           onPressed: () => Navigator.pop(context, true),
           child: Text(btnTitle),
-        )
+        ),
       ],
     );
   }

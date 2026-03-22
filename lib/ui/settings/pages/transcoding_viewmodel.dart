@@ -1,3 +1,11 @@
+/*
+ * Copyright 2024-2026 Julian Hofmann (+ Crossonic contributors).
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import 'package:crossonic/data/repositories/settings/settings_repository.dart';
 import 'package:crossonic/data/repositories/settings/transcoding.dart';
 import 'package:flutter/material.dart';
@@ -20,11 +28,11 @@ class TranscodingViewModel extends ChangeNotifier {
   int? get maxBitRateMobile => _maxBitRateMobile;
 
   TranscodingViewModel({required SettingsRepository settings})
-      : _settings = settings,
-        _codec = settings.transcoding.codec,
-        _codecMobile = settings.transcoding.codecMobile,
-        _maxBitRate = settings.transcoding.maxBitRate,
-        _maxBitRateMobile = settings.transcoding.maxBitRateMobile {
+    : _settings = settings,
+      _codec = settings.transcoding.codec,
+      _codecMobile = settings.transcoding.codecMobile,
+      _maxBitRate = settings.transcoding.maxBitRate,
+      _maxBitRateMobile = settings.transcoding.maxBitRateMobile {
     _settings.transcoding.addListener(_onTranscodingChanged);
     _onTranscodingChanged();
   }

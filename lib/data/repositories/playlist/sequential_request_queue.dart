@@ -1,3 +1,11 @@
+/*
+ * Copyright 2024-2026 Julian Hofmann (+ Crossonic contributors).
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import 'dart:async';
 import 'dart:collection';
 
@@ -7,8 +15,8 @@ import 'package:crossonic/utils/result.dart';
 
 typedef SequentialRequestFn<T> = Future<T> Function();
 typedef SequentialRequestAllDoneFn = Future<void> Function();
-typedef SequentialRequestErrorFn = Future<void> Function(Exception e,
-    [StackTrace? st]);
+typedef SequentialRequestErrorFn =
+    Future<void> Function(Exception e, [StackTrace? st]);
 
 class _SequentialRequest {
   final Future<void> Function() fn;
@@ -27,39 +35,48 @@ class SequentialRequestQueue {
 
   bool get done => !_loopRunning && _queue.isEmpty;
 
-  SequentialRequestQueue({
-    SequentialRequestAllDoneFn? onAllDone,
-  })  : _queue = DoubleLinkedQueue(),
-        _allDoneFn = onAllDone;
+  SequentialRequestQueue({SequentialRequestAllDoneFn? onAllDone})
+    : _queue = DoubleLinkedQueue(),
+      _allDoneFn = onAllDone;
 
-  Future<Result<T>> run<T>(SequentialRequestFn<Result<T>> request,
-      {SequentialRequestErrorFn? restorePrevState}) {
+  Future<Result<T>> run<T>(
+    SequentialRequestFn<Result<T>> request, {
+    SequentialRequestErrorFn? restorePrevState,
+  }) {
     final completer = Completer<Result<T>>();
-    _queue.add(_SequentialRequest(
-      fn: () async {
-        final result = await request();
-        if (result is Err && restorePrevState != null) {
-          try {
-            await restorePrevState((result as Err).error);
-          } catch (e, st) {
-            Log.error("Failed to execute sequential queue run onError callback",
-                e: e, st: st);
+    _queue.add(
+      _SequentialRequest(
+        fn: () async {
+          final result = await request();
+          if (result is Err && restorePrevState != null) {
+            try {
+              await restorePrevState((result as Err).error);
+            } catch (e, st) {
+              Log.error(
+                "Failed to execute sequential queue run onError callback",
+                e: e,
+                st: st,
+              );
+            }
           }
-        }
-        completer.complete(result);
-      },
-      errFn: (e, [st]) async {
-        if (restorePrevState != null) {
-          try {
-            await restorePrevState(e, st);
-          } catch (e, st) {
-            Log.error("Failed to execute sequential queue run onError callback",
-                e: e, st: st);
+          completer.complete(result);
+        },
+        errFn: (e, [st]) async {
+          if (restorePrevState != null) {
+            try {
+              await restorePrevState(e, st);
+            } catch (e, st) {
+              Log.error(
+                "Failed to execute sequential queue run onError callback",
+                e: e,
+                st: st,
+              );
+            }
           }
-        }
-        completer.complete(Result.error(e));
-      },
-    ));
+          completer.complete(Result.error(e));
+        },
+      ),
+    );
     _runLoop();
     return completer.future;
   }
@@ -80,15 +97,21 @@ class SequentialRequestQueue {
           try {
             await r.errFn(const CanceledException());
           } catch (e, st) {
-            Log.error("Failed to execute sequential queue error callback",
-                e: e, st: st);
+            Log.error(
+              "Failed to execute sequential queue error callback",
+              e: e,
+              st: st,
+            );
           }
         }
         try {
           await req.errFn(e, st);
         } catch (e, st) {
-          Log.error("Failed to execute sequential queue error callback",
-              e: e, st: st);
+          Log.error(
+            "Failed to execute sequential queue error callback",
+            e: e,
+            st: st,
+          );
         }
       }
     }
@@ -97,8 +120,11 @@ class SequentialRequestQueue {
       try {
         await _allDoneFn();
       } catch (e, st) {
-        Log.error("Failed to execute sequential queue all done callback",
-            e: e, st: st);
+        Log.error(
+          "Failed to execute sequential queue all done callback",
+          e: e,
+          st: st,
+        );
       }
     }
     _running = false;

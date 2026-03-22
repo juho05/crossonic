@@ -1,3 +1,11 @@
+/*
+ * Copyright 2024-2026 Julian Hofmann (+ Crossonic contributors).
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import 'dart:math';
 
 import 'package:auto_route/auto_route.dart';
@@ -88,11 +96,15 @@ class _ArtistPageState extends State<ArtistPage> {
                   icon: Icons.shuffle,
                   onSelected: () async {
                     final option = await ChooserDialog.choose(
-                        context, "Shuffle", ["Releases", "Songs"]);
+                      context,
+                      "Shuffle",
+                      ["Releases", "Songs"],
+                    );
                     if (option == null) return;
                     _viewModel.play(
-                        shuffleReleases: option == 0,
-                        shuffleSongs: option == 1);
+                      shuffleReleases: option == 0,
+                      shuffleSongs: option == 1,
+                    );
                   },
                 ),
                 ContextMenuOption(
@@ -101,8 +113,11 @@ class _ArtistPageState extends State<ArtistPage> {
                   onSelected: () async {
                     final result = await _viewModel.addToQueue(true);
                     if (!context.mounted) return;
-                    toastResult(context, result,
-                        successMsg: "Added '${artist.name} to priority queue");
+                    toastResult(
+                      context,
+                      result,
+                      successMsg: "Added '${artist.name} to priority queue",
+                    );
                   },
                 ),
                 ContextMenuOption(
@@ -111,16 +126,20 @@ class _ArtistPageState extends State<ArtistPage> {
                   onSelected: () async {
                     final result = await _viewModel.addToQueue(false);
                     if (!context.mounted) return;
-                    toastResult(context, result,
-                        successMsg: "Added '${artist.name} to queue");
+                    toastResult(
+                      context,
+                      result,
+                      successMsg: "Added '${artist.name} to queue",
+                    );
                   },
                 ),
                 ContextMenuOption(
                   title: _viewModel.favorite
                       ? "Remove from favorites"
                       : "Add to favorites",
-                  icon:
-                      _viewModel.favorite ? Icons.heart_broken : Icons.favorite,
+                  icon: _viewModel.favorite
+                      ? Icons.heart_broken
+                      : Icons.favorite,
                   onSelected: () async {
                     final result = await _viewModel.toggleFavorite();
                     if (!context.mounted) return;
@@ -131,8 +150,11 @@ class _ArtistPageState extends State<ArtistPage> {
                   title: "Add to playlist",
                   icon: Icons.playlist_add,
                   onSelected: () async {
-                    AddToPlaylistDialog.show(context, artist.name,
-                        () => _viewModel.getArtistSongs(artist));
+                    AddToPlaylistDialog.show(
+                      context,
+                      artist.name,
+                      () => _viewModel.getArtistSongs(artist),
+                    );
                   },
                 ),
                 ContextMenuOption(
@@ -148,8 +170,8 @@ class _ArtistPageState extends State<ArtistPage> {
               CollectionExtraInfo(
                 text: (artist.genres ?? []).isNotEmpty
                     ? artist.genres!
-                        .sublist(0, min(3, artist.genres!.length))
-                        .join(", ")
+                          .sublist(0, min(3, artist.genres!.length))
+                          .join(", ")
                     : "Unknown genre",
               ),
             ],
@@ -160,10 +182,15 @@ class _ArtistPageState extends State<ArtistPage> {
                 highlighted: true,
                 onClick: () async {
                   final option = await ChooserDialog.choose(
-                      context, "Shuffle", ["Releases", "Songs"]);
+                    context,
+                    "Shuffle",
+                    ["Releases", "Songs"],
+                  );
                   if (option == null) return;
                   final result = await _viewModel.play(
-                      shuffleReleases: option == 0, shuffleSongs: option == 1);
+                    shuffleReleases: option == 0,
+                    shuffleSongs: option == 1,
+                  );
                   if (!context.mounted) return;
                   toastResult(context, result);
                 },
@@ -183,8 +210,11 @@ class _ArtistPageState extends State<ArtistPage> {
                 onClick: () async {
                   final result = await _viewModel.addToQueue(true);
                   if (!context.mounted) return;
-                  toastResult(context, result,
-                      successMsg: "Added '${artist.name}' priority to queue");
+                  toastResult(
+                    context,
+                    result,
+                    successMsg: "Added '${artist.name}' priority to queue",
+                  );
                 },
               ),
               CollectionAction(
@@ -193,8 +223,11 @@ class _ArtistPageState extends State<ArtistPage> {
                 onClick: () async {
                   final result = await _viewModel.addToQueue(false);
                   if (!context.mounted) return;
-                  toastResult(context, result,
-                      successMsg: "Added '${artist.name}' to queue");
+                  toastResult(
+                    context,
+                    result,
+                    successMsg: "Added '${artist.name}' to queue",
+                  );
                 },
               ),
             ],
@@ -225,46 +258,55 @@ class _ArtistPageState extends State<ArtistPage> {
                   }) {
                     return SliverPadding(
                       padding: EdgeInsets.only(
-                          top: isAppearsOn ? 0 : (isFirstReleaseType ? 4 : 12)),
+                        top: isAppearsOn ? 0 : (isFirstReleaseType ? 4 : 12),
+                      ),
                       sliver: SliverToBoxAdapter(
                         child: WithContextMenu(
                           openOnTap: true,
-                          enabled: albums.isNotEmpty &&
+                          enabled:
+                              albums.isNotEmpty &&
                               (_viewModel.appearsOn.isNotEmpty ||
                                   albums.first.releaseType !=
                                       albums.last.releaseType),
                           options: [
                             ContextMenuOption(
-                                title: "Play",
-                                icon: Icons.play_arrow,
-                                onSelected: () {
-                                  if (isAppearsOn) {
-                                    _viewModel.playAppearsOn();
-                                  } else {
-                                    _viewModel.playReleases(releaseType);
-                                  }
-                                }),
+                              title: "Play",
+                              icon: Icons.play_arrow,
+                              onSelected: () {
+                                if (isAppearsOn) {
+                                  _viewModel.playAppearsOn();
+                                } else {
+                                  _viewModel.playReleases(releaseType);
+                                }
+                              },
+                            ),
                             ContextMenuOption(
                               title: "Shuffle",
                               icon: Icons.shuffle,
                               onSelected: () async {
                                 final option = await ChooserDialog.choose(
-                                    context, "Shuffle", [
-                                  isAppearsOn
-                                      ? "Appears on"
-                                      : ArtistViewModel
-                                          .releaseTypeTitles[releaseType]!,
-                                  "Songs"
-                                ]);
+                                  context,
+                                  "Shuffle",
+                                  [
+                                    isAppearsOn
+                                        ? "Appears on"
+                                        : ArtistViewModel
+                                              .releaseTypeTitles[releaseType]!,
+                                    "Songs",
+                                  ],
+                                );
                                 if (option == null) return;
                                 if (isAppearsOn) {
                                   _viewModel.playAppearsOn(
-                                      shuffleReleases: option == 0,
-                                      shuffleSongs: option == 1);
+                                    shuffleReleases: option == 0,
+                                    shuffleSongs: option == 1,
+                                  );
                                 } else {
-                                  _viewModel.playReleases(releaseType,
-                                      shuffleReleases: option == 0,
-                                      shuffleSongs: option == 1);
+                                  _viewModel.playReleases(
+                                    releaseType,
+                                    shuffleReleases: option == 0,
+                                    shuffleSongs: option == 1,
+                                  );
                                 }
                               },
                             ),
@@ -274,13 +316,19 @@ class _ArtistPageState extends State<ArtistPage> {
                               onSelected: () {
                                 if (isAppearsOn) {
                                   _viewModel.addAppearsOnToQueue(true);
-                                  Toast.show(context,
-                                      "Added 'Appears on' to priority queue");
+                                  Toast.show(
+                                    context,
+                                    "Added 'Appears on' to priority queue",
+                                  );
                                 } else {
                                   _viewModel.addReleasesToQueue(
-                                      releaseType, true);
-                                  Toast.show(context,
-                                      "Added '${ArtistViewModel.releaseTypeTitles[releaseType]}' to priority queue");
+                                    releaseType,
+                                    true,
+                                  );
+                                  Toast.show(
+                                    context,
+                                    "Added '${ArtistViewModel.releaseTypeTitles[releaseType]}' to priority queue",
+                                  );
                                 }
                               },
                             ),
@@ -291,19 +339,27 @@ class _ArtistPageState extends State<ArtistPage> {
                                 if (isAppearsOn) {
                                   _viewModel.addAppearsOnToQueue(false);
                                   Toast.show(
-                                      context, "Added 'Appears on' to queue");
+                                    context,
+                                    "Added 'Appears on' to queue",
+                                  );
                                 } else {
                                   _viewModel.addReleasesToQueue(
-                                      releaseType, false);
-                                  Toast.show(context,
-                                      "Added '${ArtistViewModel.releaseTypeTitles[releaseType]}' to queue");
+                                    releaseType,
+                                    false,
+                                  );
+                                  Toast.show(
+                                    context,
+                                    "Added '${ArtistViewModel.releaseTypeTitles[releaseType]}' to queue",
+                                  );
                                 }
                               },
                             ),
                           ],
                           child: Padding(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 4, vertical: 4),
+                              horizontal: 4,
+                              vertical: 4,
+                            ),
                             child: Row(
                               children: [
                                 Expanded(
@@ -311,7 +367,7 @@ class _ArtistPageState extends State<ArtistPage> {
                                     isAppearsOn
                                         ? "Appears on"
                                         : ArtistViewModel
-                                            .releaseTypeTitles[releaseType]!,
+                                              .releaseTypeTitles[releaseType]!,
                                     textAlign: TextAlign.left,
                                     overflow: TextOverflow.ellipsis,
                                     maxLines: 1,
@@ -319,8 +375,9 @@ class _ArtistPageState extends State<ArtistPage> {
                                         .textTheme
                                         .titleMedium!
                                         .copyWith(
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.w500),
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.w500,
+                                        ),
                                   ),
                                 ),
                               ],
@@ -338,10 +395,12 @@ class _ArtistPageState extends State<ArtistPage> {
                         slivers.add(createSliverGrid());
                         currentAlbums.clear();
                       }
-                      slivers.add(createCategoryDivider(
-                        isFirstReleaseType: lastReleaseType == null,
-                        releaseType: album.releaseType,
-                      ));
+                      slivers.add(
+                        createCategoryDivider(
+                          isFirstReleaseType: lastReleaseType == null,
+                          releaseType: album.releaseType,
+                        ),
+                      );
                       lastReleaseType = album.releaseType;
                     }
                     currentAlbums.add(album);
@@ -353,14 +412,14 @@ class _ArtistPageState extends State<ArtistPage> {
 
                   if (_viewModel.appearsOn.isNotEmpty) {
                     if (albums.isNotEmpty) {
-                      slivers.add(const SliverToBoxAdapter(
-                        child: Divider(),
-                      ));
+                      slivers.add(const SliverToBoxAdapter(child: Divider()));
                     }
-                    slivers.add(createCategoryDivider(
-                      isFirstReleaseType: albums.isEmpty,
-                      isAppearsOn: true,
-                    ));
+                    slivers.add(
+                      createCategoryDivider(
+                        isFirstReleaseType: albums.isEmpty,
+                        isAppearsOn: true,
+                      ),
+                    );
                     slivers.add(createSliverGrid(_viewModel.appearsOn));
                   }
 

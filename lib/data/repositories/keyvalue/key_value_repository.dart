@@ -1,3 +1,11 @@
+/*
+ * Copyright 2024-2026 Julian Hofmann (+ Crossonic contributors).
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import 'dart:convert';
 
 import 'package:crossonic/data/repositories/logger/log.dart';
@@ -64,19 +72,23 @@ class KeyValueRepository {
   }
 
   Future<T?> loadObject<T>(
-      String key, T Function(Map<String, dynamic>) fromJson) async {
+    String key,
+    T Function(Map<String, dynamic>) fromJson,
+  ) async {
     final json = await _loadValue(key);
     if (json == null) return null;
     return fromJson(jsonDecode(json));
   }
 
   Future<Iterable<T>?> loadObjectList<T>(
-      String key, T Function(Map<String, dynamic>) fromJson) async {
+    String key,
+    T Function(Map<String, dynamic>) fromJson,
+  ) async {
     final json = await _loadValue(key);
     if (json == null) return null;
-    return (jsonDecode(json) as List<dynamic>)
-        .cast<Map<String, dynamic>>()
-        .map((e) => fromJson(e));
+    return (jsonDecode(json) as List<dynamic>).cast<Map<String, dynamic>>().map(
+      (e) => fromJson(e),
+    );
   }
 
   Future<Iterable<String>> keys() async {

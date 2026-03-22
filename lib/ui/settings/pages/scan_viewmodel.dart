@@ -1,3 +1,11 @@
+/*
+ * Copyright 2024-2026 Julian Hofmann (+ Crossonic contributors).
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import 'dart:async';
 
 import 'package:crossonic/data/repositories/subsonic/subsonic_repository.dart';
@@ -18,7 +26,7 @@ class ScanViewModel extends ChangeNotifier {
     isFullScan: null,
     lastScan: null,
     scanStart: null,
-    scanned: null
+    scanned: null,
   );
   ScanStatus get scanStatus => _scanStatus;
 
@@ -45,8 +53,9 @@ class ScanViewModel extends ChangeNotifier {
       case Ok():
     }
     _scanStatus = result.value;
-    _refreshTimer ??=
-        Timer.periodic(const Duration(milliseconds: 250), (timer) async {
+    _refreshTimer ??= Timer.periodic(const Duration(milliseconds: 250), (
+      timer,
+    ) async {
       await _loadStatus();
     });
     notifyListeners();
@@ -66,8 +75,9 @@ class ScanViewModel extends ChangeNotifier {
     _status = FetchStatus.success;
     _scanStatus = result.value;
     if (_scanStatus.scanning) {
-      _refreshTimer ??=
-          Timer.periodic(const Duration(milliseconds: 250), (timer) async {
+      _refreshTimer ??= Timer.periodic(const Duration(milliseconds: 250), (
+        timer,
+      ) async {
         await _loadStatus();
       });
     } else {

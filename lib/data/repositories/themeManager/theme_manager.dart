@@ -1,3 +1,11 @@
+/*
+ * Copyright 2024-2026 Julian Hofmann (+ Crossonic contributors).
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import 'dart:async';
 import 'dart:io';
 
@@ -29,8 +37,8 @@ class ThemeManager extends ChangeNotifier {
   ThemeManager({
     required KeyValueRepository keyValue,
     required AppearanceSettings appearanceSettings,
-  })  : _keyValue = keyValue,
-        _settings = appearanceSettings {
+  }) : _keyValue = keyValue,
+       _settings = appearanceSettings {
     if (!kIsWeb && Platform.isLinux) {
       _dbus = DBusInterface();
       _loadLinuxSystemTheme();
@@ -51,8 +59,9 @@ class ThemeManager extends ChangeNotifier {
 
   Future<void> _loadLinuxSystemTheme() async {
     Log.debug("Loading preferred color scheme...");
-    final cachedPrefersDark =
-        await _keyValue.loadBool(_linuxThemePrefersDarkKey);
+    final cachedPrefersDark = await _keyValue.loadBool(
+      _linuxThemePrefersDarkKey,
+    );
     if (cachedPrefersDark != null) {
       _systemMode = cachedPrefersDark ? ThemeMode.dark : ThemeMode.light;
       Log.debug("Cached color scheme is: ${_systemMode.name}");
@@ -71,14 +80,16 @@ class ThemeManager extends ChangeNotifier {
           _systemMode = ThemeMode.system;
       }
       Log.info(
-          "Successfully loaded color scheme from dbus: $dbusPreference -> ${_systemMode.name}");
+        "Successfully loaded color scheme from dbus: $dbusPreference -> ${_systemMode.name}",
+      );
       if (_systemMode != previous) {
         notifyListeners();
       }
       await _updateCache();
 
-      _preferenceStreamSubscription ??=
-          _dbus.themePreferenceStream.listen((event) async {
+      _preferenceStreamSubscription ??= _dbus.themePreferenceStream.listen((
+        event,
+      ) async {
         final prev = _systemMode;
         switch (event) {
           case 1:
@@ -89,7 +100,8 @@ class ThemeManager extends ChangeNotifier {
             _systemMode = ThemeMode.system;
         }
         Log.info(
-            "Detected color scheme change via dbus. New value: $event -> ${_systemMode.name}");
+          "Detected color scheme change via dbus. New value: $event -> ${_systemMode.name}",
+        );
         if (_systemMode != prev) {
           notifyListeners();
         }
@@ -99,11 +111,15 @@ class ThemeManager extends ChangeNotifier {
     }
 
     Log.warn(
-        "DBUS color-scheme property not available, no live theme switching (without app restart)");
+      "DBUS color-scheme property not available, no live theme switching (without app restart)",
+    );
 
     try {
-      final gsettingsResult = await Process.run(
-          "gsettings", ["get", "org.gnome.desktop.interface", "color-scheme"]);
+      final gsettingsResult = await Process.run("gsettings", [
+        "get",
+        "org.gnome.desktop.interface",
+        "color-scheme",
+      ]);
       if (gsettingsResult.exitCode == 0) {
         final result = (gsettingsResult.stdout as String).toLowerCase();
         if (result.isNotEmpty) {
@@ -115,7 +131,8 @@ class ThemeManager extends ChangeNotifier {
             _systemMode = ThemeMode.system;
           }
           Log.info(
-              "Successfully loaded color scheme from gsettings color-scheme key: $result -> ${_systemMode.name}");
+            "Successfully loaded color scheme from gsettings color-scheme key: $result -> ${_systemMode.name}",
+          );
           if (_systemMode != previous) {
             notifyListeners();
           }
@@ -126,14 +143,18 @@ class ThemeManager extends ChangeNotifier {
     } catch (_) {}
 
     try {
-      final gsettingsResult = await Process.run(
-          "gsettings", ["get", "org.gnome.desktop.interface", "gtk-theme"]);
+      final gsettingsResult = await Process.run("gsettings", [
+        "get",
+        "org.gnome.desktop.interface",
+        "gtk-theme",
+      ]);
       if (gsettingsResult.exitCode == 0) {
         final result = gsettingsResult.stdout as String;
         if (result.isNotEmpty && result.contains("dark")) {
           _systemMode = ThemeMode.dark;
           Log.info(
-              "Successfully loaded color scheme from gsettings gtk-theme key: $result -> ${_systemMode.name}");
+            "Successfully loaded color scheme from gsettings gtk-theme key: $result -> ${_systemMode.name}",
+          );
           if (_systemMode != previous) {
             notifyListeners();
           }

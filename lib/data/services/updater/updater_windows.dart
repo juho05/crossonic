@@ -1,3 +1,11 @@
+/*
+ * Copyright 2024-2026 Julian Hofmann (+ Crossonic contributors).
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import 'dart:io';
 
 import 'package:crossonic/data/repositories/logger/log.dart';
@@ -14,7 +22,10 @@ class UpdaterWindows implements Updater {
   Future<Result<void>> install(File downloadedFile) async {
     try {
       Log.debug("Running installer ${downloadedFile.path}...");
-      Process.run("powershell", ["-Command", "Start-Sleep -Seconds 2; &'${downloadedFile.absolute.path}' /SP-"]);
+      Process.run("powershell", [
+        "-Command",
+        "Start-Sleep -Seconds 2; &'${downloadedFile.absolute.path}' /SP-",
+      ]);
       await Future.delayed(const Duration(seconds: 1), () => exit(0));
     } on Exception catch (e) {
       return Result.error(e);

@@ -1,3 +1,11 @@
+/*
+ * Copyright 2024-2026 Julian Hofmann (+ Crossonic contributors).
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -128,6 +136,8 @@ class _SearchInputState extends State<SearchInput> with RestorationMixin {
   @override
   void restoreState(RestorationBucket? oldBucket, bool initialRestore) {
     registerForRestoration(
-        _controller, "${widget.restorationId ?? "search_input"}_controller");
+      _controller,
+      "${widget.restorationId ?? "search_input"}_controller",
+    );
   }
 }

@@ -1,3 +1,11 @@
+/*
+ * Copyright 2024-2026 Julian Hofmann (+ Crossonic contributors).
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import 'package:auto_route/auto_route.dart';
 import 'package:crossonic/data/repositories/logger/log_message.dart';
 import 'package:crossonic/routing/router.gr.dart';
@@ -15,8 +23,9 @@ class LogMessageListItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = levelColors[msg.level]!;
-    final textStyle =
-        Theme.of(context).textTheme.bodyMedium!.copyWith(color: color);
+    final textStyle = Theme.of(
+      context,
+    ).textTheme.bodyMedium!.copyWith(color: color);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Container(
@@ -46,22 +55,20 @@ class LogMessageListItem extends StatelessWidget {
                       children: [
                         Text(
                           msg.level.name.toUpperCase(),
-                          style:
-                              textStyle.copyWith(fontWeight: FontWeight.bold),
+                          style: textStyle.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                         Expanded(
                           child: Text(
                             formatDateTime(msg.time),
-                            style:
-                                textStyle.copyWith(fontWeight: FontWeight.bold),
+                            style: textStyle.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                         if (msg.exception != null)
-                          Icon(
-                            Icons.error_outline,
-                            color: color,
-                            size: 20,
-                          )
+                          Icon(Icons.error_outline, color: color, size: 20),
                       ],
                     ),
                     Text(
@@ -74,7 +81,7 @@ class LogMessageListItem extends StatelessWidget {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: textStyle.copyWith(fontSize: 13),
-                    )
+                    ),
                   ],
                 ),
               ),

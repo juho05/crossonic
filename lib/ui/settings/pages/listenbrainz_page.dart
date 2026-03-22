@@ -1,3 +1,11 @@
+/*
+ * Copyright 2024-2026 Julian Hofmann (+ Crossonic contributors).
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import 'package:auto_route/auto_route.dart';
 import 'package:crossonic/ui/common/buttons.dart';
 import 'package:crossonic/ui/common/toast.dart';
@@ -25,9 +33,8 @@ class _ListenBrainzPageState extends State<ListenBrainzPage> {
   @override
   void initState() {
     super.initState();
-    _viewModel = ListenBrainzViewModel(
-      subsonicRepository: context.read(),
-    )..load();
+    _viewModel = ListenBrainzViewModel(subsonicRepository: context.read())
+      ..load();
   }
 
   @override
@@ -39,9 +46,7 @@ class _ListenBrainzPageState extends State<ListenBrainzPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("ListenBrainz"),
-      ),
+      appBar: AppBar(title: const Text("ListenBrainz")),
       body: ListenableBuilder(
         listenable: _viewModel,
         builder: (context, _) {
@@ -80,7 +85,7 @@ class _ConnectedContent extends StatelessWidget {
   final ListenBrainzViewModel _viewModel;
 
   const _ConnectedContent({required ListenBrainzViewModel viewModel})
-      : _viewModel = viewModel;
+    : _viewModel = viewModel;
 
   @override
   Widget build(BuildContext context) {
@@ -95,13 +100,17 @@ class _ConnectedContent extends StatelessWidget {
             children: [
               Text(
                 "Connected:",
-                style: textTheme.bodyMedium!
-                    .copyWith(fontWeight: FontWeight.bold, fontSize: 16),
+                style: textTheme.bodyMedium!.copyWith(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
               ),
               Flexible(
-                child: Text(_viewModel.username!,
-                    overflow: TextOverflow.ellipsis,
-                    style: textTheme.bodyMedium!.copyWith(fontSize: 14)),
+                child: Text(
+                  _viewModel.username!,
+                  overflow: TextOverflow.ellipsis,
+                  style: textTheme.bodyMedium!.copyWith(fontSize: 14),
+                ),
               ),
             ],
           ),
@@ -112,8 +121,9 @@ class _ConnectedContent extends StatelessWidget {
             value: _viewModel.scrobbleEnabled,
             title: const Text("Enable scrobbling"),
             onChanged: (bool enable) async {
-              final result =
-                  await _viewModel.updateSettings(scrobbleEnabled: enable);
+              final result = await _viewModel.updateSettings(
+                scrobbleEnabled: enable,
+              );
               if (!context.mounted) return;
               toastResult(context, result);
             },
@@ -123,8 +133,9 @@ class _ConnectedContent extends StatelessWidget {
             value: _viewModel.syncFavorites,
             title: const Text("Enable favorites sync"),
             onChanged: (bool enable) async {
-              final result =
-                  await _viewModel.updateSettings(syncFavorites: enable);
+              final result = await _viewModel.updateSettings(
+                syncFavorites: enable,
+              );
               if (!context.mounted) return;
               toastResult(context, result);
             },
@@ -201,8 +212,9 @@ class _ConnectContentState extends State<_ConnectContent> {
                       if (!_formKey.currentState!.saveAndValidate()) {
                         return;
                       }
-                      widget
-                          .onConnect(_formKey.currentState!.value["apiToken"]);
+                      widget.onConnect(
+                        _formKey.currentState!.value["apiToken"],
+                      );
                     }
                   : null,
               darkTonal: true,
@@ -210,7 +222,7 @@ class _ConnectContentState extends State<_ConnectContent> {
                   ? const Text("Connecting…")
                   : const Text("Connect"),
             ),
-          )
+          ),
         ],
       ),
     );

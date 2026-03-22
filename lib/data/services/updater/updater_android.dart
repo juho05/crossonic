@@ -1,3 +1,11 @@
+/*
+ * Copyright 2024-2026 Julian Hofmann (+ Crossonic contributors).
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import 'dart:io';
 
 import 'package:android_package_installer/android_package_installer.dart';
@@ -29,8 +37,11 @@ class UpdaterAndroid implements Updater {
       final arch = await _getArchitecture();
       return "Crossonic-$version-android-$arch.apk";
     } on Exception catch (e, st) {
-      Log.error("Failed to get system architecture. Defaulting to arm64v8",
-          e: e, st: st);
+      Log.error(
+        "Failed to get system architecture. Defaulting to arm64v8",
+        e: e,
+        st: st,
+      );
       return "arm64v8";
     }
   }
@@ -41,9 +52,12 @@ class UpdaterAndroid implements Updater {
       if (await _isMIUIDevice()) {
         final permissionGranted = await _requestInstallApkPermission();
         if (!permissionGranted) {
-          return Result.error(AndroidUpdateFailedException(
+          return Result.error(
+            AndroidUpdateFailedException(
               "User declined APK install permission",
-              PackageInstallerStatus.failureAborted));
+              PackageInstallerStatus.failureAborted,
+            ),
+          );
         }
         return await _openApk(downloadedFile);
       } else {
@@ -64,11 +78,15 @@ class UpdaterAndroid implements Updater {
         return const Result.ok(null);
       }
       return Result.error(
-          AndroidUpdateFailedException("Failed to install APK", status));
+        AndroidUpdateFailedException("Failed to install APK", status),
+      );
     }
-    return Result.error(AndroidUpdateFailedException(
+    return Result.error(
+      AndroidUpdateFailedException(
         "Unknown APK install status, assuming failure",
-        PackageInstallerStatus.unknown));
+        PackageInstallerStatus.unknown,
+      ),
+    );
   }
 
   Future<bool> _requestInstallApkPermission() async {
@@ -86,11 +104,17 @@ class UpdaterAndroid implements Updater {
   }
 
   Future<Result<void>> _openApk(File downloadedFile) async {
-    final result = await OpenFile.open(downloadedFile.path,
-        type: "application/vnd.android.package-archive");
+    final result = await OpenFile.open(
+      downloadedFile.path,
+      type: "application/vnd.android.package-archive",
+    );
     if (result.type != ResultType.done) {
-      return Result.error(AndroidUpdateFailedException(
-          "Failed to open APK file", PackageInstallerStatus.failure));
+      return Result.error(
+        AndroidUpdateFailedException(
+          "Failed to open APK file",
+          PackageInstallerStatus.failure,
+        ),
+      );
     }
     return const Result.ok(null);
   }

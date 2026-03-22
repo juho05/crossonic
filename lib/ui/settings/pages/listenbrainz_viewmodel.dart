@@ -1,3 +1,11 @@
+/*
+ * Copyright 2024-2026 Julian Hofmann (+ Crossonic contributors).
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import 'package:crossonic/data/repositories/subsonic/subsonic_repository.dart';
 import 'package:crossonic/utils/fetch_status.dart';
 import 'package:crossonic/utils/result.dart';
@@ -23,7 +31,7 @@ class ListenBrainzViewModel extends ChangeNotifier {
   bool get syncFavorites => _syncFavorites;
 
   ListenBrainzViewModel({required SubsonicRepository subsonicRepository})
-      : _subsonic = subsonicRepository;
+    : _subsonic = subsonicRepository;
 
   Future<void> load() async {
     _status = FetchStatus.loading;
@@ -73,7 +81,9 @@ class ListenBrainzViewModel extends ChangeNotifier {
     _syncFavorites = syncFavorites ?? _syncFavorites;
     notifyListeners();
     final result = await _subsonic.updateListenBrainzConfig(
-        scrobble: scrobbleEnabled, syncFeedback: syncFavorites);
+      scrobble: scrobbleEnabled,
+      syncFeedback: syncFavorites,
+    );
     switch (result) {
       case Err():
         _scrobbleEnabled = oldScrobble;

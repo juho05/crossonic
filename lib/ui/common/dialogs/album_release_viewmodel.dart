@@ -1,3 +1,11 @@
+/*
+ * Copyright 2024-2026 Julian Hofmann (+ Crossonic contributors).
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/data/repositories/subsonic/models/album.dart';
 import 'package:crossonic/data/repositories/subsonic/subsonic_repository.dart';
@@ -17,15 +25,16 @@ class AlbumReleaseDialogViewModel extends ChangeNotifier {
   FetchStatus _status;
   FetchStatus get status => _status;
 
-  AlbumReleaseDialogViewModel(
-      {required SubsonicRepository subsonicRepository,
-      required Album album,
-      List<Album>? alternatives})
-      : _subsonic = subsonicRepository,
-        _album = album,
-        _alternatives = alternatives ?? const [],
-        _status =
-            alternatives != null ? FetchStatus.success : FetchStatus.initial {
+  AlbumReleaseDialogViewModel({
+    required SubsonicRepository subsonicRepository,
+    required Album album,
+    List<Album>? alternatives,
+  }) : _subsonic = subsonicRepository,
+       _album = album,
+       _alternatives = alternatives ?? const [],
+       _status = alternatives != null
+           ? FetchStatus.success
+           : FetchStatus.initial {
     if (alternatives == null) {
       _loadAlternatives();
     } else {

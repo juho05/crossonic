@@ -1,3 +1,11 @@
+/*
+ * Copyright 2024-2026 Julian Hofmann (+ Crossonic contributors).
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import 'dart:async';
 import 'dart:math';
 
@@ -18,11 +26,11 @@ class HomeViewModel extends ChangeNotifier {
   String? _seed;
   String? get seed => _seed;
 
-  HomeViewModel(
-      {required HomeLayoutSettings settings,
-      required SubsonicRepository subsonicRepository})
-      : _settings = settings,
-        _subsonic = subsonicRepository {
+  HomeViewModel({
+    required HomeLayoutSettings settings,
+    required SubsonicRepository subsonicRepository,
+  }) : _settings = settings,
+       _subsonic = subsonicRepository {
     if (_subsonic.supports.randomSeed) {
       _seed = Random().nextDouble().toString();
     }

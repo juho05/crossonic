@@ -1,3 +1,11 @@
+/*
+ * Copyright 2024-2026 Julian Hofmann (+ Crossonic contributors).
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import 'package:crossonic/data/repositories/keyvalue/key_value_repository.dart';
 import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:flutter/material.dart';
@@ -24,19 +32,20 @@ class ReplayGainSettings extends ChangeNotifier {
   bool get preferServerFallbackGain => _preferServerFallbackGain;
 
   ReplayGainSettings({required KeyValueRepository keyValueRepository})
-      : _repo = keyValueRepository;
+    : _repo = keyValueRepository;
 
   Future<void> load() async {
     Log.trace("loading replay gain settings");
-    _mode = ReplayGainMode.values
-        .byName(await _repo.loadString(_modeKey) ?? _modeDefault.name);
+    _mode = ReplayGainMode.values.byName(
+      await _repo.loadString(_modeKey) ?? _modeDefault.name,
+    );
 
     _fallbackGain =
         await _repo.loadDouble(_fallbackGainKey) ?? _fallbackGainDefault;
 
     _preferServerFallbackGain =
         await _repo.loadBool(_preferServerFallbackGainKey) ??
-            _preferServerFallbackGainDefault;
+        _preferServerFallbackGainDefault;
 
     notifyListeners();
   }

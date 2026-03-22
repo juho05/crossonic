@@ -1,3 +1,11 @@
+/*
+ * Copyright 2024-2026 Julian Hofmann (+ Crossonic contributors).
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import 'dart:collection';
 
 import 'package:crossonic/data/repositories/logger/log.dart';
@@ -32,9 +40,10 @@ class AddToPlaylistViewModel extends ChangeNotifier {
 
   String _query = "";
 
-  AddToPlaylistViewModel(
-      {required PlaylistRepository repository, required SongLoader songLoader})
-      : _repository = repository {
+  AddToPlaylistViewModel({
+    required PlaylistRepository repository,
+    required SongLoader songLoader,
+  }) : _repository = repository {
     _load(songLoader);
     _repository.addListener(_onPlaylistsChanged);
   }
@@ -42,10 +51,7 @@ class AddToPlaylistViewModel extends ChangeNotifier {
   Future<void> _load(SongLoader loader) async {
     _status = FetchStatus.loading;
     notifyListeners();
-    final results = await Future.wait([
-      _loadSongs(loader),
-      _loadPlaylists(),
-    ]);
+    final results = await Future.wait([_loadSongs(loader), _loadPlaylists()]);
 
     if (results.any((r) => r is Err)) {
       _status = FetchStatus.failure;
@@ -76,8 +82,9 @@ class AddToPlaylistViewModel extends ChangeNotifier {
   }
 
   Future<Result<void>> _loadPlaylists() async {
-    final result =
-        await _repository.getPlaylists(orderBy: PlaylistOrderBy.updated);
+    final result = await _repository.getPlaylists(
+      orderBy: PlaylistOrderBy.updated,
+    );
     switch (result) {
       case Err():
         _playlists = [];
@@ -117,7 +124,8 @@ class AddToPlaylistViewModel extends ChangeNotifier {
   }
 
   Future<int> addSongsToPlaylists(
-      Future<bool?> Function(Playlist p, Song s) askDuplicate) async {
+    Future<bool?> Function(Playlist p, Song s) askDuplicate,
+  ) async {
     int successCount = 0;
     selectedPlaylistsLoop:
     for (final p in _selectedPlaylists) {
@@ -169,8 +177,9 @@ class AddToPlaylistViewModel extends ChangeNotifier {
       _filteredPlaylists = _playlists;
       return;
     }
-    _filteredPlaylists =
-        _playlists.where((p) => p.name.toLowerCase().contains(_query)).toList();
+    _filteredPlaylists = _playlists
+        .where((p) => p.name.toLowerCase().contains(_query))
+        .toList();
   }
 
   Future<void> _onPlaylistsChanged() async {

@@ -1,3 +1,11 @@
+/*
+ * Copyright 2024-2026 Julian Hofmann (+ Crossonic contributors).
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import 'package:crossonic/data/repositories/keyvalue/key_value_repository.dart';
 import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:flutter/material.dart';
@@ -16,12 +24,13 @@ class AppearanceSettings extends ChangeNotifier {
   bool get dynamicColors => _dynamicColors;
 
   AppearanceSettings({required KeyValueRepository keyValueRepository})
-      : _repo = keyValueRepository;
+    : _repo = keyValueRepository;
 
   Future<void> load() async {
     Log.trace("loading appearance settings");
     _themeMode = ThemeMode.values.byName(
-        (await _repo.loadString(_themeModeKey)) ?? _themeModeDefault.name);
+      (await _repo.loadString(_themeModeKey)) ?? _themeModeDefault.name,
+    );
     _dynamicColors =
         await _repo.loadBool(_dynamicColorsKey) ?? _dynamicColorsDefault;
     notifyListeners();

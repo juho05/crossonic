@@ -1,3 +1,11 @@
+/*
+ * Copyright 2024-2026 Julian Hofmann (+ Crossonic contributors).
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import 'package:crossonic/data/repositories/keyvalue/key_value_repository.dart';
 import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/data/repositories/version/exception.dart';
@@ -24,8 +32,8 @@ class VersionRepository {
   VersionRepository({
     required GitHubService github,
     required KeyValueRepository keyValue,
-  })  : _github = github,
-        _keyValue = keyValue;
+  }) : _github = github,
+       _keyValue = keyValue;
 
   Future<Result<Version?>> getLatestVersion({bool force = false}) async {
     final result = await getLatestVersionTag(force: force);
@@ -61,7 +69,10 @@ class VersionRepository {
 
     Log.trace("fetching latest version tag from GitHub...");
     final tags = await _github.getRepositoryTags(
-        owner: "juho05", repo: "crossonic", pageSize: 30);
+      owner: "juho05",
+      repo: "crossonic",
+      pageSize: 30,
+    );
     switch (tags) {
       case Err():
         return Result.error(tags.error);

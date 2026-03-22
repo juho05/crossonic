@@ -1,3 +1,11 @@
+/*
+ * Copyright 2024-2026 Julian Hofmann (+ Crossonic contributors).
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import 'dart:io';
 
 import 'package:crossonic/data/repositories/keyvalue/key_value_repository.dart';
@@ -15,10 +23,14 @@ class AppImageRepository {
   static const integrationDisabledKey = "integrate_appimage_disabled";
 
   final _desktopFileDirPath = path.join(
-      Platform.environment["HOME"] ?? "~", ".local", "share", "applications");
+    Platform.environment["HOME"] ?? "~",
+    ".local",
+    "share",
+    "applications",
+  );
 
   AppImageRepository({required KeyValueRepository keyValue})
-      : _keyValue = keyValue;
+    : _keyValue = keyValue;
 
   static bool get isAppImage {
     return !kIsWeb &&
@@ -38,14 +50,17 @@ class AppImageRepository {
 
     if (Platform.environment["CROSSONIC_DISABLE_APPIMAGE_INTEGRATION"] == "1") {
       Log.trace(
-          "Skipping AppImage integration check: disabled by env variable");
+        "Skipping AppImage integration check: disabled by env variable",
+      );
       return false;
     }
 
     final currentVersion = await VersionRepository.getCurrentVersion();
 
-    final disabled =
-        await _keyValue.loadObject(integrationDisabledKey, Version.fromJson);
+    final disabled = await _keyValue.loadObject(
+      integrationDisabledKey,
+      Version.fromJson,
+    );
     if (disabled != null && disabled == currentVersion) {
       Log.debug("AppImage integration is disabled for version $disabled");
       return false;
@@ -64,31 +79,40 @@ class AppImageRepository {
       final iconDir = await getApplicationSupportDirectory();
 
       Log.trace("Copying icon file...");
-      final iconBytes =
-          await rootBundle.load("assets/icon/desktop/crossonic-512.png");
-      await File(path.join(iconDir.path, "crossonic.png"))
-          .writeAsBytes(Uint8List.sublistView(iconBytes));
+      final iconBytes = await rootBundle.load(
+        "assets/icon/desktop/crossonic-512.png",
+      );
+      await File(
+        path.join(iconDir.path, "crossonic.png"),
+      ).writeAsBytes(Uint8List.sublistView(iconBytes));
 
-      final appImageDir =
-          path.join(Platform.environment["HOME"] ?? "~", ".local", "bin");
+      final appImageDir = path.join(
+        Platform.environment["HOME"] ?? "~",
+        ".local",
+        "bin",
+      );
       final appImagePath = path.join(appImageDir, "crossonic");
 
       await Directory(appImageDir).create(recursive: true);
       Log.trace("Moving AppImage...");
-      _overrideAppImageFile =
-          (await appImageFile.rename(appImagePath)).absolute;
+      _overrideAppImageFile = (await appImageFile.rename(
+        appImagePath,
+      )).absolute;
 
       try {
         Log.trace("Ensuring AppImage is executable...");
         await Process.run("chmod", ["+x", appImagePath]);
       } catch (e, st) {
-        Log.warn("Failed to ensure that the integrated AppImage is executable",
-            e: e, st: st);
+        Log.warn(
+          "Failed to ensure that the integrated AppImage is executable",
+          e: e,
+          st: st,
+        );
       }
 
       final desktopFile = await File(
-              path.join(_desktopFileDirPath, "org.crossonic.app.desktop"))
-          .create(recursive: true);
+        path.join(_desktopFileDirPath, "org.crossonic.app.desktop"),
+      ).create(recursive: true);
       Log.trace("Creating desktop file...");
       desktopFile.writeAsString("""[Desktop Entry]
 Icon=${path.join(iconDir.path, "crossonic.png")}
@@ -101,8 +125,11 @@ Terminal=false
 StartupNotify=true
 """, flush: true);
     } on Exception catch (e, st) {
-      Log.error("Failed to integrate APPIMAGE into desktop environment",
-          e: e, st: st);
+      Log.error(
+        "Failed to integrate APPIMAGE into desktop environment",
+        e: e,
+        st: st,
+      );
       return Result.error(e);
     }
 
@@ -132,8 +159,14 @@ StartupNotify=true
   Future<bool> _isIntegrated() async {
     Log.trace("The current AppImage path is: $appImageFile");
 
-    final desiredAppImageFile = File(path.join(
-        Platform.environment["HOME"] ?? "~", ".local", "bin", "crossonic"));
+    final desiredAppImageFile = File(
+      path.join(
+        Platform.environment["HOME"] ?? "~",
+        ".local",
+        "bin",
+        "crossonic",
+      ),
+    );
 
     if (!await appImageFile.exists()) {
       Log.error("APPIMAGE environment variable does not point to a valid file");
@@ -142,7 +175,8 @@ StartupNotify=true
 
     if (!await desiredAppImageFile.exists()) {
       Log.debug(
-          "AppImage is not integrated because there is no AppImage at the desired system path");
+        "AppImage is not integrated because there is no AppImage at the desired system path",
+      );
       return false;
     }
 
@@ -152,7 +186,8 @@ StartupNotify=true
       Log.debug("AppImage already integrated");
     } else {
       Log.debug(
-          "AppImage not integrated because the current AppImage is not at the correct location");
+        "AppImage not integrated because the current AppImage is not at the correct location",
+      );
     }
 
     return integrated;

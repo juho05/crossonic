@@ -1,5 +1,14 @@
+/*
+ * Copyright 2024-2026 Julian Hofmann (+ Crossonic contributors).
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import 'dart:convert';
 import 'dart:math';
+
 import 'package:crossonic/data/repositories/auth/encrypted_storage.dart';
 import 'package:crossonic/data/services/opensubsonic/auth.dart';
 import 'package:crypto/crypto.dart';
@@ -39,10 +48,7 @@ class AuthStatePassword extends AuthState {
 
   static const String type = "password";
 
-  AuthStatePassword({
-    required this.username,
-    required this.password,
-  });
+  AuthStatePassword({required this.username, required this.password});
 
   factory AuthStatePassword.fromJson(Map<String, Object?> json) {
     return AuthStatePassword(
@@ -52,11 +58,7 @@ class AuthStatePassword extends AuthState {
   }
 
   Map<String, Object?> toJson() {
-    return {
-      "type": type,
-      "username": username,
-      "password": password,
-    };
+    return {"type": type, "username": username, "password": password};
   }
 
   @override
@@ -65,10 +67,7 @@ class AuthStatePassword extends AuthState {
   }
 
   @override
-  Map<String, String> get queryParams => {
-        "u": username,
-        "p": password,
-      };
+  Map<String, String> get queryParams => {"u": username, "p": password};
 }
 
 class AuthStateToken extends AuthState {
@@ -78,10 +77,7 @@ class AuthStateToken extends AuthState {
 
   static const String type = "token";
 
-  AuthStateToken({
-    required this.username,
-    required this.password,
-  });
+  AuthStateToken({required this.username, required this.password});
 
   factory AuthStateToken.fromJson(Map<String, Object?> json) {
     return AuthStateToken(
@@ -91,11 +87,7 @@ class AuthStateToken extends AuthState {
   }
 
   Map<String, Object?> toJson() {
-    return {
-      "type": type,
-      "username": username,
-      "password": password,
-    };
+    return {"type": type, "username": username, "password": password};
   }
 
   @override
@@ -113,22 +105,14 @@ class AuthStateToken extends AuthState {
     }
     final salt = buffer.toString();
     final hash = md5.convert(utf8.encode(password + salt)).toString();
-    return {
-      "u": username,
-      "t": hash,
-      "s": salt,
-    };
+    return {"u": username, "t": hash, "s": salt};
   }
 
   @override
   Map<String, String> get queryParamsCacheFriendly {
     final salt = "constantsalt";
     final hash = md5.convert(utf8.encode(password + salt)).toString();
-    return {
-      "u": username,
-      "t": hash,
-      "s": salt,
-    };
+    return {"u": username, "t": hash, "s": salt};
   }
 }
 
@@ -139,10 +123,7 @@ class AuthStateApiKey extends AuthState {
 
   static const String type = "api_key";
 
-  AuthStateApiKey({
-    required this.username,
-    required this.apiKey,
-  });
+  AuthStateApiKey({required this.username, required this.apiKey});
 
   factory AuthStateApiKey.fromJson(Map<String, Object?> json) {
     return AuthStateApiKey(
@@ -152,11 +133,7 @@ class AuthStateApiKey extends AuthState {
   }
 
   Map<String, Object?> toJson() {
-    return {
-      "type": type,
-      "username": username,
-      "key": apiKey,
-    };
+    return {"type": type, "username": username, "key": apiKey};
   }
 
   @override
@@ -165,7 +142,5 @@ class AuthStateApiKey extends AuthState {
   }
 
   @override
-  Map<String, String> get queryParams => {
-        "apiKey": apiKey,
-      };
+  Map<String, String> get queryParams => {"apiKey": apiKey};
 }

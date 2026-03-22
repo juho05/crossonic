@@ -1,3 +1,11 @@
+/*
+ * Copyright 2024-2026 Julian Hofmann (+ Crossonic contributors).
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import 'package:auto_route/auto_route.dart';
 import 'package:crossonic/routing/router.gr.dart';
 import 'package:crossonic/ui/browse/browse_grid_button.dart';
@@ -24,9 +32,7 @@ class _BrowsePageState extends State<BrowsePage> {
   @override
   void initState() {
     super.initState();
-    _viewModel = BrowseViewModel(
-      subsonicRepository: context.read(),
-    );
+    _viewModel = BrowseViewModel(subsonicRepository: context.read());
   }
 
   @override
@@ -46,8 +52,11 @@ class _BrowsePageState extends State<BrowsePage> {
               return CustomScrollView(
                 slivers: [
                   SliverPadding(
-                    padding:
-                        const EdgeInsets.only(left: 15, right: 15, bottom: 12),
+                    padding: const EdgeInsets.only(
+                      left: 15,
+                      right: 15,
+                      bottom: 12,
+                    ),
                     sliver: SliverToBoxAdapter(
                       child: SearchInput(
                         onSearch: (query) {
@@ -60,7 +69,9 @@ class _BrowsePageState extends State<BrowsePage> {
                   if (!_viewModel.searchMode)
                     SliverPadding(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 15, vertical: 8),
+                        horizontal: 15,
+                        vertical: 8,
+                      ),
                       sliver: SliverGrid.extent(
                         maxCrossAxisExtent: 150,
                         childAspectRatio: 4.8 / 5,
@@ -106,9 +117,7 @@ class _BrowsePageState extends State<BrowsePage> {
                     const SliverPadding(
                       padding: EdgeInsets.only(top: 12),
                       sliver: SliverToBoxAdapter(
-                        child: Center(
-                          child: Icon(Icons.wifi_off),
-                        ),
+                        child: Center(child: Icon(Icons.wifi_off)),
                       ),
                     ),
                   if (_viewModel.searchMode &&
@@ -129,9 +138,7 @@ class _BrowsePageState extends State<BrowsePage> {
                     const SliverPadding(
                       padding: EdgeInsets.only(top: 12),
                       sliver: SliverToBoxAdapter(
-                        child: Center(
-                          child: Text("No results"),
-                        ),
+                        child: Center(child: Text("No results")),
                       ),
                     ),
                   if (_viewModel.searchMode && _viewModel.artists.isNotEmpty)
@@ -142,9 +149,7 @@ class _BrowsePageState extends State<BrowsePage> {
                       ),
                     ),
                   if (_viewModel.searchMode && _viewModel.artists.isNotEmpty)
-                    ArtistListSliver(
-                      artists: _viewModel.artists,
-                    ),
+                    ArtistListSliver(artists: _viewModel.artists),
                   if (_viewModel.searchMode && _viewModel.albums.isNotEmpty)
                     const SliverToBoxAdapter(
                       child: BrowseSearchResultSeparator(
@@ -153,9 +158,7 @@ class _BrowsePageState extends State<BrowsePage> {
                       ),
                     ),
                   if (_viewModel.searchMode && _viewModel.albums.isNotEmpty)
-                    AlbumListSliver(
-                      albums: _viewModel.albums,
-                    ),
+                    AlbumListSliver(albums: _viewModel.albums),
                   if (_viewModel.searchMode && _viewModel.songs.isNotEmpty)
                     const SliverToBoxAdapter(
                       child: BrowseSearchResultSeparator(
@@ -192,10 +195,7 @@ class BrowseSearchResultSeparator extends StatelessWidget {
         spacing: 8,
         children: [
           Icon(icon),
-          Text(
-            title,
-            style: Theme.of(context).textTheme.bodyLarge,
-          )
+          Text(title, style: Theme.of(context).textTheme.bodyLarge),
         ],
       ),
     );

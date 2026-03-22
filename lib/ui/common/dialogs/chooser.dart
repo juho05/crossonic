@@ -1,3 +1,11 @@
+/*
+ * Copyright 2024-2026 Julian Hofmann (+ Crossonic contributors).
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 // ignore_for_file: use_build_context_synchronously
 
 import 'package:flutter/material.dart';
@@ -5,33 +13,35 @@ import 'package:flutter/material.dart';
 class ChooserDialog extends StatelessWidget {
   final String title;
   final List<String> options;
-  const ChooserDialog._({
-    required this.title,
-    required this.options,
-  });
+  const ChooserDialog._({required this.title, required this.options});
 
   static Future<int?> choose(
-      BuildContext context, String title, List<String> options,
-      [bool autoChooseOnOneOption = true]) async {
+    BuildContext context,
+    String title,
+    List<String> options, [
+    bool autoChooseOnOneOption = true,
+  ]) async {
     if (options.isEmpty) return null;
     if (autoChooseOnOneOption && options.length == 1) return 0;
     final index = await showAdaptiveDialog<int>(
       context: context,
       barrierDismissible: true,
       builder: (context) {
-        return ChooserDialog._(
-          title: title,
-          options: options,
-        );
+        return ChooserDialog._(title: title, options: options);
       },
     );
     return index;
   }
 
   static Future<String?> chooseArtist(
-      BuildContext context, List<({String id, String name})> artists) async {
+    BuildContext context,
+    List<({String id, String name})> artists,
+  ) async {
     final index = await choose(
-        context, "Choose an artist", artists.map((a) => a.name).toList());
+      context,
+      "Choose an artist",
+      artists.map((a) => a.name).toList(),
+    );
     if (index == null) return null;
     return artists[index].id;
   }

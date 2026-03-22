@@ -1,3 +1,11 @@
+/*
+ * Copyright 2024-2026 Julian Hofmann (+ Crossonic contributors).
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import 'package:crossonic/data/repositories/settings/home_page_layout.dart';
 import 'package:flutter/material.dart';
 
@@ -7,9 +15,8 @@ class HomeLayoutViewModel extends ChangeNotifier {
   List<HomeContentOption> activeComponents = [];
   List<HomeContentOption> inactiveComponents = [];
 
-  HomeLayoutViewModel({
-    required HomeLayoutSettings settings,
-  }) : _settings = settings {
+  HomeLayoutViewModel({required HomeLayoutSettings settings})
+    : _settings = settings {
     _settings.addListener(_onSettingsChanged);
     _onSettingsChanged();
   }

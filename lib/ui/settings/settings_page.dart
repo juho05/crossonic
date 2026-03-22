@@ -1,3 +1,11 @@
+/*
+ * Copyright 2024-2026 Julian Hofmann (+ Crossonic contributors).
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import 'dart:io';
 
 import 'package:auto_route/auto_route.dart';
@@ -44,9 +52,7 @@ class _SettingsPageState extends State<SettingsPage> {
       decoration: TextDecoration.underline,
     );
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Settings"),
-      ),
+      appBar: AppBar(title: const Text("Settings")),
       body: ListView(
         children: [
           ListTile(
@@ -114,18 +120,16 @@ class _SettingsPageState extends State<SettingsPage> {
                 children: [
                   const SizedBox(height: 24),
                   const Text(
-                      "Crossonic is a cross-platform music player for OpenSubsonic compatible music servers.\n"
-                      "It's free software under the AGPL-3.0 license."),
+                    "Crossonic is a cross-platform music player for OpenSubsonic compatible music servers.\n"
+                    "It's free software under the MPL-2.0 license.",
+                  ),
                   const SizedBox(height: 12),
                   MouseRegion(
                     cursor: SystemMouseCursors.click,
                     child: GestureDetector(
                       onTap: () =>
                           launchUrl(Uri.parse("https://crossonic.org")),
-                      child: Text(
-                        "Website",
-                        style: linkStyle,
-                      ),
+                      child: Text("Website", style: linkStyle),
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -133,11 +137,9 @@ class _SettingsPageState extends State<SettingsPage> {
                     cursor: SystemMouseCursors.click,
                     child: GestureDetector(
                       onTap: () => launchUrl(
-                          Uri.parse("https://github.com/juho05/crossonic")),
-                      child: Text(
-                        "GitHub",
-                        style: linkStyle,
+                        Uri.parse("https://github.com/juho05/crossonic"),
                       ),
+                      child: Text("Source Code", style: linkStyle),
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -145,11 +147,9 @@ class _SettingsPageState extends State<SettingsPage> {
                     cursor: SystemMouseCursors.click,
                     child: GestureDetector(
                       onTap: () => launchUrl(
-                          Uri.parse("https://crossonic.org/privacy/app")),
-                      child: Text(
-                        "Privacy Policy",
-                        style: linkStyle,
+                        Uri.parse("https://crossonic.org/privacy/app"),
                       ),
+                      child: Text("Privacy Policy", style: linkStyle),
                     ),
                   ),
                 ],
@@ -165,8 +165,9 @@ class _SettingsPageState extends State<SettingsPage> {
                 onTap: !_viewModel.loggingOut
                     ? () async {
                         final confirmed = await ConfirmationDialog.showYesNo(
-                            context,
-                            title: "Logout?");
+                          context,
+                          title: "Logout?",
+                        );
                         if (confirmed ?? false) {
                           await _viewModel.logout();
                         }
@@ -181,8 +182,10 @@ class _SettingsPageState extends State<SettingsPage> {
               title: const Text("Exit"),
               trailing: const Icon(Icons.close),
               onTap: () async {
-                final confirmed = await ConfirmationDialog.showYesNo(context,
-                    title: "Exit the app?");
+                final confirmed = await ConfirmationDialog.showYesNo(
+                  context,
+                  title: "Exit the app?",
+                );
                 if (confirmed ?? false) {
                   await exitApp();
                 }

@@ -1,3 +1,11 @@
+/*
+ * Copyright 2024-2026 Julian Hofmann (+ Crossonic contributors).
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import 'package:auto_route/auto_route.dart';
 import 'package:crossonic/data/repositories/settings/settings_repository.dart';
 import 'package:crossonic/ui/settings/pages/appearance_viewmodel.dart';
@@ -12,50 +20,51 @@ class AppearancePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (context) => AppearanceViewModel(
-          settings: context.read<SettingsRepository>().appearanceSettings),
+        settings: context.read<SettingsRepository>().appearanceSettings,
+      ),
       builder: (context, _) {
         return Scaffold(
-          appBar: AppBar(
-            title: const Text("Appearance"),
-          ),
+          appBar: AppBar(title: const Text("Appearance")),
           body: SafeArea(
-            child:
-                Consumer<AppearanceViewModel>(builder: (context, viewModel, _) {
-              return Padding(
-                padding: const EdgeInsets.all(8),
-                child: Column(
-                  spacing: 10,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    DropdownMenu<ThemeMode>(
-                      onSelected: (mode) {
-                        if (mode == null) return;
-                        viewModel.updateMode(mode);
-                      },
-                      expandedInsets: EdgeInsets.zero,
-                      requestFocusOnTap: false,
-                      enableSearch: false,
-                      initialSelection: viewModel.mode,
-                      label: const Text("Theme"),
-                      dropdownMenuEntries: ThemeMode.values.map((mode) {
-                        return DropdownMenuEntry<ThemeMode>(
-                          label: mode.name[0].toUpperCase() +
-                              mode.name.substring(1),
-                          value: mode,
-                        );
-                      }).toList(),
-                    ),
-                    SwitchListTile(
-                      value: viewModel.dynamicColors,
-                      title: const Text("Dynamic colors"),
-                      onChanged: (bool enable) {
-                        viewModel.updateDynamicColors(enable);
-                      },
-                    )
-                  ],
-                ),
-              );
-            }),
+            child: Consumer<AppearanceViewModel>(
+              builder: (context, viewModel, _) {
+                return Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: Column(
+                    spacing: 10,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      DropdownMenu<ThemeMode>(
+                        onSelected: (mode) {
+                          if (mode == null) return;
+                          viewModel.updateMode(mode);
+                        },
+                        expandedInsets: EdgeInsets.zero,
+                        requestFocusOnTap: false,
+                        enableSearch: false,
+                        initialSelection: viewModel.mode,
+                        label: const Text("Theme"),
+                        dropdownMenuEntries: ThemeMode.values.map((mode) {
+                          return DropdownMenuEntry<ThemeMode>(
+                            label:
+                                mode.name[0].toUpperCase() +
+                                mode.name.substring(1),
+                            value: mode,
+                          );
+                        }).toList(),
+                      ),
+                      SwitchListTile(
+                        value: viewModel.dynamicColors,
+                        title: const Text("Dynamic colors"),
+                        onChanged: (bool enable) {
+                          viewModel.updateDynamicColors(enable);
+                        },
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
           ),
         );
       },

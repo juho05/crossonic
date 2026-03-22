@@ -1,3 +1,11 @@
+/*
+ * Copyright 2024-2026 Julian Hofmann (+ Crossonic contributors).
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import 'package:auto_route/auto_route.dart';
 import 'package:crossonic/ui/common/buttons.dart';
 import 'package:crossonic/ui/settings/pages/scan_viewmodel.dart';
@@ -32,9 +40,7 @@ class _ScanPageState extends State<ScanPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Scan"),
-      ),
+      appBar: AppBar(title: const Text("Scan")),
       body: ListenableBuilder(
         listenable: _viewModel,
         builder: (context, _) {
@@ -54,10 +60,12 @@ class _ScanPageState extends State<ScanPage> {
                 if (!_viewModel.scanStatus.scanning &&
                     _viewModel.scanStatus.lastScan != null)
                   Text(
-                      "Last scan: ${formatDateTime(_viewModel.scanStatus.lastScan!)}"),
+                    "Last scan: ${formatDateTime(_viewModel.scanStatus.lastScan!)}",
+                  ),
                 if (_viewModel.scanStatus.scanStart != null)
                   Text(
-                      "Elapsed: ${formatDuration(DateTime.now().difference(_viewModel.scanStatus.scanStart!))}"),
+                    "Elapsed: ${formatDuration(DateTime.now().difference(_viewModel.scanStatus.scanStart!))}",
+                  ),
                 const SizedBox(height: 8),
                 if (!_viewModel.scanStatus.scanning ||
                     !(_viewModel.scanStatus.isFullScan ?? false))
@@ -72,8 +80,8 @@ class _ScanPageState extends State<ScanPage> {
                     child: _viewModel.scanStatus.scanning
                         ? const Text("Scanning…")
                         : (_viewModel.supportsScanType
-                            ? const Text("Quick Scan")
-                            : const Text("Scan")),
+                              ? const Text("Quick Scan")
+                              : const Text("Scan")),
                   ),
                 if (_viewModel.supportsScanType &&
                     (!_viewModel.scanStatus.scanning ||
@@ -90,7 +98,7 @@ class _ScanPageState extends State<ScanPage> {
                     child: _viewModel.scanStatus.scanning
                         ? const Text("Scanning…")
                         : const Text("Full Scan"),
-                  )
+                  ),
               ],
             ),
           );

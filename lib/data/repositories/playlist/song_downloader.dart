@@ -1,3 +1,11 @@
+/*
+ * Copyright 2024-2026 Julian Hofmann (+ Crossonic contributors).
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import 'dart:async';
 import 'dart:io';
 
@@ -27,9 +35,9 @@ class SongDownloader extends ChangeNotifier {
     required db.Database db,
     required AuthRepository auth,
     required SubsonicService subsonic,
-  })  : _db = db,
-        _auth = auth,
-        _subsonic = subsonic;
+  }) : _db = db,
+       _auth = auth,
+       _subsonic = subsonic;
 
   String? _dir;
 
@@ -51,38 +59,49 @@ class SongDownloader extends ChangeNotifier {
     }
 
     await FileDownloader().trackTasksInGroup(_taskGroup);
-    FileDownloader().configureNotificationForGroup(_taskGroup,
-        running: TaskNotification(
-            "Downloading songs",
-            !kIsWeb && Platform.isIOS
-                ? "Download in progress"
-                : "{numFinished} out of {numTotal} songs downloaded"),
-        groupNotificationId: _taskGroup);
+    FileDownloader().configureNotificationForGroup(
+      _taskGroup,
+      running: TaskNotification(
+        "Downloading songs",
+        !kIsWeb && Platform.isIOS
+            ? "Download in progress"
+            : "{numFinished} out of {numTotal} songs downloaded",
+      ),
+      groupNotificationId: _taskGroup,
+    );
     FileDownloader().registerCallbacks(
       group: _taskGroup,
       taskStatusCallback: _statusCallback,
     );
-    _downloadStatus.addEntries(await dir
-        .list()
-        .map((f) => MapEntry(path.basename(f.path), DownloadStatus.downloaded))
-        .toList());
-    _downloadStatus.addEntries((await _db.managers.downloadTask
-            .filter(
-              (f) =>
-                  f.group(_taskGroup) &
-                  f.type(DownloaderStorage.typeRecord) &
-                  f.status.isIn([
-                    TaskStatus.enqueued.name,
-                    TaskStatus.running.name,
-                  ]),
-            )
-            .get())
-        .map((t) => MapEntry(
+    _downloadStatus.addEntries(
+      await dir
+          .list()
+          .map(
+            (f) => MapEntry(path.basename(f.path), DownloadStatus.downloaded),
+          )
+          .toList(),
+    );
+    _downloadStatus.addEntries(
+      (await _db.managers.downloadTask
+              .filter(
+                (f) =>
+                    f.group(_taskGroup) &
+                    f.type(DownloaderStorage.typeRecord) &
+                    f.status.isIn([
+                      TaskStatus.enqueued.name,
+                      TaskStatus.running.name,
+                    ]),
+              )
+              .get())
+          .map(
+            (t) => MapEntry(
               t.taskId,
               t.status == TaskStatus.running.name
                   ? DownloadStatus.downloading
                   : DownloadStatus.enqueued,
-            )));
+            ),
+          ),
+    );
     notifyListeners();
   }
 
@@ -120,24 +139,26 @@ class SongDownloader extends ChangeNotifier {
     _updating = true;
     Log.debug("updating download status of songs in downloaded playlists");
     final songIds =
-        (await (_db.select(_db.playlistSongTable, distinct: true).join(
-      [
-        innerJoin(
-          _db.playlistTable,
-          _db.playlistTable.id.equalsExp(_db.playlistSongTable.playlistId),
-        ),
-      ],
-    )..where(_db.playlistTable.download.equals(true)))
+        (await (_db.select(_db.playlistSongTable, distinct: true).join([
+                  innerJoin(
+                    _db.playlistTable,
+                    _db.playlistTable.id.equalsExp(
+                      _db.playlistSongTable.playlistId,
+                    ),
+                  ),
+                ])..where(_db.playlistTable.download.equals(true)))
                 .map((t) => t.readTable(_db.playlistSongTable).songId)
                 .get())
             .toSet();
 
-    final records =
-        await FileDownloader().database.allRecords(group: _taskGroup);
+    final records = await FileDownloader().database.allRecords(
+      group: _taskGroup,
+    );
     Log.trace("canceling downloads that are no longer needed");
     await FileDownloader().cancelAll(
-      tasks:
-          records.where((r) => !songIds.contains(r.taskId)).map((r) => r.task),
+      tasks: records
+          .where((r) => !songIds.contains(r.taskId))
+          .map((r) => r.task),
     );
 
     final dir = await Directory(_dir!).create(recursive: true);
@@ -170,27 +191,32 @@ class SongDownloader extends ChangeNotifier {
 
     if (songIds.isNotEmpty) {
       Log.debug(
-          "found ${songIds.length} songs that still need to be downloaded, enqueuing...");
+        "found ${songIds.length} songs that still need to be downloaded, enqueuing...",
+      );
     }
 
-    final tasks = songIds.map((id) => DownloadTask(
-          group: _taskGroup,
-          url: _downloadUri(id).toString(),
-          httpRequestMethod: "GET",
-          allowPause: true,
-          baseDirectory: BaseDirectory.applicationSupport,
-          directory: "downloaded_songs",
-          filename: id,
-          requiresWiFi: true,
-          taskId: id,
-          updates: Updates.status,
-          retries: 5,
-        ));
+    final tasks = songIds.map(
+      (id) => DownloadTask(
+        group: _taskGroup,
+        url: _downloadUri(id).toString(),
+        httpRequestMethod: "GET",
+        allowPause: true,
+        baseDirectory: BaseDirectory.applicationSupport,
+        directory: "downloaded_songs",
+        filename: id,
+        requiresWiFi: true,
+        taskId: id,
+        updates: Updates.status,
+        retries: 5,
+      ),
+    );
 
     final result = await FileDownloader().enqueueAll(tasks.toList());
-    _downloadStatus.addEntries(songIds.indexed
-        .where((i) => result[i.$1] && !_downloadStatus.containsKey(i.$2))
-        .map((i) => MapEntry(i.$2, DownloadStatus.enqueued)));
+    _downloadStatus.addEntries(
+      songIds.indexed
+          .where((i) => result[i.$1] && !_downloadStatus.containsKey(i.$2))
+          .map((i) => MapEntry(i.$2, DownloadStatus.enqueued)),
+    );
     _updating = false;
   }
 
@@ -234,6 +260,7 @@ class SongDownloader extends ChangeNotifier {
       "id": [id],
     }, _auth.con.auth);
     return Uri.parse(
-        '${_auth.con.baseUri}/rest/download${Uri(queryParameters: query)}');
+      '${_auth.con.baseUri}/rest/download${Uri(queryParameters: query)}',
+    );
   }
 }

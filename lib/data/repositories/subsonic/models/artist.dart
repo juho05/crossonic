@@ -1,3 +1,11 @@
+/*
+ * Copyright 2024-2026 Julian Hofmann (+ Crossonic contributors).
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import 'package:crossonic/data/repositories/subsonic/models/album.dart';
 import 'package:crossonic/data/services/opensubsonic/models/artistid3_model.dart';
 
@@ -21,16 +29,19 @@ class Artist {
   factory Artist.fromArtistID3Model(ArtistID3Model a) {
     final genreOccurrences = <String, int>{};
     a.album
-        ?.expand((a) =>
-            a.genres?.map((g) => g.name).toList() ??
-            (a.genre != null && a.genre!.isNotEmpty ? [a.genre!] : <String>[]))
-        .forEach(
-          (g) => genreOccurrences[g] = (genreOccurrences[g] ?? 0) + 1,
-        );
-    final genres = (genreOccurrences.entries.toList()
-          ..sort((a, b) => b.value.compareTo(a.value)))
-        .map((entry) => entry.key)
-        .toList();
+        ?.expand(
+          (a) =>
+              a.genres?.map((g) => g.name).toList() ??
+              (a.genre != null && a.genre!.isNotEmpty
+                  ? [a.genre!]
+                  : <String>[]),
+        )
+        .forEach((g) => genreOccurrences[g] = (genreOccurrences[g] ?? 0) + 1);
+    final genres =
+        (genreOccurrences.entries.toList()
+              ..sort((a, b) => b.value.compareTo(a.value)))
+            .map((entry) => entry.key)
+            .toList();
     return Artist(
       id: a.id,
       name: a.name,

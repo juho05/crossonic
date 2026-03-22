@@ -1,3 +1,11 @@
+/*
+ * Copyright 2024-2026 Julian Hofmann (+ Crossonic contributors).
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import 'dart:math';
 
 import 'package:crossonic/data/repositories/subsonic/models/artist.dart';
@@ -36,12 +44,12 @@ class ArtistsViewModel extends ChangeNotifier {
     required SubsonicRepository subsonic,
     required ArtistsPageMode mode,
     String? initialSeed,
-  })  : _subsonic = subsonic,
-        _mode = mode,
-        _initialSeed =
-            subsonic.supports.randomSeed && mode == ArtistsPageMode.random
-                ? initialSeed
-                : null;
+  }) : _subsonic = subsonic,
+       _mode = mode,
+       _initialSeed =
+           subsonic.supports.randomSeed && mode == ArtistsPageMode.random
+           ? initialSeed
+           : null;
 
   Future<void> load() async {
     return await _fetch();

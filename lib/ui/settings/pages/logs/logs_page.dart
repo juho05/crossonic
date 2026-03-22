@@ -1,3 +1,11 @@
+/*
+ * Copyright 2024-2026 Julian Hofmann (+ Crossonic contributors).
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import 'dart:io';
 
 import 'package:auto_route/auto_route.dart';
@@ -33,7 +41,9 @@ class _LogsPageState extends State<LogsPage> {
   void initState() {
     super.initState();
     _viewModel = LogsPageViewModel(
-        settingsRepository: context.read(), logRepository: context.read());
+      settingsRepository: context.read(),
+      logRepository: context.read(),
+    );
 
     _scrollController.addListener(() {
       _viewModel.enableMessageStream(_scrollController.position.pixels < 10);
@@ -64,8 +74,11 @@ class _LogsPageState extends State<LogsPage> {
                       // user canceled save
                       return;
                     }
-                    toastResult(context, result,
-                        successMsg: "Successfully saved log!");
+                    toastResult(
+                      context,
+                      result,
+                      successMsg: "Successfully saved log!",
+                    );
                   },
                 ),
                 ContextMenuOption(
@@ -77,8 +90,11 @@ class _LogsPageState extends State<LogsPage> {
                       // user canceled save
                       return;
                     }
-                    toastResult(context, result,
-                        successMsg: "Successfully saved log!");
+                    toastResult(
+                      context,
+                      result,
+                      successMsg: "Successfully saved log!",
+                    );
                   },
                 ),
               ],
@@ -97,8 +113,11 @@ class _LogsPageState extends State<LogsPage> {
                       // user canceled share
                       return;
                     }
-                    toastResult(context, result,
-                        successMsg: "Successfully shared log!");
+                    toastResult(
+                      context,
+                      result,
+                      successMsg: "Successfully shared log!",
+                    );
                   },
                 ),
                 ContextMenuOption(
@@ -110,8 +129,11 @@ class _LogsPageState extends State<LogsPage> {
                       // user canceled share
                       return;
                     }
-                    toastResult(context, result,
-                        successMsg: "Successfully shared log!");
+                    toastResult(
+                      context,
+                      result,
+                      successMsg: "Successfully shared log!",
+                    );
                   },
                 ),
               ],
@@ -120,52 +142,59 @@ class _LogsPageState extends State<LogsPage> {
       ),
       body: SafeArea(
         child: ListenableBuilder(
-            listenable: _viewModel,
-            builder: (context, _) {
-              return CustomScrollView(
-                controller: _scrollController,
-                slivers: [
-                  SliverList.list(
-                    children: [
-                      ListTile(
-                        title: Row(
-                          children: [
-                            Text(
-                              "Session:",
-                              style: textTheme.bodyMedium!
-                                  .copyWith(fontWeight: FontWeight.w500),
+          listenable: _viewModel,
+          builder: (context, _) {
+            return CustomScrollView(
+              controller: _scrollController,
+              slivers: [
+                SliverList.list(
+                  children: [
+                    ListTile(
+                      title: Row(
+                        children: [
+                          Text(
+                            "Session:",
+                            style: textTheme.bodyMedium!.copyWith(
+                              fontWeight: FontWeight.w500,
                             ),
-                            const SizedBox(width: 4),
-                            Text(_viewModel.sessionTime == Log.sessionStartTime
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            _viewModel.sessionTime == Log.sessionStartTime
                                 ? "Current"
-                                : formatDateTime(_viewModel.sessionTime)),
-                          ],
-                        ),
-                        trailing: const Icon(Icons.edit),
-                        onTap: () async {
-                          final chosenSession = await context.router
-                              .push<DateTime>(ChooseLogSessionRoute(
-                                  highlight: _viewModel.sessionTime));
-                          if (chosenSession == null) return;
-                          await _viewModel.changeSessionTime(chosenSession);
-                          _scrollController.jumpTo(0);
-                        },
-                      )
-                    ],
-                  ),
-                  SliverPadding(
-                    padding: const EdgeInsets.all(8.0),
-                    sliver: SliverToBoxAdapter(
-                      child: SearchInput(
-                        onSearch: _viewModel.search,
-                        debounce: const Duration(milliseconds: 250),
+                                : formatDateTime(_viewModel.sessionTime),
+                          ),
+                        ],
                       ),
+                      trailing: const Icon(Icons.edit),
+                      onTap: () async {
+                        final chosenSession = await context.router
+                            .push<DateTime>(
+                              ChooseLogSessionRoute(
+                                highlight: _viewModel.sessionTime,
+                              ),
+                            );
+                        if (chosenSession == null) return;
+                        await _viewModel.changeSessionTime(chosenSession);
+                        _scrollController.jumpTo(0);
+                      },
+                    ),
+                  ],
+                ),
+                SliverPadding(
+                  padding: const EdgeInsets.all(8.0),
+                  sliver: SliverToBoxAdapter(
+                    child: SearchInput(
+                      onSearch: _viewModel.search,
+                      debounce: const Duration(milliseconds: 250),
                     ),
                   ),
-                  SliverPadding(
-                    padding: const EdgeInsets.all(8.0),
-                    sliver: SliverToBoxAdapter(
-                      child: LayoutBuilder(builder: (context, constraints) {
+                ),
+                SliverPadding(
+                  padding: const EdgeInsets.all(8.0),
+                  sliver: SliverToBoxAdapter(
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
                         final shortNames = constraints.maxWidth < 640;
                         return SegmentedButton(
                           emptySelectionAllowed: true,
@@ -176,49 +205,59 @@ class _LogsPageState extends State<LogsPage> {
                           },
                           segments: <ButtonSegment<Level>>[
                             ButtonSegment(
-                                value: Level.trace,
-                                label: Text(shortNames ? "T" : "Trace"),
-                                tooltip: "Show trace"),
+                              value: Level.trace,
+                              label: Text(shortNames ? "T" : "Trace"),
+                              tooltip: "Show trace",
+                            ),
                             ButtonSegment(
-                                value: Level.debug,
-                                label: Text(shortNames ? "D" : "Debug"),
-                                tooltip: "Show debug"),
+                              value: Level.debug,
+                              label: Text(shortNames ? "D" : "Debug"),
+                              tooltip: "Show debug",
+                            ),
                             ButtonSegment(
-                                value: Level.info,
-                                label: Text(shortNames ? "I" : "Info"),
-                                tooltip: "Show info"),
+                              value: Level.info,
+                              label: Text(shortNames ? "I" : "Info"),
+                              tooltip: "Show info",
+                            ),
                             ButtonSegment(
-                                value: Level.warning,
-                                label: Text(shortNames ? "W" : "Warning"),
-                                tooltip: "Show warnings"),
+                              value: Level.warning,
+                              label: Text(shortNames ? "W" : "Warning"),
+                              tooltip: "Show warnings",
+                            ),
                             ButtonSegment(
-                                value: Level.error,
-                                label: Text(shortNames ? "E" : "Error"),
-                                tooltip: "Show errors"),
+                              value: Level.error,
+                              label: Text(shortNames ? "E" : "Error"),
+                              tooltip: "Show errors",
+                            ),
                             ButtonSegment(
-                                value: Level.fatal,
-                                label: Text(shortNames ? "F" : "Fatal"),
-                                tooltip: "Show fatal"),
+                              value: Level.fatal,
+                              label: Text(shortNames ? "F" : "Fatal"),
+                              tooltip: "Show fatal",
+                            ),
                           ],
                           selected: _viewModel.enabledLevels,
                         );
-                      }),
+                      },
                     ),
                   ),
-                  SliverPadding(
-                    padding: const EdgeInsets.all(8.0),
-                    sliver: SliverFixedExtentList.builder(
-                      itemBuilder: (context, index) => LogMessageListItem(
-                        msg: _viewModel.logMessages[
-                            _viewModel.logMessages.length - 1 - index],
-                      ),
-                      itemExtent: LogMessageListItem.verticalExtent,
-                      itemCount: _viewModel.logMessages.length,
+                ),
+                SliverPadding(
+                  padding: const EdgeInsets.all(8.0),
+                  sliver: SliverFixedExtentList.builder(
+                    itemBuilder: (context, index) => LogMessageListItem(
+                      msg:
+                          _viewModel.logMessages[_viewModel.logMessages.length -
+                              1 -
+                              index],
                     ),
-                  )
-                ],
-              );
-            }),
+                    itemExtent: LogMessageListItem.verticalExtent,
+                    itemCount: _viewModel.logMessages.length,
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
       ),
     );
   }

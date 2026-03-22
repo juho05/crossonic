@@ -1,3 +1,11 @@
+/*
+ * Copyright 2024-2026 Julian Hofmann (+ Crossonic contributors).
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import 'package:crossonic/data/repositories/appimage/appimage_repository.dart';
 import 'package:crossonic/utils/result.dart';
 import 'package:flutter/foundation.dart';
@@ -8,9 +16,8 @@ class IntegrateAppImageViewModel extends ChangeNotifier {
   bool _askToIntegrate = false;
   bool get askToIntegrate => _askToIntegrate;
 
-  IntegrateAppImageViewModel({
-    required AppImageRepository appImageRepository,
-  }) : _repo = appImageRepository;
+  IntegrateAppImageViewModel({required AppImageRepository appImageRepository})
+    : _repo = appImageRepository;
 
   Future<void> check() async {
     final shouldIntegrate = await _repo.shouldIntegrate();

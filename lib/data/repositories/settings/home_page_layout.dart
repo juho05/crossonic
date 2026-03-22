@@ -1,3 +1,11 @@
+/*
+ * Copyright 2024-2026 Julian Hofmann (+ Crossonic contributors).
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import 'package:collection/collection.dart';
 import 'package:crossonic/data/repositories/keyvalue/key_value_repository.dart';
 import 'package:crossonic/data/repositories/logger/log.dart';
@@ -27,12 +35,13 @@ class HomeLayoutSettings extends ChangeNotifier {
   Iterable<HomeContentOption> get selectedOptions => _selectedOptions;
 
   HomeLayoutSettings({required KeyValueRepository keyValueRepository})
-      : _repo = keyValueRepository;
+    : _repo = keyValueRepository;
 
   Future<void> load() async {
-    _selectedOptions = (await _repo.loadStringList(_selectedOptionsKey))
-            ?.map((s) => HomeContentOption.values.byName(s))
-            .toList() ??
+    _selectedOptions =
+        (await _repo.loadStringList(
+          _selectedOptionsKey,
+        ))?.map((s) => HomeContentOption.values.byName(s)).toList() ??
         _selectedOptionsDefault.toList();
     notifyListeners();
   }
@@ -45,16 +54,21 @@ class HomeLayoutSettings extends ChangeNotifier {
   }
 
   set selectedOptions(Iterable<HomeContentOption> selectedOptions) {
-    if (const IterableEquality()
-        .equals(this.selectedOptions, selectedOptions)) {
+    if (const IterableEquality().equals(
+      this.selectedOptions,
+      selectedOptions,
+    )) {
       return;
     }
     Log.debug(
-        "home page layout: ${selectedOptions.map((o) => o.name).join(", ")}");
+      "home page layout: ${selectedOptions.map((o) => o.name).join(", ")}",
+    );
     _selectedOptions = selectedOptions.toList();
     notifyListeners();
     _repo.store(
-        _selectedOptionsKey, selectedOptions.map((o) => o.name).toList());
+      _selectedOptionsKey,
+      selectedOptions.map((o) => o.name).toList(),
+    );
   }
 
   static String optionTitle(HomeContentOption option) {

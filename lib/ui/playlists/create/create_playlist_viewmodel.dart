@@ -1,3 +1,11 @@
+/*
+ * Copyright 2024-2026 Julian Hofmann (+ Crossonic contributors).
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/data/repositories/playlist/playlist_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
@@ -10,12 +18,14 @@ class CreatePlaylistViewModel extends ChangeNotifier {
   bool _loading = false;
   bool get loading => _loading;
 
-  CreatePlaylistViewModel({
-    required PlaylistRepository playlistRepository,
-  }) : _repo = playlistRepository;
+  CreatePlaylistViewModel({required PlaylistRepository playlistRepository})
+    : _repo = playlistRepository;
 
-  Future<Result<String>> create(String name,
-      {Iterable<Song> songs = const [], String description = ""}) async {
+  Future<Result<String>> create(
+    String name, {
+    Iterable<Song> songs = const [],
+    String description = "",
+  }) async {
     _loading = true;
     notifyListeners();
     try {
@@ -26,12 +36,16 @@ class CreatePlaylistViewModel extends ChangeNotifier {
         case Ok():
       }
       if (description.isNotEmpty) {
-        final descResult = await _repo.updatePlaylistMetadata(result.value,
-            comment: description);
+        final descResult = await _repo.updatePlaylistMetadata(
+          result.value,
+          comment: description,
+        );
         switch (descResult) {
           case Err():
-            Log.error("Failed to set description of created playlist.",
-                e: descResult.error);
+            Log.error(
+              "Failed to set description of created playlist.",
+              e: descResult.error,
+            );
           case Ok():
         }
       }
@@ -39,8 +53,10 @@ class CreatePlaylistViewModel extends ChangeNotifier {
         final addResult = await _repo.addTracks(result.value, songs);
         switch (addResult) {
           case Err():
-            Log.error("Failed to add initial tracks to created playlist.",
-                e: addResult.error);
+            Log.error(
+              "Failed to add initial tracks to created playlist.",
+              e: addResult.error,
+            );
           case Ok():
         }
       }

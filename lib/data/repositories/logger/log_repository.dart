@@ -1,3 +1,11 @@
+/*
+ * Copyright 2024-2026 Julian Hofmann (+ Crossonic contributors).
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import 'dart:async';
 import 'dart:collection';
 
@@ -21,10 +29,7 @@ class LogRepository {
   bool _flushing = false;
   Timer? _debounceTimer;
 
-  LogRepository({
-    Database? db,
-  })  : _db = db,
-        _buffer = DoubleLinkedQueue();
+  LogRepository({Database? db}) : _db = db, _buffer = DoubleLinkedQueue();
 
   Future<void> enablePersistence(Database db) async {
     assert(_db == null);
@@ -69,17 +74,23 @@ class LogRepository {
       );
     } catch (e, st) {
       _buffer.add(msg);
-      Log.logWithoutPersistence(Level.error, "failed to flush log message",
-          e: e, st: st);
-      _buffer.add(LogMessage(
-        sessionStartTime: msg.sessionStartTime,
-        message: "failed to flush log message",
-        level: Level.error,
-        exception: e.toString(),
-        stackTrace: st.toString(),
-        tag: "LogRepository._flushMessage",
-        time: DateTime.now(),
-      ));
+      Log.logWithoutPersistence(
+        Level.error,
+        "failed to flush log message",
+        e: e,
+        st: st,
+      );
+      _buffer.add(
+        LogMessage(
+          sessionStartTime: msg.sessionStartTime,
+          message: "failed to flush log message",
+          level: Level.error,
+          exception: e.toString(),
+          stackTrace: st.toString(),
+          tag: "LogRepository._flushMessage",
+          time: DateTime.now(),
+        ),
+      );
     }
   }
 
@@ -98,28 +109,35 @@ class LogRepository {
       await _db!.managers.logMessageTable.bulkCreate(
         (o) => buffer.map(
           (e) => o(
-              tag: e.tag,
-              level: e.level,
-              message: e.message,
-              sessionStartTime: e.sessionStartTime,
-              time: e.time,
-              stackTrace: e.stackTrace,
-              exception: Value(e.exception)),
+            tag: e.tag,
+            level: e.level,
+            message: e.message,
+            sessionStartTime: e.sessionStartTime,
+            time: e.time,
+            stackTrace: e.stackTrace,
+            exception: Value(e.exception),
+          ),
         ),
       );
     } catch (e, st) {
       _buffer = buffer;
-      Log.logWithoutPersistence(Level.error, "failed to flush log messages",
-          e: e, st: st);
-      _buffer.add(LogMessage(
-        sessionStartTime: _buffer.last.sessionStartTime,
-        message: "failed to flush log messages",
-        level: Level.error,
-        exception: e.toString(),
-        stackTrace: st.toString(),
-        tag: "LogRepository._flushBuffer",
-        time: DateTime.now(),
-      ));
+      Log.logWithoutPersistence(
+        Level.error,
+        "failed to flush log messages",
+        e: e,
+        st: st,
+      );
+      _buffer.add(
+        LogMessage(
+          sessionStartTime: _buffer.last.sessionStartTime,
+          message: "failed to flush log messages",
+          level: Level.error,
+          exception: e.toString(),
+          stackTrace: st.toString(),
+          tag: "LogRepository._flushBuffer",
+          time: DateTime.now(),
+        ),
+      );
     } finally {
       _flushing = false;
     }
@@ -130,15 +148,18 @@ class LogRepository {
         .filter((f) => f.sessionStartTime(sessionTime))
         .orderBy((o) => o.time.asc())
         .get();
-    final dbMessages = result?.map((e) => LogMessage(
-              sessionStartTime: e.sessionStartTime,
-              tag: e.tag,
-              message: e.message,
-              level: e.level,
-              exception: e.exception,
-              stackTrace: e.stackTrace,
-              time: e.time,
-            )) ??
+    final dbMessages =
+        result?.map(
+          (e) => LogMessage(
+            sessionStartTime: e.sessionStartTime,
+            tag: e.tag,
+            message: e.message,
+            level: e.level,
+            exception: e.exception,
+            stackTrace: e.stackTrace,
+            time: e.time,
+          ),
+        ) ??
         [];
 
     if (_buffer.isEmpty || sessionTime != Log.sessionStartTime) {
@@ -149,8 +170,9 @@ class LogRepository {
       return dbMessages.followedBy(_buffer).toList();
     }
 
-    final dbBeforeFirstBuffer =
-        dbMessages.takeWhile((msg) => msg.time.isBefore(_buffer.first.time));
+    final dbBeforeFirstBuffer = dbMessages.takeWhile(
+      (msg) => msg.time.isBefore(_buffer.first.time),
+    );
     final remaining = dbMessages
         .skip(dbBeforeFirstBuffer.length)
         .followedBy(_buffer)
@@ -163,7 +185,8 @@ class LogRepository {
     final query = _db?.selectOnly(_db!.logMessageTable, distinct: true)
       ?..addColumns([_db!.logMessageTable.sessionStartTime])
       ..orderBy([OrderingTerm.asc(_db!.logMessageTable.sessionStartTime)]);
-    final result = (await query
+    final result =
+        (await query
             ?.map((row) => row.read(_db!.logMessageTable.sessionStartTime)!)
             .get()) ??
         [];
@@ -175,8 +198,11 @@ class LogRepository {
 
   Future<void> _deleteOldLogs() async {
     await _db?.managers.logMessageTable
-        .filter((f) => f.sessionStartTime
-            .isBefore(Log.sessionStartTime.subtract(const Duration(days: 7))))
+        .filter(
+          (f) => f.sessionStartTime.isBefore(
+            Log.sessionStartTime.subtract(const Duration(days: 7)),
+          ),
+        )
         .delete();
   }
 }

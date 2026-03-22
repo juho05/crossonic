@@ -1,3 +1,11 @@
+/*
+ * Copyright 2024-2026 Julian Hofmann (+ Crossonic contributors).
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import 'package:crossonic/data/repositories/keyvalue/key_value_repository.dart';
 import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:flutter/foundation.dart';
@@ -12,11 +20,12 @@ class LoggingSettings extends ChangeNotifier {
   Level get level => _level;
 
   LoggingSettings({required KeyValueRepository keyValueRepository})
-      : _repo = keyValueRepository;
+    : _repo = keyValueRepository;
 
   Future<void> load() async {
-    _level = Level.values
-        .byName(await _repo.loadString(_levelKey) ?? _levelDefault.name);
+    _level = Level.values.byName(
+      await _repo.loadString(_levelKey) ?? _levelDefault.name,
+    );
     Log.level = _level;
 
     notifyListeners();

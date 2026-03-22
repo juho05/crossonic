@@ -1,3 +1,11 @@
+/*
+ * Copyright 2024-2026 Julian Hofmann (+ Crossonic contributors).
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import 'package:crossonic/ui/common/adaptive_dialog_action.dart';
 import 'package:flutter/material.dart';
 
@@ -13,8 +21,11 @@ class ConfirmationDialog extends StatelessWidget {
     this.cancelBtnTitle,
   });
 
-  static Future<bool> showCancel(BuildContext context,
-      [String title = "Are you sure?", String? message]) async {
+  static Future<bool> showCancel(
+    BuildContext context, [
+    String title = "Are you sure?",
+    String? message,
+  ]) async {
     final result = await showAdaptiveDialog<bool>(
       context: context,
       barrierDismissible: true,
@@ -29,8 +40,11 @@ class ConfirmationDialog extends StatelessWidget {
     return result ?? false;
   }
 
-  static Future<bool?> showYesNo(BuildContext context,
-      {String title = "Are you sure?", String? message}) async {
+  static Future<bool?> showYesNo(
+    BuildContext context, {
+    String title = "Are you sure?",
+    String? message,
+  }) async {
     final result = await showAdaptiveDialog<bool>(
       context: context,
       barrierDismissible: true,
@@ -45,10 +59,12 @@ class ConfirmationDialog extends StatelessWidget {
     return result;
   }
 
-  static Future<bool?> showYesNoCancel(BuildContext context,
-      {String title = "Are you sure?",
-      String? message,
-      String? cancelBtn}) async {
+  static Future<bool?> showYesNoCancel(
+    BuildContext context, {
+    String title = "Are you sure?",
+    String? message,
+    String? cancelBtn,
+  }) async {
     final result = await showAdaptiveDialog<bool?>(
       context: context,
       barrierDismissible: true,
@@ -82,7 +98,7 @@ class ConfirmationDialog extends StatelessWidget {
         AdaptiveDialogAction(
           onPressed: () => Navigator.pop(context, true),
           child: const Text("Yes"),
-        )
+        ),
       ],
     );
   }

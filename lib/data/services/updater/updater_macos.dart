@@ -1,3 +1,11 @@
+/*
+ * Copyright 2024-2026 Julian Hofmann (+ Crossonic contributors).
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import 'dart:io';
 
 import 'package:crossonic/data/repositories/logger/log.dart';
@@ -23,22 +31,28 @@ class UpdaterMacOS implements Updater {
     try {
       Log.debug("Mounting DMG ${downloadedFile.path}...");
 
-      final dmgAttachResult = await Process.run(
-          "hdiutil", ["attach", "-nobrowse", "-readonly", downloadedFile.path],
-          stdoutEncoding: systemEncoding);
+      final dmgAttachResult = await Process.run("hdiutil", [
+        "attach",
+        "-nobrowse",
+        "-readonly",
+        downloadedFile.path,
+      ], stdoutEncoding: systemEncoding);
       throwOnNonZeroExitCode(dmgAttachResult);
 
       final dmgAttachOutput = dmgAttachResult.stdout as String;
       Match? match = volumeRegex.firstMatch(dmgAttachOutput);
       if (match == null) {
-        return Result.error(MacOSUpdateFailedException(
-            "failed to parse attach dmg output to determine volume:\n$dmgAttachOutput"));
+        return Result.error(
+          MacOSUpdateFailedException(
+            "failed to parse attach dmg output to determine volume:\n$dmgAttachOutput",
+          ),
+        );
       }
       String volumePath = "/Volumes/${match.group(1)!}";
 
       Process.run("/bin/zsh", [
         "-c",
-        "/bin/zsh -c \"sleep 2 && cp -pPR \\\"${path.join(volumePath, "Crossonic.app")}\\\" /Applications/ && xattr -r -d com.apple.quarantine /Applications/Crossonic.app && sleep 1 && open /Applications/Crossonic.app; hdiutil detach \\\"$volumePath\\\"\" & disown"
+        "/bin/zsh -c \"sleep 2 && cp -pPR \\\"${path.join(volumePath, "Crossonic.app")}\\\" /Applications/ && xattr -r -d com.apple.quarantine /Applications/Crossonic.app && sleep 1 && open /Applications/Crossonic.app; hdiutil detach \\\"$volumePath\\\"\" & disown",
       ]);
       await Future.delayed(const Duration(milliseconds: 250), () => exit(0));
     } on Exception catch (e) {

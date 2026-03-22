@@ -1,3 +1,11 @@
+/*
+ * Copyright 2024-2026 Julian Hofmann (+ Crossonic contributors).
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import 'dart:async';
 
 import 'package:crossonic/data/repositories/audio/audio_handler.dart';
@@ -41,9 +49,9 @@ class Scrobbler {
     required Database database,
     required AuthRepository authRepository,
     required SubsonicService subsonicService,
-  })  : _db = database,
-        _subsonic = subsonicService,
-        _auth = authRepository {
+  }) : _db = database,
+       _subsonic = subsonicService,
+       _auth = authRepository {
     _auth.addListener(_onAuthChanged);
     audioHandler.queue.current.listen(_onCurrentChanged);
     audioHandler.playbackStatus.listen(_onPlaybackStatusChanged);
@@ -66,16 +74,17 @@ class Scrobbler {
     );
     Log.debug("uploading playing now: ${song.title} (${song.id}");
     final result = await _subsonic.scrobble(
-        _auth.con,
-        [
-          (
-            songId: _current!.songId,
-            time: _current!.time,
-            listenDuration: _current!.listenDuration
-          )
-        ],
-        false,
-        false);
+      _auth.con,
+      [
+        (
+          songId: _current!.songId,
+          time: _current!.time,
+          listenDuration: _current!.listenDuration,
+        ),
+      ],
+      false,
+      false,
+    );
     if (result is Err) {
       Log.warn("Failed to upload now playing", e: result.error);
     }
@@ -91,8 +100,9 @@ class Scrobbler {
     _playing = playing;
     await _updateCurrent();
     if (_playing) {
-      _storeCurrentTimer ??=
-          Timer.periodic(const Duration(seconds: 10), (timer) async {
+      _storeCurrentTimer ??= Timer.periodic(const Duration(seconds: 10), (
+        timer,
+      ) async {
         if (_current == null) return;
         await _updateCurrent();
       });
@@ -118,19 +128,23 @@ class Scrobbler {
             ((f.songDurationMs.isNull().not() &
                     f.listenDurationMs.isBiggerOrEqualTo(10000)) |
                 (f.listenDurationMs.isBiggerOrEqualTo(
-                        const Duration(minutes: 4).inMilliseconds) |
+                      const Duration(minutes: 4).inMilliseconds,
+                    ) |
                     f.listenDurationMs.column.isBiggerOrEqual(
-                        f.songDurationMs.column / const Variable(2))));
+                      f.songDurationMs.column / const Variable(2),
+                    )));
       }).get();
       if (scrobbles.isNotEmpty) {
         Log.debug("submitting unsubmitted scrobbles: ${scrobbles.length}");
         final result = await _subsonic.scrobble(
           _auth.con,
-          scrobbles.map((s) => (
-                songId: s.songId,
-                time: s.startTime,
-                listenDuration: Duration(milliseconds: s.listenDurationMs)
-              )),
+          scrobbles.map(
+            (s) => (
+              songId: s.songId,
+              time: s.startTime,
+              listenDuration: Duration(milliseconds: s.listenDurationMs),
+            ),
+          ),
           true,
           _auth.serverFeatures.isCrossonic,
         );
@@ -168,8 +182,10 @@ class Scrobbler {
       }
       Log.trace("deleting scrobbles in db (except current)");
       await _db.managers.scrobbleTable
-          .filter((f) =>
-              (f.songId(_current?.songId) & f.startTime(_current?.time)).not())
+          .filter(
+            (f) => (f.songId(_current?.songId) & f.startTime(_current?.time))
+                .not(),
+          )
           .delete();
     } finally {
       _submitting = false;
@@ -182,11 +198,13 @@ class Scrobbler {
       final difference = DateTime.now().difference(_playingSince!);
       _current!.listenDuration += difference;
       Log.trace(
-          "Added $difference to current listen duration, new value: ${_current!.listenDuration}");
+        "Added $difference to current listen duration, new value: ${_current!.listenDuration}",
+      );
     }
     _playingSince = _playing ? DateTime.now() : null;
     Log.trace(
-        "Storing current state in db: songId: ${_current!.songId}, startTime: ${_current!.time}, ${_current!.listenDuration}, songDuration: ${_current!.songDuration}");
+      "Storing current state in db: songId: ${_current!.songId}, startTime: ${_current!.time}, ${_current!.listenDuration}, songDuration: ${_current!.songDuration}",
+    );
     await _db.managers.scrobbleTable.create(
       (o) => o(
         songId: _current!.songId,

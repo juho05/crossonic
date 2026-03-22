@@ -1,3 +1,11 @@
+/*
+ * Copyright 2024-2026 Julian Hofmann (+ Crossonic contributors).
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import 'package:auto_route/auto_route.dart';
 import 'package:crossonic/data/repositories/settings/replay_gain.dart';
 import 'package:crossonic/ui/common/buttons.dart';
@@ -34,17 +42,17 @@ class _ReplayGainState extends State<ReplayGainPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Replay Gain"),
-      ),
+      appBar: AppBar(title: const Text("Replay Gain")),
       body: ListenableBuilder(
         listenable: _viewModel,
         builder: (context, _) {
           _formKey.currentState?.fields["mode"]?.didChange(_viewModel.mode);
-          _formKey.currentState?.fields["fallbackGain"]
-              ?.didChange(_viewModel.fallbackGain.toString());
-          _formKey.currentState?.fields["preferServerFallback"]
-              ?.didChange(_viewModel.preferServerFallback);
+          _formKey.currentState?.fields["fallbackGain"]?.didChange(
+            _viewModel.fallbackGain.toString(),
+          );
+          _formKey.currentState?.fields["preferServerFallback"]?.didChange(
+            _viewModel.preferServerFallback,
+          );
           return Padding(
             padding: const EdgeInsets.all(8),
             child: FormBuilder(
@@ -85,9 +93,7 @@ class _ReplayGainState extends State<ReplayGainPage> {
                     validator: FormBuilderValidators.required(),
                     onChanged: (value) => _submit(),
                     initialValue: _viewModel.preferServerFallback,
-                    decoration: const InputDecoration(
-                      border: InputBorder.none,
-                    ),
+                    decoration: const InputDecoration(border: InputBorder.none),
                   ),
                   FormBuilderTextField(
                     name: "fallbackGain",
@@ -107,8 +113,8 @@ class _ReplayGainState extends State<ReplayGainPage> {
                       FormBuilderValidators.required(),
                       FormBuilderValidators.numeric(),
                       FormBuilderValidators.negativeNumber(
-                          errorText:
-                              "A positive replay gain may cause clipping"),
+                        errorText: "A positive replay gain may cause clipping",
+                      ),
                     ]),
                   ),
                   const SizedBox(height: 4),
@@ -119,7 +125,7 @@ class _ReplayGainState extends State<ReplayGainPage> {
                     outlined: true,
                     icon: Icons.settings_backup_restore,
                     child: const Text("Reset"),
-                  )
+                  ),
                 ],
               ),
             ),
@@ -130,8 +136,11 @@ class _ReplayGainState extends State<ReplayGainPage> {
   }
 
   void _submit() {
-    final valid = _formKey.currentState?.saveAndValidate(
-            focusOnInvalid: false, autoScrollWhenFocusOnInvalid: false) ??
+    final valid =
+        _formKey.currentState?.saveAndValidate(
+          focusOnInvalid: false,
+          autoScrollWhenFocusOnInvalid: false,
+        ) ??
         false;
     if (!valid) return;
     final values = _formKey.currentState!.value;

@@ -1,3 +1,11 @@
+/*
+ * Copyright 2024-2026 Julian Hofmann (+ Crossonic contributors).
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import 'dart:async';
 
 import 'package:crossonic/data/repositories/subsonic/models/album.dart';
@@ -26,9 +34,8 @@ class BrowseViewModel extends ChangeNotifier {
   List<Artist> _artists = [];
   List<Artist> get artists => _artists;
 
-  BrowseViewModel({
-    required SubsonicRepository subsonicRepository,
-  }) : _subsonic = subsonicRepository;
+  BrowseViewModel({required SubsonicRepository subsonicRepository})
+    : _subsonic = subsonicRepository;
 
   bool get supportBPM => _subsonic.supports.getSongs;
 
@@ -48,8 +55,12 @@ class BrowseViewModel extends ChangeNotifier {
     _searchStatus = FetchStatus.loading;
     notifyListeners();
 
-    final result = await _subsonic.search(search,
-        artistCount: 3, albumCount: 5, songCount: 15);
+    final result = await _subsonic.search(
+      search,
+      artistCount: 3,
+      albumCount: 5,
+      songCount: 15,
+    );
     switch (result) {
       case Err():
         _searchStatus = FetchStatus.failure;
