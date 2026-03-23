@@ -337,6 +337,7 @@ class QueueManager extends ChangeNotifier {
     });
     _regularLength += songs.length;
     if (current.value == null) {
+      await _updateCurrentIndex(0);
       await _currentChanged(songs.first);
     } else if (_currentIndex >= index) {
       await _updateCurrentIndex(_currentIndex + songs.length);
