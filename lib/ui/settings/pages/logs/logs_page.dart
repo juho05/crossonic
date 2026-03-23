@@ -53,8 +53,7 @@ class _LogsPageState extends State<LogsPage> {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    final shareButton =
-        !kIsWeb && (Platform.isAndroid || Platform.isIOS || Platform.isMacOS);
+    final shareButton = !kIsWeb && (Platform.isAndroid || Platform.isIOS);
     return Scaffold(
       appBar: AppBar(
         title: const Text("Logs"),
@@ -100,43 +99,50 @@ class _LogsPageState extends State<LogsPage> {
               ],
             ),
           if (shareButton)
-            MenuButton(
-              icon: const Icon(Icons.share),
-              tooltip: "Share log",
-              options: [
-                ContextMenuOption(
-                  title: "Share full log",
-                  onSelected: () async {
-                    final result = await _viewModel.shareLog(filtered: false);
-                    if (!context.mounted) return;
-                    if (result is Ok && !result.tryValue!) {
-                      // user canceled share
-                      return;
-                    }
-                    toastResult(
-                      context,
-                      result,
-                      successMsg: "Successfully shared log!",
-                    );
-                  },
-                ),
-                ContextMenuOption(
-                  title: "Share filtered log",
-                  onSelected: () async {
-                    final result = await _viewModel.shareLog(filtered: true);
-                    if (!context.mounted) return;
-                    if (result is Ok && !result.tryValue!) {
-                      // user canceled share
-                      return;
-                    }
-                    toastResult(
-                      context,
-                      result,
-                      successMsg: "Successfully shared log!",
-                    );
-                  },
-                ),
-              ],
+            Builder(
+              builder: (context) {
+                Future<void> share({required bool filtered}) async {
+                  Rect? sharePositionOrigin;
+                  if (Platform.isIOS) {
+                    final box = context.findRenderObject() as RenderBox?;
+                    sharePositionOrigin =
+                        box!.localToGlobal(Offset.zero) & box.size;
+                  }
+                  final result = await _viewModel.shareLog(
+                    filtered: filtered,
+                    sharePositionOrigin: sharePositionOrigin,
+                  );
+                  if (!context.mounted) return;
+                  if (result is Ok && !result.tryValue!) {
+                    // user canceled share
+                    return;
+                  }
+                  toastResult(
+                    context,
+                    result,
+                    successMsg: "Successfully shared log!",
+                  );
+                }
+
+                return MenuButton(
+                  icon: const Icon(Icons.share),
+                  tooltip: "Share log",
+                  options: [
+                    ContextMenuOption(
+                      title: "Share full log",
+                      onSelected: () {
+                        share(filtered: false);
+                      },
+                    ),
+                    ContextMenuOption(
+                      title: "Share filtered log",
+                      onSelected: () {
+                        share(filtered: true);
+                      },
+                    ),
+                  ],
+                );
+              },
             ),
         ],
       ),

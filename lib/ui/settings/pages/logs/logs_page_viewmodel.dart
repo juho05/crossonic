@@ -134,7 +134,10 @@ class LogsPageViewModel extends ChangeNotifier {
     _updateFilteredLogMessages();
   }
 
-  Future<Result<bool>> shareLog({required bool filtered}) async {
+  Future<Result<bool>> shareLog({
+    required bool filtered,
+    Rect? sharePositionOrigin,
+  }) async {
     final timeStr = DateFormat("yyyy-MM-dd_HH-mm-ss").format(sessionTime);
     final bytes = utf8.encode(_exportLog(filtered: filtered));
     final fileName = "crossonic-logs_$timeStr.txt";
@@ -145,7 +148,7 @@ class LogsPageViewModel extends ChangeNotifier {
         downloadFallbackEnabled: true,
         files: [XFile.fromData(bytes, mimeType: "text/plain", name: fileName)],
         fileNameOverrides: [fileName],
-        sharePositionOrigin: const Rect.fromLTWH(0, 0, 1, 1),
+        sharePositionOrigin: sharePositionOrigin,
       ),
     );
     if (result.status == ShareResultStatus.dismissed) {
