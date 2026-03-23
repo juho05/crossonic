@@ -82,7 +82,8 @@ class AppImagePage extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      "Integrating an AppImage means, …",
+                      "Integrating the Crossonic AppImage will move it to ~/.local/bin/crossonic and create a .desktop file "
+                      "to make it appear in app launchers and to give it a window icon on Wayland.",
                       style: textStyle.copyWith(
                         color: theme.colorScheme.onSurface.withAlpha(180),
                         fontSize: 12,
