@@ -101,6 +101,7 @@ Future<List<SingleChildWidget>> createProviders({
     keyValueRepository: keyValueRepository,
     subsonic: subsonicRepository,
   );
+  await settings.load();
 
   final songDownloader = SongDownloader(
     db: database,
@@ -232,6 +233,7 @@ Future<List<SingleChildWidget>> createProviders({
       create: (context) => VersionCheckerViewModel(
         keyValue: context.read(),
         versionRepo: context.read(),
+        settings: context.read(),
       )..check(),
     ),
     if (AppImageRepository.isAppImage)

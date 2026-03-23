@@ -10,6 +10,7 @@ import 'dart:io';
 
 import 'package:crossonic/data/repositories/keyvalue/key_value_repository.dart';
 import 'package:crossonic/data/repositories/logger/log.dart';
+import 'package:crossonic/data/repositories/settings/settings_repository.dart';
 import 'package:crossonic/data/repositories/version/version.dart';
 import 'package:crossonic/data/repositories/version/version_repository.dart';
 import 'package:crossonic/utils/result.dart';
@@ -21,6 +22,7 @@ class VersionCheckerViewModel extends ChangeNotifier {
   static const String _keyCurrentVersion = "version.current";
 
   final KeyValueRepository _keyValue;
+  final SettingsRepository _settings;
   final VersionRepository _versionRepo;
 
   bool _checked = false;
@@ -37,8 +39,10 @@ class VersionCheckerViewModel extends ChangeNotifier {
   VersionCheckerViewModel({
     required KeyValueRepository keyValue,
     required VersionRepository versionRepo,
+    required SettingsRepository settings,
   }) : _keyValue = keyValue,
-       _versionRepo = versionRepo {
+       _versionRepo = versionRepo,
+       _settings = settings {
     if (!kIsWeb) {
       _checked = Platform.environment["CROSSONIC_DISABLE_VERSION_CHECK"] == "1";
     } else {
@@ -46,6 +50,9 @@ class VersionCheckerViewModel extends ChangeNotifier {
     }
     if (const bool.hasEnvironment("VERSION_CHECK")) {
       _checked = !const bool.fromEnvironment("VERSION_CHECK");
+    }
+    if (!_settings.versionChecking.enabled) {
+      _checked = true;
     }
     if (_checked) {
       Log.info("version checking is disabled");

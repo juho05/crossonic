@@ -14,6 +14,7 @@ import 'package:crossonic/data/repositories/settings/home_page_layout.dart';
 import 'package:crossonic/data/repositories/settings/logging.dart';
 import 'package:crossonic/data/repositories/settings/replay_gain.dart';
 import 'package:crossonic/data/repositories/settings/transcoding.dart';
+import 'package:crossonic/data/repositories/settings/version_checking.dart';
 import 'package:crossonic/data/repositories/settings/workarounds.dart';
 import 'package:crossonic/data/repositories/subsonic/subsonic_repository.dart';
 
@@ -24,6 +25,7 @@ class SettingsRepository {
   final HomeLayoutSettings homeLayout;
   final AppearanceSettings appearanceSettings;
   final WorkaroundSettings workarounds;
+  final VersionCheckingSettings versionChecking;
 
   SettingsRepository({
     required AuthRepository authRepository,
@@ -39,13 +41,11 @@ class SettingsRepository {
        appearanceSettings = AppearanceSettings(
          keyValueRepository: keyValueRepository,
        ),
-       workarounds = WorkaroundSettings(
+       workarounds = WorkaroundSettings(keyValueRepository: keyValueRepository),
+       versionChecking = VersionCheckingSettings(
          keyValueRepository: keyValueRepository,
        ) {
     bool wasAuthenticated = authRepository.isAuthenticated;
-    if (authRepository.isAuthenticated) {
-      load();
-    }
     authRepository.addListener(() {
       if (authRepository.isAuthenticated) {
         load();
@@ -66,6 +66,7 @@ class SettingsRepository {
       homeLayout.load(),
       appearanceSettings.load(),
       workarounds.load(),
+      versionChecking.load(),
     ]);
   }
 
@@ -75,6 +76,7 @@ class SettingsRepository {
     homeLayout.dispose();
     appearanceSettings.dispose();
     workarounds.dispose();
+    versionChecking.dispose();
     logging.dispose();
   }
 }

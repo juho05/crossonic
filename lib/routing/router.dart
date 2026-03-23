@@ -9,6 +9,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:crossonic/data/repositories/appimage/appimage_repository.dart';
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
+import 'package:crossonic/data/repositories/settings/version_checking.dart';
 import 'package:crossonic/routing/auth_guard.dart';
 import 'package:crossonic/routing/main_toplevel_guard.dart';
 import 'package:crossonic/routing/router.gr.dart';
@@ -240,6 +241,13 @@ class AppRouter extends RootStackRouter {
         path: "/settings/appimage",
         page: AppImageRoute.page,
         title: (context, data) => "AppImage Integration",
+        restorationId: (match) => match.fullPath,
+      ),
+    if (!VersionCheckingSettings.externallyDisabled)
+      AutoRoute(
+        path: "/settings/versionChecking",
+        page: VersionCheckingRoute.page,
+        title: (context, data) => "Version Checking",
         restorationId: (match) => match.fullPath,
       ),
     AutoRoute(
