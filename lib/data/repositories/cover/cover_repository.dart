@@ -235,15 +235,17 @@ class CoverRepository extends BaseCacheManager {
         .filter((f) => f.coverId(coverId))
         .delete();
     final dir = await _cacheDir();
-    final encodedId = base64UrlCodec.encode(coverId);
-    final filePrefix = "$encodedId-";
-    await dir.list(followLinks: false).forEach((entry) async {
-      if (path.basename(entry.path).startsWith(filePrefix)) {
-        try {
-          await entry.delete();
-        } catch (_) {}
-      }
-    });
+    if (await dir.exists()) {
+      final encodedId = base64UrlCodec.encode(coverId);
+      final filePrefix = "$encodedId-";
+      await dir.list(followLinks: false).forEach((entry) async {
+        if (path.basename(entry.path).startsWith(filePrefix)) {
+          try {
+            await entry.delete();
+          } catch (_) {}
+        }
+      });
+    }
   }
 
   Future<void> _pushFileToStream(
@@ -374,6 +376,11 @@ class CoverRepository extends BaseCacheManager {
       Log.debug(
         "Deleted ${incompleteFiles.length} old incomplete cover cache files.",
       );
+    }
+
+    final cacheDir = await _cacheDir();
+    if (!await cacheDir.exists()) {
+      return;
     }
 
     int deleted = 0;
