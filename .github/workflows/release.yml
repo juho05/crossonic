@@ -9,7 +9,7 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.get_version.outputs.version }}
 
@@ -24,11 +24,11 @@ jobs:
 
   draft_release:
     needs: build
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     steps:
       - name: Draft release
         id: draft_release
-        uses: release-drafter/release-drafter@v6
+        uses: release-drafter/release-drafter@v7
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -37,11 +37,11 @@ jobs:
 
   build_android:
     needs: build
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Copy files to env.APK_BUILD_DIR
         run: |
@@ -61,7 +61,7 @@ jobs:
         run: mkdir android/app/secrets && echo $ENCODED_STRING | base64 -di > android/app/secrets/crossonic.jks
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: "temurin"
           java-version: "17"
@@ -94,7 +94,7 @@ jobs:
         run: flutter build appbundle --dart-define=VERSION_CHECK=false --dart-define=PLAYSTORE=true
 
       - name: Upload App Bundle
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: android-aab-result
           path: |
@@ -102,7 +102,7 @@ jobs:
           retention-days: 30
 
       - name: Upload APK
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: android-apk-result
           path: |
@@ -115,7 +115,7 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install dependencies
         run: |
@@ -174,13 +174,13 @@ jobs:
           rm appimage-builder.AppImage
 
       - name: Upload AppImage file
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: appimage-x86-64-result
           path: ./*.AppImage
           retention-days: 2
       - name: Upload AppImage.zsync file
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: appimage-zsync-x86-64-result
           path: ./*.AppImage.zsync
@@ -190,7 +190,7 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install dependencies
         run: |
@@ -217,7 +217,7 @@ jobs:
           tar -czvf ../../../../../result.tar.gz *
 
       - name: Upload tar.gz archive
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: tar-gz-x86-64-result
           path: ./*.tar.gz
@@ -232,7 +232,7 @@ jobs:
         run: git config --system core.longpaths true
 
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - uses: subosito/flutter-action@v2
         with:
@@ -260,7 +260,7 @@ jobs:
           options: /Fcrossonic-installer
 
       - name: Upload installer
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: windows-installer-x86-64-result
           path: ./build/windows/x64/installer/Release/crossonic-installer.exe
@@ -276,7 +276,7 @@ jobs:
         run: Compress-Archive -Path build/windows/x64/runner/Release/* -DestinationPath Crossonic.zip
 
       - name: Upload zip
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: windows-zip-x86-64-result
           path: Crossonic.zip
@@ -287,7 +287,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - uses: subosito/flutter-action@v2
         with:
@@ -315,11 +315,11 @@ jobs:
           retention-days: 2
   build_web_zip:
     needs: build
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - uses: subosito/flutter-action@v2
         with:
@@ -339,7 +339,7 @@ jobs:
           zip -r ../../crossonic.zip .
 
       - name: Upload .zip file
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: web-zip-result
           path: crossonic.zip
@@ -354,16 +354,14 @@ jobs:
       - build_windows_x86_64
       - build_macos_dmg
       - build_web_zip
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
       - name: Create uploads directory
         run: mkdir uploads
 
       # Android
       - name: Download Android files
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: android-apk-result
           path: android-apk-result
@@ -376,7 +374,7 @@ jobs:
 
       # TAR.GZ (x86_64)
       - name: Download tar.gz file
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: tar-gz-x86-64-result
           path: tar-gz-x86-64-result
@@ -387,13 +385,13 @@ jobs:
 
       # APPIMAGE (x86_64)
       - name: Download AppImage file
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: appimage-x86-64-result
           path: appimage-x86-64-result
 
       - name: Download AppImage.zsync file
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: appimage-zsync-x86-64-result
           path: appimage-zsync-x86-64-result
@@ -405,7 +403,7 @@ jobs:
 
       # WINDOWS ZIP (x86_64)
       - name: Download windows zip file
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: windows-zip-x86-64-result
           path: windows-zip-x86-64-result
@@ -415,7 +413,7 @@ jobs:
 
       # WINDOWS Installer (x86_64)
       - name: Download windows installer file
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: windows-installer-x86-64-result
           path: windows-installer-x86-64-result
@@ -425,7 +423,7 @@ jobs:
 
       # macOS .dmg (universal)
       - name: Download macOS .dmg file
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: macos-dmg-result
           path: macos-dmg-result
@@ -435,7 +433,7 @@ jobs:
 
       # web
       - name: Download web .zip file
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: web-zip-result
           path: web-zip-result
