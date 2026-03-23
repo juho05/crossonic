@@ -9,6 +9,7 @@
 import 'dart:io';
 
 import 'package:auto_route/auto_route.dart';
+import 'package:crossonic/data/repositories/appimage/appimage_repository.dart';
 import 'package:crossonic/routing/router.gr.dart';
 import 'package:crossonic/ui/common/dialogs/confirmation.dart';
 import 'package:crossonic/ui/settings/settings_viewmodel.dart';
@@ -91,6 +92,12 @@ class _SettingsPageState extends State<SettingsPage> {
             trailing: const Icon(Icons.arrow_forward_ios),
             onTap: () => context.router.push(const DebugRoute()),
           ),
+          if (AppImageRepository.isAppImage)
+            ListTile(
+              title: const Text("AppImage Integration"),
+              trailing: const Icon(Icons.arrow_forward_ios),
+              onTap: () => context.router.push(const AppImageRoute()),
+            ),
           ListTile(
             title: const Text("About"),
             trailing: const Icon(Icons.info_outline),

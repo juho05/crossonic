@@ -7,6 +7,7 @@
  */
 
 import 'package:auto_route/auto_route.dart';
+import 'package:crossonic/data/repositories/appimage/appimage_repository.dart';
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
 import 'package:crossonic/routing/auth_guard.dart';
 import 'package:crossonic/routing/main_toplevel_guard.dart';
@@ -234,6 +235,13 @@ class AppRouter extends RootStackRouter {
       title: (context, data) => "Message Details",
       restorationId: (match) => match.fullPath,
     ),
+    if (AppImageRepository.isAppImage)
+      AutoRoute(
+        path: "/settings/appimage",
+        page: AppImageRoute.page,
+        title: (context, data) => "AppImage Integration",
+        restorationId: (match) => match.fullPath,
+      ),
     AutoRoute(
       path: "/lyrics",
       page: LyricsRoute.page,
