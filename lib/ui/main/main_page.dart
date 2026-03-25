@@ -16,6 +16,7 @@ import 'package:crossonic/ui/common/auto_hide_fab.dart';
 import 'package:crossonic/ui/common/shimmer.dart';
 import 'package:crossonic/ui/home/home_viewmodel.dart';
 import 'package:crossonic/ui/main/layout_mode.dart';
+import 'package:crossonic/ui/main/music_folders_button.dart';
 import 'package:crossonic/ui/main/now_playing/now_playing_collapsed.dart';
 import 'package:crossonic/ui/main/now_playing/now_playing_desktop.dart';
 import 'package:crossonic/ui/main/now_playing/now_playing_expanded.dart';
@@ -199,6 +200,7 @@ class _MainPageState extends State<MainPage> {
                                                   : null,
                                               forceMaterialTransparency: true,
                                               actions: [
+                                                const MusicFoldersButton(),
                                                 IconButton(
                                                   icon: const Icon(
                                                     Icons.settings,
@@ -251,6 +253,8 @@ class _MainPageState extends State<MainPage> {
                                               icon: const Icon(Icons.refresh),
                                             ),
                                           ),
+                                        const MusicFoldersButton(),
+                                        const SizedBox(width: 8),
                                       ],
                                     ),
                                     floatingActionButton: QueueFab(

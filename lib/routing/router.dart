@@ -177,6 +177,12 @@ class AppRouter extends RootStackRouter {
       restorationId: (match) => match.fullPath,
     ),
     AutoRoute(
+      path: "/settings/musicFolders",
+      page: MusicFoldersRoute.page,
+      title: (context, data) => "Music Folders",
+      restorationId: (match) => match.fullPath,
+    ),
+    AutoRoute(
       path: "/settings/homeLayout",
       page: HomeLayoutRoute.page,
       title: (context, data) => "Home Layout",

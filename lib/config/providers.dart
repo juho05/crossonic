@@ -27,6 +27,7 @@ import 'package:crossonic/data/repositories/scrobble/scrobbler.dart';
 import 'package:crossonic/data/repositories/settings/settings_repository.dart';
 import 'package:crossonic/data/repositories/song/song_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/favorites_repository.dart';
+import 'package:crossonic/data/repositories/subsonic/music_folders_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/subsonic_repository.dart';
 import 'package:crossonic/data/repositories/themeManager/theme_manager.dart';
 import 'package:crossonic/data/repositories/version/version_repository.dart';
@@ -89,11 +90,19 @@ Future<List<SingleChildWidget>> createProviders({
     favorites: favoritesRepository,
   );
 
+  final musicFoldersRepo = MusicFoldersRepository(
+    auth: authRepository,
+    subsonic: subsonicService,
+    keyValue: keyValueRepository,
+  );
+  await musicFoldersRepo.load();
+
   final subsonicRepository = SubsonicRepository(
     authRepository: authRepository,
     subsonicService: subsonicService,
     favoritesRepository: favoritesRepository,
     songRepository: songRepository,
+    musicFoldersRepository: musicFoldersRepo,
   );
 
   final settings = SettingsRepository(
@@ -187,6 +196,7 @@ Future<List<SingleChildWidget>> createProviders({
     ),
     Provider.value(value: subsonicService),
     ChangeNotifierProvider.value(value: authRepository),
+    ChangeNotifierProvider.value(value: musicFoldersRepo),
     ChangeNotifierProvider.value(value: favoritesRepository),
     ChangeNotifierProvider.value(value: songDownloader),
     Provider.value(value: subsonicRepository),

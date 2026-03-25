@@ -45,6 +45,17 @@ class ServerSupport {
       _features.isMinCrossonicVersion(const Version(major: 0, minor: 2)) ||
       _features.isNavidrome;
 
+  bool get musicFolders =>
+      !_features.isCrossonic ||
+      _features.isMinCrossonicVersion(const Version(major: 0, minor: 4));
+
+  bool get multipleActiveMusicFolders =>
+      _features.isNavidrome ||
+      _features.isMinCrossonicVersion(const Version(major: 0, minor: 4));
+
+  bool get getGenresMusicFolderIds =>
+      _features.isMinCrossonicVersion(const Version(major: 0, minor: 4));
+
   List<TranscodingCodec> get transcodeCodecs => _features.isCrossonic
       ? [
           TranscodingCodec.serverDefault,

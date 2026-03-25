@@ -24,6 +24,7 @@ import 'package:crossonic/data/services/opensubsonic/models/genres_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/listenbrainz_config_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/lyrics_list_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/lyrics_model.dart';
+import 'package:crossonic/data/services/opensubsonic/models/music_folder_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/opensubsonic_extension_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/playlist_model.dart';
 import 'package:crossonic/data/services/opensubsonic/models/playlists_model.dart';
@@ -197,6 +198,7 @@ class SubsonicService {
     String? seed,
     int? count,
     int? offset,
+    List<int> musicFolderIds = const [],
   }) async {
     return await _fetchObject(
       con,
@@ -216,6 +218,8 @@ class SubsonicService {
         if (seed != null) "seed": [seed],
         if (count != null) "count": [count.toString()],
         if (offset != null) "offset": [offset.toString()],
+        if (musicFolderIds.isNotEmpty)
+          "musicFolderId": musicFolderIds.map((id) => id.toString()),
       },
       SongsModel.fromJson,
       "songs",
@@ -227,6 +231,7 @@ class SubsonicService {
     String genre, {
     int? count,
     int? offset,
+    List<int> musicFolderIds = const [],
   }) async {
     return await _fetchObject(
       con,
@@ -235,6 +240,8 @@ class SubsonicService {
         "genre": [genre],
         "count": count != null ? [count.toString()] : [],
         "offset": offset != null ? [offset.toString()] : [],
+        if (musicFolderIds.isNotEmpty)
+          "musicFolderId": musicFolderIds.map((id) => id.toString()),
       },
       SongsModel.fromJson,
       "songsByGenre",
@@ -273,8 +280,20 @@ class SubsonicService {
     );
   }
 
-  Future<Result<GenresModel>> getGenres(Connection con) async {
-    return _fetchObject(con, "getGenres", {}, GenresModel.fromJson, "genres");
+  Future<Result<GenresModel>> getGenres(
+    Connection con, {
+    List<int> musicFolderIds = const [],
+  }) async {
+    return _fetchObject(
+      con,
+      "getGenres",
+      {
+        if (musicFolderIds.isNotEmpty)
+          "musicFolderId": musicFolderIds.map((id) => id.toString()),
+      },
+      GenresModel.fromJson,
+      "genres",
+    );
   }
 
   Future<Result<void>> scrobble(
@@ -368,11 +387,17 @@ class SubsonicService {
     );
   }
 
-  Future<Result<ArtistsModel>> getArtists(Connection con) async {
+  Future<Result<ArtistsModel>> getArtists(
+    Connection con, {
+    List<int> musicFolderIds = const [],
+  }) async {
     return await _fetchObject(
       con,
       "getArtists",
-      {},
+      {
+        if (musicFolderIds.isNotEmpty)
+          "musicFolderId": musicFolderIds.map((id) => id.toString()),
+      },
       ArtistsModel.fromJson,
       "artists",
     );
@@ -388,6 +413,7 @@ class SubsonicService {
     int? songCount,
     int? songOffset,
     bool? onlyAlbumArtists,
+    List<int> musicFolderIds = const [],
   }) async {
     return _fetchObject(
       con,
@@ -403,6 +429,8 @@ class SubsonicService {
         "onlyAlbumArtists": onlyAlbumArtists != null
             ? [onlyAlbumArtists.toString()]
             : [],
+        if (musicFolderIds.isNotEmpty)
+          "musicFolderId": musicFolderIds.map((id) => id.toString()),
       },
       SearchResult3Model.fromJson,
       "searchResult3",
@@ -418,6 +446,7 @@ class SubsonicService {
     int? toYear,
     String? genre,
     String? seed,
+    List<int> musicFolderIds = const [],
   }) async {
     return await _fetchObject(
       con,
@@ -430,6 +459,8 @@ class SubsonicService {
         "toYear": toYear != null ? [toYear.toString()] : [],
         "genre": genre != null ? [genre] : [],
         "seed": seed != null ? [seed] : [],
+        if (musicFolderIds.isNotEmpty)
+          "musicFolderId": musicFolderIds.map((id) => id.toString()),
       },
       AlbumList2Model.fromJson,
       "albumList2",
@@ -471,13 +502,16 @@ class SubsonicService {
 
   Future<Result<AppearsOnModel>> getAppearsOn(
     Connection con,
-    String artistId,
-  ) async {
+    String artistId, {
+    List<int> musicFolderIds = const [],
+  }) async {
     return _fetchObject(
       con,
       "crossonic/getAppearsOn",
       {
         "artistId": [artistId],
+        if (musicFolderIds.isNotEmpty)
+          "musicFolderId": musicFolderIds.map((id) => id.toString()),
       },
       AppearsOnModel.fromJson,
       "appearsOn",
@@ -486,13 +520,16 @@ class SubsonicService {
 
   Future<Result<AlbumVersionsModel>> getAlternateAlbumVersions(
     Connection con,
-    String albumId,
-  ) async {
+    String albumId, {
+    List<int> musicFolderIds = const [],
+  }) async {
     return _fetchObject(
       con,
       "crossonic/getAlternateAlbumVersions",
       {
         "albumId": [albumId],
+        if (musicFolderIds.isNotEmpty)
+          "musicFolderId": musicFolderIds.map((id) => id.toString()),
       },
       AlbumVersionsModel.fromJson,
       "albumVersions",
@@ -549,11 +586,17 @@ class SubsonicService {
     }, null);
   }
 
-  Future<Result<Starred2Model>> getStarred2(Connection con) async {
+  Future<Result<Starred2Model>> getStarred2(
+    Connection con, {
+    List<int> musicFolderIds = const [],
+  }) async {
     return await _fetchObject(
       con,
       "getStarred2",
-      {},
+      {
+        if (musicFolderIds.isNotEmpty)
+          "musicFolderId": musicFolderIds.map((id) => id.toString()),
+      },
       Starred2Model.fromJson,
       "starred2",
     );
@@ -567,6 +610,7 @@ class SubsonicService {
     String? genre,
     int? fromYear,
     int? toYear,
+    List<int> musicFolderIds = const [],
   }) async {
     return await _fetchObject(
       con,
@@ -578,9 +622,21 @@ class SubsonicService {
         if (genre != null) "genre": [genre],
         if (fromYear != null) "fromYear": [fromYear.toString()],
         if (toYear != null) "toYear": [toYear.toString()],
+        if (musicFolderIds.isNotEmpty)
+          "musicFolderId": musicFolderIds.map((id) => id.toString()),
       },
       RandomSongsModel.fromJson,
       "randomSongs",
+    );
+  }
+
+  Future<Result<MusicFoldersModel>> getMusicFolders(Connection con) async {
+    return await _fetchObject(
+      con,
+      "getMusicFolders",
+      {},
+      MusicFoldersModel.fromJson,
+      "musicFolders",
     );
   }
 

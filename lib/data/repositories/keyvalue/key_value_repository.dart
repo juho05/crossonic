@@ -46,6 +46,12 @@ class KeyValueRepository {
     return (jsonDecode(json) as List<dynamic>).cast<String>();
   }
 
+  Future<List<int>?> loadIntList(String key) async {
+    final json = await _loadValue(key);
+    if (json == null) return null;
+    return (jsonDecode(json) as List<dynamic>).cast<int>();
+  }
+
   Future<int?> loadInt(String key) async {
     final json = await _loadValue(key);
     if (json == null) return null;

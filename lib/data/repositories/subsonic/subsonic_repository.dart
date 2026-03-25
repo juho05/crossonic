@@ -21,6 +21,7 @@ import 'package:crossonic/data/repositories/subsonic/models/genre.dart';
 import 'package:crossonic/data/repositories/subsonic/models/listenbrainz_config.dart';
 import 'package:crossonic/data/repositories/subsonic/models/lyrics.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
+import 'package:crossonic/data/repositories/subsonic/music_folders_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/server_support.dart';
 import 'package:crossonic/data/services/opensubsonic/auth.dart';
 import 'package:crossonic/data/services/opensubsonic/exceptions.dart';
@@ -59,18 +60,24 @@ class SubsonicRepository {
   final SubsonicService _service;
   final FavoritesRepository _favorites;
   final SongRepository _songs;
+  final MusicFoldersRepository _musicFolders;
 
   ServerSupport get supports => ServerSupport(features: _auth.serverFeatures);
+
+  List<int> get _mFolderIds =>
+      supports.musicFolders ? _musicFolders.selected.toList() : const [];
 
   SubsonicRepository({
     required AuthRepository authRepository,
     required SubsonicService subsonicService,
     required FavoritesRepository favoritesRepository,
     required SongRepository songRepository,
+    required MusicFoldersRepository musicFoldersRepository,
   }) : _auth = authRepository,
        _service = subsonicService,
        _favorites = favoritesRepository,
-       _songs = songRepository;
+       _songs = songRepository,
+       _musicFolders = musicFoldersRepository;
 
   Future<Result<Lyrics?>> getLyricsLines(Song song) async {
     if (!supports.songLyricsById) {
@@ -117,6 +124,7 @@ class SubsonicRepository {
       genre: genre,
       size: count,
       offset: offset,
+      musicFolderIds: _mFolderIds,
     );
     switch (result) {
       case Err():
@@ -161,6 +169,7 @@ class SubsonicRepository {
       seed: seed,
       count: count,
       offset: offset,
+      musicFolderIds: _mFolderIds,
     );
     switch (result) {
       case Err():
@@ -181,6 +190,7 @@ class SubsonicRepository {
       genre,
       count: count,
       offset: offset,
+      musicFolderIds: _mFolderIds,
     );
     switch (result) {
       case Err():
@@ -192,7 +202,10 @@ class SubsonicRepository {
   }
 
   Future<Result<List<Genre>>> getGenres() async {
-    final result = await _service.getGenres(_auth.con);
+    final result = await _service.getGenres(
+      _auth.con,
+      musicFolderIds: supports.getGenresMusicFolderIds ? _mFolderIds : const [],
+    );
     switch (result) {
       case Err():
         return Result.error(result.error);
@@ -283,7 +296,10 @@ class SubsonicRepository {
   }
 
   Future<Result<Iterable<Artist>>> getArtists() async {
-    final result = await _service.getArtists(_auth.con);
+    final result = await _service.getArtists(
+      _auth.con,
+      musicFolderIds: _mFolderIds,
+    );
     switch (result) {
       case Err():
         return Result.error(result.error);
@@ -297,7 +313,10 @@ class SubsonicRepository {
   }
 
   Future<Result<Iterable<Song>>> getStarredSongs() async {
-    final result = await _service.getStarred2(_auth.con);
+    final result = await _service.getStarred2(
+      _auth.con,
+      musicFolderIds: _mFolderIds,
+    );
     switch (result) {
       case Err():
         return Result.error(result.error);
@@ -308,7 +327,10 @@ class SubsonicRepository {
   }
 
   Future<Result<Iterable<Artist>>> getStarredArtists() async {
-    final result = await _service.getStarred2(_auth.con);
+    final result = await _service.getStarred2(
+      _auth.con,
+      musicFolderIds: _mFolderIds,
+    );
     switch (result) {
       case Err():
         return Result.error(result.error);
@@ -339,6 +361,7 @@ class SubsonicRepository {
       songCount: songCount,
       songOffset: songOffset,
       onlyAlbumArtists: supports.searchOnlyAlbumArtistsParam ? false : null,
+      musicFolderIds: _mFolderIds,
     );
     switch (result) {
       case Err():
@@ -377,6 +400,7 @@ class SubsonicRepository {
       size: count,
       offset: offset,
       seed: seed,
+      musicFolderIds: _mFolderIds,
     );
     switch (result) {
       case Err():
@@ -402,6 +426,7 @@ class SubsonicRepository {
       toYear: toYear,
       size: count,
       offset: offset,
+      musicFolderIds: _mFolderIds,
     );
     switch (result) {
       case Err():
@@ -441,7 +466,11 @@ class SubsonicRepository {
     if (!supports.getAlternateAlbumVersions) {
       return const Result.ok([]);
     }
-    final result = await _service.getAlternateAlbumVersions(_auth.con, albumId);
+    final result = await _service.getAlternateAlbumVersions(
+      _auth.con,
+      albumId,
+      musicFolderIds: _mFolderIds,
+    );
     switch (result) {
       case Err():
         return Result.error(result.error);
@@ -457,7 +486,11 @@ class SubsonicRepository {
     if (!supports.appearsOn) {
       return const Result.ok([]);
     }
-    final result = await _service.getAppearsOn(_auth.con, artistId);
+    final result = await _service.getAppearsOn(
+      _auth.con,
+      artistId,
+      musicFolderIds: _mFolderIds,
+    );
     switch (result) {
       case Err():
         return Result.error(result.error);
@@ -501,6 +534,7 @@ class SubsonicRepository {
       size: count,
       offset: offset,
       seed: seed,
+      musicFolderIds: _mFolderIds,
     );
     switch (result) {
       case Err():
