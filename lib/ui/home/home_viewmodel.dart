@@ -10,6 +10,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:crossonic/data/repositories/settings/home_page_layout.dart';
+import 'package:crossonic/data/repositories/subsonic/music_folders_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/subsonic_repository.dart';
 import 'package:flutter/foundation.dart';
 
@@ -26,9 +27,12 @@ class HomeViewModel extends ChangeNotifier {
   String? _seed;
   String? get seed => _seed;
 
+  StreamSubscription? _musicFolderSub;
+
   HomeViewModel({
     required HomeLayoutSettings settings,
     required SubsonicRepository subsonicRepository,
+    required MusicFoldersRepository musicFolders,
   }) : _settings = settings,
        _subsonic = subsonicRepository {
     if (_subsonic.supports.randomSeed) {
@@ -36,6 +40,10 @@ class HomeViewModel extends ChangeNotifier {
     }
     _settings.addListener(_onChanged);
     _onChanged();
+
+    _musicFolderSub = musicFolders.debounced.listen((_) {
+      refresh(false);
+    });
   }
 
   void refresh(bool refreshRandom) async {
@@ -53,6 +61,7 @@ class HomeViewModel extends ChangeNotifier {
 
   @override
   void dispose() {
+    _musicFolderSub?.cancel();
     _settings.removeListener(_onChanged);
     _refreshStream.close();
     super.dispose();

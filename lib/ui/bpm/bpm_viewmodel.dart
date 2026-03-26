@@ -10,6 +10,7 @@ import 'dart:async';
 
 import 'package:crossonic/data/repositories/audio/audio_handler.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
+import 'package:crossonic/data/repositories/subsonic/music_folders_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/subsonic_repository.dart';
 import 'package:crossonic/data/services/opensubsonic/subsonic_service.dart';
 import 'package:crossonic/utils/fetch_status.dart';
@@ -43,11 +44,18 @@ class BpmViewModel extends ChangeNotifier {
   FetchStatus _status = FetchStatus.initial;
   FetchStatus get status => _status;
 
+  StreamSubscription? _musicFolderSub;
+
   BpmViewModel({
     required SubsonicRepository subsonic,
     required AudioHandler audioHandler,
+    required MusicFoldersRepository musicFolders,
   }) : _subsonic = subsonic,
-       _audioHandler = audioHandler;
+       _audioHandler = audioHandler {
+    _musicFolderSub = musicFolders.debounced.listen((event) {
+      refresh();
+    });
+  }
 
   Future<void> nextPage() async {
     if (_reachedEnd) return;
@@ -116,6 +124,7 @@ class BpmViewModel extends ChangeNotifier {
   @override
   void dispose() {
     _rangeChangeDebounce?.cancel();
+    _musicFolderSub?.cancel();
     super.dispose();
   }
 }

@@ -46,12 +46,14 @@ class _SongsPageState extends State<SongsPage> {
       _viewModel = SongsViewModel.genre(
         audioHandler: context.read(),
         subsonic: context.read(),
+        musicFolders: context.read(),
         genre: widget.genre!,
       )..nextPage();
     } else {
       _viewModel = SongsViewModel(
         audioHandler: context.read(),
         subsonic: context.read(),
+        musicFolders: context.read(),
         mode: SongsPageMode.values
             .where((m) => m != SongsPageMode.genre)
             .firstWhere(

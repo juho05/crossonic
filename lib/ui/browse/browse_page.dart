@@ -32,7 +32,10 @@ class _BrowsePageState extends State<BrowsePage> {
   @override
   void initState() {
     super.initState();
-    _viewModel = BrowseViewModel(subsonicRepository: context.read());
+    _viewModel = BrowseViewModel(
+      subsonicRepository: context.read(),
+      musicFolders: context.read(),
+    );
   }
 
   @override

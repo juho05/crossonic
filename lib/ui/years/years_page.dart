@@ -31,7 +31,10 @@ class _YearsPageState extends State<YearsPage> {
   @override
   void initState() {
     super.initState();
-    _viewModel = YearsViewModel(subsonic: context.read());
+    _viewModel = YearsViewModel(
+      subsonic: context.read(),
+      musicFolders: context.read(),
+    );
     _controller.addListener(_onScroll);
     _viewModel.nextPage();
   }

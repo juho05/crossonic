@@ -39,6 +39,7 @@ class _ArtistsPageState extends State<ArtistsPage> {
     super.initState();
     _viewModel = ArtistsViewModel(
       subsonic: context.read(),
+      musicFolders: context.read(),
       mode: ArtistsPageMode.values.firstWhere(
         (m) => m.name == widget.initialSort,
         orElse: () => ArtistsPageMode.alphabetical,

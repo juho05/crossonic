@@ -6,10 +6,12 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+import 'dart:async';
 import 'dart:math';
 
 import 'package:crossonic/data/repositories/audio/audio_handler.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
+import 'package:crossonic/data/repositories/subsonic/music_folders_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/subsonic_repository.dart';
 import 'package:crossonic/data/services/opensubsonic/subsonic_service.dart';
 import 'package:crossonic/utils/fetch_status.dart';
@@ -50,10 +52,12 @@ class SongsViewModel extends ChangeNotifier {
   final String _genre;
   final String? _initialSeed;
 
+  StreamSubscription? _musicFolderSub;
   SongsViewModel({
     required SubsonicRepository subsonic,
     required AudioHandler audioHandler,
     required SongsPageMode mode,
+    required MusicFoldersRepository musicFolders,
     String? initialSeed,
   }) : _subsonic = subsonic,
        _audioHandler = audioHandler,
@@ -68,18 +72,25 @@ class SongsViewModel extends ChangeNotifier {
       );
     }
     this.mode = mode;
+    _musicFolderSub = musicFolders.debounced.listen((event) {
+      refresh(keepSeed: true);
+    });
   }
 
   SongsViewModel.genre({
     required SubsonicRepository subsonic,
     required AudioHandler audioHandler,
+    required MusicFoldersRepository musicFolders,
     required String genre,
   }) : _subsonic = subsonic,
        _audioHandler = audioHandler,
        _genre = genre,
        _initialSeed = null {
     _mode = SongsPageMode.genre;
-    _fetch(0);
+    refresh();
+    _musicFolderSub = musicFolders.debounced.listen((event) {
+      refresh(keepSeed: true);
+    });
   }
 
   Future<void> nextPage() async {
@@ -91,8 +102,8 @@ class SongsViewModel extends ChangeNotifier {
     return await _fetch(_nextPage);
   }
 
-  Future<void> refresh() async {
-    return await _fetch(0);
+  Future<void> refresh({bool keepSeed = false}) async {
+    return await _fetch(0, keepSeedOnRefresh: keepSeed);
   }
 
   void play() async {
@@ -135,14 +146,14 @@ class SongsViewModel extends ChangeNotifier {
   }
 
   String? _seed;
-  Future<void> _fetch(int page) async {
+  Future<void> _fetch(int page, {bool keepSeedOnRefresh = false}) async {
     if (_status == FetchStatus.loading) return;
     _status = FetchStatus.loading;
 
     if (page == 0 && _subsonic.supports.randomSeed) {
       if (_seed == null && _initialSeed != null) {
         _seed = _initialSeed;
-      } else {
+      } else if (!keepSeedOnRefresh) {
         _seed = Random().nextDouble().toString();
       }
     }
@@ -193,5 +204,11 @@ class SongsViewModel extends ChangeNotifier {
     _reachedEnd = result.value.length < _pageSize;
     songs.addAll(result.value);
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _musicFolderSub?.cancel();
+    super.dispose();
   }
 }

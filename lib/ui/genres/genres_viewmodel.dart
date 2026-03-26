@@ -6,7 +6,10 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+import 'dart:async';
+
 import 'package:crossonic/data/repositories/subsonic/models/genre.dart';
+import 'package:crossonic/data/repositories/subsonic/music_folders_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/subsonic_repository.dart';
 import 'package:crossonic/utils/fetch_status.dart';
 import 'package:crossonic/utils/result.dart';
@@ -37,8 +40,15 @@ class GenresViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  GenresViewModel({required SubsonicRepository subsonic})
-    : _subsonic = subsonic;
+  StreamSubscription? _musicFolderSub;
+  GenresViewModel({
+    required SubsonicRepository subsonic,
+    required MusicFoldersRepository musicFolders,
+  }) : _subsonic = subsonic {
+    _musicFolderSub = musicFolders.debounced.listen((event) {
+      load();
+    });
+  }
 
   Future<void> load() async {
     if (_status == FetchStatus.loading) return;
@@ -84,5 +94,11 @@ class GenresViewModel extends ChangeNotifier {
           return 0;
       }
     });
+  }
+
+  @override
+  void dispose() {
+    _musicFolderSub?.cancel();
+    super.dispose();
   }
 }

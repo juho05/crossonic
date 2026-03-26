@@ -67,6 +67,7 @@ class _MainPageState extends State<MainPage> {
               create: (context) => HomeViewModel(
                 settings: context.read<SettingsRepository>().homeLayout,
                 subsonicRepository: context.read(),
+                musicFolders: context.read(),
               ),
               builder: (context, _) {
                 return AutoTabsRouter(

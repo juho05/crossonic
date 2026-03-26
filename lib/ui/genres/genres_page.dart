@@ -31,7 +31,10 @@ class _GenresPageState extends State<GenresPage> {
   @override
   void initState() {
     super.initState();
-    _viewModel = GenresViewModel(subsonic: context.read())..load();
+    _viewModel = GenresViewModel(
+      subsonic: context.read(),
+      musicFolders: context.read(),
+    )..load();
   }
 
   @override

@@ -6,9 +6,11 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+import 'dart:async';
 import 'dart:math';
 
 import 'package:crossonic/data/repositories/subsonic/models/artist.dart';
+import 'package:crossonic/data/repositories/subsonic/music_folders_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/subsonic_repository.dart';
 import 'package:crossonic/utils/fetch_status.dart';
 import 'package:crossonic/utils/result.dart';
@@ -38,27 +40,41 @@ class ArtistsViewModel extends ChangeNotifier {
   FetchStatus _status = FetchStatus.initial;
   FetchStatus get status => _status;
 
-  String? _initialSeed;
+  final String? _initialSeed;
+  String? _seed;
+
+  StreamSubscription? _musicFolderSub;
 
   ArtistsViewModel({
     required SubsonicRepository subsonic,
     required ArtistsPageMode mode,
+    required MusicFoldersRepository musicFolders,
     String? initialSeed,
   }) : _subsonic = subsonic,
        _mode = mode,
-       _initialSeed =
-           subsonic.supports.randomSeed && mode == ArtistsPageMode.random
-           ? initialSeed
-           : null;
-
-  Future<void> load() async {
-    return await _fetch();
+       _initialSeed = initialSeed {
+    _musicFolderSub = musicFolders.debounced.listen((event) {
+      load(keepSeed: true);
+    });
   }
 
-  Future<void> _fetch() async {
+  Future<void> load({bool keepSeed = false}) async {
+    return await _fetch(keepSeed: keepSeed);
+  }
+
+  Future<void> _fetch({bool keepSeed = false}) async {
     if (_status == FetchStatus.loading) return;
     _status = FetchStatus.loading;
     artists.clear();
+
+    if (_subsonic.supports.randomSeed) {
+      if (_seed == null && _initialSeed != null) {
+        _seed = _initialSeed;
+      } else if (!keepSeed) {
+        _seed = Random().nextDouble().toString();
+      }
+    }
+
     notifyListeners();
 
     final Result<Iterable<Artist>> result;
@@ -88,13 +104,18 @@ class ArtistsViewModel extends ChangeNotifier {
       case ArtistsPageMode.alphabetical:
         artists.sort((a, b) => a.name.compareTo(b.name));
       case ArtistsPageMode.random:
-        if (_initialSeed != null) {
-          artists.shuffle(Random(_initialSeed.hashCode));
-          _initialSeed = null;
+        if (_seed != null) {
+          artists.shuffle(Random(_seed.hashCode));
         } else {
           artists.shuffle();
         }
       default:
     }
+  }
+
+  @override
+  void dispose() {
+    _musicFolderSub?.cancel();
+    super.dispose();
   }
 }

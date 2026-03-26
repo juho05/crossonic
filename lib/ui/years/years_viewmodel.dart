@@ -6,7 +6,10 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+import 'dart:async';
+
 import 'package:crossonic/data/repositories/subsonic/models/album.dart';
+import 'package:crossonic/data/repositories/subsonic/music_folders_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/subsonic_repository.dart';
 import 'package:crossonic/utils/fetch_status.dart';
 import 'package:crossonic/utils/result.dart';
@@ -32,10 +35,17 @@ class YearsViewModel extends ChangeNotifier {
     refresh();
   }
 
-  YearsViewModel({required SubsonicRepository subsonic})
-    : _fromYear = DateTime.now().year - 10,
-      _toYear = DateTime.now().year,
-      _subsonic = subsonic;
+  StreamSubscription? _musicFolderSub;
+  YearsViewModel({
+    required SubsonicRepository subsonic,
+    required MusicFoldersRepository musicFolders,
+  }) : _fromYear = DateTime.now().year - 10,
+       _toYear = DateTime.now().year,
+       _subsonic = subsonic {
+    _musicFolderSub = musicFolders.debounced.listen((event) {
+      refresh();
+    });
+  }
 
   static final int _pageSize = 100;
 
@@ -80,5 +90,11 @@ class YearsViewModel extends ChangeNotifier {
     _reachedEnd = result.value.length < _pageSize;
     albums.addAll(result.value);
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _musicFolderSub?.cancel();
+    super.dispose();
   }
 }

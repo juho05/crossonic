@@ -42,11 +42,13 @@ class _AlbumsPageState extends State<AlbumsPage> {
     if (widget.genre != null) {
       _viewModel = AlbumsViewModel.genre(
         subsonic: context.read(),
+        musicFolders: context.read(),
         genre: widget.genre!,
       );
     } else {
       _viewModel = AlbumsViewModel(
         subsonic: context.read(),
+        musicFolders: context.read(),
         mode: AlbumsPageMode.values.firstWhere(
           (m) => m.name == widget.mode,
           orElse: () => AlbumsPageMode.alphabetical,

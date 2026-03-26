@@ -11,6 +11,7 @@ import 'dart:async';
 import 'package:crossonic/data/repositories/subsonic/models/album.dart';
 import 'package:crossonic/data/repositories/subsonic/models/artist.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
+import 'package:crossonic/data/repositories/subsonic/music_folders_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/subsonic_repository.dart';
 import 'package:crossonic/utils/fetch_status.dart';
 import 'package:crossonic/utils/result.dart';
@@ -34,8 +35,18 @@ class BrowseViewModel extends ChangeNotifier {
   List<Artist> _artists = [];
   List<Artist> get artists => _artists;
 
-  BrowseViewModel({required SubsonicRepository subsonicRepository})
-    : _subsonic = subsonicRepository;
+  String _searchText = "";
+
+  StreamSubscription? _musicFolderSub;
+
+  BrowseViewModel({
+    required SubsonicRepository subsonicRepository,
+    required MusicFoldersRepository musicFolders,
+  }) : _subsonic = subsonicRepository {
+    _musicFolderSub = musicFolders.debounced.listen((event) {
+      updateSearchText(_searchText);
+    });
+  }
 
   bool get supportBPM => _subsonic.supports.getSongs;
 
@@ -43,6 +54,7 @@ class BrowseViewModel extends ChangeNotifier {
     _songs = [];
     _albums = [];
     _artists = [];
+    _searchText = search;
 
     if (search.isEmpty) {
       _searchMode = false;
@@ -71,5 +83,11 @@ class BrowseViewModel extends ChangeNotifier {
         _artists = result.value.artists.toList();
     }
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _musicFolderSub?.cancel();
+    super.dispose();
   }
 }

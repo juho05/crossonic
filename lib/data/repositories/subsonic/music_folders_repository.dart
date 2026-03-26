@@ -6,6 +6,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+import 'dart:async';
+
 import 'package:collection/collection.dart';
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
 import 'package:crossonic/data/repositories/keyvalue/key_value_repository.dart';
@@ -16,6 +18,7 @@ import 'package:flutter/foundation.dart';
 
 class MusicFoldersRepository extends ChangeNotifier {
   static const String _selectedKey = "music_folders.selected";
+  static const Duration _debounceDuration = Duration(seconds: 1);
 
   final AuthRepository _auth;
   final SubsonicService _subsonic;
@@ -24,6 +27,9 @@ class MusicFoldersRepository extends ChangeNotifier {
   final Set<int> _selected = {};
   Set<int> get selected => UnmodifiableSetView(_selected);
 
+  final StreamController<void> _debounced = StreamController.broadcast();
+  Stream<void> get debounced => _debounced.stream;
+
   MusicFoldersRepository({
     required AuthRepository auth,
     required SubsonicService subsonic,
@@ -31,12 +37,22 @@ class MusicFoldersRepository extends ChangeNotifier {
   }) : _auth = auth,
        _subsonic = subsonic,
        _keyValue = keyValue {
-    auth.addListener(() {
-      if (!auth.isAuthenticated) {
-        _selected.clear();
-        notifyListeners();
-      }
-    });
+    auth.addListener(_onAuthChanged);
+    addListener(_onChanged);
+  }
+
+  Timer? _changedDebounce;
+  void _onChanged() {
+    if (!_debounced.hasListener) return;
+    _changedDebounce?.cancel();
+    _changedDebounce = Timer(_debounceDuration, () => _debounced.add(null));
+  }
+
+  void _onAuthChanged() {
+    if (!_auth.isAuthenticated) {
+      _selected.clear();
+      notifyListeners();
+    }
   }
 
   Future<Result<List<MusicFolder>>> getMusicFolders() async {
@@ -95,5 +111,13 @@ class MusicFoldersRepository extends ChangeNotifier {
       return;
     }
     await _keyValue.store(_selectedKey, _selected.toList());
+  }
+
+  @override
+  void dispose() {
+    _changedDebounce?.cancel();
+    removeListener(_onChanged);
+    removeListener(_onAuthChanged);
+    super.dispose();
   }
 }

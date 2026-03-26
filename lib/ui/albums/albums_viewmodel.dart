@@ -6,9 +6,11 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+import 'dart:async';
 import 'dart:math';
 
 import 'package:crossonic/data/repositories/subsonic/models/album.dart';
+import 'package:crossonic/data/repositories/subsonic/music_folders_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/subsonic_repository.dart';
 import 'package:crossonic/utils/fetch_status.dart';
 import 'package:crossonic/utils/result.dart';
@@ -50,8 +52,11 @@ class AlbumsViewModel extends ChangeNotifier {
   final String _genre;
   final String? _initialSeed;
 
+  StreamSubscription? _musicFolderSub;
+
   AlbumsViewModel({
     required SubsonicRepository subsonic,
+    required MusicFoldersRepository musicFolders,
     required AlbumsPageMode mode,
     String? initialSeed,
   }) : _subsonic = subsonic,
@@ -67,16 +72,23 @@ class AlbumsViewModel extends ChangeNotifier {
       );
     }
     this.mode = mode;
+    _musicFolderSub = musicFolders.debounced.listen((event) {
+      refresh(keepSeed: true);
+    });
   }
 
   AlbumsViewModel.genre({
     required SubsonicRepository subsonic,
     required String genre,
+    required MusicFoldersRepository musicFolders,
   }) : _subsonic = subsonic,
        _mode = AlbumsPageMode.genre,
        _genre = genre,
        _initialSeed = null {
-    _fetch(0);
+    refresh();
+    _musicFolderSub = musicFolders.debounced.listen((event) {
+      refresh(keepSeed: true);
+    });
   }
 
   Future<void> nextPage() async {
@@ -87,19 +99,19 @@ class AlbumsViewModel extends ChangeNotifier {
     return await _fetch(_nextPage);
   }
 
-  Future<void> refresh() async {
-    return await _fetch(0);
+  Future<void> refresh({bool keepSeed = false}) async {
+    return await _fetch(0, keepSeedOnRefresh: keepSeed);
   }
 
   String? _seed;
-  Future<void> _fetch(int page) async {
+  Future<void> _fetch(int page, {bool keepSeedOnRefresh = false}) async {
     if (_status == FetchStatus.loading) return;
     _status = FetchStatus.loading;
 
     if (page == 0 && _subsonic.supports.randomSeed) {
       if (_seed == null && _initialSeed != null) {
         _seed = _initialSeed;
-      } else {
+      } else if (!keepSeedOnRefresh) {
         _seed = Random().nextDouble().toString();
       }
     }
@@ -145,5 +157,11 @@ class AlbumsViewModel extends ChangeNotifier {
     _reachedEnd = result.value.length < _pageSize;
     albums.addAll(result.value);
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _musicFolderSub?.cancel();
+    super.dispose();
   }
 }
