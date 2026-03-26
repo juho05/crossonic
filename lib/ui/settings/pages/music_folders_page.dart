@@ -23,7 +23,7 @@ class MusicFoldersPage extends StatelessWidget {
           MusicFoldersViewModel(subsonic: context.read(), repo: context.read()),
       builder: (context, _) {
         return Scaffold(
-          appBar: AppBar(title: const Text("Music Folders")),
+          appBar: AppBar(title: const Text("Libraries")),
           body: SafeArea(
             child: Consumer<MusicFoldersViewModel>(
               builder: (context, viewModel, _) {
