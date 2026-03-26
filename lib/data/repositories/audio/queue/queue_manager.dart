@@ -568,7 +568,13 @@ class QueueManager extends ChangeNotifier {
         await _db.managers.priorityQueueSongTable.delete();
       }
     });
-    _regularLength -= deletedRegular;
+    if (queue && fromIndex == 0) {
+      // deletedRegular might be incorrect after logout because the song
+      // were already deleted from the queue before calling this function
+      _regularLength = 0;
+    } else {
+      _regularLength -= deletedRegular;
+    }
     if (priorityQueue) {
       _prioLength = 0;
     }

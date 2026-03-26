@@ -367,6 +367,7 @@ class AudioHandler {
 
   Future<void> _authChanged() async {
     if (_auth.isAuthenticated) {
+      await _queue.init();
       await _player.configureServerURL(
         streamUri: _createStreamUri(),
         coverUri: _createCoverUri(),

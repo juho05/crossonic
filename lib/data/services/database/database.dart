@@ -58,7 +58,7 @@ class Database extends _$Database {
   int get schemaVersion => 9;
 
   Future<void> clearAll() async {
-    customStatement("PRAGMA foreign_keys = OFF");
+    await customStatement("PRAGMA foreign_keys = OFF");
     try {
       await transaction(() async {
         for (var table in allTables) {
@@ -74,7 +74,7 @@ class Database extends _$Database {
         }
       });
     } finally {
-      customStatement("PRAGMA foreign_keys = ON");
+      await customStatement("PRAGMA foreign_keys = ON");
     }
   }
 

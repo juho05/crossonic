@@ -197,7 +197,9 @@ class _LoginPageState extends State<LoginPage> with RestorationMixin {
 
   void _onResult() {
     if (viewModel.login.completed) {
-      context.router.replaceAll([const MainRoute()]);
+      context.router.replaceAll([
+        const MainRoute(),
+      ], updateExistingRoutes: false);
       viewModel.login.clearResult();
       return;
     }
