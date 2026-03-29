@@ -13,7 +13,9 @@ import 'package:window_manager/window_manager.dart';
 
 Future<void> exitApp() async {
   if (kIsWeb) return;
-  await windowManager.setPreventClose(false);
-  await windowManager.close();
+  if (Platform.isWindows || Platform.isLinux) {
+    await windowManager.setPreventClose(false);
+    await windowManager.close();
+  }
   exit(0);
 }
