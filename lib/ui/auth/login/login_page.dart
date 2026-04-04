@@ -95,6 +95,7 @@ class _LoginPageState extends State<LoginPage> with RestorationMixin {
                   expandedInsets: EdgeInsets.zero,
                   requestFocusOnTap: false,
                   enableSearch: false,
+                  label: const Text("Auth method"),
                   leadingIcon: const Icon(Icons.login),
                   dropdownMenuEntries: List.generate(
                     viewModel.supportedAuthTypes.length,
