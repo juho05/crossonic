@@ -62,7 +62,8 @@ class SubsonicRepository {
   final SongRepository _songs;
   final MusicFoldersRepository _musicFolders;
 
-  ServerSupport get supports => ServerSupport(features: _auth.serverFeatures);
+  ServerSupport get supports =>
+      ServerSupport(features: _auth.serverFeatures.value);
 
   List<int> get _mFolderIds =>
       supports.musicFolders ? _musicFolders.selected.toList() : const [];

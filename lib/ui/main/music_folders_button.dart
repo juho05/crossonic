@@ -7,6 +7,7 @@
  */
 
 import 'package:auto_route/auto_route.dart';
+import 'package:crossonic/data/repositories/auth/auth_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/music_folders_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/subsonic_repository.dart';
 import 'package:crossonic/routing/router.gr.dart';
@@ -18,20 +19,25 @@ class MusicFoldersButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (!context.read<SubsonicRepository>().supports.musicFolders) {
-      return const SizedBox.shrink();
-    }
-    final musicFoldersRepo = context.read<MusicFoldersRepository>();
     return ListenableBuilder(
-      listenable: musicFoldersRepo,
+      listenable: context.read<AuthRepository>().serverFeatures,
       builder: (context, _) {
-        final filtersActive = musicFoldersRepo.selected.isNotEmpty;
-        return IconButton(
-          icon: filtersActive
-              ? const Icon(Icons.folder_copy)
-              : const Icon(Icons.folder_copy_outlined),
-          onPressed: () {
-            context.router.push(const MusicFoldersRoute());
+        if (!context.read<SubsonicRepository>().supports.musicFolders) {
+          return const SizedBox.shrink();
+        }
+        final musicFoldersRepo = context.read<MusicFoldersRepository>();
+        return ListenableBuilder(
+          listenable: musicFoldersRepo,
+          builder: (context, _) {
+            final filtersActive = musicFoldersRepo.selected.isNotEmpty;
+            return IconButton(
+              icon: filtersActive
+                  ? const Icon(Icons.folder_copy)
+                  : const Icon(Icons.folder_copy_outlined),
+              onPressed: () {
+                context.router.push(const MusicFoldersRoute());
+              },
+            );
           },
         );
       },

@@ -95,6 +95,7 @@ class Scrobbler {
   }
 
   Timer? _storeCurrentTimer;
+
   Future<void> _setPlaying(bool playing) async {
     if (_playing == playing) return;
     _playing = playing;
@@ -118,7 +119,7 @@ class Scrobbler {
     _submitting = true;
     try {
       final scrobbles = await _db.managers.scrobbleTable.filter((f) {
-        if (_auth.serverFeatures.isCrossonic) {
+        if (_auth.serverFeatures.value.isCrossonic) {
           return (f.songId(_current?.songId) & f.startTime(_current?.time))
                   .not() &
               f.listenDurationMs.isBiggerOrEqualTo(1000);
@@ -146,7 +147,7 @@ class Scrobbler {
             ),
           ),
           true,
-          _auth.serverFeatures.isCrossonic,
+          _auth.serverFeatures.value.isCrossonic,
         );
         if (result is Err) {
           if (result.error is ConnectionException) {
@@ -164,7 +165,7 @@ class Scrobbler {
                 ),
               ],
               true,
-              _auth.serverFeatures.isCrossonic,
+              _auth.serverFeatures.value.isCrossonic,
             );
             if (r is Ok) {
               success = true;

@@ -38,10 +38,10 @@ class LoginViewModel extends ChangeNotifier {
 
   List<AuthType> get supportedAuthTypes {
     return [
-      if (_authRepository.serverFeatures.supportsTokenAuth ||
-          _authRepository.serverFeatures.supportsPasswordAuth)
+      if (_authRepository.serverFeatures.value.supportsTokenAuth ||
+          _authRepository.serverFeatures.value.supportsPasswordAuth)
         AuthType.usernamePassword,
-      if (_authRepository.serverFeatures.apiKeyAuthentication.contains(1))
+      if (_authRepository.serverFeatures.value.apiKeyAuthentication.contains(1))
         AuthType.apiKey,
     ];
   }

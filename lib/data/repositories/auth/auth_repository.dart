@@ -35,15 +35,17 @@ class AuthRepository extends ChangeNotifier {
 
   Uri? _serverUri;
   AuthState? _state;
-  ServerFeatures _serverFeatures = ServerFeatures();
-  ServerFeatures get serverFeatures => _serverFeatures;
+
+  ValueNotifier<ServerFeatures> serverFeatures = ValueNotifier(
+    ServerFeatures(),
+  );
 
   Connection get con {
     if (!isAuthenticated) throw UnauthenticatedException();
     return Connection(
       baseUri: _serverUri!,
       auth: _state!,
-      supportsPost: _serverFeatures.formPost.contains(1),
+      supportsPost: serverFeatures.value.formPost.contains(1),
     );
   }
 
@@ -66,17 +68,17 @@ class AuthRepository extends ChangeNotifier {
   Future<void> loadState() async {
     Log.debug("loading auth state...");
     final uri = await _keyValue.loadString(_serverUriKey);
-    final serverFeatures = await _keyValue.loadObject(
+    final features = await _keyValue.loadObject(
       _serverFeaturesKey,
       ServerFeatures.fromJson,
     );
-    if (uri == null || serverFeatures == null) {
+    if (uri == null || features == null) {
       Log.debug("no auth state found, logging out...");
       await logout(false);
       return;
     }
     _serverUri = Uri.parse(uri);
-    _serverFeatures = serverFeatures;
+    serverFeatures.value = features;
     _state = await AuthState.load(_storage);
 
     notifyListeners();
@@ -159,7 +161,7 @@ class AuthRepository extends ChangeNotifier {
       }
     }
 
-    _serverFeatures = ServerFeatures(
+    serverFeatures.value = ServerFeatures(
       isOpenSubsonic: info.isOpenSubsonic,
       isCrossonic: info.isCrossonic,
       isNavidrome: info.isNavidrome,
@@ -202,7 +204,7 @@ class AuthRepository extends ChangeNotifier {
       }
     }
 
-    _serverFeatures = _serverFeatures.copyWith(
+    serverFeatures.value = serverFeatures.value.copyWith(
       isOpenSubsonic: info.isOpenSubsonic,
       isCrossonic: info.isCrossonic,
       isNavidrome: info.isNavidrome,
@@ -219,13 +221,13 @@ class AuthRepository extends ChangeNotifier {
     String username,
     String password,
   ) async {
-    AuthState auth = _serverFeatures.supportsTokenAuth
+    AuthState auth = serverFeatures.value.supportsTokenAuth
         ? AuthStateToken(username: username, password: password)
         : AuthStatePassword(username: username, password: password);
     final connection = Connection(
       baseUri: _serverUri!,
       auth: auth,
-      supportsPost: _serverFeatures.formPost.contains(1),
+      supportsPost: serverFeatures.value.formPost.contains(1),
     );
 
     final result = await _openSubsonicService.ping(connection);
@@ -235,9 +237,9 @@ class AuthRepository extends ChangeNotifier {
             result.error is SubsonicException &&
             (result.error as SubsonicException).code ==
                 SubsonicErrorCode.tokenAuthNotSupported) {
-          _serverFeatures = _serverFeatures.copyWith(
+          serverFeatures.value = serverFeatures.value.copyWith(
             supportsTokenAuth: false,
-            crossonicVersion: _serverFeatures.crossonicVersion,
+            crossonicVersion: serverFeatures.value.crossonicVersion,
           );
           notifyListeners();
           return loginUsernamePassword(username, password);
@@ -253,7 +255,7 @@ class AuthRepository extends ChangeNotifier {
 
     notifyListeners();
 
-    if (!serverFeatures.loadedExtensions) {
+    if (!serverFeatures.value.loadedExtensions) {
       _loadOpenSubsonicExtensions();
     }
 
@@ -264,7 +266,7 @@ class AuthRepository extends ChangeNotifier {
     final connection = Connection(
       baseUri: _serverUri!,
       auth: AuthStateApiKey(username: "", apiKey: apiKey),
-      supportsPost: _serverFeatures.formPost.contains(1),
+      supportsPost: serverFeatures.value.formPost.contains(1),
     );
     final result = await _openSubsonicService.tokenInfo(connection);
     switch (result) {
@@ -299,7 +301,7 @@ class AuthRepository extends ChangeNotifier {
     _state = null;
     if (!keepServerUri) {
       _serverUri = null;
-      _serverFeatures = ServerFeatures();
+      serverFeatures.value = ServerFeatures();
     }
     await _persistState();
     notifyListeners();
@@ -339,13 +341,13 @@ class AuthRepository extends ChangeNotifier {
         }
       }
       Log.debug("available OpenSubsonic extensions:\n${extensions.join("\n")}");
-      _serverFeatures = _serverFeatures.copyWith(
+      serverFeatures.value = serverFeatures.value.copyWith(
         loadedExtensions: true,
         formPost: formPost,
         transcodeOffset: transcodeOffset,
         songLyrics: songLyrics,
         apiKeyAuthentication: apiKeyAuthentication,
-        crossonicVersion: _serverFeatures.crossonicVersion,
+        crossonicVersion: serverFeatures.value.crossonicVersion,
       );
     } else {
       Log.error(
@@ -360,7 +362,7 @@ class AuthRepository extends ChangeNotifier {
   Future<void> _persistState() async {
     if (_serverUri != null) {
       Log.trace("storing server info in db...");
-      await _keyValue.store(_serverFeaturesKey, _serverFeatures);
+      await _keyValue.store(_serverFeaturesKey, serverFeatures.value);
       await _keyValue.store(_serverUriKey, _serverUri.toString());
     } else {
       Log.trace("removing server info from db...");
@@ -377,5 +379,6 @@ class AuthRepository extends ChangeNotifier {
   }
 
   bool get hasServer => _serverUri != null;
+
   bool get isAuthenticated => hasServer && _state != null;
 }

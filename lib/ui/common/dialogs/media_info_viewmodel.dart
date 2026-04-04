@@ -18,12 +18,15 @@ class MediaInfoDialogViewModel extends ChangeNotifier {
   final AuthRepository _auth;
 
   FetchStatus _status = FetchStatus.initial;
+
   FetchStatus get status => _status;
 
   String _name = "";
+
   String get name => _name;
 
   List<(String, String, Uri?)> _fields = const [];
+
   List<(String, String, Uri?)> get fields => _fields;
 
   MediaInfoDialogViewModel.song({
@@ -323,7 +326,7 @@ class MediaInfoDialogViewModel extends ChangeNotifier {
   }
 
   Uri? _mbidToUrlIfCrossonic(String mbid, String type) {
-    if (!_auth.serverFeatures.isCrossonic) return null;
+    if (!_auth.serverFeatures.value.isCrossonic) return null;
     return Uri(
       scheme: "https",
       host: "musicbrainz.org",

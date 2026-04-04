@@ -36,7 +36,7 @@ class PlaylistRepository extends ChangeNotifier {
   final SongRepository _songRepo;
   late final SequentialRequestQueue _requestQueue;
 
-  bool get changeCoverSupported => _auth.serverFeatures.isCrossonic;
+  bool get changeCoverSupported => _auth.serverFeatures.value.isCrossonic;
 
   PlaylistRepository({
     required SubsonicService subsonic,
@@ -65,6 +65,7 @@ class PlaylistRepository extends ChangeNotifier {
   bool _forceUpdate = false;
   bool _updateAll = false;
   Completer<void> _refreshCompleter = Completer();
+
   Future<void> _onRequestQueueDone() async {
     final ids = _updateAll ? const <String>{} : Set.of(_playlistIdsNeedUpdate);
     final force = _forceUpdate;
@@ -858,6 +859,7 @@ class PlaylistRepository extends ChangeNotifier {
   }
 
   bool _authenticated = false;
+
   void _onAuthChanged() {
     if (_auth.isAuthenticated == _authenticated) return;
     _authenticated = _auth.isAuthenticated;

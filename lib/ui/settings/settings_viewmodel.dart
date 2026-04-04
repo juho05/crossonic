@@ -14,9 +14,11 @@ class SettingsViewModel extends ChangeNotifier {
   final AuthRepository _authRepository;
 
   bool _loggingOut = false;
+
   bool get loggingOut => _loggingOut;
 
-  bool get supportsListenBrainz => _authRepository.serverFeatures.isCrossonic;
+  bool get supportsListenBrainz =>
+      _authRepository.serverFeatures.value.isCrossonic;
 
   Future<String> get version async =>
       "v${(await VersionRepository.getCurrentVersion())}";
