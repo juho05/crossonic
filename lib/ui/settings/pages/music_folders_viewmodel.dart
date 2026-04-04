@@ -23,11 +23,13 @@ class MusicFoldersViewModel extends ChangeNotifier {
   final MusicFoldersRepository _repo;
 
   FetchStatus _status = FetchStatus.initial;
+
   FetchStatus get status => _status;
 
   bool get supportsMultiSelect => _subsonic.supports.multipleActiveMusicFolders;
 
   List<MusicFolder> _musicFolders = [];
+
   List<MusicFolder> get musicFolders => UnmodifiableListView(_musicFolders);
 
   Set<int> get selected => _repo.selected;
@@ -57,6 +59,18 @@ class MusicFoldersViewModel extends ChangeNotifier {
     _musicFolders = result.value;
     _status = FetchStatus.success;
     notifyListeners();
+  }
+
+  Future<void> toggle(int id) async {
+    if (id == ALL_ID) {
+      await select(id);
+      return;
+    }
+    if (selected.contains(id)) {
+      await _repo.deselect(id);
+    } else {
+      await _repo.select(id);
+    }
   }
 
   Future<void> select(int id) async {

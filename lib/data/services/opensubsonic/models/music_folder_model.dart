@@ -14,8 +14,9 @@ part 'music_folder_model.g.dart';
 class MusicFolderModel {
   final int id;
   final String? name;
+  final int? songCount;
 
-  MusicFolderModel({required this.id, required this.name});
+  MusicFolderModel({required this.id, required this.name, required this.songCount});
 
   factory MusicFolderModel.fromJson(Map<String, dynamic> json) =>
       _$MusicFolderModelFromJson(json);

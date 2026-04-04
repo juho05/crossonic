@@ -7,6 +7,7 @@
  */
 
 import 'package:auto_route/annotations.dart';
+import 'package:crossonic/ui/common/clickable_list_item.dart';
 import 'package:crossonic/ui/settings/pages/music_folders_viewmodel.dart';
 import 'package:crossonic/utils/fetch_status.dart';
 import 'package:flutter/material.dart';
@@ -47,20 +48,38 @@ class MusicFoldersPage extends StatelessWidget {
                       itemCount: viewModel.musicFolders.length + 1,
                       itemBuilder: (context, index) {
                         if (index == 0) {
-                          return const Column(
+                          return Column(
                             children: [
-                              RadioListTile.adaptive(
-                                title: Text("All"),
-                                value: MusicFoldersViewModel.ALL_ID,
+                              ClickableListItem(
+                                title: "All",
+                                onTap: () {
+                                  viewModel.clearSelection();
+                                },
+                                leading: const Padding(
+                                  padding: EdgeInsets.only(left: 8),
+                                  child: Radio.adaptive(
+                                    value: MusicFoldersViewModel.ALL_ID,
+                                  ),
+                                ),
                               ),
-                              Divider(),
+                              const Divider(),
                             ],
                           );
                         }
                         final folder = viewModel.musicFolders[index - 1];
-                        return RadioListTile.adaptive(
-                          title: Text(folder.name),
-                          value: folder.id,
+                        return ClickableListItem(
+                          title: folder.name,
+                          extraInfo: [
+                            if (folder.songCount != null)
+                              "Songs: ${folder.songCount}",
+                          ],
+                          onTap: () {
+                            viewModel.select(folder.id);
+                          },
+                          leading: Padding(
+                            padding: const EdgeInsets.only(left: 8),
+                            child: Radio.adaptive(value: folder.id),
+                          ),
                         );
                       },
                     ),
@@ -72,33 +91,55 @@ class MusicFoldersPage extends StatelessWidget {
                     if (index == 0) {
                       return Column(
                         children: [
-                          CheckboxListTile.adaptive(
-                            title: const Text("All"),
-                            value: viewModel.selected.isEmpty,
+                          ClickableListItem(
+                            title: "All",
                             enabled: viewModel.selected.isNotEmpty,
-                            onChanged: (checked) {
-                              if (checked == null) return;
-                              if (checked) {
-                                viewModel.clearSelection();
-                              }
+                            onTap: () {
+                              viewModel.clearSelection();
                             },
+                            trailing: Padding(
+                              padding: const EdgeInsets.only(right: 16),
+                              child: Checkbox.adaptive(
+                                value: viewModel.selected.isEmpty,
+                                onChanged: viewModel.selected.isNotEmpty
+                                    ? (checked) {
+                                        if (checked == null) return;
+                                        if (checked) {
+                                          viewModel.clearSelection();
+                                        }
+                                      }
+                                    : null,
+                              ),
+                            ),
                           ),
                           const Divider(),
                         ],
                       );
                     }
                     final folder = viewModel.musicFolders[index - 1];
-                    return CheckboxListTile.adaptive(
-                      title: Text(folder.name),
-                      value: viewModel.selected.contains(folder.id),
-                      onChanged: (checked) {
-                        if (checked == null) return;
-                        if (checked) {
-                          viewModel.select(folder.id);
-                        } else {
-                          viewModel.deselect(folder.id);
-                        }
+                    return ClickableListItem(
+                      title: folder.name,
+                      extraInfo: [
+                        if (folder.songCount != null)
+                          "Songs: ${folder.songCount}",
+                      ],
+                      onTap: () {
+                        viewModel.toggle(folder.id);
                       },
+                      trailing: Padding(
+                        padding: const EdgeInsets.only(right: 16),
+                        child: Checkbox.adaptive(
+                          value: viewModel.selected.contains(folder.id),
+                          onChanged: (checked) {
+                            if (checked == null) return;
+                            if (checked) {
+                              viewModel.select(folder.id);
+                            } else {
+                              viewModel.deselect(folder.id);
+                            }
+                          },
+                        ),
+                      ),
                     );
                   },
                 );

@@ -23,6 +23,7 @@ class ClickableListItem extends StatelessWidget {
   final bool isFavorite;
   final DownloadStatus downloadStatus;
   final bool opaque;
+  final bool enabled;
 
   const ClickableListItem({
     super.key,
@@ -36,15 +37,18 @@ class ClickableListItem extends StatelessWidget {
     this.isFavorite = false,
     this.downloadStatus = DownloadStatus.none,
     this.opaque = false,
+    this.enabled = true,
   });
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
+    final textColor = !enabled ? theme.disabledColor : null;
     return LayoutBuilder(
       builder: (context, constraints) {
         final child = InkWell(
-          onTap: onTap,
+          onTap: enabled ? onTap : null,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4),
             child: Row(
@@ -63,6 +67,7 @@ class ClickableListItem extends StatelessWidget {
                           title,
                           style: textTheme.bodyMedium!.copyWith(
                             fontSize: 15,
+                            color: textColor,
                             fontWeight: titleBold
                                 ? FontWeight.w600
                                 : FontWeight.w400,
@@ -78,13 +83,13 @@ class ClickableListItem extends StatelessWidget {
                             if (downloadStatus == DownloadStatus.downloaded)
                               Icon(
                                 Icons.download_for_offline_outlined,
-                                color: Theme.of(context).colorScheme.primary,
+                                color: textColor ?? Theme.of(context).colorScheme.primary,
                                 size: 15,
                               ),
                             if (downloadStatus == DownloadStatus.downloading)
                               Icon(
                                 Icons.downloading_outlined,
-                                color: Theme.of(
+                                color: textColor ?? Theme.of(
                                   context,
                                 ).colorScheme.surfaceContainerHighest,
                                 size: 15,
@@ -92,7 +97,7 @@ class ClickableListItem extends StatelessWidget {
                             if (downloadStatus == DownloadStatus.enqueued)
                               Icon(
                                 Icons.schedule,
-                                color: Theme.of(
+                                color: textColor ?? Theme.of(
                                   context,
                                 ).colorScheme.surfaceContainerHighest,
                                 size: 15,
@@ -108,6 +113,7 @@ class ClickableListItem extends StatelessWidget {
                                     style: textTheme.bodySmall!.copyWith(
                                       fontWeight: FontWeight.w300,
                                       fontSize: 12,
+                                      color: textColor,
                                     ),
                                     overflow: TextOverflow.ellipsis,
                                   ),
@@ -121,9 +127,9 @@ class ClickableListItem extends StatelessWidget {
                 ),
                 const SizedBox(width: 4),
                 if (isFavorite)
-                  const Padding(
-                    padding: EdgeInsets.only(right: 4),
-                    child: Icon(Icons.favorite, size: 15),
+                  Padding(
+                    padding: const EdgeInsets.only(right: 4),
+                    child: Icon(Icons.favorite, size: 15, color: textColor),
                   ),
                 if (trailingInfo != null && constraints.maxWidth > 320)
                   Padding(
@@ -131,6 +137,7 @@ class ClickableListItem extends StatelessWidget {
                     child: Text(
                       trailingInfo!,
                       style: textTheme.bodySmall!.copyWith(
+                        color: textColor,
                         fontFeatures: [const FontFeature.tabularFigures()],
                       ),
                     ),

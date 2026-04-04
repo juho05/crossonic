@@ -25,9 +25,11 @@ class MusicFoldersRepository extends ChangeNotifier {
   final KeyValueRepository _keyValue;
 
   final Set<int> _selected = {};
+
   Set<int> get selected => UnmodifiableSetView(_selected);
 
   final StreamController<void> _debounced = StreamController.broadcast();
+
   Stream<void> get debounced => _debounced.stream;
 
   MusicFoldersRepository({
@@ -42,6 +44,7 @@ class MusicFoldersRepository extends ChangeNotifier {
   }
 
   Timer? _changedDebounce;
+
   void _onChanged() {
     if (!_debounced.hasListener) return;
     _changedDebounce?.cancel();
@@ -63,7 +66,13 @@ class MusicFoldersRepository extends ChangeNotifier {
       case Ok():
     }
     final folders = result.value.musicFolder
-        .map((f) => MusicFolder(id: f.id, name: f.name ?? "Unnamed folder"))
+        .map(
+          (f) => MusicFolder(
+            id: f.id,
+            name: f.name ?? "Unnamed folder",
+            songCount: f.songCount,
+          ),
+        )
         .toList();
 
     _selected.removeWhere((id) => !folders.any((f) => f.id == id));

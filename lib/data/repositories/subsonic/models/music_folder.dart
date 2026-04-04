@@ -9,6 +9,7 @@
 class MusicFolder {
   final int id;
   final String name;
+  final int? songCount;
 
-  MusicFolder({required this.id, required this.name});
+  MusicFolder({required this.id, required this.name, this.songCount});
 }
