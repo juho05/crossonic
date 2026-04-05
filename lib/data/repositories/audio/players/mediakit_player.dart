@@ -45,6 +45,7 @@ class AudioPlayerMediaKit extends AudioPlayer {
   }
 
   Duration _positionOffset = Duration.zero;
+
   @override
   Future<Duration> get position async =>
       (_player?.state.position ?? Duration.zero) + _positionOffset;
@@ -54,6 +55,7 @@ class AudioPlayerMediaKit extends AudioPlayer {
       _player?.state.buffer ?? Duration.zero + _positionOffset;
 
   double _targetVolume = 1;
+
   @override
   Future<double> get volume async => _targetVolume;
 
@@ -80,6 +82,20 @@ class AudioPlayerMediaKit extends AudioPlayer {
     _player = Player(
       configuration: const PlayerConfiguration(title: "crossonic"),
     );
+    if (_player!.platform is NativePlayer) {
+      await (_player!.platform as NativePlayer).setProperty(
+        "audio-client-name",
+        "Crossonic",
+      );
+      await (_player!.platform as NativePlayer).setProperty(
+        "gapless-audio",
+        "weak",
+      );
+      await (_player!.platform as NativePlayer).setProperty(
+        "prefetch-playlist",
+        "yes",
+      );
+    }
     _player!.stream.playing.listen((playing) => _onStateChange());
     _player!.stream.buffering.listen((buffering) => _onStateChange());
     int lastIndex = -1;
@@ -146,6 +162,7 @@ class AudioPlayerMediaKit extends AudioPlayer {
 
   bool _ducking = false;
   bool _shouldUnpauseOnInterruptionEnd = false;
+
   Future<void> _setupAudioSession() async {
     _audioSession = await AudioSession.instance;
     await _audioSession.configure(const AudioSessionConfiguration.music());
@@ -244,6 +261,7 @@ class AudioPlayerMediaKit extends AudioPlayer {
   }
 
   Timer? _nextDebounce;
+
   @override
   Future<void> setNext(Song? next) async {
     _nextDebounce?.cancel();
