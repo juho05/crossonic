@@ -14,7 +14,7 @@ jobs:
       version: ${{ steps.get_version.outputs.version }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Get version from pubspec.yaml
         id: get_version
@@ -375,9 +375,9 @@ jobs:
       - name: "Notarize app bundle"
         working-directory: build/macos/Build/Products/Release
         env:
-          PROD_MACOS_NOTARIZATION_APPLE_ID: ${{ secrets.PROD_MACOS_NOTARIZATION_APPLE_ID }}
+          PROD_MACOS_NOTARIZATION_APPLE_ID: ${{ secrets.APPLE_ID }}
           PROD_MACOS_NOTARIZATION_TEAM_ID: ${{ secrets.PROD_MACOS_NOTARIZATION_TEAM_ID }}
-          PROD_MACOS_NOTARIZATION_PWD: ${{ secrets.PROD_MACOS_NOTARIZATION_PWD }}
+          PROD_MACOS_NOTARIZATION_PWD: ${{ secrets.APPLE_ID_PWD }}
         run: |
           echo "Create keychain profile"
           xcrun notarytool store-credentials "notarytool-profile" --apple-id "$PROD_MACOS_NOTARIZATION_APPLE_ID" --team-id "$PROD_MACOS_NOTARIZATION_TEAM_ID" --password "$PROD_MACOS_NOTARIZATION_PWD"
@@ -398,10 +398,65 @@ jobs:
           appdmg config.json ../../Crossonic.dmg
 
       - name: Upload .dmg file
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: macos-dmg-result
           path: Crossonic.dmg
+          retention-days: 2
+  build_ios_ipa:
+    needs: build
+    runs-on: macos-26
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Install Apple certification and provisioning profile
+        env:
+          IOS_CERTIFICATE: ${{ secrets.IOS_CERTIFICATE }}
+          IOS_CERTIFICATE_PWD: ${{ secrets.IOS_CERTIFICATE_PWD }}
+          IOS_PROVISIONING_PROFILE: ${{ secrets.IOS_PROVISIONING_PROFILE }}
+          IOS_CI_KEYCHAIN_PWD: ${{ secrets.IOS_CI_KEYCHAIN_PWD }}
+        run: |
+          # import certificate and provisioning profile from secrets
+          echo -n "$IOS_CERTIFICATE" | base64 --decode > build_certificate.p12
+          echo -n "$IOS_PROVISIONING_PROFILE" | base64 --decode > ./build_pp.mobileprovision
+          # create temporary keychain
+          security create-keychain -p "$IOS_CI_KEYCHAIN_PWD" build.keychain
+          security set-keychain-settings -lut 21600 build.keychain
+          security unlock-keychain -p "$IOS_CI_KEYCHAIN_PWD" build.keychain
+          # import certificate to keychain
+          security import build_certificate.p12 -P "$IOS_CERTIFICATE_PWD" -A -t cert -f pkcs12 -k build.keychain
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$IOS_CI_KEYCHAIN_PWD" build.keychain
+          security list-keychain -d user -s build.keychain
+          # apply provisioning profile
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          cp build_pp.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: "stable"
+
+      - name: Dependencies
+        run: flutter pub get
+      - name: Build generated files
+        run: flutter pub run build_runner build
+      - name: Compile for iOS
+        run: flutter build ipa --dart-define=VERSION_CHECK=false --export-options-plist=./ios/Runner/ExportOptions.plist
+      - name: Move .ipa to working directory
+        run: mv build/ios/ipa/crossonic.ipa ./Crossonic.ipa
+
+      - name: Clean up keychain and provisioning profile
+        if: ${{ always() }}
+        run: |
+          security delete-keychain build.keychain
+          rm ~/Library/MobileDevice/Provisioning\ Profiles/build_pp.mobileprovision
+
+      - name: Upload .ipa file
+        uses: actions/upload-artifact@v7
+        with:
+          name: ios-ipa-result
+          path: Crossonic.ipa
           retention-days: 2
   build_web_zip:
     needs: build
@@ -443,8 +498,9 @@ jobs:
       - build_linux_x86_64_AppImage
       - build_windows_x86_64
       - build_macos_dmg
+      - build_ios_ipa
       - build_web_zip
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     steps:
       - name: Create uploads directory
         run: mkdir uploads
@@ -520,6 +576,20 @@ jobs:
 
       - name: Copy .dmg file to uploads
         run: cp macos-dmg-result/Crossonic.dmg uploads/Crossonic-${{ needs.build.outputs.version }}-macOS-universal.dmg
+
+      # iOS .ipa
+      - name: Download iOS .ipa file
+        uses: actions/download-artifact@v8
+        with:
+          name: ios-ipa-result
+          path: ios-ipa-result
+      - name: Copy .ipa file to uploads
+        run: cp ios-ipa-result/Crossonic.ipa uploads/Crossonic-${{ needs.build.outputs.version }}.ipa
+      - name: Upload .ipa file to App Store Connect
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_PASS: ${{ secrets.APPLE_ID_PWD }}
+        run: xcrun altool --upload-app -f uploads/Crossonic-${{ needs.build.outputs.version }}.ipa -t ios -u "$APPLE_ID" -p "$APPLE_APP_PASS"
 
       # web
       - name: Download web .zip file
