@@ -283,8 +283,7 @@ jobs:
           retention-days: 2
   build_macos_dmg:
     needs: build
-    runs-on: macos-latest
-
+    runs-on: macos-26
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -300,6 +299,97 @@ jobs:
         run: flutter pub run build_runner build
       - name: Compile for macOS
         run: flutter build macos
+
+      - name: Codesign app bundle
+        env:
+          MACOS_CERTIFICATE: ${{ secrets.PROD_MACOS_CERTIFICATE }}
+          MACOS_CERTIFICATE_PWD: ${{ secrets.PROD_MACOS_CERTIFICATE_PWD }}
+          MACOS_CERTIFICATE_NAME: ${{ secrets.PROD_MACOS_CERTIFICATE_NAME }}
+          MACOS_CI_KEYCHAIN_PWD: ${{ secrets.PROD_MACOS_CI_KEYCHAIN_PWD }}
+        run: |
+          APP_PATH="build/macos/Build/Products/Release/Crossonic.app"
+          
+          echo $MACOS_CERTIFICATE | base64 --decode > certificate.p12
+          security create-keychain -p "$MACOS_CI_KEYCHAIN_PWD" build.keychain 
+          security default-keychain -s build.keychain
+          security unlock-keychain -p "$MACOS_CI_KEYCHAIN_PWD" build.keychain
+          security import certificate.p12 -k build.keychain -P "$MACOS_CERTIFICATE_PWD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$MACOS_CI_KEYCHAIN_PWD" build.keychain
+          
+          # Function to recursively sign all binaries
+          sign_binaries() {
+            local path=$1
+          
+            # Sign all .dylib files
+            find "$path" -name "*.dylib" -type f | while read dylib; do
+              echo "Signing dylib: $dylib"
+              codesign --force --timestamp \
+                --options=runtime \
+                --entitlements ./macos/Runner/Release.entitlements \
+                --sign "$MACOS_CERTIFICATE_NAME" \
+                "$dylib"
+            done
+          
+            # Sign all .so files (if any)
+            find "$path" -name "*.so" -type f | while read so_file; do
+              echo "Signing .so: $so_file"
+              codesign --force --timestamp \
+                --options=runtime \
+                --entitlements ./macos/Runner/Release.entitlements \
+                --sign "$MACOS_CERTIFICATE_NAME" \
+                "$so_file"
+            done
+          }
+          
+          # Sign frameworks first (innermost first)
+          echo "Signing frameworks..."
+          find "$APP_PATH/Contents/Frameworks" -name "*.framework" -type d | while read framework; do
+            echo "Signing framework: $framework"
+          
+            # Sign binaries inside framework
+            sign_binaries "$framework"
+          
+            # Sign the framework itself
+            codesign --force --timestamp \
+              --options=runtime \
+              --entitlements ./macos/Runner/Release.entitlements \
+              --sign "$MACOS_CERTIFICATE_NAME" \
+              "$framework"
+          done
+          
+          # Sign all binaries in the main app
+          sign_binaries "$APP_PATH"
+          
+          # Finally, sign the main app bundle (last)
+          echo "Signing main app bundle..."
+          codesign --force --timestamp \
+            --options=runtime \
+            --entitlements ./macos/Runner/Release.entitlements \
+            --sign "$MACOS_CERTIFICATE_NAME" \
+            "$APP_PATH"
+          
+          # Verify signature
+          echo "Verifying signature..."
+          codesign --verify --verbose "$APP_PATH"
+
+      - name: "Notarize app bundle"
+        working-directory: build/macos/Build/Products/Release
+        env:
+          PROD_MACOS_NOTARIZATION_APPLE_ID: ${{ secrets.PROD_MACOS_NOTARIZATION_APPLE_ID }}
+          PROD_MACOS_NOTARIZATION_TEAM_ID: ${{ secrets.PROD_MACOS_NOTARIZATION_TEAM_ID }}
+          PROD_MACOS_NOTARIZATION_PWD: ${{ secrets.PROD_MACOS_NOTARIZATION_PWD }}
+        run: |
+          echo "Create keychain profile"
+          xcrun notarytool store-credentials "notarytool-profile" --apple-id "$PROD_MACOS_NOTARIZATION_APPLE_ID" --team-id "$PROD_MACOS_NOTARIZATION_TEAM_ID" --password "$PROD_MACOS_NOTARIZATION_PWD"
+          
+          echo "Creating temp notarization archive"
+          ditto -c -k --keepParent Crossonic.app "notarization.zip"
+
+          echo "Notarize app"
+          xcrun notarytool submit "notarization.zip" --keychain-profile "notarytool-profile" --wait
+
+          echo "Attach staple"
+          xcrun stapler staple Crossonic.app
 
       - name: Create .dmg file
         run: |
