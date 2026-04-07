@@ -2,7 +2,8 @@
 
 # Crossonic
 
-A modern cross-platform music client for [crossonic-server](https://github.com/juho05/crossonic-server) and other [(Open)Subsonic](https://opensubsonic.netlify.app/) compatible music servers.
+A modern cross-platform music client for [crossonic-server](https://github.com/juho05/crossonic-server) and
+other [(Open)Subsonic](https://opensubsonic.netlify.app/) compatible music servers.
 
 [Screenshots](https://crossonic.org/app#screenshots)
 
@@ -15,22 +16,23 @@ This app is still in development. Some features are missing and bugs are to be e
 Please [report](https://github.com/juho05/crossonic/issues/new/choose) any issues or feature requests.
 
 This app should be compatible with all _Subsonic_ compatible servers, but I recommend to only use servers implementing
-the [OpenSubsonic](https://opensubsonic.netlify.app/) standard. For the best experience (and full feature support) I recommend using [crossonic-server](https://github.com/juho05/crossonic-server).
+the [OpenSubsonic](https://opensubsonic.netlify.app/) standard. For the best experience (and full feature support) I
+recommend using [crossonic-server](https://github.com/juho05/crossonic-server).
 
 **Release builds exist for these platforms:**
+
 - Windows (`.exe` installer, `.zip`)
 - macOS (`.dmg`)
 - Linux (`.AppImage`, `.tar.gz`)
 - Android (`.apk`)
 - Web (`.zip` of static files), *with some caveats:*
-  - some features are disabled
-  - poor performance on some platforms/browsers
-  - limited support for transcoded playback (depends on browser)
-  - no gapless playback
-  - sub-optimal image caching
+    - some features are disabled
+    - poor performance on some platforms/browsers
+    - limited support for transcoded playback (depends on browser)
+    - no gapless playback
+    - sub-optimal image caching
 
-iOS builds are not available because I do not have a paid Apple Developer account. However,
-the app does work on iPhones and iPads if you [build](#build) and sign it yourself.
+iOS/iPadOS builds will soon be available via TestFlight.
 
 ## Features
 
@@ -55,7 +57,8 @@ the app does work on iPhones and iPads if you [build](#build) and sign it yourse
     - [x] Drag&drop reorder
     - [x] Change cover (*crossonic-server only*)
 - [x] Configure [ListenBrainz](https://listenbrainz.org) connection (*crossonic-server only*)
-- [x] Full [OpenSubsonic](https://opensubsonic.netlify.app/) support (*gracefully handles missing features on the server*)
+- [x] Full [OpenSubsonic](https://opensubsonic.netlify.app/) support (*gracefully handles missing features on the
+  server*)
     - API Key Authentication
     - Transcoded seek
     - Multiple artists/genres/…
@@ -72,12 +75,8 @@ the app does work on iPhones and iPads if you [build](#build) and sign it yourse
     - [x] Unsynced
     - [x] Synced
 - [x] Replay gain
-- [ ] Casting (*AirPlay* on *iOS* and *macOS* already works)
-- [ ] Load/save queues
-- [ ] Internet Radio
-- [ ] Pre-cache next x songs for spotty networks
-- [ ] Jukebox
-- [ ] End-of-year recap
+- [x] Load/save queues
+- [x] Multi-library support
 
 ### Out-of-scope
 
@@ -95,16 +94,19 @@ Installation instructions are available on the [Crossonic website](https://cross
 
 Install [Flutter](https://docs.flutter.dev/get-started/install) with all dependencies for your desired target platform.
 
-**IMPORTANT:** Some Flutter versions cause issues e.g. with routing. Always use the Flutter version specified [in this line](https://github.com/juho05/crossonic/blob/main/.github/workflows/release.yml#L7)
+**IMPORTANT:** Some Flutter versions cause issues e.g. with routing. Always use the Flutter version
+specified [in this line](https://github.com/juho05/crossonic/blob/main/.github/workflows/release.yml#L7)
 of the release workflow when building this project.
 
 Clone the repository
+
 ```bash
 git clone https://github.com/juho05/crossonic
 cd crossonic
 ```
 
 Run code generation:
+
 ```bash
 dart run build_runner build
 ```
@@ -147,6 +149,7 @@ flutter build windows
 ### macOS
 
 In the directory of the repository run:
+
 ```bash
 flutter build macos
 ```
@@ -154,6 +157,7 @@ flutter build macos
 ### Android
 
 In the directory of the repository run:
+
 ```bash
 flutter build apk
 ```
@@ -161,11 +165,12 @@ flutter build apk
 ### iOS
 
 - Select your development team in Xcode
-  - Open `./ios/Runner.xcworkspace` in Xcode
-  - Select `Runner` in the project navigator
-  - Open the `Signing & Capabilities` tab and configure your signing config
+    - Open `./ios/Runner.xcworkspace` in Xcode
+    - Select `Runner` in the project navigator
+    - Open the `Signing & Capabilities` tab and configure your signing config
 
 In the directory of the repository run:
+
 ```bash
 # to build an archive
 flutter build ios
@@ -177,6 +182,7 @@ flutter build ipa
 ### Web
 
 In the directory of the repository run:
+
 ```bash
 flutter build web --wasm
 ```
