@@ -23,28 +23,35 @@ class AlbumViewModel extends ChangeNotifier {
   String? _albumId;
 
   Album? _album;
+
   Album get album => _album!;
 
   List<Song> get _songs => _album?.songs ?? [];
 
   // either disc nr or song
   List<(int?, (Song, int)?)> _listItems = [];
+
   // either disc nr or song and song index
   List<(int?, (Song, int)?)> get listItems => _listItems;
 
   Map<int, String> _discTitles = {};
+
   Map<int, String> get discTitles => _discTitles;
 
   FetchStatus _status = FetchStatus.initial;
+
   FetchStatus get status => _status;
 
   String? _description;
+
   String? get description => _description;
 
   bool _favorite = false;
+
   bool get favorite => _favorite;
 
   Iterable<Album> _alternatives = [];
+
   Iterable<Album> get alternatives => _alternatives;
 
   AlbumViewModel({
@@ -79,12 +86,12 @@ class AlbumViewModel extends ChangeNotifier {
         _status = FetchStatus.failure;
       case Ok():
         _album = result.value;
-        _discTitles = album!.discTitles;
+        _discTitles = album.discTitles;
 
         final discCount = _songs.map((s) => s.discNr ?? 1).toSet().length;
         if (_discTitles.isNotEmpty || discCount > 1) {
           _listItems = List.filled(_songs.length + discCount, (null, null));
-          int prevDisc = 0;
+          int prevDisc = -999999;
           int insertIndex = 0;
           for (int i = 0; i < _songs.length; i++) {
             final s = _songs[i];
