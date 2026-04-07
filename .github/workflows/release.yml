@@ -391,6 +391,11 @@ jobs:
           echo "Attach staple"
           xcrun stapler staple Crossonic.app
 
+      - name: Clean up keychain
+        if: ${{ always() }}
+        run: |
+          security delete-keychain build.keychain
+
       - name: Create .dmg file
         run: |
           npm install -g appdmg
