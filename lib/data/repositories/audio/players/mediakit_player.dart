@@ -11,6 +11,7 @@ import 'dart:math';
 
 import 'package:audio_session/audio_session.dart';
 import 'package:crossonic/data/repositories/audio/audio_handler.dart';
+import 'package:crossonic/data/repositories/audio/players/mediakit_setproperty.dart';
 import 'package:crossonic/data/repositories/audio/players/player.dart';
 import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/data/repositories/settings/settings_repository.dart';
@@ -82,20 +83,9 @@ class AudioPlayerMediaKit extends AudioPlayer {
     _player = Player(
       configuration: const PlayerConfiguration(title: "crossonic"),
     );
-    if (_player!.platform is NativePlayer) {
-      await (_player!.platform as NativePlayer).setProperty(
-        "audio-client-name",
-        "Crossonic",
-      );
-      await (_player!.platform as NativePlayer).setProperty(
-        "gapless-audio",
-        "weak",
-      );
-      await (_player!.platform as NativePlayer).setProperty(
-        "prefetch-playlist",
-        "yes",
-      );
-    }
+    await setMPVProperty(_player!, "audio-client-name", "Crossonic");
+    await setMPVProperty(_player!, "gapless-audio", "weak");
+    await setMPVProperty(_player!, "prefetch-playlist", "yes");
     _player!.stream.playing.listen((playing) => _onStateChange());
     _player!.stream.buffering.listen((buffering) => _onStateChange());
     int lastIndex = -1;
