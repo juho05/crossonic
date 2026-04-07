@@ -57,7 +57,7 @@ class MusicFoldersPage extends StatelessWidget {
                                 },
                                 leading: const Padding(
                                   padding: EdgeInsets.only(left: 8),
-                                  child: Radio.adaptive(
+                                  child: Radio(
                                     value: MusicFoldersViewModel.ALL_ID,
                                   ),
                                 ),
@@ -78,7 +78,7 @@ class MusicFoldersPage extends StatelessWidget {
                           },
                           leading: Padding(
                             padding: const EdgeInsets.only(left: 8),
-                            child: Radio.adaptive(value: folder.id),
+                            child: Radio(value: folder.id),
                           ),
                         );
                       },
@@ -99,7 +99,7 @@ class MusicFoldersPage extends StatelessWidget {
                             },
                             trailing: Padding(
                               padding: const EdgeInsets.only(right: 16),
-                              child: Checkbox.adaptive(
+                              child: Checkbox(
                                 value: viewModel.selected.isEmpty,
                                 onChanged: viewModel.selected.isNotEmpty
                                     ? (checked) {
@@ -128,7 +128,7 @@ class MusicFoldersPage extends StatelessWidget {
                       },
                       trailing: Padding(
                         padding: const EdgeInsets.only(right: 16),
-                        child: Checkbox.adaptive(
+                        child: Checkbox(
                           value: viewModel.selected.contains(folder.id),
                           onChanged: (checked) {
                             if (checked == null) return;
