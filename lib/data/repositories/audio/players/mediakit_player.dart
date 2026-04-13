@@ -273,15 +273,34 @@ class AudioPlayerMediaKit extends AudioPlayer {
     await super.setNext(next);
   }
 
+  Timer? _pauseFadeTimer;
+
   @override
   Future<void> pause() async {
-    // TODO implement fade
-    await _player?.pause();
+    if (!(_player?.state.playing ?? false)) return;
+    _pauseFadeTimer?.cancel();
+    double volume = 100;
+    _pauseFadeTimer = Timer.periodic(const Duration(milliseconds: 5), (
+      timer,
+    ) async {
+      volume -= 5;
+      if (volume < 0) {
+        _pauseFadeTimer?.cancel();
+        _pauseFadeTimer = null;
+        await _player!.pause();
+        await _applyVolume();
+        positionDiscontinuity.add(await position);
+        return;
+      }
+      await _player?.setVolume(volume * (_ducking ? 0.5 : 1));
+    });
+    eventStream.add(AudioPlayerEvent.paused);
   }
 
   @override
   Future<void> play() async {
     _shouldUnpauseOnInterruptionEnd = false;
+    _pauseFadeTimer?.cancel();
     if (!await _audioSession.setActive(true)) {
       if (_player?.state.playing ?? false) {
         await _player?.pause();
@@ -329,6 +348,7 @@ class AudioPlayerMediaKit extends AudioPlayer {
     _nextDebounce?.cancel();
     _ducking = false;
     _shouldUnpauseOnInterruptionEnd = false;
+    _pauseFadeTimer?.cancel();
     await _player!.stop();
     await _audioSession.setActive(false);
     eventStream.add(AudioPlayerEvent.stopped);
@@ -339,6 +359,7 @@ class AudioPlayerMediaKit extends AudioPlayer {
     _nextDebounce?.cancel();
     _audioSessionBecomingNoisyStream?.cancel();
     _audioSessionInterruptionStream?.cancel();
+    _pauseFadeTimer?.cancel();
     _integration.updateMedia(null, null);
     await _player?.dispose();
     await super.dispose();
