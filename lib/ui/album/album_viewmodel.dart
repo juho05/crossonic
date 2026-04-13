@@ -91,12 +91,12 @@ class AlbumViewModel extends ChangeNotifier {
         final discCount = _songs.map((s) => s.discNr ?? 1).toSet().length;
         if (_discTitles.isNotEmpty || discCount > 1) {
           _listItems = List.filled(_songs.length + discCount, (null, null));
-          int prevDisc = -999999;
+          int? prevDisc;
           int insertIndex = 0;
           for (int i = 0; i < _songs.length; i++) {
             final s = _songs[i];
             final disc = s.discNr ?? 1;
-            if (disc > prevDisc) {
+            if (prevDisc == null || disc > prevDisc) {
               prevDisc = disc;
               _listItems[insertIndex] = (disc, null);
               insertIndex++;
