@@ -279,12 +279,13 @@ class AudioPlayerMediaKit extends AudioPlayer {
   Future<void> pause() async {
     if (!(_player?.state.playing ?? false)) return;
     _pauseFadeTimer?.cancel();
-    double volume = 100;
+    double volume = _targetVolume;
+    final stepSize = (volume / 100) * 5;
     _pauseFadeTimer = Timer.periodic(const Duration(milliseconds: 5), (
       timer,
     ) async {
-      volume -= 5;
-      if (volume < 0) {
+      volume -= stepSize;
+      if (volume <= 0) {
         _pauseFadeTimer?.cancel();
         _pauseFadeTimer = null;
         await _player!.pause();
@@ -292,7 +293,7 @@ class AudioPlayerMediaKit extends AudioPlayer {
         positionDiscontinuity.add(await position);
         return;
       }
-      await _player?.setVolume(volume * (_ducking ? 0.5 : 1));
+      await _player?.setVolume(_calculatePlayerVolume(volume));
     });
     eventStream.add(AudioPlayerEvent.paused);
   }
@@ -330,16 +331,19 @@ class AudioPlayerMediaKit extends AudioPlayer {
   }
 
   Future<void> _applyVolume() async {
+    await _player!.setVolume(_calculatePlayerVolume(_targetVolume));
+  }
+
+  double _calculatePlayerVolume(double targetVolume) {
     // mpv volume is cubic:
     // https://github.com/mpv-player/mpv/blob/440f35a26db3fd9f25282bff0f06f4e86e8133c2/player/audio.c#L177
-    double volume = _targetVolume;
     if (!kIsWeb) {
-      volume = pow(_targetVolume, 1.0 / 3).toDouble();
+      targetVolume = pow(targetVolume, 1.0 / 3).toDouble();
     }
     if (_ducking) {
-      volume *= 0.5;
+      targetVolume *= 0.5;
     }
-    await _player!.setVolume(100 * volume);
+    return targetVolume * 100;
   }
 
   @override
