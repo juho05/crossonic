@@ -6,12 +6,16 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+import 'package:flutter/widgets.dart';
+
 abstract class Device {
   String get name;
 
   String get type;
 
   List<String> get extraInfos;
+
+  IconData get icon;
 
   const Device();
 

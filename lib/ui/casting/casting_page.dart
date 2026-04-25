@@ -60,8 +60,12 @@ class _CastingPageState extends State<CastingPage> {
                       _viewModel.currentDevice?.type ?? "Local",
                       ...(_viewModel.currentDevice?.extraInfos ?? []),
                     ],
-                    // TODO: set icon based on device type
-                    leading: const Icon(Icons.phone_android),
+                    leading: Padding(
+                      padding: const EdgeInsets.only(left: 4),
+                      child: Icon(
+                        _viewModel.currentDevice?.icon ?? Icons.devices,
+                      ),
+                    ),
                   ),
                 ),
                 const SliverPadding(
@@ -91,8 +95,10 @@ class _CastingPageState extends State<CastingPage> {
                       key: ValueKey("$index-${device.hashCode}"),
                       title: device.name,
                       extraInfo: [device.type, ...device.extraInfos],
-                      // TODO: set icon based on device type
-                      leading: const Icon(Icons.speaker_outlined),
+                      leading: Padding(
+                        padding: const EdgeInsets.only(left: 4),
+                        child: Icon(device.icon),
+                      ),
                       onTap: () {
                         // TODO
                       },

@@ -7,6 +7,7 @@
  */
 
 import 'package:crossonic/data/repositories/audio/casting/device.dart';
+import 'package:flutter/material.dart';
 
 class SonosDevice implements Device {
   final String _name;
@@ -30,6 +31,9 @@ class SonosDevice implements Device {
 
   @override
   List<String> get extraInfos => [if (_modelName != null) _modelName, ipAddr];
+
+  @override
+  IconData get icon => Icons.speaker_group_outlined;
 
   @override
   bool operator ==(Object other) {
