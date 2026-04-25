@@ -13,6 +13,7 @@ import 'package:audio_service/audio_service.dart';
 import 'package:background_downloader/background_downloader.dart' as bd;
 import 'package:crossonic/data/repositories/androidauto/androidauto_repository.dart';
 import 'package:crossonic/data/repositories/appimage/appimage_repository.dart';
+import 'package:crossonic/data/repositories/audio/casting/device_manager.dart';
 import 'package:crossonic/data/repositories/audio/playback_manager.dart';
 import 'package:crossonic/data/repositories/audio/player_manager.dart';
 import 'package:crossonic/data/repositories/audio/players/android_player.dart';
@@ -210,10 +211,13 @@ Future<List<SingleChildWidget>> createProviders({
   );
   await queueManager.init();
 
+  final deviceManager = DeviceManager();
+
   final playbackManager = PlaybackManager(
     authRepository: authRepository,
     playerManager: playerManager,
     queueManager: queueManager,
+    deviceManager: deviceManager,
     settingsRepository: settings,
     subsonicRepository: subsonicRepository,
     integration: mediaIntegration,

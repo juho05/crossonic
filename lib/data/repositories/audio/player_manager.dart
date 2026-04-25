@@ -9,6 +9,7 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:crossonic/data/repositories/audio/casting/device.dart';
 import 'package:crossonic/data/repositories/audio/players/player.dart';
 import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
@@ -18,6 +19,8 @@ enum PlaybackStatus { stopped, loading, playing, paused }
 
 class PlayerManager {
   final AudioPlayer _localPlayer;
+
+  Device get device => _player.device;
 
   late AudioPlayer _player;
 

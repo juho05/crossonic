@@ -17,6 +17,7 @@ import 'package:crossonic/routing/router.gr.dart';
 @AutoRouterConfig(replaceInRouteName: 'Screen|Page,Route')
 class AppRouter extends RootStackRouter {
   final AuthRepository _authRepository;
+
   AppRouter({required AuthRepository authRepository})
     : _authRepository = authRepository;
 
@@ -260,6 +261,12 @@ class AppRouter extends RootStackRouter {
       path: "/lyrics",
       page: LyricsRoute.page,
       title: (context, data) => "Lyrics",
+      restorationId: (match) => match.fullPath,
+    ),
+    AutoRoute(
+      path: "/cast",
+      page: CastingRoute.page,
+      title: (context, data) => "Casting",
       restorationId: (match) => match.fullPath,
     ),
     AutoRoute(

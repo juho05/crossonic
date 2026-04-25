@@ -8,6 +8,7 @@
 
 import 'dart:math';
 
+import 'package:crossonic/data/repositories/audio/casting/device_manager.dart';
 import 'package:crossonic/data/repositories/audio/player_manager.dart';
 import 'package:crossonic/data/repositories/audio/queue/queue_manager.dart';
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
@@ -32,6 +33,10 @@ class PlaybackManager {
 
   QueueManager get queue => _queue;
 
+  final DeviceManager _deviceManager;
+
+  DeviceManager get deviceManager => _deviceManager;
+
   (TranscodingCodec, int) _transcoding;
 
   final MediaIntegration _integration;
@@ -39,12 +44,14 @@ class PlaybackManager {
   PlaybackManager({
     required QueueManager queueManager,
     required PlayerManager playerManager,
+    required DeviceManager deviceManager,
     required AuthRepository authRepository,
     required SettingsRepository settingsRepository,
     required SubsonicRepository subsonicRepository,
     required MediaIntegration integration,
   }) : _queue = queueManager,
        _player = playerManager,
+       _deviceManager = deviceManager,
        _auth = authRepository,
        _settings = settingsRepository,
        _subsonic = subsonicRepository,

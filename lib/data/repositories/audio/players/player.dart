@@ -9,6 +9,8 @@
 import 'dart:async';
 
 import 'package:background_downloader/background_downloader.dart';
+import 'package:crossonic/data/repositories/audio/casting/device.dart';
+import 'package:crossonic/data/repositories/audio/casting/local_device.dart';
 import 'package:crossonic/data/repositories/playlist/song_downloader.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
 import 'package:flutter/foundation.dart';
@@ -18,6 +20,8 @@ enum AudioPlayerEvent { advance, stopped, loading, playing, paused }
 
 abstract class AudioPlayer {
   final SongDownloader _downloader;
+
+  Device get device => const LocalDevice();
 
   @protected
   final StreamController<void> restartPlaybackStream =

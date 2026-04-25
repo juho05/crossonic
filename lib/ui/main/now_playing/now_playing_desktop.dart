@@ -42,11 +42,7 @@ class NowPlayingDesktop extends StatelessWidget {
               : colorScheme.surfaceContainerHighest,
           elevation: 4,
           child: Padding(
-            padding: EdgeInsets.only(
-              left: 10,
-              right: 10,
-              bottom: bottomPadding,
-            ),
+            padding: EdgeInsets.only(left: 10, right: 4, bottom: bottomPadding),
             child: LayoutBuilder(
               builder: (context, constraints) => Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -247,21 +243,21 @@ class NowPlayingDesktop extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.end,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        if (constraints.maxWidth >= 1050)
+                        if (constraints.maxWidth >= 1010)
                           Text((_viewModel.volume * 100).round().toString()),
-                        if (constraints.maxWidth >= 850)
+                        if (constraints.maxWidth >= 830)
                           ConstrainedBox(
                             constraints: BoxConstraints.loose(
                               Size.fromWidth(
                                 constraints.maxWidth >= 1120
-                                    ? 150
-                                    : (constraints.maxWidth >= 950 ? 125 : 100),
+                                    ? 125
+                                    : (constraints.maxWidth >= 930 ? 100 : 75),
                               ),
                             ),
                             child: Slider(
-                              padding: const EdgeInsets.only(
-                                left: 15,
-                                right: 20,
+                              padding: EdgeInsets.only(
+                                left: constraints.maxWidth >= 1010 ? 12 : 4,
+                                right: constraints.maxWidth >= 930 ? 20 : 10,
                               ),
                               value: _viewModel.volume,
                               onChanged: (double value) {
@@ -274,45 +270,75 @@ class NowPlayingDesktop extends StatelessWidget {
                               ).colorScheme.primary.withAlpha(61),
                             ),
                           ),
-                        OptionalTooltip(
-                          message: "Lyrics",
-                          child: IconButton(
-                            onPressed: () {
-                              context.router.push(const LyricsRoute());
-                            },
-                            icon: const Icon(Icons.lyrics_outlined),
+                        SizedBox.square(
+                          dimension: 36,
+                          child: OptionalTooltip(
+                            message: "Lyrics",
+                            child: IconButton(
+                              iconSize: 20,
+                              onPressed: () {
+                                context.router.push(const LyricsRoute());
+                              },
+                              icon: const Icon(Icons.lyrics_outlined),
+                            ),
                           ),
                         ),
                         OptionalTooltip(
                           message: _viewModel.currentQueueName,
                           child: _viewModel.isDefaultQueue
-                              ? IconButton(
-                                  onPressed: () {
-                                    context.router.push(const QueueRoute());
-                                  },
-                                  padding: EdgeInsets.zero,
-                                  icon: const Icon(Icons.queue_music),
+                              ? SizedBox.square(
+                                  dimension: 36,
+                                  child: IconButton(
+                                    iconSize: 20,
+                                    onPressed: () {
+                                      context.router.push(const QueueRoute());
+                                    },
+                                    padding: EdgeInsets.zero,
+                                    icon: const Icon(Icons.queue_music),
+                                  ),
                                 )
-                              : IconButton.filledTonal(
-                                  onPressed: () {
-                                    context.router.push(const QueueRoute());
-                                  },
-                                  padding: EdgeInsets.zero,
-                                  icon: Icon(
-                                    Icons.queue_music,
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.primary,
+                              : SizedBox.square(
+                                  dimension: 36,
+                                  child: IconButton.filledTonal(
+                                    iconSize: 20,
+                                    onPressed: () {
+                                      context.router.push(const QueueRoute());
+                                    },
+                                    padding: EdgeInsets.zero,
+                                    icon: Icon(
+                                      Icons.queue_music,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.primary,
+                                    ),
                                   ),
                                 ),
                         ),
-                        MenuButton(
-                          options: getNowPlayingMenuOptions(
-                            context,
-                            _viewModel,
+                        SizedBox.square(
+                          dimension: 36,
+                          child: OptionalTooltip(
+                            message: "Cast",
+                            child: IconButton(
+                              padding: const EdgeInsets.all(0),
+                              iconSize: 20,
+                              onPressed: () {
+                                context.router.push(const CastingRoute());
+                              },
+                              icon: const Icon(Icons.cast),
+                            ),
                           ),
                         ),
-                        const SizedBox(width: 5),
+                        SizedBox.square(
+                          dimension: 36,
+                          child: MenuButton(
+                            padding: const EdgeInsets.all(0),
+                            iconSize: 20,
+                            options: getNowPlayingMenuOptions(
+                              context,
+                              _viewModel,
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ),

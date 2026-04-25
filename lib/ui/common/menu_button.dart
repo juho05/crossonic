@@ -17,10 +17,12 @@ class MenuButton extends StatelessWidget {
   final Icon icon;
   final EdgeInsetsGeometry padding;
   final String? tooltip;
+  final double? iconSize;
 
   const MenuButton({
     super.key,
     this.icon = const Icon(Icons.more_vert),
+    this.iconSize,
     required this.options,
     this.padding = const EdgeInsets.all(8),
     this.tooltip,
@@ -32,6 +34,7 @@ class MenuButton extends StatelessWidget {
         kIsWeb || Platform.isWindows || Platform.isMacOS || Platform.isLinux;
     return PopupMenuButton<ContextMenuOption>(
       icon: icon,
+      iconSize: iconSize,
       tooltip: tooltip,
       padding: padding,
       onSelected: (option) {
