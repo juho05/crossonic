@@ -8,23 +8,20 @@
 
 import 'dart:async';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:audio_service/audio_service.dart' as asv;
 import 'package:audio_service_mpris/audio_service_mpris.dart';
-import 'package:crossonic/data/repositories/audio/audio_handler.dart';
+import 'package:crossonic/data/repositories/audio/player_manager.dart';
 import 'package:crossonic/data/repositories/logger/log.dart';
-import 'package:crossonic/data/repositories/playlist/playlist_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
 import 'package:crossonic/data/services/media_integration/media_integration.dart';
 import 'package:crossonic/data/services/opensubsonic/subsonic_service.dart';
-import 'package:crossonic/utils/result.dart';
 import 'package:flutter/foundation.dart';
 
 class AudioServiceIntegration extends asv.BaseAudioHandler
     with asv.SeekHandler
     implements MediaIntegration {
-  final PlaylistRepository _playlistRepository;
-
   Future<void> Function()? _onPlay;
   Future<void> Function()? _onPause;
   Future<void> Function(Duration position)? _onSeek;
@@ -32,11 +29,7 @@ class AudioServiceIntegration extends asv.BaseAudioHandler
   Future<void> Function()? _onPlayPrev;
   Future<void> Function()? _onStop;
   Future<void> Function(double volume)? _onVolumeChanged;
-  Future<void> Function(Iterable<Song> songs)? _onReplaceQueue;
   Future<void> Function(bool loop)? _onLoopChanged;
-
-  AudioServiceIntegration({required PlaylistRepository playlistRepository})
-    : _playlistRepository = playlistRepository;
 
   @override
   Future<void> ensureInitialized({
@@ -47,7 +40,6 @@ class AudioServiceIntegration extends asv.BaseAudioHandler
     required Future<void> Function() onPlayPrev,
     required Future<void> Function() onStop,
     required Future<void> Function(double volume) onVolumeChanged,
-    required Future<void> Function(Iterable<Song> songs) onReplaceQueue,
     required Future<void> Function(bool loop) onLoopChanged,
   }) async {
     if (_onPlay != null) return;
@@ -58,87 +50,7 @@ class AudioServiceIntegration extends asv.BaseAudioHandler
     _onPlayPrev = onPlayPrev;
     _onStop = onStop;
     _onVolumeChanged = onVolumeChanged;
-    _onReplaceQueue = onReplaceQueue;
     _onLoopChanged = onLoopChanged;
-  }
-
-  @override
-  Future<List<asv.MediaItem>> getChildren(
-    String parentMediaId, [
-    Map<String, dynamic>? options,
-  ]) async {
-    Log.trace("Android Auto requested media children: $parentMediaId");
-    if (parentMediaId == "root") {
-      return [
-        const asv.MediaItem(
-          id: "playlists",
-          title: "Playlists",
-          playable: false,
-          extras: {
-            // DESCRIPTION_EXTRAS_KEY_CONTENT_STYLE_BROWSABLE: DESCRIPTION_EXTRAS_VALUE_CONTENT_STYLE_GRID_ITEM
-            "android.media.browse.CONTENT_STYLE_BROWSABLE_HINT": 2,
-          },
-        ),
-      ];
-    }
-    if (parentMediaId == "playlists") {
-      final result = await _playlistRepository.getPlaylists();
-      switch (result) {
-        case Err():
-          Log.error("Failed to get playlists", e: result.error);
-          return [];
-        case Ok():
-      }
-      return result.value
-          .map(
-            (p) => asv.MediaItem(
-              id: p.id,
-              title: p.name,
-              playable: false,
-              displayDescription: "Songs: ${p.songCount}",
-              artUri: _playlistRepository.getPlaylistCoverUri(p, size: 512),
-            ),
-          )
-          .toList();
-    }
-    return [
-      asv.MediaItem(
-        id: "playlist;play;$parentMediaId",
-        title: "Play",
-        playable: true,
-      ),
-      asv.MediaItem(
-        id: "playlist;shuffle;$parentMediaId",
-        title: "Shuffle",
-        playable: true,
-      ),
-    ];
-  }
-
-  @override
-  Future<void> playFromMediaId(
-    String mediaId, [
-    Map<String, dynamic>? extras,
-  ]) async {
-    Log.debug("Android Auto requested to play media by id: $mediaId");
-    if (mediaId.startsWith("playlist;")) {
-      final parts = mediaId.split(";");
-      final result = await _playlistRepository.getPlaylist(parts[2]);
-      switch (result) {
-        case Err():
-          throw result.error;
-        case Ok():
-      }
-      if (result.value == null) {
-        throw Exception("playlist not found");
-      }
-      final songs = result.value!.tracks;
-      if (parts[1] == "shuffle") {
-        songs.shuffle();
-      }
-      _onReplaceQueue?.call(songs);
-      return;
-    }
   }
 
   @override
@@ -304,7 +216,7 @@ class AudioServiceIntegration extends asv.BaseAudioHandler
   Future<void> customAction(String name, [Map<String, dynamic>? extras]) async {
     if (name == "dbusVolume") {
       double v = extras!["value"] as double;
-      _onVolumeChanged!(v);
+      _onVolumeChanged!(pow(v, 3) as double);
     }
   }
 

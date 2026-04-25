@@ -9,7 +9,7 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:crossonic/data/repositories/audio/audio_handler.dart';
+import 'package:crossonic/data/repositories/audio/playback_manager.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
 import 'package:crossonic/data/repositories/subsonic/music_folders_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/subsonic_repository.dart';
@@ -22,14 +22,16 @@ enum SongsPageMode { all, random, favorites, genre }
 
 class SongsViewModel extends ChangeNotifier {
   final SubsonicRepository _subsonic;
-  final AudioHandler _audioHandler;
+  final PlaybackManager _playbackManager;
 
   static final int _pageSize = 500;
 
   bool get supportsAllMode => _subsonic.supports.emptySearchString;
 
   SongsPageMode _mode = SongsPageMode.random;
+
   SongsPageMode get mode => _mode;
+
   set mode(SongsPageMode mode) {
     if (mode == SongsPageMode.genre) {
       throw Exception("genre mode must be set via constructor");
@@ -44,23 +46,26 @@ class SongsViewModel extends ChangeNotifier {
   final List<Song> songs = [];
 
   bool _reachedEnd = false;
+
   int get _nextPage => (songs.length / _pageSize).ceil();
 
   FetchStatus _status = FetchStatus.initial;
+
   FetchStatus get status => _status;
 
   final String _genre;
   final String? _initialSeed;
 
   StreamSubscription? _musicFolderSub;
+
   SongsViewModel({
     required SubsonicRepository subsonic,
-    required AudioHandler audioHandler,
+    required PlaybackManager playbackManager,
     required SongsPageMode mode,
     required MusicFoldersRepository musicFolders,
     String? initialSeed,
   }) : _subsonic = subsonic,
-       _audioHandler = audioHandler,
+       _playbackManager = playbackManager,
        _genre = "",
        _initialSeed =
            subsonic.supports.randomSeed && mode == SongsPageMode.random
@@ -79,11 +84,11 @@ class SongsViewModel extends ChangeNotifier {
 
   SongsViewModel.genre({
     required SubsonicRepository subsonic,
-    required AudioHandler audioHandler,
+    required PlaybackManager playbackManager,
     required MusicFoldersRepository musicFolders,
     required String genre,
   }) : _subsonic = subsonic,
-       _audioHandler = audioHandler,
+       _playbackManager = playbackManager,
        _genre = genre,
        _initialSeed = null {
     _mode = SongsPageMode.genre;
@@ -107,8 +112,8 @@ class SongsViewModel extends ChangeNotifier {
   }
 
   void play() async {
-    _audioHandler.playOnNextMediaChange();
-    _audioHandler.queue.replace(songs);
+    _playbackManager.player.playOnNextMediaChange();
+    _playbackManager.queue.replace(songs);
   }
 
   Future<Result<void>> shuffle() async {
@@ -136,16 +141,17 @@ class SongsViewModel extends ChangeNotifier {
     } else {
       s = List.of(songs)..shuffle();
     }
-    _audioHandler.playOnNextMediaChange();
-    await _audioHandler.queue.replace(s);
+    _playbackManager.player.playOnNextMediaChange();
+    await _playbackManager.queue.replace(s);
     return const Result.ok(null);
   }
 
   void addAllToQueue(bool priority) async {
-    _audioHandler.queue.addAll(songs, priority);
+    _playbackManager.queue.addAll(songs, priority);
   }
 
   String? _seed;
+
   Future<void> _fetch(int page, {bool keepSeedOnRefresh = false}) async {
     if (_status == FetchStatus.loading) return;
     _status = FetchStatus.loading;

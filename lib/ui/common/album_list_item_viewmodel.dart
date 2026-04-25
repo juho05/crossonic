@@ -8,7 +8,7 @@
 
 import 'dart:async';
 
-import 'package:crossonic/data/repositories/audio/audio_handler.dart';
+import 'package:crossonic/data/repositories/audio/playback_manager.dart';
 import 'package:crossonic/data/repositories/subsonic/favorites_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/models/album.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
@@ -18,21 +18,22 @@ import 'package:flutter/material.dart';
 
 class AlbumListItemViewModel extends ChangeNotifier {
   final FavoritesRepository _favoritesRepository;
-  final AudioHandler _audioHandler;
+  final PlaybackManager _playbackManager;
   final SubsonicRepository _subsonic;
 
   final Album album;
 
   bool _favorite = false;
+
   bool get favorite => _favorite;
 
   AlbumListItemViewModel({
     required FavoritesRepository favoritesRepository,
-    required AudioHandler audioHandler,
+    required PlaybackManager playbackManager,
     required SubsonicRepository subsonicRepository,
     required this.album,
   }) : _favoritesRepository = favoritesRepository,
-       _audioHandler = audioHandler,
+       _playbackManager = playbackManager,
        _subsonic = subsonicRepository {
     _favoritesRepository.addListener(_updateFavoriteStatus);
     _updateFavoriteStatus();
@@ -74,8 +75,8 @@ class AlbumListItemViewModel extends ChangeNotifier {
     if (shuffle) {
       result.value.shuffle();
     }
-    _audioHandler.playOnNextMediaChange();
-    await _audioHandler.queue.replace(result.value);
+    _playbackManager.player.playOnNextMediaChange();
+    await _playbackManager.queue.replace(result.value);
     return const Result.ok(null);
   }
 
@@ -86,7 +87,7 @@ class AlbumListItemViewModel extends ChangeNotifier {
         return Result.error(result.error);
       case Ok():
     }
-    await _audioHandler.queue.addAll(result.value, priority);
+    await _playbackManager.queue.addAll(result.value, priority);
     return const Result.ok(null);
   }
 

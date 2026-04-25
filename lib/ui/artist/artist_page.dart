@@ -30,6 +30,7 @@ import 'package:provider/provider.dart';
 @RoutePage()
 class ArtistPage extends StatefulWidget {
   final String artistId;
+
   const ArtistPage({super.key, @PathParam("id") required this.artistId});
 
   @override
@@ -45,7 +46,7 @@ class _ArtistPageState extends State<ArtistPage> {
     _viewModel = ArtistViewModel(
       subsonicRepository: context.read(),
       favoritesRepository: context.read(),
-      audioHandler: context.read(),
+      playbackManager: context.read(),
     )..load(widget.artistId);
   }
 

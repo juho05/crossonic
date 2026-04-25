@@ -42,7 +42,7 @@ class _LyricsPageState extends State<LyricsPage> {
     super.initState();
     _viewModel = LyricsViewModel(
       subsonic: context.read(),
-      audioHandler: context.read(),
+      playbackManager: context.read(),
     );
 
     Lyrics? previousLyrics;

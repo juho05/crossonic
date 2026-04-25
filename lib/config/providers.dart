@@ -13,7 +13,12 @@ import 'package:audio_service/audio_service.dart';
 import 'package:background_downloader/background_downloader.dart' as bd;
 import 'package:crossonic/data/repositories/androidauto/androidauto_repository.dart';
 import 'package:crossonic/data/repositories/appimage/appimage_repository.dart';
-import 'package:crossonic/data/repositories/audio/audio_handler.dart' as ah;
+import 'package:crossonic/data/repositories/audio/playback_manager.dart';
+import 'package:crossonic/data/repositories/audio/player_manager.dart';
+import 'package:crossonic/data/repositories/audio/players/android_player.dart';
+import 'package:crossonic/data/repositories/audio/players/mediakit_player.dart';
+import 'package:crossonic/data/repositories/audio/players/player.dart';
+import 'package:crossonic/data/repositories/audio/queue/queue_manager.dart';
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
 import 'package:crossonic/data/repositories/auto_update/auto_update_repository.dart';
 import 'package:crossonic/data/repositories/cover/cover_repository.dart';
@@ -33,8 +38,8 @@ import 'package:crossonic/data/repositories/themeManager/theme_manager.dart';
 import 'package:crossonic/data/repositories/version/version_repository.dart';
 import 'package:crossonic/data/services/database/database.dart';
 import 'package:crossonic/data/services/github/github.dart';
+import 'package:crossonic/data/services/media_integration/android.dart';
 import 'package:crossonic/data/services/media_integration/media_integration.dart';
-import 'package:crossonic/data/services/media_integration/noop_integration.dart';
 import 'package:crossonic/data/services/methodchannel/method_channel_service.dart';
 import 'package:crossonic/data/services/opensubsonic/subsonic_service.dart';
 import 'package:crossonic/integrate_appimage_viewmodel.dart';
@@ -145,7 +150,8 @@ Future<List<SingleChildWidget>> createProviders({
   final MediaIntegration mediaIntegration;
   if (!kIsWeb && Platform.isWindows) {
     Log.debug("initializing audio service");
-    mediaIntegration = SMTCIntegration();
+    final smtc = SMTCIntegration();
+    mediaIntegration = smtc;
   } else {
     if (!kIsWeb &&
         Platform.isAndroid &&
@@ -160,11 +166,12 @@ Future<List<SingleChildWidget>> createProviders({
 
     Log.debug("initializing audio service");
     if (!kIsWeb && Platform.isAndroid) {
-      mediaIntegration = NoopIntegration();
+      mediaIntegration = MediaIntegrationAndroid(
+        methodChannel: methodChannelService,
+      );
     } else {
       final audioService = await AudioService.init(
-        builder: () =>
-            AudioServiceIntegration(playlistRepository: playlistRepository),
+        builder: () => AudioServiceIntegration(),
         config: const AudioServiceConfig(
           androidNotificationChannelId: "org.crossonic.app",
           androidNotificationChannelName: "Music playback",
@@ -177,9 +184,45 @@ Future<List<SingleChildWidget>> createProviders({
     }
   }
 
+  final AudioPlayer localPlayer;
+  if (!kIsWeb && Platform.isAndroid) {
+    localPlayer = AudioPlayerAndroid(
+      methodChannel: methodChannelService,
+      coverRepository: coverRepository,
+      downloader: songDownloader,
+      settings: settings,
+    );
+  } else {
+    final player = AudioPlayerMediaKit(
+      downloader: songDownloader,
+      integration: mediaIntegration,
+    );
+    await player.init();
+    localPlayer = player;
+  }
+
+  final playerManager = PlayerManager(localPlayer: localPlayer);
+
+  final queueManager = QueueManager(
+    db: database,
+    keyValue: keyValueRepository,
+    songRepo: songRepository,
+  );
+  await queueManager.init();
+
+  final playbackManager = PlaybackManager(
+    authRepository: authRepository,
+    playerManager: playerManager,
+    queueManager: queueManager,
+    settingsRepository: settings,
+    subsonicRepository: subsonicRepository,
+    integration: mediaIntegration,
+  );
+
   return [
     Provider.value(value: methodChannelService),
     Provider.value(value: logRepository),
+    Provider.value(value: playbackManager),
     ChangeNotifierProvider(
       create: (context) => ThemeManager(
         keyValue: keyValueRepository,
@@ -203,23 +246,8 @@ Future<List<SingleChildWidget>> createProviders({
     Provider.value(value: settings),
     Provider.value(value: coverRepository),
     Provider(
-      create: (context) => ah.AudioHandler(
-        methodChannel: methodChannelService,
-        coverRepository: coverRepository,
-        integration: mediaIntegration,
-        authRepository: context.read(),
-        subsonicRepository: context.read(),
-        settingsRepository: context.read(),
-        songDownloader: context.read(),
-        keyValueRepository: context.read(),
-        songRepository: songRepository,
-        database: database,
-      ),
-      lazy: false,
-    ),
-    Provider(
       create: (context) => Scrobbler.enable(
-        audioHandler: context.read(),
+        playbackManager: context.read(),
         authRepository: context.read(),
         database: context.read(),
         subsonicService: context.read(),
@@ -231,10 +259,9 @@ Future<List<SingleChildWidget>> createProviders({
       Provider(
         create: (context) => AndroidAutoRepository(
           methodChannel: methodChannelService,
-          subsonicRepo: subsonicRepository,
           playlistRepo: playlistRepository,
           coverRepository: coverRepository,
-          audioHandler: context.read(),
+          playbackManager: context.read(),
         ),
         lazy: false,
       ),

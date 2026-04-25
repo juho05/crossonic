@@ -20,20 +20,20 @@ class AudioPlayerAndroid extends AudioPlayer {
   final SettingsRepository _settings;
   final MethodChannelService _methodChannel;
 
+  DateTime? _initTime;
+
   AudioPlayerAndroid({
     required MethodChannelService methodChannel,
     required CoverRepository coverRepository,
     required SettingsRepository settings,
     required super.downloader,
-    required super.setVolumeHandler,
-    required super.setQueueHandler,
-    required super.setLoopHandler,
-    required super.playNextHandler,
-    required super.playPrevHandler,
-    required super.restartPlayback,
   }) : _methodChannel = methodChannel,
        _coverRepo = coverRepository,
-       _settings = settings;
+       _settings = settings {
+    _initTime = DateTime.now();
+    _settings.workarounds.addListener(_onWorkaroundsChanged);
+    _methodChannel.addEventListener(_onEvent);
+  }
 
   @override
   Future<Duration> get position async =>
@@ -48,37 +48,8 @@ class AudioPlayerAndroid extends AudioPlayer {
   Future<double> get volume async =>
       await _methodChannel.invokeMethod("getVolume");
 
-  DateTime? _initTime;
-  @override
-  Future<void> init({
-    required Uri streamUri,
-    required Uri coverUri,
-    required bool supportsTimeOffset,
-    required bool supportsTimeOffsetMs,
-    int? maxBitRate,
-    String? format,
-  }) async {
-    _initTime = DateTime.now();
-    await super.init(
-      streamUri: streamUri,
-      coverUri: coverUri,
-      supportsTimeOffset: supportsTimeOffset,
-      supportsTimeOffsetMs: supportsTimeOffsetMs,
-      maxBitRate: maxBitRate,
-      format: format,
-    );
-    _settings.workarounds.addListener(_onWorkaroundsChanged);
-    _methodChannel.addEventListener(_onEvent);
-  }
-
   Future<void> _onEvent(String event, Map<Object?, dynamic>? data) async {
     switch (event) {
-      case "playNext":
-        await playNextHandler();
-      case "playPrev":
-        await playPrevHandler();
-      case "setLoop":
-        await setLoopHandler(data!["loop"]);
       case "advance":
         eventStream.add(AudioPlayerEvent.advance);
       case "state":
@@ -93,7 +64,7 @@ class AudioPlayerAndroid extends AudioPlayer {
             DateTime.now().difference(_initTime!) >
                 const Duration(seconds: 1)) {
           // the native player was recreated
-          await restartPlayback?.call();
+          restartPlaybackStream.add(null);
         }
     }
   }

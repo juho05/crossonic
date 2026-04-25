@@ -16,7 +16,7 @@ import 'package:provider/provider.dart';
 
 class CreateQueueDialog {
   static Future<void> show(BuildContext context) async {
-    final viewModel = CreateQueueViewModel(audioHandler: context.read());
+    final viewModel = CreateQueueViewModel(playbackManager: context.read());
     await showDialog(
       context: context,
       builder: (context) => CrossonicDialog(

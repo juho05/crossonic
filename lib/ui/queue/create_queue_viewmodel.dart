@@ -6,13 +6,14 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import 'package:crossonic/data/repositories/audio/audio_handler.dart';
+import 'package:crossonic/data/repositories/audio/playback_manager.dart';
 import 'package:flutter/material.dart';
 
 class CreateQueueViewModel extends ChangeNotifier {
-  final AudioHandler _audioHandler;
+  final PlaybackManager _playbackManager;
 
   String _name = "";
+
   set name(String name) {
     _name = name;
     notifyListeners();
@@ -20,10 +21,10 @@ class CreateQueueViewModel extends ChangeNotifier {
 
   bool get isValid => _name.isNotEmpty;
 
-  CreateQueueViewModel({required AudioHandler audioHandler})
-    : _audioHandler = audioHandler;
+  CreateQueueViewModel({required PlaybackManager playbackManager})
+    : _playbackManager = playbackManager;
 
   Future<void> create() async {
-    await _audioHandler.queue.createNewQueue(_name);
+    await _playbackManager.queue.createNewQueue(_name);
   }
 }

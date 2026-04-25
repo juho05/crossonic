@@ -8,7 +8,7 @@
 
 import 'dart:math';
 
-import 'package:crossonic/data/repositories/audio/audio_handler.dart';
+import 'package:crossonic/data/repositories/audio/player_manager.dart';
 import 'package:flutter/material.dart';
 
 class SongPlayingIndicator extends StatelessWidget {
@@ -60,6 +60,7 @@ class _AnimatedBars extends StatefulWidget {
   final Color color;
 
   const _AnimatedBars({required this.color});
+
   @override
   State<_AnimatedBars> createState() => _AnimatedBarsState();
 }

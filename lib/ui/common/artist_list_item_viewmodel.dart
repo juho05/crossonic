@@ -8,7 +8,7 @@
 
 import 'dart:async';
 
-import 'package:crossonic/data/repositories/audio/audio_handler.dart';
+import 'package:crossonic/data/repositories/audio/playback_manager.dart';
 import 'package:crossonic/data/repositories/subsonic/favorites_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/models/artist.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
@@ -19,21 +19,22 @@ import 'package:flutter/material.dart';
 class ArtistListItemViewModel extends ChangeNotifier {
   final FavoritesRepository _favorites;
   final SubsonicRepository _subsonic;
-  final AudioHandler _audioHandler;
+  final PlaybackManager _playbackManager;
 
   final Artist artist;
 
   bool _favorite = false;
+
   bool get favorite => _favorite;
 
   ArtistListItemViewModel({
     required FavoritesRepository favoritesRepository,
     required SubsonicRepository subsonicRepository,
-    required AudioHandler audioHandler,
+    required PlaybackManager playbackManager,
     required this.artist,
   }) : _favorites = favoritesRepository,
        _subsonic = subsonicRepository,
-       _audioHandler = audioHandler {
+       _playbackManager = playbackManager {
     _favorites.addListener(_updateFavoriteStatus);
     _updateFavoriteStatus();
   }
@@ -71,7 +72,7 @@ class ArtistListItemViewModel extends ChangeNotifier {
     return _subsonic.incrementallyLoadArtistSongs(
       artist,
       (songs, firstBatch) async =>
-          await _audioHandler.queue.addAll(songs, priority),
+          await _playbackManager.queue.addAll(songs, priority),
     );
   }
 
@@ -83,11 +84,11 @@ class ArtistListItemViewModel extends ChangeNotifier {
       artist,
       (songs, firstBatch) async {
         if (firstBatch) {
-          _audioHandler.playOnNextMediaChange();
-          await _audioHandler.queue.replace(songs);
+          _playbackManager.player.playOnNextMediaChange();
+          await _playbackManager.queue.replace(songs);
           return;
         }
-        await _audioHandler.queue.addAll(songs, false);
+        await _playbackManager.queue.addAll(songs, false);
       },
       shuffleReleases: shuffleAlbums,
       shuffleSongs: shuffleSongs,

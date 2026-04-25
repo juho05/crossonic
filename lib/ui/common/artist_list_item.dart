@@ -42,7 +42,7 @@ class _ArtistListItemState extends State<ArtistListItem> {
     super.initState();
     viewModel = ArtistListItemViewModel(
       favoritesRepository: context.read(),
-      audioHandler: context.read(),
+      playbackManager: context.read(),
       subsonicRepository: context.read(),
       artist: widget.artist,
     );

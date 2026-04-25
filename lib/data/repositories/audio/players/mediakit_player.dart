@@ -10,11 +10,9 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:audio_session/audio_session.dart';
-import 'package:crossonic/data/repositories/audio/audio_handler.dart';
 import 'package:crossonic/data/repositories/audio/players/mediakit_setproperty.dart';
 import 'package:crossonic/data/repositories/audio/players/player.dart';
 import 'package:crossonic/data/repositories/logger/log.dart';
-import 'package:crossonic/data/repositories/settings/settings_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
 import 'package:crossonic/data/services/media_integration/media_integration.dart';
 import 'package:flutter/foundation.dart';
@@ -22,9 +20,6 @@ import 'package:flutter/services.dart';
 import 'package:media_kit/media_kit.dart';
 
 class AudioPlayerMediaKit extends AudioPlayer {
-  final MediaIntegration _integration;
-  final SettingsRepository _settings;
-
   late final AudioSession _audioSession;
   StreamSubscription? _audioSessionInterruptionStream;
   StreamSubscription? _audioSessionBecomingNoisyStream;
@@ -33,15 +28,8 @@ class AudioPlayerMediaKit extends AudioPlayer {
 
   AudioPlayerMediaKit({
     required super.downloader,
-    required SettingsRepository settings,
     required MediaIntegration integration,
-    required super.setVolumeHandler,
-    required super.setQueueHandler,
-    required super.setLoopHandler,
-    required super.playNextHandler,
-    required super.playPrevHandler,
-  }) : _integration = integration,
-       _settings = settings {
+  }) {
     MediaKit.ensureInitialized();
   }
 
@@ -62,23 +50,7 @@ class AudioPlayerMediaKit extends AudioPlayer {
 
   bool _currentChanged = false;
 
-  @override
-  Future<void> init({
-    required Uri streamUri,
-    required Uri coverUri,
-    required bool supportsTimeOffset,
-    required bool supportsTimeOffsetMs,
-    int? maxBitRate,
-    String? format,
-  }) async {
-    await super.init(
-      streamUri: streamUri,
-      coverUri: coverUri,
-      supportsTimeOffset: supportsTimeOffset,
-      supportsTimeOffsetMs: supportsTimeOffsetMs,
-      maxBitRate: maxBitRate,
-      format: format,
-    );
+  Future<void> init() async {
     await _setupAudioSession();
     _player = Player(
       configuration: const PlayerConfiguration(title: "crossonic"),
@@ -88,7 +60,7 @@ class AudioPlayerMediaKit extends AudioPlayer {
     await setMPVProperty(_player!, "prefetch-playlist", "yes");
     _player!.stream.playing.listen((playing) => _onStateChange());
     _player!.stream.buffering.listen((buffering) => _onStateChange());
-    int lastIndex = -1;
+    int lastIndex = 0;
     _player!.stream.playlist.listen((playlist) async {
       if (_currentChanged || lastIndex == playlist.index) {
         _currentChanged = false;
@@ -113,41 +85,6 @@ class AudioPlayerMediaKit extends AudioPlayer {
     });
     _player!.stream.error.listen((err) => _onError(err));
     await _applyVolume();
-    await _integration.ensureInitialized(
-      onPlay: play,
-      onPause: pause,
-      onSeek: seek,
-      onPlayNext: playNextHandler,
-      onPlayPrev: playPrevHandler,
-      onStop: () async {
-        if (_settings.workarounds.stopIsPause) {
-          await pause();
-          return;
-        }
-        await stop();
-      },
-      onVolumeChanged: (volume) async {
-        await setVolumeHandler(pow(volume, 3) as double);
-      },
-      onReplaceQueue: setQueueHandler,
-      onLoopChanged: setLoopHandler,
-    );
-    currentSong.addListener(() {
-      _integration.updateMedia(
-        currentSong.value,
-        constructCoverUri(currentSong.value),
-      );
-    });
-    eventStream.listen((value) async {
-      if (value == AudioPlayerEvent.advance) return;
-      _integration.updatePlaybackState(switch (value) {
-        AudioPlayerEvent.stopped => PlaybackStatus.stopped,
-        AudioPlayerEvent.loading => PlaybackStatus.loading,
-        AudioPlayerEvent.playing => PlaybackStatus.playing,
-        AudioPlayerEvent.paused => PlaybackStatus.paused,
-        AudioPlayerEvent.advance => throw Exception("not reachable"),
-      });
-    });
   }
 
   bool _ducking = false;
@@ -348,7 +285,6 @@ class AudioPlayerMediaKit extends AudioPlayer {
 
   @override
   Future<void> stop() async {
-    _integration.updateMedia(null, null);
     _nextDebounce?.cancel();
     _ducking = false;
     _shouldUnpauseOnInterruptionEnd = false;
@@ -364,7 +300,6 @@ class AudioPlayerMediaKit extends AudioPlayer {
     _audioSessionBecomingNoisyStream?.cancel();
     _audioSessionInterruptionStream?.cancel();
     _pauseFadeTimer?.cancel();
-    _integration.updateMedia(null, null);
     await _player?.dispose();
     await super.dispose();
   }

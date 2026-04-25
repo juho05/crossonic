@@ -21,7 +21,8 @@ class SelectQueuePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (context) => SelectQueueViewModel(audioHandler: context.read()),
+      create: (context) =>
+          SelectQueueViewModel(playbackManager: context.read()),
       builder: (context, _) {
         return Scaffold(
           appBar: AppBar(title: const Text("Select Queue")),

@@ -56,7 +56,7 @@ class _AlbumListItemState extends State<AlbumListItem> {
     viewModel = AlbumListItemViewModel(
       favoritesRepository: context.read(),
       subsonicRepository: context.read(),
-      audioHandler: context.read(),
+      playbackManager: context.read(),
       album: widget.album,
     );
   }

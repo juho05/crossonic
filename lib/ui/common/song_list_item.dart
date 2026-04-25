@@ -90,7 +90,7 @@ class _SongListItemState extends State<SongListItem> {
     super.initState();
     viewModel = SongListItemViewModel(
       favoritesRepository: context.read(),
-      audioHandler: context.read(),
+      playbackManager: context.read(),
       song: widget.song,
       disablePlaybackStatus: !widget.showPlaybackStatus,
     );

@@ -44,14 +44,14 @@ class _SongsPageState extends State<SongsPage> {
     super.initState();
     if (widget.genre != null) {
       _viewModel = SongsViewModel.genre(
-        audioHandler: context.read(),
+        playbackManager: context.read(),
         subsonic: context.read(),
         musicFolders: context.read(),
         genre: widget.genre!,
       )..nextPage();
     } else {
       _viewModel = SongsViewModel(
-        audioHandler: context.read(),
+        playbackManager: context.read(),
         subsonic: context.read(),
         musicFolders: context.read(),
         mode: SongsPageMode.values

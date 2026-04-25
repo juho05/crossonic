@@ -41,7 +41,7 @@ class _ArtistGridCellState extends State<ArtistGridCell> {
     super.initState();
     _viewModel = ArtistListItemViewModel(
       favoritesRepository: context.read(),
-      audioHandler: context.read(),
+      playbackManager: context.read(),
       subsonicRepository: context.read(),
       artist: widget.artist,
     );

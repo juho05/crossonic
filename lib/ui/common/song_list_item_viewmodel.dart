@@ -8,7 +8,8 @@
 
 import 'dart:async';
 
-import 'package:crossonic/data/repositories/audio/audio_handler.dart';
+import 'package:crossonic/data/repositories/audio/playback_manager.dart';
+import 'package:crossonic/data/repositories/audio/player_manager.dart';
 import 'package:crossonic/data/repositories/subsonic/favorites_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
 import 'package:crossonic/utils/result.dart';
@@ -17,42 +18,46 @@ import 'package:flutter/material.dart';
 class SongListItemViewModel extends ChangeNotifier {
   final FavoritesRepository _favoritesRepository;
 
-  final AudioHandler _audioHandler;
+  final PlaybackManager _playbackManager;
   StreamSubscription? _currentSubscription;
   StreamSubscription? _statusSubscription;
 
   final Song song;
 
   bool _favorite = false;
+
   bool get favorite => _favorite;
 
   String? _currentSongId;
   PlaybackStatus _playbackStatus = PlaybackStatus.stopped;
+
   PlaybackStatus? get playbackStatus =>
       _currentSongId == song.id ? _playbackStatus : null;
 
   SongListItemViewModel({
     required FavoritesRepository favoritesRepository,
-    required AudioHandler audioHandler,
+    required PlaybackManager playbackManager,
     required this.song,
     bool disablePlaybackStatus = false,
   }) : _favoritesRepository = favoritesRepository,
-       _audioHandler = audioHandler {
+       _playbackManager = playbackManager {
     _favoritesRepository.addListener(_updateFavoriteStatus);
 
     if (!disablePlaybackStatus) {
-      _currentSubscription = _audioHandler.queue.current.listen((current) {
+      _currentSubscription = _playbackManager.queue.current.listen((current) {
         _currentSongId = current?.id;
         notifyListeners();
       });
-      _statusSubscription = _audioHandler.playbackStatus.listen((status) {
+      _statusSubscription = _playbackManager.player.playbackStatus.listen((
+        status,
+      ) {
         _playbackStatus = status;
         if (_currentSongId == song.id) {
           notifyListeners();
         }
       });
-      _currentSongId = _audioHandler.queue.current.value?.id;
-      _playbackStatus = _audioHandler.playbackStatus.value;
+      _currentSongId = _playbackManager.queue.current.value?.id;
+      _playbackStatus = _playbackManager.player.playbackStatus.value;
     }
 
     _updateFavoriteStatus();
@@ -74,16 +79,16 @@ class SongListItemViewModel extends ChangeNotifier {
   }
 
   Future<void> play() async {
-    await _audioHandler.play();
+    await _playbackManager.player.play();
   }
 
   Future<void> pause() async {
-    await _audioHandler.pause();
+    await _playbackManager.player.pause();
   }
 
   Future<void> playSong() async {
-    _audioHandler.playOnNextMediaChange();
-    await _audioHandler.queue.replace([song]);
+    _playbackManager.player.playOnNextMediaChange();
+    await _playbackManager.queue.replace([song]);
   }
 
   void _updateFavoriteStatus() {
@@ -98,7 +103,7 @@ class SongListItemViewModel extends ChangeNotifier {
   }
 
   void addToQueue(bool priority) {
-    _audioHandler.queue.add(song, priority);
+    _playbackManager.queue.add(song, priority);
   }
 
   @override

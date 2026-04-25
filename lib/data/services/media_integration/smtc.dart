@@ -6,7 +6,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import 'package:crossonic/data/repositories/audio/audio_handler.dart';
+import 'package:crossonic/data/repositories/audio/player_manager.dart';
 import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
 import 'package:crossonic/data/services/media_integration/media_integration.dart';
@@ -27,7 +27,6 @@ class SMTCIntegration implements MediaIntegration {
     required Future<void> Function() onPlayPrev,
     required Future<void> Function() onStop,
     required Future<void> Function(double volume) onVolumeChanged,
-    required Future<void> Function(Iterable<Song> songs) onReplaceQueue,
     required Future<void> Function(bool loop) onLoopChanged,
   }) async {
     if (_initialized) return;

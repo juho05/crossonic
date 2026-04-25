@@ -8,7 +8,7 @@
 
 import 'dart:async';
 
-import 'package:crossonic/data/repositories/audio/audio_handler.dart';
+import 'package:crossonic/data/repositories/audio/playback_manager.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
 import 'package:crossonic/data/repositories/subsonic/music_folders_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/subsonic_repository.dart';
@@ -19,13 +19,15 @@ import 'package:flutter/material.dart';
 
 class BpmViewModel extends ChangeNotifier {
   final SubsonicRepository _subsonic;
-  final AudioHandler _audioHandler;
+  final PlaybackManager _playbackManager;
 
   static final int _pageSize = 500;
 
   Timer? _rangeChangeDebounce;
   RangeValues _bpmRange = const RangeValues(45, 205);
+
   RangeValues get bpmRange => _bpmRange;
+
   set bpmRange(RangeValues range) {
     _bpmRange = range;
     notifyListeners();
@@ -39,19 +41,21 @@ class BpmViewModel extends ChangeNotifier {
   final List<Song> songs = [];
 
   bool _reachedEnd = false;
+
   int get _nextPage => (songs.length / _pageSize).ceil();
 
   FetchStatus _status = FetchStatus.initial;
+
   FetchStatus get status => _status;
 
   StreamSubscription? _musicFolderSub;
 
   BpmViewModel({
     required SubsonicRepository subsonic,
-    required AudioHandler audioHandler,
+    required PlaybackManager playbackManager,
     required MusicFoldersRepository musicFolders,
   }) : _subsonic = subsonic,
-       _audioHandler = audioHandler {
+       _playbackManager = playbackManager {
     _musicFolderSub = musicFolders.debounced.listen((event) {
       refresh();
     });
@@ -69,8 +73,8 @@ class BpmViewModel extends ChangeNotifier {
   }
 
   void play() async {
-    _audioHandler.playOnNextMediaChange();
-    _audioHandler.queue.replace(songs);
+    _playbackManager.player.playOnNextMediaChange();
+    _playbackManager.queue.replace(songs);
   }
 
   Future<Result<void>> shuffle() async {
@@ -85,13 +89,13 @@ class BpmViewModel extends ChangeNotifier {
         return Result.error(result.error);
       case Ok():
     }
-    _audioHandler.playOnNextMediaChange();
-    await _audioHandler.queue.replace(result.value);
+    _playbackManager.player.playOnNextMediaChange();
+    await _playbackManager.queue.replace(result.value);
     return const Result.ok(null);
   }
 
   void addToQueue(bool priority) async {
-    _audioHandler.queue.addAll(songs, priority);
+    _playbackManager.queue.addAll(songs, priority);
   }
 
   Future<void> _fetch(int page) async {

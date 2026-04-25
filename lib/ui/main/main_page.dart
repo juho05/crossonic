@@ -7,7 +7,7 @@
  */
 
 import 'package:auto_route/auto_route.dart';
-import 'package:crossonic/data/repositories/audio/audio_handler.dart';
+import 'package:crossonic/data/repositories/audio/player_manager.dart';
 import 'package:crossonic/data/repositories/playlist/playlist_repository.dart';
 import 'package:crossonic/data/repositories/settings/settings_repository.dart';
 import 'package:crossonic/integrate_appimage.dart';
@@ -48,7 +48,7 @@ class _MainPageState extends State<MainPage> {
   void initState() {
     super.initState();
     _nowPlayingViewModel = NowPlayingViewModel(
-      audioHandler: context.read(),
+      playbackManager: context.read(),
       favoritesRepository: context.read(),
     );
     _layoutModeManager = LayoutModeManager();
@@ -418,6 +418,7 @@ class _MainPageState extends State<MainPage> {
 
 class PageTitle extends StatefulWidget {
   final TabsRouter router;
+
   const PageTitle({super.key, required this.router});
 
   @override
@@ -426,6 +427,7 @@ class PageTitle extends StatefulWidget {
 
 class _PageTitleState extends State<PageTitle> {
   int _retryCounter = 0;
+
   @override
   Widget build(BuildContext context) {
     final title = widget.router.topPage?.routeData.title(context) ?? "";

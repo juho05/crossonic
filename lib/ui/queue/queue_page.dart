@@ -37,7 +37,7 @@ class _QueuePageState extends State<QueuePage> {
   @override
   void initState() {
     super.initState();
-    _viewModel = QueueViewModel(audioHandler: context.read());
+    _viewModel = QueueViewModel(playbackManager: context.read());
   }
 
   @override

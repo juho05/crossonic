@@ -7,7 +7,7 @@
  */
 
 import 'package:auto_route/auto_route.dart';
-import 'package:crossonic/data/repositories/audio/audio_handler.dart';
+import 'package:crossonic/data/repositories/audio/player_manager.dart';
 import 'package:crossonic/routing/router.gr.dart';
 import 'package:crossonic/ui/common/auto_hide_fab.dart';
 import 'package:crossonic/ui/main/now_playing/now_playing_viewmodel.dart';

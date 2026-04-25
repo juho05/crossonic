@@ -38,7 +38,7 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
     super.initState();
     _viewModel = PlaylistsViewModel(
       playlistRepository: context.read(),
-      audioHandler: context.read(),
+      playbackManager: context.read(),
       songDownloader: context.read(),
     );
   }

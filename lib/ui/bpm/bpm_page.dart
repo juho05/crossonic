@@ -34,7 +34,7 @@ class _BpmPageState extends State<BpmPage> {
     super.initState();
     _viewModel = BpmViewModel(
       subsonic: context.read(),
-      audioHandler: context.read(),
+      playbackManager: context.read(),
       musicFolders: context.read(),
     )..nextPage();
     _controller.addListener(_onScroll);

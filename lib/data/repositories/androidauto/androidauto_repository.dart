@@ -8,11 +8,10 @@
 
 import 'dart:io';
 
-import 'package:crossonic/data/repositories/audio/audio_handler.dart';
+import 'package:crossonic/data/repositories/audio/playback_manager.dart';
 import 'package:crossonic/data/repositories/cover/cover_repository.dart';
 import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/data/repositories/playlist/playlist_repository.dart';
-import 'package:crossonic/data/repositories/subsonic/subsonic_repository.dart';
 import 'package:crossonic/data/services/methodchannel/android_library_result.dart';
 import 'package:crossonic/data/services/methodchannel/android_mediaitem.dart';
 import 'package:crossonic/data/services/methodchannel/method_channel_service.dart';
@@ -21,22 +20,19 @@ import 'package:flutter/foundation.dart';
 
 class AndroidAutoRepository {
   final MethodChannelService _methodChannel;
-  final SubsonicRepository _subsonicRepo;
   final PlaylistRepository _playlistRepo;
   final CoverRepository _coverRepository;
-  final AudioHandler _audioHandler;
+  final PlaybackManager _playbackManager;
 
   AndroidAutoRepository({
     required MethodChannelService methodChannel,
-    required SubsonicRepository subsonicRepo,
     required PlaylistRepository playlistRepo,
     required CoverRepository coverRepository,
-    required AudioHandler audioHandler,
-  }) : _subsonicRepo = subsonicRepo,
-       _playlistRepo = playlistRepo,
+    required PlaybackManager playbackManager,
+  }) : _playlistRepo = playlistRepo,
        _methodChannel = methodChannel,
        _coverRepository = coverRepository,
-       _audioHandler = audioHandler {
+       _playbackManager = playbackManager {
     if (kIsWeb || !Platform.isAndroid) return;
     _methodChannel.handleMethodCall("onGetChildren", _onGetChildren);
     _methodChannel.handleMethodCall("getCoverFile", _getCoverFile);
@@ -66,15 +62,15 @@ class AndroidAutoRepository {
       final songs = result.value?.tracks ?? [];
       if (songs.isEmpty) return;
       songs.shuffle();
-      _audioHandler.playOnNextMediaChange();
-      await _audioHandler.queue.replace(songs);
+      _playbackManager.player.playOnNextMediaChange();
+      await _playbackManager.queue.replace(songs);
       return;
     }
 
     if (id.startsWith("crossonic_queue:")) {
       final queueId = id.substring("crossonic_queue:".length);
-      _audioHandler.playOnNextMediaChange();
-      await _audioHandler.queue.switchQueue(queueId);
+      _playbackManager.player.playOnNextMediaChange();
+      await _playbackManager.queue.switchQueue(queueId);
       return;
     }
 
@@ -166,7 +162,7 @@ class AndroidAutoRepository {
     }
 
     if (parentId == "crossonic_queues") {
-      final result = await _audioHandler.queue.getQueues(
+      final result = await _playbackManager.queue.getQueues(
         limit: pageSize ?? 100,
         offset: pageSize != null && page != null ? page * pageSize : 0,
       );
@@ -215,7 +211,7 @@ class AndroidAutoRepository {
       case Ok():
     }
 
-    final queues = await _audioHandler.queue.getQueues(
+    final queues = await _playbackManager.queue.getQueues(
       filter: query,
       limit: pageSize ?? 100,
       offset: page != null && pageSize != null ? page * pageSize : 0,
@@ -280,7 +276,7 @@ class AndroidAutoRepository {
       case Ok():
     }
 
-    final queues = await _audioHandler.queue.countQueues(filter: query);
+    final queues = await _playbackManager.queue.countQueues(filter: query);
 
     return playlistResult.value + queues;
   }
@@ -317,8 +313,8 @@ class AndroidAutoRepository {
     final songs = playlistResult.value?.tracks ?? [];
     if (songs.isEmpty) return;
     songs.shuffle();
-    _audioHandler.playOnNextMediaChange();
-    await _audioHandler.queue.replace(songs);
+    _playbackManager.player.playOnNextMediaChange();
+    await _playbackManager.queue.replace(songs);
     return;
   }
 

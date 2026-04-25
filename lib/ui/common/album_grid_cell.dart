@@ -49,7 +49,7 @@ class _AlbumGridCellState extends State<AlbumGridCell> {
     super.initState();
     _viewModel = AlbumListItemViewModel(
       favoritesRepository: context.read(),
-      audioHandler: context.read(),
+      playbackManager: context.read(),
       subsonicRepository: context.read(),
       album: widget.album,
     );

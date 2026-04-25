@@ -6,7 +6,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import 'package:crossonic/data/repositories/audio/audio_handler.dart';
+import 'package:crossonic/data/repositories/audio/playback_manager.dart';
 import 'package:crossonic/data/repositories/subsonic/favorites_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/models/album.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
@@ -18,7 +18,7 @@ import 'package:flutter/material.dart';
 class AlbumViewModel extends ChangeNotifier {
   final SubsonicRepository _subsonic;
   final FavoritesRepository _favorites;
-  final AudioHandler _audioHandler;
+  final PlaybackManager _playbackManager;
 
   String? _albumId;
 
@@ -57,10 +57,10 @@ class AlbumViewModel extends ChangeNotifier {
   AlbumViewModel({
     required FavoritesRepository favoritesRepository,
     required SubsonicRepository subsonicRepository,
-    required AudioHandler audioHandler,
+    required PlaybackManager playbackManager,
   }) : _favorites = favoritesRepository,
        _subsonic = subsonicRepository,
-       _audioHandler = audioHandler {
+       _playbackManager = playbackManager {
     _favorites.addListener(_onFavoritesChanged);
     _onFavoritesChanged();
   }
@@ -122,14 +122,14 @@ class AlbumViewModel extends ChangeNotifier {
 
   void play([int index = 0, bool single = false]) {
     if (_songs.isEmpty) {
-      _audioHandler.queue.clear(priorityQueue: false);
+      _playbackManager.queue.clear(priorityQueue: false);
       return;
     }
-    _audioHandler.playOnNextMediaChange();
+    _playbackManager.player.playOnNextMediaChange();
     if (single) {
-      _audioHandler.queue.replace([_songs[index]]);
+      _playbackManager.queue.replace([_songs[index]]);
     } else {
-      _audioHandler.queue.replace(_songs, index);
+      _playbackManager.queue.replace(_songs, index);
     }
   }
 
@@ -138,28 +138,28 @@ class AlbumViewModel extends ChangeNotifier {
     if (shuffle) {
       songs.shuffle();
     }
-    _audioHandler.playOnNextMediaChange();
-    _audioHandler.queue.replace(songs);
+    _playbackManager.player.playOnNextMediaChange();
+    _playbackManager.queue.replace(songs);
   }
 
   void addDiscToQueue(int disc, bool priority) {
     final songs = _songs.where((song) => song.discNr == disc).toList();
     if (songs.isEmpty) return;
-    _audioHandler.queue.addAll(songs, priority);
+    _playbackManager.queue.addAll(songs, priority);
   }
 
   void shuffle() {
     if (_songs.isEmpty) {
-      _audioHandler.queue.clear(priorityQueue: false);
+      _playbackManager.queue.clear(priorityQueue: false);
       return;
     }
-    _audioHandler.playOnNextMediaChange();
-    _audioHandler.queue.replace(List.of(_songs)..shuffle());
+    _playbackManager.player.playOnNextMediaChange();
+    _playbackManager.queue.replace(List.of(_songs)..shuffle());
   }
 
   void addToQueue(bool priority) {
     if (_songs.isEmpty) return;
-    _audioHandler.queue.addAll(_songs, priority);
+    _playbackManager.queue.addAll(_songs, priority);
   }
 
   Future<Result<void>> toggleFavorite() async {

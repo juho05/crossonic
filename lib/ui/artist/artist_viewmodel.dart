@@ -6,7 +6,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import 'package:crossonic/data/repositories/audio/audio_handler.dart';
+import 'package:crossonic/data/repositories/audio/playback_manager.dart';
 import 'package:crossonic/data/repositories/subsonic/favorites_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/models/album.dart';
 import 'package:crossonic/data/repositories/subsonic/models/artist.dart';
@@ -40,32 +40,37 @@ class ArtistViewModel extends ChangeNotifier {
 
   final SubsonicRepository _subsonic;
   final FavoritesRepository _favorites;
-  final AudioHandler _audioHandler;
+  final PlaybackManager _playbackManager;
 
   String? _artistId;
 
   FetchStatus _status = FetchStatus.initial;
+
   FetchStatus get status => _status;
 
   Artist? _artist;
+
   Artist? get artist => _artist;
 
   List<Album> _appearsOn = const [];
+
   List<Album> get appearsOn => _appearsOn;
 
   String? _description;
+
   String? get description => _description;
 
   bool _favorite = false;
+
   bool get favorite => _favorite;
 
   ArtistViewModel({
     required SubsonicRepository subsonicRepository,
     required FavoritesRepository favoritesRepository,
-    required AudioHandler audioHandler,
+    required PlaybackManager playbackManager,
   }) : _subsonic = subsonicRepository,
        _favorites = favoritesRepository,
-       _audioHandler = audioHandler {
+       _playbackManager = playbackManager {
     _favorites.addListener(_onFavoritesChanged);
     _onFavoritesChanged();
   }
@@ -224,11 +229,11 @@ class ArtistViewModel extends ChangeNotifier {
       albums,
       (songs, firstBatch) async {
         if (firstBatch && play) {
-          _audioHandler.playOnNextMediaChange();
-          await _audioHandler.queue.replace(songs);
+          _playbackManager.player.playOnNextMediaChange();
+          await _playbackManager.queue.replace(songs);
           return;
         }
-        await _audioHandler.queue.addAll(songs, priorityQueue);
+        await _playbackManager.queue.addAll(songs, priorityQueue);
       },
       shuffleAlbums: shuffleReleases,
       shuffleSongs: shuffleSongs,

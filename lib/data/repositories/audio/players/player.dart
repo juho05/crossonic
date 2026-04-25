@@ -20,61 +20,14 @@ abstract class AudioPlayer {
   final SongDownloader _downloader;
 
   @protected
-  final Future<void> Function(double volume) setVolumeHandler;
-  @protected
-  final Future<void> Function(Iterable<Song> songs) setQueueHandler;
-  @protected
-  final Future<void> Function(bool loop) setLoopHandler;
-  @protected
-  final Future<void> Function() playNextHandler;
-  @protected
-  final Future<void> Function() playPrevHandler;
-  @protected
-  final Future<void> Function()? restartPlayback;
+  final StreamController<void> restartPlaybackStream =
+      StreamController.broadcast();
 
-  AudioPlayer({
-    required SongDownloader downloader,
-    required this.setVolumeHandler,
-    required this.setQueueHandler,
-    required this.setLoopHandler,
-    required this.playNextHandler,
-    required this.playPrevHandler,
-    this.restartPlayback,
-  }) : _downloader = downloader;
-
-  late Uri _streamUri;
-  late Uri _coverUri;
-
-  late bool _supportsTimeOffset;
-  @protected
-  bool get supportsTimeOffset => _supportsTimeOffset;
-
-  late bool _supportsTimeOffsetMs;
-  @protected
-  bool get supportsTimeOffsetMs => _supportsTimeOffsetMs;
-
-  int? _maxBitRate;
-  @protected
-  int? get maxBitRate => _maxBitRate;
-
-  String? _format;
-  @protected
-  String? get format => _format;
-
-  @protected
-  ValueNotifier<Song?> currentSong = ValueNotifier(null);
-  @protected
-  ValueNotifier<Song?> nextSong = ValueNotifier(null);
+  Stream<void> get restartPlayback => restartPlaybackStream.stream;
 
   StreamSubscription? _eventStreamSub;
-  Future<void> init({
-    required Uri streamUri,
-    required Uri coverUri,
-    required bool supportsTimeOffset,
-    required bool supportsTimeOffsetMs,
-    int? maxBitRate,
-    String? format,
-  }) async {
+
+  AudioPlayer({required SongDownloader downloader}) : _downloader = downloader {
     _eventStreamSub = eventStream.listen((event) {
       if (event == AudioPlayerEvent.stopped) {
         currentSong.value = null;
@@ -86,16 +39,35 @@ abstract class AudioPlayer {
         _canSeek = _nextCanSeek;
       }
     });
-
-    await configureServerURL(
-      streamUri: streamUri,
-      coverUri: coverUri,
-      supportsTimeOffset: supportsTimeOffset,
-      supportsTimeOffsetMs: supportsTimeOffsetMs,
-      maxBitRate: maxBitRate,
-      format: format,
-    );
   }
+
+  late Uri _streamUri;
+  late Uri _coverUri;
+
+  late bool _supportsTimeOffset;
+
+  @protected
+  bool get supportsTimeOffset => _supportsTimeOffset;
+
+  late bool _supportsTimeOffsetMs;
+
+  @protected
+  bool get supportsTimeOffsetMs => _supportsTimeOffsetMs;
+
+  int? _maxBitRate;
+
+  @protected
+  int? get maxBitRate => _maxBitRate;
+
+  String? _format;
+
+  @protected
+  String? get format => _format;
+
+  @protected
+  ValueNotifier<Song?> currentSong = ValueNotifier(null);
+  @protected
+  ValueNotifier<Song?> nextSong = ValueNotifier(null);
 
   Future<void> configureServerURL({
     required Uri streamUri,
@@ -129,10 +101,13 @@ abstract class AudioPlayer {
 
   final BehaviorSubject<Duration> positionDiscontinuity =
       BehaviorSubject.seeded(Duration.zero);
+
   Future<Duration> get position;
+
   Future<Duration> get bufferedPosition;
 
   Future<double> get volume;
+
   Future<void> setVolume(double volume);
 
   Future<void> setCurrent(
@@ -157,13 +132,16 @@ abstract class AudioPlayer {
   }
 
   Future<void> play();
+
   Future<void> pause();
+
   Future<void> stop();
 
   Future<void> seek(Duration position);
 
   bool _canSeek = true;
   bool _nextCanSeek = true;
+
   @protected
   bool get canSeek => !supportsTimeOffset || _canSeek;
 

@@ -8,7 +8,8 @@
 
 import 'dart:async';
 
-import 'package:crossonic/data/repositories/audio/audio_handler.dart';
+import 'package:crossonic/data/repositories/audio/playback_manager.dart';
+import 'package:crossonic/data/repositories/audio/player_manager.dart';
 import 'package:crossonic/data/repositories/audio/queue/queue.dart';
 import 'package:crossonic/data/repositories/subsonic/favorites_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
@@ -19,7 +20,7 @@ import 'package:rxdart/rxdart.dart';
 
 class NowPlayingViewModel extends ChangeNotifier {
   final FavoritesRepository _favoritesRepository;
-  final AudioHandler _audioHandler;
+  final PlaybackManager _playbackManager;
   late final StreamSubscription _currentSongSubscription;
   late final StreamSubscription _playbackStatusSubscription;
   late final StreamSubscription _loopSubscription;
@@ -31,42 +32,57 @@ class NowPlayingViewModel extends ChangeNotifier {
     position: Duration.zero,
     bufferedPosition: null,
   ));
+
   ValueStream<({Duration position, Duration? bufferedPosition})> get position =>
       _position.stream;
 
   Song? _song;
+
   Song? get song => _song;
 
   Queue? _currentQueue;
+
   String get currentQueueName => _currentQueue?.name ?? "Default";
+
   bool get isDefaultQueue => _currentQueue?.isDefault ?? true;
 
   bool _hasNamedQueues = false;
+
   bool get hasNamedQueues => _hasNamedQueues;
 
   String get songTitle => _song?.title ?? "";
+
   ({String id, String name})? get album => _song?.album;
+
   String get displayArtist => _song?.displayArtist ?? "";
+
   Duration? get duration => _song?.duration;
+
   String? get coverId => _song?.coverId;
+
   Iterable<({String id, String name})> get artists => _song?.artists ?? [];
 
   bool _favorite = false;
+
   bool get favorite => _favorite;
 
   PlaybackStatus _playbackStatus = PlaybackStatus.stopped;
+
   PlaybackStatus get playbackStatus => _playbackStatus;
 
   bool _loop = false;
+
   bool get loopEnabled => _loop;
 
   double _volume = 1;
+
   double get volume => _volume;
   Throttle1<double>? _volumeThrottle;
+
   set volume(double volume) {
     _volumeThrottle ??= Throttle1(
       action: (volume) {
-        _audioHandler.volumeCubic = volume;
+        _playbackManager.player.volumeCubic = volume;
       },
       delay: const Duration(milliseconds: 100),
       leading: true,
@@ -79,46 +95,47 @@ class NowPlayingViewModel extends ChangeNotifier {
 
   NowPlayingViewModel({
     required FavoritesRepository favoritesRepository,
-    required AudioHandler audioHandler,
+    required PlaybackManager playbackManager,
   }) : _favoritesRepository = favoritesRepository,
-       _audioHandler = audioHandler,
-       _volume = audioHandler.volumeLinear {
+       _playbackManager = playbackManager,
+       _volume = playbackManager.player.volumeLinear {
     _favoritesRepository.addListener(_onFavoriteChanged);
-    _currentSongSubscription = _audioHandler.queue.current.listen(
+    _currentSongSubscription = _playbackManager.queue.current.listen(
       _onSongChanged,
     );
-    _playbackStatusSubscription = _audioHandler.playbackStatus.listen(
+    _playbackStatusSubscription = _playbackManager.player.playbackStatus.listen(
       _onStatusChanged,
     );
-    _loopSubscription = _audioHandler.queue.looping.listen((loop) {
+    _loopSubscription = _playbackManager.queue.looping.listen((loop) {
       _loop = loop;
       notifyListeners();
     });
-    _volumeSubscription = _audioHandler.volumeLinearStream.listen((_) {
-      _volume = _audioHandler.volumeCubic;
+    _volumeSubscription = _playbackManager.player.volumeLinearStream.listen((
+      _,
+    ) {
+      _volume = _playbackManager.player.volumeCubic;
       notifyListeners();
     });
-    _positionUpdateSubscription = _audioHandler.positionUpdateStream.listen(
-      (_) => _updatePosition(),
-    );
-    _audioHandler.queue.addListener(_onQueueChanged);
+    _positionUpdateSubscription = _playbackManager.player.positionUpdateStream
+        .listen((_) => _updatePosition());
+    _playbackManager.queue.addListener(_onQueueChanged);
 
-    _onSongChanged(_audioHandler.queue.current.value);
-    _onStatusChanged(_audioHandler.playbackStatus.value);
+    _onSongChanged(_playbackManager.queue.current.value);
+    _onStatusChanged(_playbackManager.player.playbackStatus.value);
     _onQueueChanged();
-    _loop = _audioHandler.queue.looping.value;
-    _volume = _audioHandler.volumeCubic;
+    _loop = _playbackManager.queue.looping.value;
+    _volume = _playbackManager.player.volumeCubic;
     notifyListeners();
   }
 
   Future<void> _onQueueChanged() async {
     bool changed = false;
     if (playbackStatus == PlaybackStatus.stopped) {
-      _hasNamedQueues = await _audioHandler.queue.hasNamedQueues();
+      _hasNamedQueues = await _playbackManager.queue.hasNamedQueues();
       changed = true;
     }
-    if (_currentQueue?.id != _audioHandler.queue.currentQueueId) {
-      _currentQueue = await _audioHandler.queue.getCurrentQueue();
+    if (_currentQueue?.id != _playbackManager.queue.currentQueueId) {
+      _currentQueue = await _playbackManager.queue.getCurrentQueue();
       changed = true;
     }
     if (changed) {
@@ -127,7 +144,7 @@ class NowPlayingViewModel extends ChangeNotifier {
   }
 
   void toggleLoop() async {
-    _audioHandler.queue.setLoop(!_loop);
+    _playbackManager.queue.setLoop(!_loop);
   }
 
   Future<Result<void>> toggleFavorite() async {
@@ -141,27 +158,27 @@ class NowPlayingViewModel extends ChangeNotifier {
 
   Future<void> playPause() async {
     if (playbackStatus == PlaybackStatus.playing) {
-      await _audioHandler.pause();
+      await _playbackManager.player.pause();
     } else {
-      await _audioHandler.play();
+      await _playbackManager.player.play();
     }
   }
 
   Future<void> playNext() async {
-    await _audioHandler.playNext();
+    await _playbackManager.playNext();
   }
 
   Future<void> playPrev() async {
-    await _audioHandler.playPrev();
+    await _playbackManager.playPrev();
   }
 
   Future<void> seek(Duration pos) async {
-    await _audioHandler.seek(pos);
+    await _playbackManager.player.seek(pos);
   }
 
   void addToQueue(bool priority) {
     if (_song == null) return;
-    _audioHandler.queue.add(_song!, priority);
+    _playbackManager.queue.add(_song!, priority);
   }
 
   Timer? _positionTimer;
@@ -172,7 +189,7 @@ class NowPlayingViewModel extends ChangeNotifier {
     _playbackStatus = status;
     notifyListeners();
     if (status == PlaybackStatus.stopped) {
-      _hasNamedQueues = await _audioHandler.queue.hasNamedQueues();
+      _hasNamedQueues = await _playbackManager.queue.hasNamedQueues();
       notifyListeners();
     }
 
@@ -183,14 +200,15 @@ class NowPlayingViewModel extends ChangeNotifier {
       );
       _bufferedPositionTimer ??= Timer.periodic(
         const Duration(milliseconds: 500),
-        (_) async => _bufferedPosition = await _audioHandler.bufferedPosition,
+        (_) async =>
+            _bufferedPosition = await _playbackManager.player.bufferedPosition,
       );
     } else {
       _positionTimer?.cancel();
       _positionTimer = null;
       _bufferedPositionTimer?.cancel();
       _bufferedPositionTimer = null;
-      _bufferedPosition = await _audioHandler.bufferedPosition;
+      _bufferedPosition = await _playbackManager.player.bufferedPosition;
       _updatePosition();
     }
   }
@@ -208,7 +226,7 @@ class NowPlayingViewModel extends ChangeNotifier {
 
   void _updatePosition() async {
     _position.add((
-      position: _audioHandler.position,
+      position: _playbackManager.player.position,
       bufferedPosition: _bufferedPosition,
     ));
   }
@@ -224,7 +242,7 @@ class NowPlayingViewModel extends ChangeNotifier {
   @override
   Future<void> dispose() async {
     _favoritesRepository.removeListener(_onFavoriteChanged);
-    _audioHandler.queue.removeListener(_onQueueChanged);
+    _playbackManager.queue.removeListener(_onQueueChanged);
     await _positionUpdateSubscription.cancel();
     await _volumeSubscription.cancel();
     await _loopSubscription.cancel();

@@ -8,7 +8,8 @@
 
 import 'dart:async';
 
-import 'package:crossonic/data/repositories/audio/audio_handler.dart';
+import 'package:crossonic/data/repositories/audio/playback_manager.dart';
+import 'package:crossonic/data/repositories/audio/player_manager.dart';
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
 import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
@@ -45,7 +46,7 @@ class Scrobbler {
   DateTime? _playingSince;
 
   Scrobbler.enable({
-    required AudioHandler audioHandler,
+    required PlaybackManager playbackManager,
     required Database database,
     required AuthRepository authRepository,
     required SubsonicService subsonicService,
@@ -53,8 +54,8 @@ class Scrobbler {
        _subsonic = subsonicService,
        _auth = authRepository {
     _auth.addListener(_onAuthChanged);
-    audioHandler.queue.current.listen(_onCurrentChanged);
-    audioHandler.playbackStatus.listen(_onPlaybackStatusChanged);
+    playbackManager.queue.current.listen(_onCurrentChanged);
+    playbackManager.player.playbackStatus.listen(_onPlaybackStatusChanged);
   }
 
   Future<void> _onCurrentChanged(Song? song) async {

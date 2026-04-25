@@ -9,7 +9,7 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:crossonic/data/repositories/audio/audio_handler.dart';
+import 'package:crossonic/data/repositories/audio/playback_manager.dart';
 import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/data/repositories/playlist/models/playlist.dart';
 import 'package:crossonic/data/repositories/playlist/playlist_repository.dart';
@@ -29,25 +29,31 @@ class ImageTooLargeException extends AppException {
 
 class PlaylistViewModel extends ChangeNotifier {
   final PlaylistRepository _repo;
-  final AudioHandler _audioHandler;
+  final PlaybackManager _playbackManager;
   final SongDownloader _downloader;
 
   final String _playlistId;
 
   Playlist? _playlist;
+
   Playlist? get playlist => _playlist;
 
   List<(Song, DownloadStatus)> _tracks = [];
+
   List<(Song, DownloadStatus)> get tracks => _tracks;
 
   DownloadStatus _downloadStatus = DownloadStatus.none;
+
   DownloadStatus get downloadStatus => _downloadStatus;
 
   int _downloadedTracks = 0;
+
   int get downloadedTracks => _downloadedTracks;
 
   bool _reorderEnabled = false;
+
   bool get editMode => _reorderEnabled;
+
   set editMode(bool enable) {
     _reorderEnabled = enable;
     notifyListeners();
@@ -56,15 +62,16 @@ class PlaylistViewModel extends ChangeNotifier {
   bool get changeCoverSupported => _repo.changeCoverSupported;
 
   bool _uploadingCover = false;
+
   bool get uploadingCover => _uploadingCover;
 
   PlaylistViewModel({
     required PlaylistRepository playlistRepository,
-    required AudioHandler audioHandler,
+    required PlaybackManager playbackManager,
     required SongDownloader songDownloader,
     required String playlistId,
   }) : _repo = playlistRepository,
-       _audioHandler = audioHandler,
+       _playbackManager = playbackManager,
        _downloader = songDownloader,
        _playlistId = playlistId {
     _downloader.addListener(_onDownloadStatusChanged);
@@ -226,33 +233,33 @@ class PlaylistViewModel extends ChangeNotifier {
 
   void play([int index = 0, bool single = false]) {
     if (tracks.isEmpty) {
-      _audioHandler.queue.clear(priorityQueue: false);
+      _playbackManager.queue.clear(priorityQueue: false);
       return;
     }
-    _audioHandler.playOnNextMediaChange();
+    _playbackManager.player.playOnNextMediaChange();
     if (single) {
-      _audioHandler.queue.replace([tracks[index].$1]);
+      _playbackManager.queue.replace([tracks[index].$1]);
     } else {
-      _audioHandler.queue.replace(tracks.map((t) => t.$1), index);
+      _playbackManager.queue.replace(tracks.map((t) => t.$1), index);
     }
   }
 
   void shuffle() {
     if (tracks.isEmpty) {
-      _audioHandler.queue.clear(priorityQueue: false);
+      _playbackManager.queue.clear(priorityQueue: false);
       return;
     }
-    _audioHandler.playOnNextMediaChange();
-    _audioHandler.queue.replace(List.of(tracks.map((t) => t.$1))..shuffle());
+    _playbackManager.player.playOnNextMediaChange();
+    _playbackManager.queue.replace(List.of(tracks.map((t) => t.$1))..shuffle());
   }
 
   void addToQueue(bool priority) {
     if (tracks.isEmpty) return;
-    _audioHandler.queue.addAll(tracks.map((t) => t.$1), priority);
+    _playbackManager.queue.addAll(tracks.map((t) => t.$1), priority);
   }
 
   void addSongToQueue(Song song, bool priority) {
-    _audioHandler.queue.add(song, priority);
+    _playbackManager.queue.add(song, priority);
   }
 
   Future<Result<void>> remove(int index) async {
@@ -273,6 +280,7 @@ class PlaylistViewModel extends ChangeNotifier {
   }
 
   bool _deleted = false;
+
   Future<Result<void>> delete() async {
     _deleted = true;
     return await _repo.delete(_playlistId);

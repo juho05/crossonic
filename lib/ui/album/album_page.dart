@@ -48,7 +48,7 @@ class _AlbumPageState extends State<AlbumPage> {
     _viewModel = AlbumViewModel(
       subsonicRepository: context.read(),
       favoritesRepository: context.read(),
-      audioHandler: context.read(),
+      playbackManager: context.read(),
     )..load(widget.albumId);
   }
 

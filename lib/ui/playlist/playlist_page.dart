@@ -47,7 +47,7 @@ class _PlaylistPageState extends State<PlaylistPage> {
     _viewModel = PlaylistViewModel(
       playlistId: widget.playlistId,
       playlistRepository: context.read(),
-      audioHandler: context.read(),
+      playbackManager: context.read(),
       songDownloader: context.read(),
     );
   }

@@ -6,13 +6,9 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import 'package:crossonic/data/repositories/audio/player_manager.dart';
-import 'package:crossonic/data/repositories/subsonic/models/song.dart';
-import 'package:crossonic/data/services/media_integration/media_integration.dart';
-
-class NoopIntegration implements MediaIntegration {
-  @override
-  Future<void> ensureInitialized({
+abstract interface class SystemMediaCallbacks {
+  /// [onVolumeChanged]: the implementation ensures that volume is linear
+  Future<void> registerCallbacks({
     required Future<void> Function() onPlay,
     required Future<void> Function() onPause,
     required Future<void> Function(Duration position) onSeek,
@@ -21,20 +17,9 @@ class NoopIntegration implements MediaIntegration {
     required Future<void> Function() onStop,
     required Future<void> Function(double volume) onVolumeChanged,
     required Future<void> Function(bool loop) onLoopChanged,
-  }) async {}
+  });
 
-  @override
-  void updateLoop(bool loop) {}
+  void updateLoop(bool loop);
 
-  @override
-  void updateMedia(Song? song, Uri? coverArt) {}
-
-  @override
-  void updatePlaybackState(PlaybackStatus status) {}
-
-  @override
-  void updatePosition(Duration position) {}
-
-  @override
-  void updateVolume(double volume) {}
+  void updatePosition(Duration position);
 }

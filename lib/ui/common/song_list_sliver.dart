@@ -51,7 +51,7 @@ class SongListSliver extends StatelessWidget {
     }
     return Provider(
       create: (context) =>
-          SongListSliverViewModel(audioHandler: context.read()),
+          SongListSliverViewModel(playbackManager: context.read()),
       builder: (context, _) {
         final viewModel = context.read<SongListSliverViewModel>();
         final trackDigits = songs.isNotEmpty

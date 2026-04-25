@@ -6,7 +6,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import 'package:crossonic/data/repositories/audio/audio_handler.dart';
+import 'package:crossonic/data/repositories/audio/playback_manager.dart';
+import 'package:crossonic/data/repositories/audio/player_manager.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
@@ -27,12 +28,13 @@ class AppShortcuts extends StatelessWidget {
         actions: {
           PlayPauseIntent: CallbackAction(
             onInvoke: (intent) async {
-              final audioHandler = context.read<AudioHandler>();
-              if (audioHandler.playbackStatus.value == PlaybackStatus.paused) {
-                await audioHandler.play();
-              } else if (audioHandler.playbackStatus.value ==
+              final playbackManager = context.read<PlaybackManager>();
+              if (playbackManager.player.playbackStatus.value ==
+                  PlaybackStatus.paused) {
+                await playbackManager.player.play();
+              } else if (playbackManager.player.playbackStatus.value ==
                   PlaybackStatus.playing) {
-                await audioHandler.pause();
+                await playbackManager.player.pause();
               }
               return null;
             },

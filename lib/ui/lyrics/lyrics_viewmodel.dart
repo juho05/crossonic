@@ -8,7 +8,8 @@
 
 import 'dart:async';
 
-import 'package:crossonic/data/repositories/audio/audio_handler.dart';
+import 'package:crossonic/data/repositories/audio/playback_manager.dart';
+import 'package:crossonic/data/repositories/audio/player_manager.dart';
 import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/data/repositories/subsonic/models/lyrics.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
@@ -21,7 +22,7 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 
 class LyricsViewModel extends ChangeNotifier {
   final SubsonicRepository _subsonic;
-  final AudioHandler _audioHandler;
+  final PlaybackManager _playbackManager;
   StreamSubscription? _currentSubscription;
   StreamSubscription? _statusSubscription;
   StreamSubscription? _positionUpdateSubscription;
@@ -29,6 +30,7 @@ class LyricsViewModel extends ChangeNotifier {
   bool get supportsSync => _lyrics?.synced ?? false;
 
   bool _syncedMode = true;
+
   bool get syncedMode => _syncedMode && supportsSync;
 
   set syncedMode(bool sync) {
@@ -41,33 +43,38 @@ class LyricsViewModel extends ChangeNotifier {
   }
 
   FetchStatus _status = FetchStatus.initial;
+
   FetchStatus get status => _status;
 
   Song? _currentSong;
+
   Song? get currentSong => _currentSong;
 
   Lyrics? _lyrics;
+
   Lyrics? get lyrics => _lyrics;
 
   final BehaviorSubject<int?> _selectedLine = BehaviorSubject.seeded(null);
+
   ValueStream<int?> get selectedLine => _selectedLine.stream;
 
   LyricsViewModel({
     required SubsonicRepository subsonic,
-    required AudioHandler audioHandler,
+    required PlaybackManager playbackManager,
   }) : _subsonic = subsonic,
-       _audioHandler = audioHandler {
-    _currentSubscription = _audioHandler.queue.current.listen(
+       _playbackManager = playbackManager {
+    _currentSubscription = _playbackManager.queue.current.listen(
       _onCurrentChanged,
     );
-    _statusSubscription = _audioHandler.playbackStatus.listen(_onStatusChanged);
-    _positionUpdateSubscription = _audioHandler.positionUpdateStream.listen((
-      event,
-    ) {
-      _onPositionChanged(force: true);
-    });
+    _statusSubscription = _playbackManager.player.playbackStatus.listen(
+      _onStatusChanged,
+    );
+    _positionUpdateSubscription = _playbackManager.player.positionUpdateStream
+        .listen((event) {
+          _onPositionChanged(force: true);
+        });
 
-    _onCurrentChanged(_audioHandler.queue.current.value);
+    _onCurrentChanged(_playbackManager.queue.current.value);
   }
 
   void _onCurrentChanged(Song? current) {
@@ -102,13 +109,15 @@ class LyricsViewModel extends ChangeNotifier {
   }
 
   Timer? _positionTimer;
+
   Future<void> _onStatusChanged(PlaybackStatus status) async {
     _updatePositionTimer();
   }
 
   void _updatePositionTimer() {
     _onPositionChanged();
-    if (_audioHandler.playbackStatus.value == PlaybackStatus.playing &&
+    if (_playbackManager.player.playbackStatus.value ==
+            PlaybackStatus.playing &&
         syncedMode) {
       _startPositionTimer();
     } else {
@@ -141,7 +150,7 @@ class LyricsViewModel extends ChangeNotifier {
       return;
     }
 
-    final pos = _audioHandler.position;
+    final pos = _playbackManager.player.position;
     final currentIndex = _selectedLine.value;
     final currentLine = currentIndex != null
         ? lyrics?.lines.elementAtOrNull(currentIndex)
@@ -213,10 +222,11 @@ class LyricsViewModel extends ChangeNotifier {
   }
 
   Future<void> seek(Duration duration) async {
-    final paused = _audioHandler.playbackStatus.value == PlaybackStatus.paused;
-    await _audioHandler.seek(duration);
+    final paused =
+        _playbackManager.player.playbackStatus.value == PlaybackStatus.paused;
+    await _playbackManager.player.seek(duration);
     if (paused) {
-      await _audioHandler.play();
+      await _playbackManager.player.play();
     }
     syncedMode = true;
   }

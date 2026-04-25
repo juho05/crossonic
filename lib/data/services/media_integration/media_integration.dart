@@ -6,7 +6,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import 'package:crossonic/data/repositories/audio/audio_handler.dart';
+import 'package:crossonic/data/repositories/audio/player_manager.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
 
 export 'audioservice.dart';
@@ -21,12 +21,16 @@ abstract interface class MediaIntegration {
     required Future<void> Function() onPlayPrev,
     required Future<void> Function() onStop,
     required Future<void> Function(double volume) onVolumeChanged,
-    required Future<void> Function(Iterable<Song> songs) onReplaceQueue,
     required Future<void> Function(bool loop) onLoopChanged,
   });
-  void updateMedia(Song? song, Uri? coverArt);
-  void updatePosition(Duration position);
-  void updatePlaybackState(PlaybackStatus status);
-  void updateVolume(double volume);
+
   void updateLoop(bool loop);
+
+  void updatePosition(Duration position);
+
+  void updateMedia(Song? song, Uri? coverArt);
+
+  void updatePlaybackState(PlaybackStatus status);
+
+  void updateVolume(double volume);
 }

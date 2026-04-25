@@ -9,7 +9,7 @@
 import 'dart:async';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:crossonic/data/repositories/audio/audio_handler.dart';
+import 'package:crossonic/data/repositories/audio/playback_manager.dart';
 import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/data/repositories/playlist/models/playlist.dart';
 import 'package:crossonic/data/repositories/playlist/playlist_repository.dart';
@@ -30,15 +30,18 @@ enum PlaylistsSort {
 
 class PlaylistsViewModel extends ChangeNotifier {
   final PlaylistRepository _repo;
-  final AudioHandler _audioHandler;
+  final PlaybackManager _playbackManager;
   final SongDownloader _downloader;
 
   List<(Playlist, DownloadStatus)> _playlists = [];
   List<(Playlist, DownloadStatus)> _filtered = [];
+
   List<(Playlist, DownloadStatus)> get playlists => _filtered;
 
   PlaylistsSort _sort = PlaylistsSort.updated;
+
   PlaylistsSort get sort => _sort;
+
   set sort(PlaylistsSort sort) {
     if (_sort == sort) return;
     _sort = sort;
@@ -56,7 +59,9 @@ class PlaylistsViewModel extends ChangeNotifier {
   }
 
   bool _showFilters = false;
+
   bool get showFilters => _showFilters;
+
   set showFilters(bool enable) {
     if (_showFilters == enable) return;
     _showFilters = enable;
@@ -69,7 +74,9 @@ class PlaylistsViewModel extends ChangeNotifier {
   }
 
   String _searchTerm = "";
+
   String get searchTerm => _searchTerm;
+
   set searchTerm(String search) {
     if (search == _searchTerm) return;
     _searchTerm = search;
@@ -77,7 +84,9 @@ class PlaylistsViewModel extends ChangeNotifier {
   }
 
   bool _sortAscending = false;
+
   bool get sortAscending => _sortAscending;
+
   set sortAscending(bool ascending) {
     if (_sortAscending == ascending) return;
     _sortAscending = ascending;
@@ -85,7 +94,9 @@ class PlaylistsViewModel extends ChangeNotifier {
   }
 
   bool _offline = false;
+
   bool get offline => _offline;
+
   set offline(bool offline) {
     if (_offline == offline) return;
     _offline = offline;
@@ -96,10 +107,10 @@ class PlaylistsViewModel extends ChangeNotifier {
 
   PlaylistsViewModel({
     required PlaylistRepository playlistRepository,
-    required AudioHandler audioHandler,
+    required PlaybackManager playbackManager,
     required SongDownloader songDownloader,
   }) : _repo = playlistRepository,
-       _audioHandler = audioHandler,
+       _playbackManager = playbackManager,
        _downloader = songDownloader {
     _repo.addListener(_load);
     _downloader.addListener(_onDownloadStatusChanged);
@@ -128,6 +139,7 @@ class PlaylistsViewModel extends ChangeNotifier {
   }
 
   Throttle? _onDownloadStatusChangedThrottle;
+
   Future<void> _onDownloadStatusChanged() async {
     Future<void> update() async {
       bool changed = false;
@@ -177,8 +189,8 @@ class PlaylistsViewModel extends ChangeNotifier {
     if (shuffle) {
       result.value.shuffle();
     }
-    _audioHandler.playOnNextMediaChange();
-    await _audioHandler.queue.replace(result.value);
+    _playbackManager.player.playOnNextMediaChange();
+    await _playbackManager.queue.replace(result.value);
     return const Result.ok(null);
   }
 
@@ -189,7 +201,7 @@ class PlaylistsViewModel extends ChangeNotifier {
         return Result.error(result.error);
       case Ok():
     }
-    await _audioHandler.queue.addAll(result.value, priority);
+    await _playbackManager.queue.addAll(result.value, priority);
     return const Result.ok(null);
   }
 
