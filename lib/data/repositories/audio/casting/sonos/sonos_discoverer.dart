@@ -47,7 +47,7 @@ class SonosDiscoverer extends DeviceDiscoverer {
       final stream = await MDNSClient.query(
         QueryParams(
           service: "_sonos._tcp",
-          timeout: const Duration(seconds: 5),
+          timeout: const Duration(seconds: 3),
         ),
       );
       await for (final entry in stream) {
@@ -71,6 +71,7 @@ class SonosDiscoverer extends DeviceDiscoverer {
 
   @override
   Future<void> stopDiscovery() async {
+    Log.debug("stopping sonos discovery...");
     _discoveryTimer?.cancel();
     _discoveryTimer = null;
   }

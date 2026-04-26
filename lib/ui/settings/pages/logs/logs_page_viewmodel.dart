@@ -31,16 +31,20 @@ class LogsPageViewModel extends ChangeNotifier {
   StreamSubscription? _newMessageSubscription;
 
   DateTime _sessionTime;
+
   DateTime get sessionTime => _sessionTime;
 
   List<LogMessage> _logMessages;
   List<LogMessage> _filteredMessages;
+
   List<LogMessage> get logMessages => _filteredMessages;
 
   Set<Level> _enabledLevels;
+
   Set<Level> get enabledLevels => _enabledLevels;
 
   String _searchText;
+
   String get searchText => _searchText;
 
   LogsPageViewModel({
@@ -93,6 +97,7 @@ class LogsPageViewModel extends ChangeNotifier {
   }
 
   Timer? _searchDebounce;
+
   void search(String query) {
     _searchDebounce?.cancel();
     _searchDebounce = Timer(const Duration(milliseconds: 250), () {
@@ -163,7 +168,7 @@ class LogsPageViewModel extends ChangeNotifier {
       final bytes = utf8.encode(_exportLog(filtered: filtered));
 
       if (kIsWeb || Platform.isAndroid || Platform.isIOS) {
-        final outputFile = await FilePicker.platform.saveFile(
+        final outputFile = await FilePicker.saveFile(
           fileName: "crossonic-logs_$timeStr.txt",
           bytes: bytes,
           dialogTitle: "Export crossonic logs",
