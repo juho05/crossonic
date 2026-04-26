@@ -22,7 +22,7 @@ class PlayerManager {
 
   Device get device => _player.device;
 
-  late AudioPlayer _player;
+  AudioPlayer _player;
 
   final BehaviorSubject<PlaybackStatus> _playbackStatus =
       BehaviorSubject.seeded(PlaybackStatus.stopped);
@@ -82,22 +82,22 @@ class PlayerManager {
   bool _playOnNextMediaChange = false;
 
   PlayerManager({required AudioPlayer localPlayer})
-    : _localPlayer = localPlayer {
-    changePlayer(_localPlayer);
+    : _localPlayer = localPlayer,
+      _player = localPlayer {
+    connectPlayerStreams();
   }
 
   StreamSubscription? _restartPlaybackSub;
   StreamSubscription? _playerEventsSub;
   StreamSubscription? _positionDiscontinuitySub;
 
-  Future<void> changePlayer(AudioPlayer player) async {
+  void cancelPlayerStreams() {
     _restartPlaybackSub?.cancel();
     _playerEventsSub?.cancel();
     _positionDiscontinuitySub?.cancel();
+  }
 
-    // TODO transfer playback
-    _player = player;
-
+  void connectPlayerStreams() {
     _restartPlaybackSub = _player.restartPlayback.listen(
       (event) => _restartPlayback.add(position),
     );
@@ -107,6 +107,12 @@ class PlayerManager {
     _positionDiscontinuitySub = _player.positionDiscontinuity.listen(
       (pos) => _updatePosition(pos),
     );
+  }
+
+  Future<void> changePlayer(AudioPlayer? player) async {
+    player ??= _localPlayer;
+    await _player.stop();
+    _player = player;
   }
 
   Future<void> configureServerURL({

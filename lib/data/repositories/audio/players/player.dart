@@ -68,9 +68,9 @@ abstract class AudioPlayer {
   @protected
   String? get format => _format;
 
-  @protected
+  bool get supportsFilePlayback => false;
+
   ValueNotifier<Song?> currentSong = ValueNotifier(null);
-  @protected
   ValueNotifier<Song?> nextSong = ValueNotifier(null);
 
   Future<void> configureServerURL({
@@ -124,6 +124,7 @@ abstract class AudioPlayer {
     _canSeek =
         _format == "raw" ||
         (currentSong.value != null &&
+            supportsFilePlayback &&
             _downloader.isDownloaded(currentSong.value!.id));
   }
 
@@ -132,6 +133,7 @@ abstract class AudioPlayer {
     _nextCanSeek =
         _format == "raw" ||
         (nextSong.value != null &&
+            supportsFilePlayback &&
             _downloader.isDownloaded(nextSong.value!.id));
   }
 
@@ -153,7 +155,7 @@ abstract class AudioPlayer {
   Uri? constructStreamUri(Song? s, {Duration? pos}) {
     if (s == null) return null;
 
-    if (pos == null || pos == Duration.zero) {
+    if (pos == null || pos == Duration.zero && supportsFilePlayback) {
       final path = _downloader.getPath(s.id);
       if (path != null) return path.toFileUri();
     }
@@ -174,7 +176,7 @@ abstract class AudioPlayer {
       scheme: _streamUri.scheme,
       port: _streamUri.port,
       userInfo: _streamUri.userInfo,
-      fragment: _streamUri.fragment,
+      fragment: _streamUri.fragment.isNotEmpty ? _streamUri.fragment : null,
       queryParameters: queryParams,
     );
   }
@@ -193,7 +195,7 @@ abstract class AudioPlayer {
       scheme: _coverUri.scheme,
       port: _coverUri.port,
       userInfo: _coverUri.userInfo,
-      fragment: _coverUri.fragment,
+      fragment: _streamUri.fragment.isNotEmpty ? _streamUri.fragment : null,
       queryParameters: queryParams,
     );
   }

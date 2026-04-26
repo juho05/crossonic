@@ -45,6 +45,11 @@ class CastingViewModel extends ChangeNotifier {
     await _playbackManager.deviceManager.startDiscovery();
   }
 
+  Future<void> selectDevice(Device device) async {
+    await _playbackManager.changeDevice(device);
+    await _onDevicesChanged();
+  }
+
   @override
   void dispose() {
     _playbackManager.deviceManager.removeListener(_onDevicesChanged);

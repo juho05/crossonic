@@ -14,10 +14,20 @@ class SonosDevice implements Device {
   final String _ipAddr;
   final String? _modelName;
 
-  SonosDevice({required String name, required String ipAddr, String? modelName})
-    : _name = name,
-      _ipAddr = ipAddr,
-      _modelName = modelName;
+  final String _avTransportControlPath;
+  final String _renderingControlPath;
+
+  SonosDevice({
+    required String name,
+    required String ipAddr,
+    required String avTransportControlPath,
+    required String renderingControlPath,
+    String? modelName,
+  }) : _name = name,
+       _ipAddr = ipAddr,
+       _avTransportControlPath = avTransportControlPath,
+       _renderingControlPath = renderingControlPath,
+       _modelName = modelName;
 
   @override
   String get name => _name;
@@ -28,6 +38,20 @@ class SonosDevice implements Device {
   String get type => "Sonos";
 
   String get ipAddr => _ipAddr;
+
+  Uri get avTransportControlUri => Uri(
+    scheme: "http",
+    host: ipAddr,
+    port: 1400,
+    pathSegments: _avTransportControlPath.split("/"),
+  );
+
+  Uri get renderingControlUri => Uri(
+    scheme: "http",
+    host: ipAddr,
+    port: 1400,
+    pathSegments: _avTransportControlPath.split("/"),
+  );
 
   @override
   List<String> get extraInfos => [if (_modelName != null) _modelName, ipAddr];

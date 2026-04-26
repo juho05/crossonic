@@ -100,7 +100,7 @@ class _CastingPageState extends State<CastingPage> {
                         child: Icon(device.icon),
                       ),
                       onTap: () {
-                        // TODO
+                        _viewModel.selectDevice(device);
                       },
                     );
                   },

@@ -85,6 +85,7 @@ class SonosDiscoverer extends DeviceDiscoverer {
               port: 1400,
               pathSegments: ["xml", "device_description.xml"],
             ),
+            headers: {"Connection": "close"},
           )
           .timeout(const Duration(seconds: 3));
 
@@ -150,6 +151,16 @@ class SonosDiscoverer extends DeviceDiscoverer {
         return null;
       }
 
+      final avTransportPath = avTransport
+          .findElements("controlURL")
+          .firstOrNull
+          ?.firstChild
+          ?.value;
+      if (avTransportPath == null) {
+        Log.debug("Sonos device $ipAddr has no AVTransport control URL");
+        return null;
+      }
+
       final renderingControl = mediaRendererServices
           .where(
             (s) =>
@@ -162,7 +173,23 @@ class SonosDiscoverer extends DeviceDiscoverer {
         return null;
       }
 
-      return SonosDevice(name: name, ipAddr: ipAddr, modelName: modelName);
+      final renderingControlPath = renderingControl
+          .findElements("controlURL")
+          .firstOrNull
+          ?.firstChild
+          ?.value;
+      if (renderingControlPath == null) {
+        Log.debug("Sonos device $ipAddr has no RenderingControl control URL");
+        return null;
+      }
+
+      return SonosDevice(
+        name: name,
+        ipAddr: ipAddr,
+        modelName: modelName,
+        avTransportControlPath: avTransportPath,
+        renderingControlPath: renderingControlPath,
+      );
     } catch (e, st) {
       Log.warn(
         "failed to load device info of sonos device at $ipAddr",

@@ -8,6 +8,7 @@
 
 import 'dart:math';
 
+import 'package:crossonic/data/repositories/audio/casting/device.dart';
 import 'package:crossonic/data/repositories/audio/casting/device_manager.dart';
 import 'package:crossonic/data/repositories/audio/player_manager.dart';
 import 'package:crossonic/data/repositories/audio/queue/queue_manager.dart';
@@ -121,6 +122,29 @@ class PlaybackManager {
         play: _player.playbackStatus.value == PlaybackStatus.playing,
       ),
     );
+  }
+
+  Future<void> changeDevice(Device device) async {
+    final player = await deviceManager.createPlayerFromDevice(device);
+
+    _player.cancelPlayerStreams();
+
+    final play = _player.playbackStatus.value == PlaybackStatus.playing;
+    final pos = _player.position;
+
+    await _player.changePlayer(player);
+    await _configurePlayerServerURL();
+
+    final next = _queue.currentAndNext.value.next;
+    await _player.setCurrent(_queue.current.value!, next: next, pos: pos);
+
+    _player.connectPlayerStreams();
+
+    if (play) {
+      await _player.play();
+    } else {
+      await _player.pause();
+    }
   }
 
   Future<void> playNext() async {

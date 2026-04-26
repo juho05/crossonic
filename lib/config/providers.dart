@@ -43,6 +43,7 @@ import 'package:crossonic/data/services/media_integration/android.dart';
 import 'package:crossonic/data/services/media_integration/media_integration.dart';
 import 'package:crossonic/data/services/methodchannel/method_channel_service.dart';
 import 'package:crossonic/data/services/opensubsonic/subsonic_service.dart';
+import 'package:crossonic/data/services/upnp/upnp_service.dart';
 import 'package:crossonic/integrate_appimage_viewmodel.dart';
 import 'package:crossonic/version_checker_viewmodel.dart';
 import 'package:flutter/foundation.dart';
@@ -211,7 +212,12 @@ Future<List<SingleChildWidget>> createProviders({
   );
   await queueManager.init();
 
-  final deviceManager = DeviceManager();
+  final upnpService = UpnpService();
+
+  final deviceManager = DeviceManager(
+    songDownloader: songDownloader,
+    upnpService: upnpService,
+  );
 
   final playbackManager = PlaybackManager(
     authRepository: authRepository,
