@@ -29,6 +29,10 @@ class Song {
   final double? fallbackGain;
   final Date? originalDate;
   final Date? releaseDate;
+  final String? contentType;
+  final int? sampleRate;
+  final int? bitDepth;
+  final int? bitRate;
 
   Song({
     required this.id,
@@ -47,6 +51,10 @@ class Song {
     required this.fallbackGain,
     required this.originalDate,
     required this.releaseDate,
+    required this.contentType,
+    required this.sampleRate,
+    required this.bitDepth,
+    required this.bitRate,
   });
 
   factory Song.fromJson(Map<String, dynamic> json) => _$SongFromJson(json);

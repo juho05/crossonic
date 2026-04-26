@@ -9,8 +9,11 @@
 import 'dart:convert';
 
 import 'package:crossonic/data/repositories/logger/log.dart';
+import 'package:crossonic/data/services/upnp/exceptions.dart';
 import 'package:crossonic/data/services/upnp/upnp_connection.dart';
 import 'package:crossonic/data/services/upnp/upnp_mediaitem.dart';
+import 'package:crossonic/data/services/upnp/upnp_position_info.dart';
+import 'package:crossonic/data/services/upnp/upnp_transport_info.dart';
 import 'package:crossonic/utils/result.dart';
 import 'package:http/http.dart' as http;
 import 'package:xml/xml.dart';
@@ -123,7 +126,108 @@ class UpnpService {
     );
   }
 
-  Future<Result<void>> _request({
+  Future<Result<UpnpTransportInfo>> getTransportInfo(UpnpConnection con) async {
+    final xmlContent = '<InstanceID>0</InstanceID>';
+    final result = await _request(
+      uri: con.avTransportControlUri,
+      service: _avTransportService,
+      method: "GetTransportInfo",
+      xmlContent: xmlContent,
+    );
+    switch (result) {
+      case Err():
+        return Result.error(result.error);
+      case Ok():
+    }
+    final body = result.value;
+    final state = body
+        ?.findElements("CurrentTransportState")
+        .firstOrNull
+        ?.firstChild
+        ?.value;
+    if (state == null) {
+      return Result.error(UnexpectedUpnpResponse(body));
+    }
+    final status = body
+        ?.findElements("CurrentTransportStatus")
+        .firstOrNull
+        ?.firstChild
+        ?.value;
+    final currentSpeedStr = body
+        ?.findElements("CurrentSpeed")
+        .firstOrNull
+        ?.firstChild
+        ?.value;
+    double speed = 1;
+    if (currentSpeedStr != null) {
+      speed = double.parse(currentSpeedStr);
+    }
+
+    return Result.ok(
+      UpnpTransportInfo(
+        state: switch (state.toLowerCase()) {
+          "stopped" => UpnpTransportState.stopped,
+          "playing" => UpnpTransportState.playing,
+          "paused_playback" => UpnpTransportState.pausedPlayback,
+          "transitioning" => UpnpTransportState.transitioning,
+          _ => UpnpTransportState.unknown,
+        },
+        status: status,
+        speed: speed,
+      ),
+    );
+  }
+
+  Future<Result<UpnpPositionInfo>> getPositionInfo(UpnpConnection con) async {
+    final start = DateTime.now();
+
+    final xmlContent = '<InstanceID>0</InstanceID>';
+    final result = await _request(
+      uri: con.avTransportControlUri,
+      service: _avTransportService,
+      method: "GetPositionInfo",
+      xmlContent: xmlContent,
+    );
+    switch (result) {
+      case Err():
+        return Result.error(result.error);
+      case Ok():
+    }
+    final body = result.value;
+    final track = body?.findElements("Track").firstOrNull?.firstChild?.value;
+    final trackDuration = parseDuration(
+      body?.findElements("TrackDuration").firstOrNull?.firstChild?.value,
+    );
+    final trackUri = body
+        ?.findElements("TrackURI")
+        .firstOrNull
+        ?.firstChild
+        ?.value;
+    final position = parseDuration(
+      body?.findElements("RelTime").firstOrNull?.firstChild?.value,
+    );
+
+    if (track == null ||
+        trackDuration == null ||
+        trackUri == null ||
+        position == null) {
+      return Result.error(UnexpectedUpnpResponse(body));
+    }
+
+    final delay = DateTime.now().difference(start) * 0.5;
+
+    return Result.ok(
+      UpnpPositionInfo(
+        track: int.parse(track),
+        trackUri: trackUri,
+        trackDuration: trackDuration,
+        pos: position + delay,
+        approximateTime: DateTime.now().subtract(delay),
+      ),
+    );
+  }
+
+  Future<Result<XmlElement?>> _request({
     required Uri uri,
     required String service,
     required String method,
@@ -139,6 +243,7 @@ class UpnpService {
         '  </s:Body>\n'
         '</s:Envelope>';
 
+    // TODO sanitize urls
     Log.debug("Upnp request [$method]:\n$xmlBody");
     try {
       final response = await _http
@@ -154,9 +259,33 @@ class UpnpService {
             },
           )
           .timeout(const Duration(seconds: 5));
-      // TODO handle response
+      if (response.statusCode >= 300) {
+        return Result.error(
+          UpnpError(
+            "unsuccessful soap request: ${response.statusCode}\n${response.body}",
+          ),
+        );
+      }
+      // TODO sanitize urls
       Log.debug("Upnp response [$method]:\n${response.body}");
-      return const Result.ok(null);
+
+      final responseXml = XmlDocument.parse(response.body);
+
+      final responseElement = responseXml
+          .findElements("s:Envelope")
+          .firstOrNull
+          ?.findElements("s:Body")
+          .firstOrNull
+          ?.findElements("u:${method}Response")
+          .firstOrNull;
+
+      if (responseElement == null) {
+        Log.warn(
+          "couldn't find response element in sonos response for $method:\n${response.body}",
+        );
+      }
+
+      return Result.ok(responseElement);
     } on Exception catch (e) {
       return Result.error(e);
     }
@@ -170,5 +299,18 @@ class UpnpService {
     seconds %= 60;
 
     return "${hours.toString().padLeft(2, "0")}:${minutes.toString().padLeft(2, "0")}:${seconds.toString().padLeft(2, "0")}";
+  }
+
+  static Duration? parseDuration(String? duration) {
+    if (duration == null) return null;
+    final parts = duration.split(":");
+    if (parts.length < 2 || parts.length > 3) {
+      throw FormatException("invalid duration: $duration");
+    }
+    return Duration(
+      seconds: int.parse(parts[parts.length - 1]),
+      minutes: int.parse(parts[parts.length - 2]),
+      hours: parts.length == 3 ? int.parse(parts[0]) : 0,
+    );
   }
 }

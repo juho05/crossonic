@@ -29,15 +29,8 @@ class CastingViewModel extends ChangeNotifier {
 
   Future<void> _onDevicesChanged() async {
     _discoveredDevices = _playbackManager.deviceManager.devices.toList();
-    final activeIndex = _discoveredDevices.indexWhere(
-      (device) => _playbackManager.player.device == device,
-    );
-    if (activeIndex == -1) {
-      _currentDevice = null;
-    } else {
-      _currentDevice = _discoveredDevices.removeAt(activeIndex);
-    }
-
+    _currentDevice = _playbackManager.player.device;
+    _discoveredDevices.remove(_currentDevice);
     notifyListeners();
   }
 

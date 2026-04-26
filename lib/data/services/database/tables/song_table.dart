@@ -33,6 +33,10 @@ class SongTable extends Table {
   late final fallbackGain = real().nullable()();
   late final originalDate = text().map(const DateConverter()).nullable()();
   late final releaseDate = text().map(const DateConverter()).nullable()();
+  late final contentType = text().nullable()();
+  late final sampleRate = integer().nullable()();
+  late final bitRate = integer().nullable()();
+  late final bitDepth = integer().nullable()();
 
   late final updated = dateTime()();
 

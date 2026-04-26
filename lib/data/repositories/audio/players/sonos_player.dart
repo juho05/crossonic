@@ -6,13 +6,18 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+import 'dart:async';
+
 import 'package:crossonic/data/repositories/audio/casting/device.dart';
 import 'package:crossonic/data/repositories/audio/casting/sonos/sonos_device.dart';
 import 'package:crossonic/data/repositories/audio/players/player.dart';
+import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
 import 'package:crossonic/data/services/upnp/upnp_connection.dart';
 import 'package:crossonic/data/services/upnp/upnp_mediaitem.dart';
 import 'package:crossonic/data/services/upnp/upnp_service.dart';
+import 'package:crossonic/data/services/upnp/upnp_transport_info.dart';
+import 'package:crossonic/utils/result.dart';
 
 class SonosPlayer extends AudioPlayer {
   final UpnpService _upnp;
@@ -22,12 +27,18 @@ class SonosPlayer extends AudioPlayer {
   @override
   Device get device => _device;
 
-  @override
-  // TODO
-  Future<Duration> get position async => Duration.zero;
+  Duration _lastKnownPosition = Duration.zero;
+  DateTime? _lastPositionRecordedAt = null;
 
   @override
-  // TODO
+  Future<Duration> get position async =>
+      _lastKnownPosition +
+      (_lastPositionRecordedAt != null &&
+              eventStream.value == AudioPlayerEvent.playing
+          ? DateTime.now().difference(_lastPositionRecordedAt!)
+          : Duration.zero);
+
+  @override
   Future<Duration> get bufferedPosition async => Duration.zero;
 
   @override
@@ -47,10 +58,15 @@ class SonosPlayer extends AudioPlayer {
        _upnpCon = UpnpConnection(
          ipAddr: device.ipAddr,
          avTransportControlUri: device.avTransportControlUri,
-       );
-
-  Future<void> testConnection() async {
-    // TODO
+       ) {
+    eventStream.listen((event) {
+      if (event == AudioPlayerEvent.advance) return;
+      if (event == AudioPlayerEvent.playing) {
+        _startPollingTimer();
+      } else {
+        _stopPollingTimer();
+      }
+    });
   }
 
   @override
@@ -68,6 +84,7 @@ class SonosPlayer extends AudioPlayer {
       coverUri: coverUri,
       supportsTimeOffset: supportsTimeOffset,
       supportsTimeOffsetMs: supportsTimeOffsetMs,
+      // TODO support transcoding
       format: "raw",
       maxBitRate: null,
       updateCurrentMediaItem: updateCurrentMediaItem,
@@ -82,18 +99,22 @@ class SonosPlayer extends AudioPlayer {
   }) async {
     super.setCurrent(current, next: next, pos: pos);
 
-    if (eventStream.value == AudioPlayerEvent.stopped) {
-      eventStream.add(AudioPlayerEvent.paused);
-    }
+    eventStream.add(AudioPlayerEvent.loading);
+
+    // TODO transcode incompatible media:
+    // https://support.sonos.com/en-us/article/supported-audio-formats-for-sonos-music-library
+    // https://docs.sonos.com/docs/supported-audio-formats
+    // https://docs.sonos.com/docs/flac-best-practices
 
     final currentResult = await _upnp.setMediaItem(
       _upnpCon,
       UpnpMediaItem(
         url: constructStreamUri(current, pos: pos)!.toString(),
-        // TODO set to the correct value
-        contentType: "audio/mpeg",
+        // TODO investigate what effect a wrong content type has
+        contentType: current.contentType ?? "audio/mpeg",
         duration: current.duration,
-        seekable: false,
+        // TODO change depending on whether transcoding is used
+        seekable: true,
         title: current.title,
       ),
     );
@@ -103,14 +124,20 @@ class SonosPlayer extends AudioPlayer {
       next != null
           ? UpnpMediaItem(
               url: constructStreamUri(next)!.toString(),
-              // TODO set to the correct value
-              contentType: "audio/mpeg",
+              contentType: next.contentType ?? "audio/mpeg",
               duration: next.duration,
-              seekable: false,
+              seekable: true,
               title: next.title,
             )
           : null,
     );
+
+    final state = await _waitForTransportState({
+      UpnpTransportState.pausedPlayback,
+      UpnpTransportState.playing,
+      UpnpTransportState.stopped,
+    });
+    _publishPlayerEvent(state);
   }
 
   @override
@@ -122,10 +149,9 @@ class SonosPlayer extends AudioPlayer {
       next != null
           ? UpnpMediaItem(
               url: constructStreamUri(next)!.toString(),
-              // TODO set to the correct value
-              contentType: "audio/mpeg",
+              contentType: next.contentType ?? "audio/mpeg",
               duration: next.duration,
-              seekable: false,
+              seekable: true,
               title: next.title,
             )
           : null,
@@ -135,28 +161,61 @@ class SonosPlayer extends AudioPlayer {
   @override
   Future<void> play() async {
     if (eventStream.value == AudioPlayerEvent.playing) return;
-    final result = await _upnp.play(_upnpCon);
+    eventStream.add(AudioPlayerEvent.loading);
 
-    // TODO replace with proper events from SONOS
-    eventStream.add(AudioPlayerEvent.playing);
+    // FIXME: If seeking is not supported (i.e. when transcoding) SONOS will
+    // start playback from the beginning on unpause, use setCurrent with position instead.
+
+    final pos = await position;
+
+    final result = await _upnp.play(_upnpCon);
+    if (result is! Ok) {
+      return;
+    }
+
+    final state = await _waitForTransportState({
+      UpnpTransportState.playing,
+      UpnpTransportState.stopped,
+    });
+    if (state == UpnpTransportState.playing) {
+      _publishPlayerEvent(state);
+      return;
+    }
+    await setCurrent(currentSong.value!, next: nextSong.value, pos: pos);
+    await play();
   }
 
   @override
   Future<void> pause() async {
     if (eventStream.value != AudioPlayerEvent.playing) return;
+    _lastKnownPosition = await position;
+    _lastPositionRecordedAt = null;
+
+    eventStream.add(AudioPlayerEvent.loading);
+
     final result = await _upnp.pause(_upnpCon);
 
-    // TODO replace with proper events from SONOS
-    eventStream.add(AudioPlayerEvent.paused);
+    final state = await _waitForTransportState({
+      UpnpTransportState.pausedPlayback,
+    });
+    _publishPlayerEvent(state);
   }
 
   @override
   Future<void> stop() async {
     if (eventStream.value == AudioPlayerEvent.stopped) return;
+    eventStream.add(AudioPlayerEvent.loading);
+
     final result = await _upnp.stop(_upnpCon);
 
-    // TODO replace with proper events from SONOS
-    eventStream.add(AudioPlayerEvent.stopped);
+    await _waitForTransportState({UpnpTransportState.stopped});
+
+    if (result is Ok) {
+      // TODO replace with proper events from SONOS
+      eventStream.add(AudioPlayerEvent.stopped);
+      _lastKnownPosition = Duration.zero;
+      _lastPositionRecordedAt = null;
+    }
   }
 
   @override
@@ -167,5 +226,82 @@ class SonosPlayer extends AudioPlayer {
   @override
   Future<void> setVolume(double volume) async {
     // TODO
+  }
+
+  Future<UpnpTransportState?> _waitForTransportState(
+    Set<UpnpTransportState> state, {
+    Duration timeout = const Duration(seconds: 5),
+  }) async {
+    final start = DateTime.now();
+    while (DateTime.now().difference(start) < timeout) {
+      final result = await _upnp.getTransportInfo(_upnpCon);
+      if (result is Err) {
+        Log.error(
+          "Failed to wait for upnp transport state",
+          e: (result as Err).error,
+        );
+        return null;
+      }
+      final info = result.tryValue!;
+      if (state.contains(info.state)) {
+        return info.state;
+      }
+      await Future.delayed(const Duration(milliseconds: 500));
+    }
+    return null;
+  }
+
+  void _publishPlayerEvent(UpnpTransportState? state) {
+    final event = switch (state) {
+      UpnpTransportState.playing => AudioPlayerEvent.playing,
+      UpnpTransportState.pausedPlayback ||
+      UpnpTransportState.stopped => AudioPlayerEvent.paused,
+      UpnpTransportState.transitioning ||
+      UpnpTransportState.unknown ||
+      null => AudioPlayerEvent.loading,
+    };
+    if (event != eventStream.value) {
+      eventStream.add(event);
+    }
+  }
+
+  Timer? _pollingTimer;
+
+  void _startPollingTimer() {
+    if (_pollingTimer != null) return;
+    _pollingTimer = Timer.periodic(const Duration(seconds: 5), (_) async {
+      await _syncState();
+      if (_pollingTimer != null &&
+          eventStream.value == AudioPlayerEvent.playing) {
+        await _syncPosition();
+      }
+    });
+  }
+
+  void _stopPollingTimer() {
+    _pollingTimer?.cancel();
+    _pollingTimer = null;
+  }
+
+  Future<void> _syncState() async {
+    final result = await _upnp.getTransportInfo(_upnpCon);
+    if (result is Err) {
+      Log.error("Failed to get upnp transport state", e: (result as Err).error);
+      return;
+    }
+    _publishPlayerEvent(result.tryValue!.state);
+  }
+
+  Future<void> _syncPosition() async {
+    final result = await _upnp.getPositionInfo(_upnpCon);
+    switch (result) {
+      case Err():
+        Log.error("Failed to sync sonos position", e: result.error);
+      case Ok():
+    }
+    Log.debug("position info: ${result.tryValue}");
+    _lastKnownPosition = result.tryValue!.pos;
+    _lastPositionRecordedAt = result.tryValue!.approximateTime;
+    positionDiscontinuity.add(await position);
   }
 }

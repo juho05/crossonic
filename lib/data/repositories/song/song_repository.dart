@@ -59,6 +59,10 @@ class SongRepository {
               day: model.releaseDate!.day,
             )
           : null,
+      contentType: model.contentType,
+      sampleRate: model.sampleRate,
+      bitRate: model.bitRate,
+      bitDepth: model.bitDepth,
     );
   }
 
@@ -128,6 +132,10 @@ class SongRepository {
                   )
                 : null,
           ),
+          contentType: Value(s.contentType),
+          sampleRate: Value(s.sampleRate),
+          bitRate: Value(s.bitRate),
+          bitDepth: Value(s.bitDepth),
         ),
       ),
       onConflict: DoUpdate.withExcluded(
@@ -149,6 +157,10 @@ class SongRepository {
           albumId: excluded.albumId,
           albumName: excluded.albumName,
           updated: excluded.updated,
+          contentType: excluded.contentType,
+          sampleRate: excluded.sampleRate,
+          bitRate: excluded.bitRate,
+          bitDepth: excluded.bitDepth,
         ),
       ),
     );
@@ -219,6 +231,10 @@ class SongRepository {
       trackGain: child.replayGain?.trackGain,
       albumGain: child.replayGain?.albumGain,
       fallbackGain: child.replayGain?.fallbackGain,
+      bitDepth: child.bitDepth,
+      bitRate: child.bitRate,
+      contentType: child.contentType,
+      sampleRate: child.samplingRate,
     );
   }
 }

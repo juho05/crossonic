@@ -55,7 +55,7 @@ class Database extends _$Database {
   Database([QueryExecutor? e]) : super(e ?? _openConnection());
 
   @override
-  int get schemaVersion => 9;
+  int get schemaVersion => 10;
 
   Future<void> clearAll() async {
     await customStatement("PRAGMA foreign_keys = OFF");
@@ -128,6 +128,12 @@ class Database extends _$Database {
               await m.createTable(schema.queueSong);
               await m.createTable(schema.priorityQueue);
               await m.createIndex(playlistSongIndex);
+            },
+            from9To10: (m, schema) async {
+              await m.addColumn(schema.song, schema.song.contentType);
+              await m.addColumn(schema.song, schema.song.sampleRate);
+              await m.addColumn(schema.song, schema.song.bitDepth);
+              await m.addColumn(schema.song, schema.song.bitRate);
             },
           ),
         ),
