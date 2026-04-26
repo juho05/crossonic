@@ -43,6 +43,14 @@ class NowPlayingExpanded extends StatelessWidget {
             _panelController.close();
           },
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.cast),
+            onPressed: () {
+              context.router.push(const CastingRoute());
+            },
+          ),
+        ],
         titleSpacing: 0,
         title: const Text('Now playing'),
       ),
