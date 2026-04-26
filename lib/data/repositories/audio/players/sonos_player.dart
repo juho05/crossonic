@@ -59,8 +59,13 @@ class SonosPlayer extends AudioPlayer {
          ipAddr: device.ipAddr,
          avTransportControlUri: device.avTransportControlUri,
        ) {
-    eventStream.listen((event) {
-      if (event == AudioPlayerEvent.advance) return;
+    eventStream.listen((event) async {
+      if (event == AudioPlayerEvent.advance) {
+        _lastPositionRecordedAt = null;
+        _lastKnownPosition = Duration.zero;
+        await _syncState();
+        return;
+      }
       if (event == AudioPlayerEvent.playing) {
         _startPollingTimer();
       } else {
@@ -101,6 +106,9 @@ class SonosPlayer extends AudioPlayer {
 
     eventStream.add(AudioPlayerEvent.loading);
 
+    _lastPositionRecordedAt = null;
+    _lastKnownPosition = Duration.zero;
+
     // TODO transcode incompatible media:
     // https://support.sonos.com/en-us/article/supported-audio-formats-for-sonos-music-library
     // https://docs.sonos.com/docs/supported-audio-formats
@@ -138,6 +146,9 @@ class SonosPlayer extends AudioPlayer {
       UpnpTransportState.stopped,
     });
     _publishPlayerEvent(state);
+    if (eventStream.value == AudioPlayerEvent.playing) {
+      await _syncPosition();
+    }
   }
 
   @override
@@ -163,9 +174,6 @@ class SonosPlayer extends AudioPlayer {
     if (eventStream.value == AudioPlayerEvent.playing) return;
     eventStream.add(AudioPlayerEvent.loading);
 
-    // FIXME: If seeking is not supported (i.e. when transcoding) SONOS will
-    // start playback from the beginning on unpause, use setCurrent with position instead.
-
     final pos = await position;
 
     final result = await _upnp.play(_upnpCon);
@@ -179,6 +187,7 @@ class SonosPlayer extends AudioPlayer {
     });
     if (state == UpnpTransportState.playing) {
       _publishPlayerEvent(state);
+      await _syncPosition();
       return;
     }
     await setCurrent(currentSong.value!, next: nextSong.value, pos: pos);
@@ -271,10 +280,6 @@ class SonosPlayer extends AudioPlayer {
     if (_pollingTimer != null) return;
     _pollingTimer = Timer.periodic(const Duration(seconds: 5), (_) async {
       await _syncState();
-      if (_pollingTimer != null &&
-          eventStream.value == AudioPlayerEvent.playing) {
-        await _syncPosition();
-      }
     });
   }
 
@@ -290,6 +295,9 @@ class SonosPlayer extends AudioPlayer {
       return;
     }
     _publishPlayerEvent(result.tryValue!.state);
+    if (eventStream.value == AudioPlayerEvent.playing) {
+      await _syncPosition();
+    }
   }
 
   Future<void> _syncPosition() async {
