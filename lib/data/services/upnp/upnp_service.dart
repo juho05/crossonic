@@ -59,10 +59,6 @@ class UpnpService {
     UpnpConnection con,
     UpnpMediaItem? mediaItem,
   ) async {
-    final xmlContent =
-        '<InstanceID>0</InstanceID>\n'
-        '<NextURI>${mediaItem?.url ?? ""}</NextURI>\n'
-        '<NextURIMetaData>${mediaItem?.metadataXml() ?? ""}</NextURIMetaData>';
     final xmlBuilder = XmlBuilder();
     xmlBuilder.element(
       "InstanceID",
@@ -90,7 +86,7 @@ class UpnpService {
       uri: con.avTransportControlUri,
       method: "SetNextAVTransportURI",
       service: _avTransportService,
-      xmlContent: xmlContent,
+      xmlContent: xmlBuilder.buildDocument().toXmlString(),
     );
   }
 
