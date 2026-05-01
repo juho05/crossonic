@@ -143,7 +143,7 @@ abstract class AudioPlayer {
 
   Future<void> stop();
 
-  Future<void> seek(Duration position);
+  Future<void> seek(Duration pos);
 
   bool _canSeek = true;
   bool _nextCanSeek = true;
@@ -155,7 +155,7 @@ abstract class AudioPlayer {
   Uri? constructStreamUri(Song? s, {Duration? pos}) {
     if (s == null) return null;
 
-    if (pos == null || pos == Duration.zero && supportsFilePlayback) {
+    if ((pos == null || pos == Duration.zero) && supportsFilePlayback) {
       final path = _downloader.getPath(s.id);
       if (path != null) return path.toFileUri();
     }

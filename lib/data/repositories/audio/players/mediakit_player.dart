@@ -249,15 +249,15 @@ class AudioPlayerMediaKit extends AudioPlayer {
   }
 
   @override
-  Future<void> seek(Duration position) async {
+  Future<void> seek(Duration pos) async {
     if (currentSong.value == null) return;
     if (canSeek) {
-      await _player!.seek(position);
-      positionDiscontinuity.add(position);
+      await _player!.seek(pos);
+      positionDiscontinuity.add(pos);
       return;
     }
-    await setCurrent(currentSong.value!, next: nextSong.value, pos: position);
-    positionDiscontinuity.add(position);
+    await setCurrent(currentSong.value!, next: nextSong.value, pos: pos);
+    positionDiscontinuity.add(pos);
   }
 
   @override
