@@ -224,6 +224,7 @@ class SonosPlayer extends AudioPlayer {
 
   @override
   Future<void> pause() async {
+    Log.debug("pause on sonos, current status: ${eventStream.value.name}");
     if (eventStream.value != AudioPlayerEvent.playing) return;
     _lastKnownPosition = await position;
     _lastPositionRecordedAt = null;
@@ -231,10 +232,12 @@ class SonosPlayer extends AudioPlayer {
     eventStream.add(AudioPlayerEvent.loading);
 
     final result = await _upnp.pause(_upnpCon);
+    Log.debug("sent pause: $result");
 
     final state = await _waitForTransportState({
       UpnpTransportState.pausedPlayback,
     });
+    Log.debug("publishing new state: $state");
     _publishPlayerEvent(state);
   }
 

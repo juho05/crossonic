@@ -6,11 +6,13 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+import 'dart:io';
 import 'dart:math';
 
 import 'package:crossonic/data/repositories/audio/casting/device.dart';
 import 'package:crossonic/data/repositories/audio/casting/device_manager.dart';
 import 'package:crossonic/data/repositories/audio/player_manager.dart';
+import 'package:crossonic/data/repositories/audio/players/android_player.dart';
 import 'package:crossonic/data/repositories/audio/queue/queue_manager.dart';
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
 import 'package:crossonic/data/repositories/logger/log.dart';
@@ -20,11 +22,14 @@ import 'package:crossonic/data/repositories/settings/transcoding.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
 import 'package:crossonic/data/repositories/subsonic/subsonic_repository.dart';
 import 'package:crossonic/data/services/media_integration/media_integration.dart';
+import 'package:crossonic/data/services/methodchannel/method_channel_service.dart';
+import 'package:flutter/foundation.dart';
 
 class PlaybackManager {
   final AuthRepository _auth;
   final SettingsRepository _settings;
   final SubsonicRepository _subsonic;
+  final MethodChannelService _methodChannel;
 
   final PlayerManager _player;
 
@@ -50,6 +55,7 @@ class PlaybackManager {
     required SettingsRepository settingsRepository,
     required SubsonicRepository subsonicRepository,
     required MediaIntegration integration,
+    required MethodChannelService methodChannel,
   }) : _queue = queueManager,
        _player = playerManager,
        _deviceManager = deviceManager,
@@ -60,7 +66,8 @@ class PlaybackManager {
          settingsRepository.transcoding.codec,
          settingsRepository.transcoding.maxBitRate,
        ),
-       _integration = integration {
+       _integration = integration,
+       _methodChannel = methodChannel {
     _auth.addListener(_onAuthChanged);
     _onAuthChanged();
 
@@ -139,6 +146,21 @@ class PlaybackManager {
     await _player.setCurrent(_queue.current.value!, next: next, pos: pos);
 
     _player.connectPlayerStreams();
+
+    Log.debug("player: $player");
+    if (!kIsWeb && Platform.isAndroid) {
+      if (player is AudioPlayerAndroid || player == null) {
+        Log.debug("enabling android player");
+        await _methodChannel.invokeMethod("setPlayerEnabled", {
+          "enabled": true,
+        });
+      } else {
+        Log.debug("disabling android player");
+        await _methodChannel.invokeMethod("setPlayerEnabled", {
+          "enabled": false,
+        });
+      }
+    }
 
     if (play) {
       await _player.play();

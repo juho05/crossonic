@@ -172,9 +172,13 @@ class PlayerManager {
     Log.trace("pause");
     _playOnNextMediaChange = false;
 
+    Log.debug("player manager pause called");
+
     if (_playbackStatus.value == PlaybackStatus.paused) {
       return;
     }
+
+    Log.debug("calling player pause on $_player");
     await _player.pause();
     _updatePlayerVolume();
   }

@@ -43,8 +43,8 @@ import static androidx.media3.common.MediaMetadata.PICTURE_TYPE_FRONT_COVER;
 
 @OptIn(markerClass = UnstableApi.class)
 public class CrossonicPlayer implements Player {
-    private final Player player;
-
+    private final Player androidPlayer;
+    private final ChangePlayer player;
     private long positionOffsetMs = 0;
 
     private boolean supportsTimeOffset = true;
@@ -53,17 +53,21 @@ public class CrossonicPlayer implements Player {
 
     private boolean loop = false;
 
+    private boolean enabled = true;
+
     private final Set<Listener> listeners = new HashSet<>();
 
     public CrossonicPlayer(Context context) {
-        player = buildPlayer(context);
+        androidPlayer = buildAndroidPlayer(context);
+        final Player flutterPlayer = buildFlutterPlayer(context);
+        player = new ChangePlayer(androidPlayer, flutterPlayer);
         player.addListener(new PlayerListener());
         registerMethodHandlers();
         FlutterIntegration.sendEvent("playerCreated", null);
         CLog.debug("CrossonicPlayer", "player created", null);
     }
 
-    private Player buildPlayer(Context context) {
+    private Player buildAndroidPlayer(Context context) {
         // only enable audio renderers to allow unused renderers to be removed by code shrinking
         RenderersFactory audioOnlyRenderersFactory =
                 (handler, videoListener, audioListener, textOutput, metadataOutput) ->
@@ -98,10 +102,15 @@ public class CrossonicPlayer implements Player {
         return player;
     }
 
+    private Player buildFlutterPlayer(Context context) {
+        return new FlutterPlayer();
+    }
+
     // ====== method channel handlers ======
 
     private void registerMethodHandlers() {
         FlutterIntegration.setMethodCallback("configure", this::handleConfigure);
+        FlutterIntegration.setMethodCallback("setPlayerEnabled", this::handleSetPlayerEnabled);
         FlutterIntegration.setMethodCallback("setLoop", this::handleSetLoop);
         FlutterIntegration.setMethodCallback("play", this::handlePlay);
         FlutterIntegration.setMethodCallback("pause", this::handlePause);
@@ -120,6 +129,7 @@ public class CrossonicPlayer implements Player {
 
     private void unregisterMethodHandlers() {
         FlutterIntegration.removeMethodCallback("configure");
+        FlutterIntegration.removeMethodCallback("setPlayerEnabled");
         FlutterIntegration.removeMethodCallback("play");
         FlutterIntegration.removeMethodCallback("pause");
         FlutterIntegration.removeMethodCallback("setCurrent");
@@ -149,33 +159,60 @@ public class CrossonicPlayer implements Player {
         result.success(null);
     }
 
+    private void handleSetPlayerEnabled(MethodCall call, MethodChannel.Result result) {
+        final boolean enabled = Boolean.TRUE.equals(call.argument("enabled"));
+        this.enabled = enabled;
+        if (enabled) {
+            player.enableAndroid();
+        } else {
+            player.disableAndroid();
+        }
+        result.success(null);
+    }
+
     private void handleSetLoop(MethodCall call, MethodChannel.Result result) {
+        if (!enabled) {
+            result.success(null);
+            return;
+        }
         // TODO flutter currently never calls this method
         loop = Boolean.TRUE.equals(call.argument("loop"));
         result.success(null);
     }
 
     private void handlePlay(MethodCall call, MethodChannel.Result result) {
+        if (!enabled) {
+            result.success(null);
+            return;
+        }
         play();
         result.success(null);
     }
 
     private void handlePause(MethodCall call, MethodChannel.Result result) {
+        if (!enabled) {
+            result.success(null);
+            return;
+        }
         pause();
         result.success(null);
     }
 
     private void handleSetCurrent(MethodCall call, MethodChannel.Result result) {
+        if (!enabled) {
+            result.success(null);
+            return;
+        }
         final Map<Object, Object> current = call.argument("current");
         assert current != null;
 
         long pos = 0;
         if (call.hasArgument("pos")) {
             //noinspection DataFlowIssue
-            pos = ((Number)call.argument("pos")).longValue();
+            pos = ((Number) call.argument("pos")).longValue();
         }
 
-        Uri streamUri = Uri.parse((String)current.get("uri"));
+        Uri streamUri = Uri.parse((String) current.get("uri"));
 
         final var currentBuilder = new MediaItem.Builder();
         Mappings.buildMediaItemFromMsg(currentBuilder, current);
@@ -186,11 +223,11 @@ public class CrossonicPlayer implements Player {
         final var currentMediaItem = currentBuilder.build();
 
         CLog.debug("CrossonicPlayer.setCurrent", "Setting new current media item (canSeek: " + canSeek(streamUri) + ")", null);
-        player.setMediaItem(currentMediaItem, canSeek(streamUri) ? pos : C.TIME_UNSET);
+        androidPlayer.setMediaItem(currentMediaItem, canSeek(streamUri) ? pos : C.TIME_UNSET);
         positionOffsetMs = !canSeek(streamUri) ? pos : 0;
 
-        if (player.getPlaybackState() == STATE_IDLE) {
-            player.prepare();
+        if (androidPlayer.getPlaybackState() == STATE_IDLE) {
+            androidPlayer.prepare();
         }
 
         final Map<Object, Object> next = call.argument("next");
@@ -203,15 +240,19 @@ public class CrossonicPlayer implements Player {
         Mappings.buildMediaItemFromMsg(nextBuilder, next);
         final var nextMediaItem = nextBuilder.build();
         CLog.debug("CrossonicPlayer.setCurrent", "Setting new next media item", null);
-        player.addMediaItem(nextMediaItem);
+        androidPlayer.addMediaItem(nextMediaItem);
         result.success(null);
     }
 
     private void handleSetNext(MethodCall call, MethodChannel.Result result) {
+        if (!enabled) {
+            result.success(null);
+            return;
+        }
         final Map<Object, Object> next = call.argument("next");
         if (next == null) {
             CLog.debug("CrossonicPlayer", "Clearing next media item", null);
-            player.removeMediaItems(player.getCurrentMediaItemIndex()+1, Integer.MAX_VALUE);
+            androidPlayer.removeMediaItems(player.getCurrentMediaItemIndex() + 1, Integer.MAX_VALUE);
             result.success(null);
             return;
         }
@@ -219,11 +260,15 @@ public class CrossonicPlayer implements Player {
         final var nextBuilder = new MediaItem.Builder();
         Mappings.buildMediaItemFromMsg(nextBuilder, next);
         CLog.debug("CrossonicPlayer.handleSetNext", "Settings next media item", null);
-        player.replaceMediaItems(player.getCurrentMediaItemIndex()+1, Integer.MAX_VALUE, Collections.singletonList(nextBuilder.build()));
+        androidPlayer.replaceMediaItems(player.getCurrentMediaItemIndex() + 1, Integer.MAX_VALUE, Collections.singletonList(nextBuilder.build()));
         result.success(null);
     }
 
     private void handleUpdateCover(MethodCall call, MethodChannel.Result result) {
+        if (!enabled) {
+            result.success(null);
+            return;
+        }
         final String songId = call.argument("songId");
         final byte[] coverBytes = call.argument("coverBytes");
 
@@ -235,12 +280,12 @@ public class CrossonicPlayer implements Player {
 
         if (currentMediaItem != null && currentMediaItem.mediaId.equals(songId)) {
             CLog.debug("CrossonicPlayer.handleUpdateCover", "Replacing cover of current media item", null);
-            player.replaceMediaItem(currentIndex, currentMediaItem.buildUpon().
+            androidPlayer.replaceMediaItem(currentIndex, currentMediaItem.buildUpon().
                     setMediaMetadata(currentMediaItem.mediaMetadata.buildUpon().setArtworkData(coverBytes, PICTURE_TYPE_FRONT_COVER).build()).build());
         }
         if (nextMediaItem != null && nextMediaItem.mediaId.equals(songId)) {
             CLog.debug("CrossonicPlayer.handleUpdateCover", "Replacing cover of next media item", null);
-            player.replaceMediaItem(nextIndex, nextMediaItem.buildUpon().
+            androidPlayer.replaceMediaItem(nextIndex, nextMediaItem.buildUpon().
                     setMediaMetadata(nextMediaItem.mediaMetadata.buildUpon().setArtworkData(coverBytes, PICTURE_TYPE_FRONT_COVER).build()).build());
         }
 
@@ -248,41 +293,69 @@ public class CrossonicPlayer implements Player {
     }
 
     private void handleGetPosition(MethodCall call, MethodChannel.Result result) {
-        final long pos = player.getCurrentPosition() + positionOffsetMs;
+        if (!enabled) {
+            result.success(0);
+            return;
+        }
+        final long pos = androidPlayer.getCurrentPosition() + positionOffsetMs;
         result.success(pos);
     }
 
     private void handleGetBufferedPosition(MethodCall call, MethodChannel.Result result) {
-        final long bufferedPos = player.getBufferedPosition() + positionOffsetMs;
+        if (!enabled) {
+            result.success(0);
+            return;
+        }
+        final long bufferedPos = androidPlayer.getBufferedPosition() + positionOffsetMs;
         result.success(bufferedPos);
     }
 
     private void handleGetVolume(MethodCall call, MethodChannel.Result result) {
-        final float volume = player.getVolume();
-        result.success((double)volume);
+        if (!enabled) {
+            result.success(0.0);
+            return;
+        }
+        final float volume = androidPlayer.getVolume();
+        result.success((double) volume);
     }
 
     private void handleSetVolume(MethodCall call, MethodChannel.Result result) {
+        if (!enabled) {
+            result.success(null);
+            return;
+        }
         //noinspection DataFlowIssue
         final double volume = call.argument("volume");
-        player.setVolume(Math.min(1, Math.max(0, (float)volume)));
+        androidPlayer.setVolume(Math.min(1, Math.max(0, (float) volume)));
         result.success(null);
     }
 
     private void handleSeek(MethodCall call, MethodChannel.Result result) {
+        if (!enabled) {
+            result.success(null);
+            return;
+        }
         //noinspection DataFlowIssue
-        final long pos = ((Number)call.argument("pos")).longValue();
+        final long pos = ((Number) call.argument("pos")).longValue();
         seekTo(pos);
         result.success(null);
     }
 
     private void handleStop(MethodCall call, MethodChannel.Result result) {
-        player.clearMediaItems();
-        player.stop();
+        if (!enabled) {
+            result.success(null);
+            return;
+        }
+        androidPlayer.stop();
+        androidPlayer.clearMediaItems();
         result.success(null);
     }
 
     private void handleDispose(MethodCall call, MethodChannel.Result result) {
+        if (!enabled) {
+            result.success(null);
+            return;
+        }
         release();
         result.success(null);
     }
@@ -309,7 +382,7 @@ public class CrossonicPlayer implements Player {
         if (supportsTimeOffsetMs) {
             queryParams.put("timeOffsetMs", Collections.singletonList(Long.toString(offsetMs)));
         } else {
-            queryParams.put("timeOffset", Collections.singletonList(Long.toString(Math.round(offsetMs/1000.0))));
+            queryParams.put("timeOffset", Collections.singletonList(Long.toString(Math.round(offsetMs / 1000.0))));
         }
 
         final var uriBuilder = uri.buildUpon();
@@ -365,7 +438,7 @@ public class CrossonicPlayer implements Player {
 
     @Override
     public long getBufferedPosition() {
-        return player.getBufferedPosition() +  positionOffsetMs;
+        return player.getBufferedPosition() + positionOffsetMs;
     }
 
     // unchanged
@@ -417,7 +490,7 @@ public class CrossonicPlayer implements Player {
         final Map<String, Object> args = new HashMap<>();
         if (mediaItem.requestMetadata.searchQuery != null) {
             final var query = mediaItem.requestMetadata.searchQuery;
-            CLog.debug("CrossonicPlayer.setMediaItem", "Received search query: "+query, null);
+            CLog.debug("CrossonicPlayer.setMediaItem", "Received search query: " + query, null);
             args.put("query", query);
             FlutterIntegration.invokeMethod("playFromSearch", args);
             return;
@@ -703,7 +776,9 @@ public class CrossonicPlayer implements Player {
             return;
         }
         CLog.debug("CrossonicPlayer.stop", "Stop signal received from system", null);
-        player.clearMediaItems();
+        if (enabled) {
+            androidPlayer.clearMediaItems();
+        }
         player.stop();
     }
 
@@ -711,7 +786,7 @@ public class CrossonicPlayer implements Player {
     public void release() {
         CLog.debug("CrossonicPlayer.release", "releasing player resources", null);
         unregisterMethodHandlers();
-        player.release();
+        androidPlayer.release();
     }
 
     @Override
@@ -1095,7 +1170,8 @@ public class CrossonicPlayer implements Player {
             listeners.forEach(listener -> listener.onLoadingChanged(isLoading));
         }
 
-        public void onAvailableCommandsChanged(@NonNull Commands availableCommands) {}
+        public void onAvailableCommandsChanged(@NonNull Commands availableCommands) {
+        }
 
         public void onTrackSelectionParametersChanged(@NonNull TrackSelectionParameters parameters) {
             listeners.forEach(listener -> listener.onTrackSelectionParametersChanged(parameters));
@@ -1114,13 +1190,13 @@ public class CrossonicPlayer implements Player {
                 case STATE_IDLE, STATE_ENDED -> {
                     player.setPlayWhenReady(false);
                     FlutterIntegration.sendEvent("state", Map.of(
-                        "state", "stopped"
+                            "state", "stopped"
                     ));
                 }
-                case STATE_BUFFERING ->  FlutterIntegration.sendEvent("state", Map.of(
+                case STATE_BUFFERING -> FlutterIntegration.sendEvent("state", Map.of(
                         "state", "loading"
                 ));
-                case STATE_READY ->  FlutterIntegration.sendEvent("state", Map.of(
+                case STATE_READY -> FlutterIntegration.sendEvent("state", Map.of(
                         "state", player.isPlaying() ? "playing" : "paused"
                 ));
             }
@@ -1150,7 +1226,8 @@ public class CrossonicPlayer implements Player {
         }
 
         @Override
-        public void onRepeatModeChanged(@RepeatMode int repeatMode) {}
+        public void onRepeatModeChanged(@RepeatMode int repeatMode) {
+        }
 
         @Override
         public void onShuffleModeEnabledChanged(boolean shuffleModeEnabled) {
@@ -1178,9 +1255,9 @@ public class CrossonicPlayer implements Player {
         @Override
         public void onPositionDiscontinuity(
                 @NonNull PositionInfo oldPosition, @NonNull PositionInfo newPosition, @DiscontinuityReason int reason) {
-            if (reason == Player.DISCONTINUITY_REASON_INTERNAL && newPosition.positionMs < oldPosition.positionMs && newPosition.positionMs < 2000) {
+            if (reason == Player.DISCONTINUITY_REASON_INTERNAL && newPosition.positionMs < oldPosition.positionMs - 1000 && newPosition.positionMs < 1000) {
                 CLog.warn("CrossonicPlayer.PlayerListener.onPositionDiscontinuity", "Encountered unexpected position discontinuity to start of media file, recovering by calling seekTo", null);
-                seekTo(oldPosition.positionMs+positionOffsetMs);
+                seekTo(oldPosition.positionMs + positionOffsetMs);
                 return;
             }
 
@@ -1278,7 +1355,7 @@ public class CrossonicPlayer implements Player {
     }
 
     @SuppressWarnings("deprecation")
-    static final Commands availableCommands = new Commands.Builder().addAll(
+    private static final Commands availableCommands = new Commands.Builder().addAll(
             COMMAND_PLAY_PAUSE,
             COMMAND_PREPARE,
             COMMAND_STOP,

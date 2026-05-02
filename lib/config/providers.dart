@@ -170,6 +170,7 @@ Future<List<SingleChildWidget>> createProviders({
     if (!kIsWeb && Platform.isAndroid) {
       mediaIntegration = MediaIntegrationAndroid(
         methodChannel: methodChannelService,
+        coverRepo: coverRepository,
       );
     } else {
       final audioService = await AudioService.init(
@@ -227,6 +228,7 @@ Future<List<SingleChildWidget>> createProviders({
     settingsRepository: settings,
     subsonicRepository: subsonicRepository,
     integration: mediaIntegration,
+    methodChannel: methodChannelService,
   );
 
   return [
