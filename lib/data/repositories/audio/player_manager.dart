@@ -111,7 +111,11 @@ class PlayerManager {
 
   Future<void> changePlayer(AudioPlayer? player) async {
     player ??= _localPlayer;
-    await _player.stop();
+
+    // don't wait for stop of old player because it might take a while, e.g.
+    // when it is no longer reachable
+    _player.stop();
+
     _player = player;
   }
 
