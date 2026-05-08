@@ -342,7 +342,9 @@ class SonosPlayer extends AudioPlayer {
       return;
     }
 
-    final next = nextSong.value!;
+    advance();
+
+    final song = currentSong.value!;
 
     if (!_setNextFailed) {
       _startPollingTimer(resetRunning: true);
@@ -352,14 +354,11 @@ class SonosPlayer extends AudioPlayer {
         UpnpTransportState.stopped,
       });
       if (state != UpnpTransportState.stopped) {
-        eventStream.add(AudioPlayerEvent.advance);
         return;
       }
     }
 
-    eventStream.add(AudioPlayerEvent.advance);
-
-    await setCurrent(next, next: null);
+    await setCurrent(song, next: null);
     await play();
   }
 

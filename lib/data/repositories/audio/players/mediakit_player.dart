@@ -70,7 +70,7 @@ class AudioPlayerMediaKit extends AudioPlayer {
       lastIndex = playlist.index;
       _positionOffset = Duration.zero;
       positionDiscontinuity.add(await position);
-      eventStream.add(AudioPlayerEvent.advance);
+      advance();
     });
     _player!.stream.completed.listen((completed) async {
       if (!completed) return;
@@ -80,7 +80,7 @@ class AudioPlayerMediaKit extends AudioPlayer {
         // final advance to stop playback
         _positionOffset = Duration.zero;
         positionDiscontinuity.add(await position);
-        eventStream.add(AudioPlayerEvent.advance);
+        advance();
       }
     });
     _player!.stream.error.listen((err) => _onError(err));

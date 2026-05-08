@@ -31,19 +31,7 @@ abstract class AudioPlayer {
 
   StreamSubscription? _eventStreamSub;
 
-  AudioPlayer({required SongDownloader downloader}) : _downloader = downloader {
-    _eventStreamSub = eventStream.listen((event) {
-      if (event == AudioPlayerEvent.stopped) {
-        currentSong.value = null;
-        nextSong.value = null;
-        return;
-      }
-      if (event == AudioPlayerEvent.advance) {
-        currentSong.value = nextSong.value;
-        _canSeek = _nextCanSeek;
-      }
-    });
-  }
+  AudioPlayer({required SongDownloader downloader}) : _downloader = downloader;
 
   late Uri _streamUri;
   late Uri _coverUri;
@@ -144,6 +132,14 @@ abstract class AudioPlayer {
   Future<void> stop();
 
   Future<void> seek(Duration pos);
+
+  @protected
+  void advance() {
+    currentSong.value = nextSong.value;
+    nextSong.value = null;
+    _canSeek = _nextCanSeek;
+    eventStream.add(AudioPlayerEvent.advance);
+  }
 
   bool _canSeek = true;
   bool _nextCanSeek = true;

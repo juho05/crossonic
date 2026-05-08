@@ -51,7 +51,7 @@ class AudioPlayerAndroid extends AudioPlayer {
   Future<void> _onEvent(String event, Map<Object?, dynamic>? data) async {
     switch (event) {
       case "advance":
-        eventStream.add(AudioPlayerEvent.advance);
+        advance();
       case "state":
         eventStream.add(switch (data!["state"] as String) {
           "playing" => AudioPlayerEvent.playing,
