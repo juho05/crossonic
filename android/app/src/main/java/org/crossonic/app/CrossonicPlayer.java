@@ -75,7 +75,7 @@ public class CrossonicPlayer implements Player {
                                 new MediaCodecAudioRenderer(context, MediaCodecSelector.DEFAULT, handler, audioListener)
                         };
         final ExoPlayer.Builder builder = new ExoPlayer.Builder(context, audioOnlyRenderersFactory);
-        builder.setMediaSourceFactory(new DefaultMediaSourceFactory(context, new DefaultExtractorsFactory().setConstantBitrateSeekingEnabled(true)));
+        builder.setMediaSourceFactory(new DefaultMediaSourceFactory(context, new DefaultExtractorsFactory().setConstantBitrateSeekingEnabled(true)).setLoadErrorHandlingPolicy(new CrossonicLoadErrorHandlingPolicy()));
         builder.setAudioAttributes(new AudioAttributes.Builder().setUsage(C.USAGE_MEDIA).setContentType(C.AUDIO_CONTENT_TYPE_MUSIC).setAllowedCapturePolicy(C.ALLOW_CAPTURE_BY_ALL).build(), true);
         builder.setHandleAudioBecomingNoisy(true);
 
