@@ -776,10 +776,8 @@ public class CrossonicPlayer implements Player {
             return;
         }
         CLog.debug("CrossonicPlayer.stop", "Stop signal received from system", null);
-        if (enabled) {
-            androidPlayer.clearMediaItems();
-        }
-        player.stop();
+        androidPlayer.clearMediaItems();
+        androidPlayer.stop();
     }
 
     @Override

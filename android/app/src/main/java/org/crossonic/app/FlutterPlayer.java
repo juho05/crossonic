@@ -137,7 +137,7 @@ public class FlutterPlayer extends SimpleBasePlayer {
         }
         CLog.debug("FlutterPlayer", "getState: called: state: " + playbackState + ", currentMediaItem: " + currentMediaItem, null);
         return new SimpleBasePlayer.State.Builder().setAvailableCommands(availableCommands).setContentPositionMs(position)
-                .setIsLoading(loading).setPlaybackState(playbackState)
+                .setIsLoading(loading && playbackState != STATE_ENDED && playbackState != STATE_IDLE).setPlaybackState(playbackState)
                 .setPlaylist(playlist)
                 .setPlayWhenReady(playing, PLAY_WHEN_READY_CHANGE_REASON_USER_REQUEST).build();
     }
