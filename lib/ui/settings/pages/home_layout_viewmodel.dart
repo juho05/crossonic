@@ -37,9 +37,6 @@ class HomeLayoutViewModel extends ChangeNotifier {
 
   void reorder(int oldIndex, int newIndex) {
     final newList = List.of(activeComponents);
-    if (oldIndex < newIndex) {
-      newIndex--;
-    }
     final item = newList.removeAt(oldIndex);
     newList.insert(newIndex, item);
     _settings.selectedOptions = newList;

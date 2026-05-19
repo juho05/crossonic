@@ -70,7 +70,7 @@ class HomeLayoutPage extends StatelessWidget {
                         onReorderStart: (_) {
                           HapticFeedback.lightImpact();
                         },
-                        onReorder: (oldIndex, newIndex) {
+                        onReorderItem: (oldIndex, newIndex) {
                           viewModel.reorder(oldIndex, newIndex);
                         },
                       ),

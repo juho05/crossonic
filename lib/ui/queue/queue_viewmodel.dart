@@ -185,10 +185,6 @@ class QueueViewModel extends ChangeNotifier {
       return;
     }
 
-    if (oldIndex < newIndex) {
-      newIndex--;
-    }
-
     if (newIsPrio) {
       _priorityQueue.insert(newIndex, song);
       _reorderPrioQueueLengthOverride = prioQueueLength + 1;

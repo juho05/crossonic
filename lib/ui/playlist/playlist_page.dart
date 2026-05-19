@@ -413,7 +413,7 @@ class _PlaylistPageState extends State<PlaylistPage> {
               proxyDecorator: (child, index, animation) =>
                   songListItem(index: index, opaque: true),
               itemCount: songs.length,
-              onReorder: (oldIndex, newIndex) async {
+              onReorderItem: (oldIndex, newIndex) async {
                 final result = await _viewModel.reorder(oldIndex, newIndex);
                 if (!context.mounted) return;
                 toastResult(context, result);

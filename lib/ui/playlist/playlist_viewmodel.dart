@@ -270,11 +270,7 @@ class PlaylistViewModel extends ChangeNotifier {
 
   Future<Result<void>> reorder(int oldIndex, int newIndex) async {
     final s = tracks.removeAt(oldIndex);
-    if (oldIndex < newIndex) {
-      tracks.insert(newIndex - 1, s);
-    } else {
-      tracks.insert(newIndex, s);
-    }
+    tracks.insert(newIndex, s);
     notifyListeners();
     return await _repo.reorder(_playlist!, oldIndex, newIndex);
   }

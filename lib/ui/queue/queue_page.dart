@@ -273,7 +273,7 @@ class _QueuePageState extends State<QueuePage> {
                     onReorderStart: (_) {
                       HapticFeedback.lightImpact();
                     },
-                    onReorder: _viewModel.reorder,
+                    onReorderItem: _viewModel.reorder,
                   ),
                 ],
               );
