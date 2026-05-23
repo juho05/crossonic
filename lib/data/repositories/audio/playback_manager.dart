@@ -139,15 +139,6 @@ class PlaybackManager {
     final play = _player.playbackStatus.value == PlaybackStatus.playing;
     final pos = _player.position;
 
-    await _player.changePlayer(player);
-    await _configurePlayerServerURL();
-
-    final next = _queue.currentAndNext.value.next;
-    await _player.setCurrent(_queue.current.value!, next: next, pos: pos);
-
-    _player.connectPlayerStreams();
-
-    Log.debug("player: $player");
     if (!kIsWeb && Platform.isAndroid) {
       if (player is AudioPlayerAndroid || player == null) {
         Log.debug("enabling android player");
@@ -161,6 +152,18 @@ class PlaybackManager {
         });
       }
     }
+
+    await _player.changePlayer(player);
+    await _configurePlayerServerURL();
+
+    final next = _queue.currentAndNext.value.next;
+    if (_queue.current.value != null) {
+      await _player.setCurrent(_queue.current.value!, next: next, pos: pos);
+    }
+
+    _player.connectPlayerStreams();
+
+    Log.debug("player: $player");
 
     if (play) {
       await _player.play();

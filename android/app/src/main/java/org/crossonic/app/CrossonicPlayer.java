@@ -342,20 +342,14 @@ public class CrossonicPlayer implements Player {
     }
 
     private void handleStop(MethodCall call, MethodChannel.Result result) {
-        if (!enabled) {
-            result.success(null);
-            return;
-        }
+        // do not check for enabled here to ensure that stop works after player change
+
         androidPlayer.stop();
         androidPlayer.clearMediaItems();
         result.success(null);
     }
 
     private void handleDispose(MethodCall call, MethodChannel.Result result) {
-        if (!enabled) {
-            result.success(null);
-            return;
-        }
         release();
         result.success(null);
     }
@@ -1184,19 +1178,21 @@ public class CrossonicPlayer implements Player {
         @Override
         public void onPlaybackStateChanged(@State int playbackState) {
             CLog.trace("CrossonicPlayer.PlayerListener.onPlaybackStateChanged", "New playback state: " + playbackState, null);
-            switch (playbackState) {
-                case STATE_IDLE, STATE_ENDED -> {
-                    player.setPlayWhenReady(false);
-                    FlutterIntegration.sendEvent("state", Map.of(
+            if (playbackState == STATE_IDLE || playbackState == STATE_ENDED) {
+                player.setPlayWhenReady(false);
+            }
+            if (enabled) {
+                switch (playbackState) {
+                    case STATE_IDLE, STATE_ENDED -> FlutterIntegration.sendEvent("state", Map.of(
                             "state", "stopped"
                     ));
+                    case STATE_BUFFERING -> FlutterIntegration.sendEvent("state", Map.of(
+                            "state", "loading"
+                    ));
+                    case STATE_READY -> FlutterIntegration.sendEvent("state", Map.of(
+                            "state", player.isPlaying() ? "playing" : "paused"
+                    ));
                 }
-                case STATE_BUFFERING -> FlutterIntegration.sendEvent("state", Map.of(
-                        "state", "loading"
-                ));
-                case STATE_READY -> FlutterIntegration.sendEvent("state", Map.of(
-                        "state", player.isPlaying() ? "playing" : "paused"
-                ));
             }
             listeners.forEach(listener -> listener.onPlaybackStateChanged(playbackState));
         }
@@ -1215,7 +1211,7 @@ public class CrossonicPlayer implements Player {
 
         @Override
         public void onIsPlayingChanged(boolean isPlaying) {
-            if (player.getPlaybackState() == STATE_READY) {
+            if (player.getPlaybackState() == STATE_READY && enabled) {
                 FlutterIntegration.sendEvent("state", Map.of(
                         "state", isPlaying ? "playing" : "paused"
                 ));

@@ -132,8 +132,11 @@ public class FlutterPlayer extends SimpleBasePlayer {
             playlist.add(currentMediaItem);
         }
         CLog.debug("FlutterPlayer", "getState: called: state: " + playbackState + ", currentMediaItem: " + currentMediaItem, null);
+
+        final int state = playlist.isEmpty() ? STATE_IDLE : playbackState;
+
         return new SimpleBasePlayer.State.Builder().setAvailableCommands(availableCommands).setContentPositionMs(position)
-                .setIsLoading(loading && playbackState != STATE_ENDED && playbackState != STATE_IDLE).setPlaybackState(playlist.isEmpty() ? STATE_IDLE : playbackState)
+                .setIsLoading(loading && state != STATE_ENDED && state != STATE_IDLE).setPlaybackState(state)
                 .setPlaylist(playlist)
                 .setPlayWhenReady(playing, PLAY_WHEN_READY_CHANGE_REASON_USER_REQUEST).build();
     }
@@ -152,7 +155,8 @@ public class FlutterPlayer extends SimpleBasePlayer {
     @NonNull
     @Override
     protected ListenableFuture<?> handleStop() {
-        FlutterIntegration.sendEvent("stop", null);
+        // TODO: re-enable after stop on player change is fixed
+        //FlutterIntegration.sendEvent("stop", null);
         return Futures.immediateVoidFuture();
     }
 

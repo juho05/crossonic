@@ -149,6 +149,7 @@ class PlayerManager {
     required Song? next,
     Duration pos = Duration.zero,
   }) async {
+    _playbackStatus.add(PlaybackStatus.loading);
     await _player.setCurrent(current, next: next, pos: pos);
     if (_playOnNextMediaChange) {
       _playOnNextMediaChange = false;
