@@ -226,7 +226,7 @@ class SonosPlayer extends AudioPlayer {
   Future<void> pause() async {
     Log.debug("pause on sonos, current status: ${eventStream.value.name}");
     if (eventStream.value != AudioPlayerEvent.playing) return;
-    _lastKnownPosition = await position;
+    _lastKnownPosition = await position - _positionOffset;
     _lastPositionRecordedAt = null;
 
     eventStream.add(AudioPlayerEvent.loading);
@@ -404,7 +404,7 @@ class SonosPlayer extends AudioPlayer {
     positionDiscontinuity.add(await position);
 
     if (currentSong.value?.duration != null) {
-      _setAdvanceTimer(currentSong.value!.duration! - result.tryValue!.pos);
+      _setAdvanceTimer(currentSong.value!.duration! - await position);
     }
   }
 }

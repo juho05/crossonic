@@ -98,7 +98,6 @@ public class FlutterPlayer extends SimpleBasePlayer {
 
         if (media == null) {
             currentMediaItem = null;
-            playbackState = STATE_IDLE;
             invalidateState();
             result.success(null);
             return;
@@ -118,9 +117,6 @@ public class FlutterPlayer extends SimpleBasePlayer {
         mediaItemDataBuilder.setMediaMetadata(mediaItem.mediaMetadata);
 
         currentMediaItem = mediaItemDataBuilder.build();
-        if (playbackState == STATE_IDLE) {
-            playbackState = STATE_BUFFERING;
-        }
 
         CLog.debug("FlutterPlayer", "new media: " + currentMediaItem.uid, null);
 
@@ -137,7 +133,7 @@ public class FlutterPlayer extends SimpleBasePlayer {
         }
         CLog.debug("FlutterPlayer", "getState: called: state: " + playbackState + ", currentMediaItem: " + currentMediaItem, null);
         return new SimpleBasePlayer.State.Builder().setAvailableCommands(availableCommands).setContentPositionMs(position)
-                .setIsLoading(loading && playbackState != STATE_ENDED && playbackState != STATE_IDLE).setPlaybackState(playbackState)
+                .setIsLoading(loading && playbackState != STATE_ENDED && playbackState != STATE_IDLE).setPlaybackState(playlist.isEmpty() ? STATE_IDLE : playbackState)
                 .setPlaylist(playlist)
                 .setPlayWhenReady(playing, PLAY_WHEN_READY_CHANGE_REASON_USER_REQUEST).build();
     }
