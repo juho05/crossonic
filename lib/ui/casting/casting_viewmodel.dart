@@ -13,6 +13,10 @@ import 'package:flutter/material.dart';
 class CastingViewModel extends ChangeNotifier {
   final PlaybackManager _playbackManager;
 
+  bool _connecting = false;
+
+  bool get connecting => _connecting;
+
   Device? _currentDevice;
 
   Device? get currentDevice => _currentDevice;
@@ -28,6 +32,7 @@ class CastingViewModel extends ChangeNotifier {
   }
 
   Future<void> _onDevicesChanged() async {
+    _connecting = false;
     _discoveredDevices = _playbackManager.deviceManager.devices.toList();
     _currentDevice = _playbackManager.player.device;
     _discoveredDevices.remove(_currentDevice);
@@ -39,6 +44,14 @@ class CastingViewModel extends ChangeNotifier {
   }
 
   Future<void> selectDevice(Device device) async {
+    if (_currentDevice != null) {
+      _discoveredDevices.insert(0, _currentDevice!);
+    }
+    _discoveredDevices.remove(device);
+    _currentDevice = device;
+    _connecting = true;
+    notifyListeners();
+
     await _playbackManager.changeDevice(device);
     await _onDevicesChanged();
   }

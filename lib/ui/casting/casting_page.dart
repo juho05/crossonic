@@ -66,6 +66,19 @@ class _CastingPageState extends State<CastingPage> {
                         _viewModel.currentDevice?.icon ?? Icons.devices,
                       ),
                     ),
+                    trailing: _viewModel.connecting
+                        ? const Padding(
+                            padding: EdgeInsets.only(right: 4),
+                            child: Center(
+                              child: SizedBox.square(
+                                dimension: 20,
+                                child: CircularProgressIndicator.adaptive(
+                                  strokeWidth: 3,
+                                ),
+                              ),
+                            ),
+                          )
+                        : null,
                   ),
                 ),
                 const SliverPadding(
