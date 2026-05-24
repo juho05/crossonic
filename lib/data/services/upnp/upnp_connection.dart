@@ -10,6 +10,11 @@ class UpnpConnection {
   final String ipAddr;
 
   final Uri avTransportControlUri;
+  final Uri renderingControlUri;
 
-  UpnpConnection({required this.ipAddr, required this.avTransportControlUri});
+  UpnpConnection({
+    required this.ipAddr,
+    required this.avTransportControlUri,
+    required this.renderingControlUri,
+  });
 }

@@ -47,12 +47,22 @@ class SonosPlayer extends AudioPlayer {
 
   Duration _positionOffset = Duration.zero;
 
+  double? _volume;
+
   @override
-  // TODO
-  Future<double> get volume async => 1;
+  Future<double> get volume async {
+    if (_volume == null) {
+      await _syncVolume();
+    }
+    return _volume ?? 1;
+  }
 
   @override
   bool get supportsFilePlayback => false;
+
+  // https://en.community.sonos.com/controllers-and-music-services-229131/volume-normalisation-on-sonos-6849732
+  @override
+  bool get autoAppliesReplayGain => true;
 
   SonosPlayer({
     required super.downloader,
@@ -63,6 +73,7 @@ class SonosPlayer extends AudioPlayer {
        _upnpCon = UpnpConnection(
          ipAddr: device.ipAddr,
          avTransportControlUri: device.avTransportControlUri,
+         renderingControlUri: device.renderingControlUri,
        ) {
     eventStream.listen((event) async {
       if (event == AudioPlayerEvent.advance) return;
@@ -272,7 +283,15 @@ class SonosPlayer extends AudioPlayer {
 
   @override
   Future<void> setVolume(double volume) async {
-    // TODO
+    // TODO figure out volume scaling of sonos
+    final result = await _upnp.setVolume(_upnpCon, volume);
+    if (result is Err) {
+      Log.error("Failed to set sonos volume", e: result.error);
+    }
+    await Future.delayed(
+      const Duration(milliseconds: 500),
+      () async => await _syncVolume(),
+    );
   }
 
   Future<UpnpTransportState?> _waitForTransportState(
@@ -400,6 +419,7 @@ class SonosPlayer extends AudioPlayer {
     if (eventStream.value == AudioPlayerEvent.playing) {
       await _syncPosition();
     }
+    await _syncVolume();
   }
 
   Future<void> _syncPosition() async {
@@ -407,17 +427,30 @@ class SonosPlayer extends AudioPlayer {
     switch (result) {
       case Err():
         Log.error("Failed to sync sonos position", e: result.error);
+        return;
       case Ok():
     }
     Log.debug(
-      "position info: ${result.tryValue!.pos} at ${result.tryValue!.approximateTime}",
+      "position info: ${result.value.pos} at ${result.value.approximateTime}",
     );
-    _lastKnownPosition = result.tryValue!.pos;
-    _lastPositionRecordedAt = result.tryValue!.approximateTime;
+    _lastKnownPosition = result.value.pos;
+    _lastPositionRecordedAt = result.value.approximateTime;
     positionDiscontinuity.add(await position);
 
     if (currentSong.value?.duration != null) {
       await _setAdvanceTimer(currentSong.value!.duration! - await position);
     }
+  }
+
+  Future<void> _syncVolume() async {
+    final result = await _upnp.getVolume(_upnpCon);
+    switch (result) {
+      case Err():
+        Log.error("Failed to sync sonos volume", e: result.error);
+        return;
+      case Ok():
+    }
+    Log.debug("volume: ${result.value}");
+    _volume = result.value;
   }
 }

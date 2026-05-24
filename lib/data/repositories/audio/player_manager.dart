@@ -59,6 +59,7 @@ class PlayerManager {
   double get volumeLinear => _volume;
 
   set volumeLinear(double volume) {
+    if (_volume == volume) return;
     _volume = volume;
     _updatePlayerVolume();
     _volumeLinearStream.add(_volume);
@@ -276,7 +277,9 @@ class PlayerManager {
 
   Future<void> _updatePlayerVolume({double scalar = 1}) async {
     double volume = _volume * scalar;
-    volume *= _replayGainVolume;
+    if (!_player.autoAppliesReplayGain) {
+      volume *= _replayGainVolume;
+    }
     await _player.setVolume(volume);
   }
 

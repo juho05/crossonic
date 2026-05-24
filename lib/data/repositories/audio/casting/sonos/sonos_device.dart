@@ -50,7 +50,7 @@ class SonosDevice implements Device {
     scheme: "http",
     host: ipAddr,
     port: 1400,
-    pathSegments: _avTransportControlPath.split("/"),
+    pathSegments: _renderingControlPath.split("/"),
   );
 
   @override

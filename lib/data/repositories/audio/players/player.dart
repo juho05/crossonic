@@ -58,6 +58,8 @@ abstract class AudioPlayer {
 
   bool get supportsFilePlayback => false;
 
+  bool get autoAppliesReplayGain => false;
+
   ValueNotifier<Song?> currentSong = ValueNotifier(null);
   ValueNotifier<Song?> nextSong = ValueNotifier(null);
 

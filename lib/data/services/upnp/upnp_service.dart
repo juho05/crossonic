@@ -7,6 +7,7 @@
  */
 
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/data/services/upnp/exceptions.dart';
@@ -21,6 +22,8 @@ import 'package:xml/xml.dart';
 class UpnpService {
   static const _avTransportService =
       "urn:schemas-upnp-org:service:AVTransport:1";
+  static const _renderingControlService =
+      "urn:schemas-upnp-org:service:RenderingControl:1";
 
   final _http = http.Client();
 
@@ -118,6 +121,48 @@ class UpnpService {
       uri: con.avTransportControlUri,
       service: _avTransportService,
       method: "Stop",
+      xmlContent: xmlContent,
+    );
+  }
+
+  Future<Result<double>> getVolume(UpnpConnection con) async {
+    final xmlContent =
+        '<InstanceID>0</InstanceID>\n'
+        '<Channel>Master</Channel>';
+    final result = await _request(
+      uri: con.renderingControlUri,
+      service: _renderingControlService,
+      method: "GetVolume",
+      xmlContent: xmlContent,
+    );
+    switch (result) {
+      case Err():
+        return Result.error(result.error);
+      case Ok():
+    }
+    final body = result.value;
+    final currentVolumeStr = body
+        ?.findElements("CurrentVolume")
+        .firstOrNull
+        ?.firstChild
+        ?.value;
+    double volume = 1;
+    if (currentVolumeStr != null) {
+      volume = (double.parse(currentVolumeStr) / 100).clamp(0, 1);
+    }
+    return Result.ok(volume);
+  }
+
+  Future<Result<void>> setVolume(UpnpConnection con, double volume) async {
+    volume = pow(volume, 1 / 3.0) as double;
+    final xmlContent =
+        '<InstanceID>0</InstanceID>\n'
+        '<Channel>Master</Channel>\n'
+        '<DesiredVolume>${(volume * 100).round().clamp(0, 100)}</DesiredVolume>';
+    return await _request(
+      uri: con.renderingControlUri,
+      service: _renderingControlService,
+      method: "SetVolume",
       xmlContent: xmlContent,
     );
   }
