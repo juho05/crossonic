@@ -224,6 +224,8 @@ class NowPlayingDesktop extends StatelessWidget {
                                 );
                             return ProgressBar(
                               timeLabelLocation: TimeLabelLocation.sides,
+                              thumbGlowRadius: 16,
+                              thumbRadius: 10,
                               progress: pos.position,
                               buffered: pos.bufferedPosition,
                               total: _viewModel.duration ?? pos.position,
@@ -246,17 +248,13 @@ class NowPlayingDesktop extends StatelessWidget {
                       children: [
                         if (constraints.maxWidth >= 830)
                           VolumeSlider(
-                            padding: EdgeInsets.only(
-                              left: constraints.maxWidth >= 1010 ? 12 : 4,
-                              right: constraints.maxWidth >= 930 ? 20 : 10,
-                            ),
                             valuePosition: constraints.maxWidth >= 1010
                                 ? VolumeSliderValuePosition.left
                                 : VolumeSliderValuePosition.hidden,
                             showIcon: false,
                             constraints: BoxConstraints.loose(
                               Size.fromWidth(
-                                constraints.maxWidth >= 1120
+                                constraints.maxWidth >= 1100
                                     ? 125
                                     : (constraints.maxWidth >= 930 ? 100 : 75),
                               ),

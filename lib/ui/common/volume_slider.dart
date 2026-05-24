@@ -13,14 +13,12 @@ import 'package:provider/provider.dart';
 enum VolumeSliderValuePosition { left, right, hidden }
 
 class VolumeSlider extends StatefulWidget {
-  final EdgeInsetsGeometry? padding;
   final VolumeSliderValuePosition valuePosition;
   final BoxConstraints? constraints;
   final bool showIcon;
 
   const VolumeSlider({
     super.key,
-    this.padding,
     this.valuePosition = VolumeSliderValuePosition.right,
     this.showIcon = true,
     this.constraints,
@@ -50,20 +48,26 @@ class _VolumeSliderState extends State<VolumeSlider> {
     return ListenableBuilder(
       listenable: _viewModel,
       builder: (context, _) {
-        final slider = Slider(
-          padding: widget.padding,
-          value: _viewModel.volume,
-          onChanged: (double value) {
-            _viewModel.volume = value;
-          },
-          min: 0,
-          max: 1,
-          inactiveColor: Theme.of(context).colorScheme.primary.withAlpha(61),
-        );
-
-        final valueText = ConstrainedBox(
-          constraints: const BoxConstraints(minWidth: 25),
-          child: Text((_viewModel.volume * 100).round().toString()),
+        final slider = Padding(
+          padding: const EdgeInsets.only(right: 4),
+          child: SliderTheme(
+            data: SliderTheme.of(context).copyWith(
+              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8.0),
+              overlayShape: const RoundSliderOverlayShape(overlayRadius: 12.0),
+              trackHeight: 4.0,
+            ),
+            child: Slider(
+              value: _viewModel.volume,
+              onChanged: (double value) {
+                _viewModel.volume = value;
+              },
+              min: 0,
+              max: 1,
+              inactiveColor: Theme.of(
+                context,
+              ).colorScheme.primary.withAlpha(61),
+            ),
+          ),
         );
 
         final icon = const Icon(Icons.volume_up_outlined, size: 20);
@@ -73,7 +77,13 @@ class _VolumeSliderState extends State<VolumeSlider> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             if (widget.valuePosition == VolumeSliderValuePosition.left)
-              valueText
+              ConstrainedBox(
+                constraints: const BoxConstraints(minWidth: 25),
+                child: Text(
+                  (_viewModel.volume * 100).round().toString(),
+                  textAlign: TextAlign.right,
+                ),
+              )
             else if (widget.showIcon)
               icon,
 
@@ -83,7 +93,13 @@ class _VolumeSliderState extends State<VolumeSlider> {
               Expanded(child: slider),
 
             if (widget.valuePosition == VolumeSliderValuePosition.right)
-              valueText
+              ConstrainedBox(
+                constraints: const BoxConstraints(minWidth: 25),
+                child: Text(
+                  (_viewModel.volume * 100).round().toString(),
+                  textAlign: TextAlign.left,
+                ),
+              )
             else if (widget.showIcon)
               icon,
           ],
