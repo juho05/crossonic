@@ -98,14 +98,15 @@ class PlayerManager {
     _positionDiscontinuitySub?.cancel();
   }
 
-  void connectPlayerStreams() {
+  void connectPlayerStreams() async {
+    _previousAudioPlayerEvent = null;
     _restartPlaybackSub = _player.restartPlayback.listen(
       (event) => _restartPlayback.add(position),
     );
     _playerEventsSub = _player.eventStream.listen(
       (event) => _playerEvent(event),
     );
-    _positionDiscontinuitySub = _player.positionDiscontinuity.listen(
+    _positionDiscontinuitySub = _player.positionDiscontinuityStream.listen(
       (pos) => _updatePosition(pos),
     );
   }
@@ -229,7 +230,7 @@ class PlayerManager {
   AudioPlayerEvent? _previousAudioPlayerEvent;
 
   Future<void> _playerEvent(AudioPlayerEvent event) async {
-    Log.trace("player event received: ${event.name}");
+    Log.debug("player event received: ${event.name}");
     if (event == AudioPlayerEvent.advance) {
       // prevent advance immediately after loading queue
       if (_hasPlayed) {

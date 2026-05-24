@@ -91,8 +91,12 @@ abstract class AudioPlayer {
     AudioPlayerEvent.stopped,
   );
 
-  final BehaviorSubject<Duration> positionDiscontinuity =
-      BehaviorSubject.seeded(Duration.zero);
+  @protected
+  final StreamController<Duration> positionDiscontinuity =
+      StreamController.broadcast();
+
+  Stream<Duration> get positionDiscontinuityStream =>
+      positionDiscontinuity.stream;
 
   Future<Duration> get position;
 
