@@ -14,7 +14,6 @@ import 'package:crossonic/data/repositories/audio/queue/queue.dart';
 import 'package:crossonic/data/repositories/subsonic/favorites_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
 import 'package:crossonic/utils/result.dart';
-import 'package:crossonic/utils/throttle.dart';
 import 'package:flutter/material.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -24,7 +23,6 @@ class NowPlayingViewModel extends ChangeNotifier {
   late final StreamSubscription _currentSongSubscription;
   late final StreamSubscription _playbackStatusSubscription;
   late final StreamSubscription _loopSubscription;
-  late final StreamSubscription _volumeSubscription;
   late final StreamSubscription _positionUpdateSubscription;
 
   final BehaviorSubject<({Duration position, Duration? bufferedPosition})>
@@ -74,31 +72,11 @@ class NowPlayingViewModel extends ChangeNotifier {
 
   bool get loopEnabled => _loop;
 
-  double _volume = 1;
-
-  double get volume => _volume;
-  Throttle1<double>? _volumeThrottle;
-
-  set volume(double volume) {
-    _volumeThrottle ??= Throttle1(
-      action: (volume) {
-        _playbackManager.player.volumeCubic = volume;
-      },
-      delay: const Duration(milliseconds: 100),
-      leading: true,
-      trailing: true,
-    );
-    _volume = volume;
-    _volumeThrottle!.call(volume);
-    notifyListeners();
-  }
-
   NowPlayingViewModel({
     required FavoritesRepository favoritesRepository,
     required PlaybackManager playbackManager,
   }) : _favoritesRepository = favoritesRepository,
-       _playbackManager = playbackManager,
-       _volume = playbackManager.player.volumeLinear {
+       _playbackManager = playbackManager {
     _favoritesRepository.addListener(_onFavoriteChanged);
     _currentSongSubscription = _playbackManager.queue.current.listen(
       _onSongChanged,
@@ -110,12 +88,6 @@ class NowPlayingViewModel extends ChangeNotifier {
       _loop = loop;
       notifyListeners();
     });
-    _volumeSubscription = _playbackManager.player.volumeLinearStream.listen((
-      _,
-    ) {
-      _volume = _playbackManager.player.volumeCubic;
-      notifyListeners();
-    });
     _positionUpdateSubscription = _playbackManager.player.positionUpdateStream
         .listen((_) => _updatePosition());
     _playbackManager.queue.addListener(_onQueueChanged);
@@ -124,7 +96,6 @@ class NowPlayingViewModel extends ChangeNotifier {
     _onStatusChanged(_playbackManager.player.playbackStatus.value);
     _onQueueChanged();
     _loop = _playbackManager.queue.looping.value;
-    _volume = _playbackManager.player.volumeCubic;
     notifyListeners();
   }
 
@@ -244,7 +215,6 @@ class NowPlayingViewModel extends ChangeNotifier {
     _favoritesRepository.removeListener(_onFavoriteChanged);
     _playbackManager.queue.removeListener(_onQueueChanged);
     await _positionUpdateSubscription.cancel();
-    await _volumeSubscription.cancel();
     await _loopSubscription.cancel();
     await _currentSongSubscription.cancel();
     await _playbackStatusSubscription.cancel();

@@ -10,6 +10,7 @@ import 'package:auto_route/annotations.dart';
 import 'package:crossonic/ui/casting/casting_viewmodel.dart';
 import 'package:crossonic/ui/common/clickable_list_item.dart';
 import 'package:crossonic/ui/common/section_header.dart';
+import 'package:crossonic/ui/common/volume_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -45,80 +46,102 @@ class _CastingPageState extends State<CastingPage> {
         child: ListenableBuilder(
           listenable: _viewModel,
           builder: (context, _) {
-            return CustomScrollView(
-              slivers: [
-                const SliverPadding(
-                  padding: EdgeInsets.all(8.0),
-                  sliver: SliverToBoxAdapter(
-                    child: SectionHeader(text: "Current device"),
-                  ),
-                ),
-                SliverToBoxAdapter(
-                  child: ClickableListItem(
-                    title: _viewModel.currentDevice?.name ?? "No active device",
-                    extraInfo: [
-                      _viewModel.currentDevice?.type ?? "Local",
-                      ...(_viewModel.currentDevice?.extraInfos ?? []),
-                    ],
-                    leading: Padding(
-                      padding: const EdgeInsets.only(left: 4),
-                      child: Icon(
-                        _viewModel.currentDevice?.icon ?? Icons.devices,
+            return LayoutBuilder(
+              builder: (context, constraints) {
+                return CustomScrollView(
+                  slivers: [
+                    const SliverPadding(
+                      padding: EdgeInsets.all(8.0),
+                      sliver: SliverToBoxAdapter(
+                        child: SectionHeader(text: "Current device"),
                       ),
                     ),
-                    trailing: _viewModel.connecting
-                        ? const Padding(
-                            padding: EdgeInsets.only(right: 4),
-                            child: Center(
-                              child: SizedBox.square(
-                                dimension: 20,
-                                child: CircularProgressIndicator.adaptive(
-                                  strokeWidth: 3,
-                                ),
-                              ),
-                            ),
-                          )
-                        : null,
-                  ),
-                ),
-                const SliverPadding(
-                  padding: EdgeInsets.all(8),
-                  sliver: SliverToBoxAdapter(
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      spacing: 8,
-                      children: [
-                        SectionHeader(text: "Discovering"),
-                        SizedBox.square(
-                          dimension: 10,
-                          child: CircularProgressIndicator.adaptive(
-                            strokeWidth: 2,
+                    SliverToBoxAdapter(
+                      child: ClickableListItem(
+                        title:
+                            _viewModel.currentDevice?.name ??
+                            "No active device",
+                        extraInfo: [
+                          _viewModel.currentDevice?.type ?? "Local",
+                          ...(_viewModel.currentDevice?.extraInfos ?? []),
+                        ],
+                        leading: Padding(
+                          padding: const EdgeInsets.only(left: 4),
+                          child: Icon(
+                            _viewModel.currentDevice?.icon ?? Icons.devices,
                           ),
                         ),
-                      ],
-                    ),
-                  ),
-                ),
-                SliverFixedExtentList.builder(
-                  itemExtent: ClickableListItem.verticalExtent,
-                  itemCount: _viewModel.discoveredDevices.length,
-                  itemBuilder: (context, index) {
-                    final device = _viewModel.discoveredDevices[index];
-                    return ClickableListItem(
-                      key: ValueKey("$index-${device.hashCode}"),
-                      title: device.name,
-                      extraInfo: [device.type, ...device.extraInfos],
-                      leading: Padding(
-                        padding: const EdgeInsets.only(left: 4),
-                        child: Icon(device.icon),
+                        trailing: _viewModel.connecting
+                            ? const Padding(
+                                padding: EdgeInsets.only(right: 4),
+                                child: Center(
+                                  child: SizedBox.square(
+                                    dimension: 20,
+                                    child: CircularProgressIndicator.adaptive(
+                                      strokeWidth: 3,
+                                    ),
+                                  ),
+                                ),
+                              )
+                            : (constraints.maxWidth >= 600
+                                  ? const Padding(
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: 4,
+                                      ),
+                                      child: VolumeSlider(
+                                        constraints: BoxConstraints.tightFor(
+                                          width: 200,
+                                        ),
+                                      ),
+                                    )
+                                  : null),
                       ),
-                      onTap: () {
-                        _viewModel.selectDevice(device);
+                    ),
+                    if (constraints.maxWidth < 600 && !_viewModel.connecting)
+                      const SliverPadding(
+                        padding: EdgeInsets.symmetric(horizontal: 8),
+                        sliver: SliverToBoxAdapter(child: VolumeSlider()),
+                      ),
+                    const SliverPadding(
+                      padding: EdgeInsets.all(8),
+                      sliver: SliverToBoxAdapter(
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          spacing: 8,
+                          children: [
+                            SectionHeader(text: "Discovering"),
+                            SizedBox.square(
+                              dimension: 10,
+                              child: CircularProgressIndicator.adaptive(
+                                strokeWidth: 2,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    SliverFixedExtentList.builder(
+                      itemExtent: ClickableListItem.verticalExtent,
+                      itemCount: _viewModel.discoveredDevices.length,
+                      itemBuilder: (context, index) {
+                        final device = _viewModel.discoveredDevices[index];
+                        return ClickableListItem(
+                          key: ValueKey("$index-${device.hashCode}"),
+                          title: device.name,
+                          extraInfo: [device.type, ...device.extraInfos],
+                          leading: Padding(
+                            padding: const EdgeInsets.only(left: 4),
+                            child: Icon(device.icon),
+                          ),
+                          onTap: () {
+                            _viewModel.selectDevice(device);
+                          },
+                        );
                       },
-                    );
-                  },
-                ),
-              ],
+                    ),
+                  ],
+                );
+              },
             );
           },
         ),

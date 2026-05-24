@@ -14,6 +14,7 @@ import 'package:crossonic/ui/common/cover_art.dart';
 import 'package:crossonic/ui/common/dialogs/chooser.dart';
 import 'package:crossonic/ui/common/menu_button.dart';
 import 'package:crossonic/ui/common/optional_tooltip.dart';
+import 'package:crossonic/ui/common/volume_slider.dart';
 import 'package:crossonic/ui/common/with_context_menu.dart';
 import 'package:crossonic/ui/main/now_playing/now_playing_menu_options.dart';
 import 'package:crossonic/ui/main/now_playing/now_playing_viewmodel.dart';
@@ -243,31 +244,22 @@ class NowPlayingDesktop extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.end,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        if (constraints.maxWidth >= 1010)
-                          Text((_viewModel.volume * 100).round().toString()),
                         if (constraints.maxWidth >= 830)
-                          ConstrainedBox(
+                          VolumeSlider(
+                            padding: EdgeInsets.only(
+                              left: constraints.maxWidth >= 1010 ? 12 : 4,
+                              right: constraints.maxWidth >= 930 ? 20 : 10,
+                            ),
+                            valuePosition: constraints.maxWidth >= 1010
+                                ? VolumeSliderValuePosition.left
+                                : VolumeSliderValuePosition.hidden,
+                            showIcon: false,
                             constraints: BoxConstraints.loose(
                               Size.fromWidth(
                                 constraints.maxWidth >= 1120
                                     ? 125
                                     : (constraints.maxWidth >= 930 ? 100 : 75),
                               ),
-                            ),
-                            child: Slider(
-                              padding: EdgeInsets.only(
-                                left: constraints.maxWidth >= 1010 ? 12 : 4,
-                                right: constraints.maxWidth >= 930 ? 20 : 10,
-                              ),
-                              value: _viewModel.volume,
-                              onChanged: (double value) {
-                                _viewModel.volume = value;
-                              },
-                              min: 0,
-                              max: 1,
-                              inactiveColor: Theme.of(
-                                context,
-                              ).colorScheme.primary.withAlpha(61),
                             ),
                           ),
                         SizedBox.square(

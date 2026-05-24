@@ -163,6 +163,8 @@ class PlaybackManager {
 
     _player.connectPlayerStreams();
 
+    await _applyReplayGain();
+
     Log.debug("player: $player");
 
     if (play) {

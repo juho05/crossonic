@@ -319,8 +319,7 @@ public class CrossonicPlayer implements Player {
             result.success(0.0);
             return;
         }
-        final float volume = androidPlayer.getVolume();
-        result.success((double) volume);
+        result.success(targetVolume);
     }
 
     private void handleSetVolume(MethodCall call, MethodChannel.Result result) {
