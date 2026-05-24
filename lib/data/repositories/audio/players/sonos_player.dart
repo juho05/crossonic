@@ -120,6 +120,8 @@ class SonosPlayer extends AudioPlayer {
 
     _setNextFailed = false;
 
+    _stopAdvanceTimer();
+
     eventStream.add(AudioPlayerEvent.loading);
 
     _lastPositionRecordedAt = null;
@@ -183,26 +185,41 @@ class SonosPlayer extends AudioPlayer {
 
   @override
   Future<void> setNext(Song? next) async {
+    bool nextWasNull = nextSong.value == null;
     super.setNext(next);
 
-    final result = await _upnp.setNextMediaItem(
-      _upnpCon,
-      next != null
-          ? UpnpMediaItem(
-              url: constructStreamUri(next)!.toString(),
-              duration: next.duration,
-              transcoded: false,
-              title: next.title,
-              contentType: next.contentType ?? "audio/mpeg",
-            )
-          : null,
-    );
-    if (result is Err) {
-      Log.error("failed to set next media item", e: result.error);
-      _setNextFailed = true;
+    _setNextFailed = true;
+
+    Future<void> setNextMediaItem() async {
+      final result = await _upnp.setNextMediaItem(
+        _upnpCon,
+        next != null
+            ? UpnpMediaItem(
+                url: constructStreamUri(next)!.toString(),
+                duration: next.duration,
+                transcoded: false,
+                title: next.title,
+                contentType: next.contentType ?? "audio/mpeg",
+              )
+            : null,
+      );
+      if (result is Err) {
+        Log.error("failed to set next media item", e: result.error);
+        _setNextFailed = true;
+        return;
+      }
+      _setNextFailed = false;
+    }
+
+    // delay set next after advance to make sure that sonos has transitioned aswell
+    if (nextWasNull) {
+      Future.delayed(
+        const Duration(seconds: 3),
+      ).then((_) async => await setNextMediaItem());
       return;
     }
-    _setNextFailed = false;
+
+    await setNextMediaItem();
   }
 
   @override
@@ -342,9 +359,9 @@ class SonosPlayer extends AudioPlayer {
     _advanceTimer?.cancel();
 
     if (_lastAdvanceRemainingDuration != null &&
-        _lastAdvanceRemainingDuration! < const Duration(seconds: 3) &&
+        _lastAdvanceRemainingDuration! < const Duration(seconds: 5) &&
         remainingDuration > _lastAdvanceRemainingDuration! &&
-        remainingDuration > const Duration(seconds: 3)) {
+        remainingDuration > const Duration(seconds: 5)) {
       await _advance();
     }
     _lastAdvanceRemainingDuration = remainingDuration;
@@ -365,6 +382,8 @@ class SonosPlayer extends AudioPlayer {
   }
 
   Future<void> _advance() async {
+    _stopPollingTimer();
+
     _positionOffset = Duration.zero;
     _lastPositionRecordedAt = null;
     _lastKnownPosition = Duration.zero;
@@ -381,12 +400,11 @@ class SonosPlayer extends AudioPlayer {
     final song = currentSong.value!;
 
     if (!_setNextFailed) {
-      _startPollingTimer(resetRunning: true);
-
       final state = await _waitForTransportState({
         UpnpTransportState.playing,
         UpnpTransportState.stopped,
       });
+      _startPollingTimer(resetRunning: true);
       if (state != UpnpTransportState.stopped) {
         return;
       }
