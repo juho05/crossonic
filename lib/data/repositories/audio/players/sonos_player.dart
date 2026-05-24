@@ -315,8 +315,19 @@ class SonosPlayer extends AudioPlayer {
 
   Timer? _advanceTimer;
 
-  void _setAdvanceTimer(Duration remainingDuration) {
+  Duration? _lastAdvanceRemainingDuration;
+
+  Future<void> _setAdvanceTimer(Duration remainingDuration) async {
     _advanceTimer?.cancel();
+
+    if (_lastAdvanceRemainingDuration != null &&
+        _lastAdvanceRemainingDuration! < const Duration(seconds: 3) &&
+        remainingDuration > _lastAdvanceRemainingDuration! &&
+        remainingDuration > const Duration(seconds: 3)) {
+      await _advance();
+    }
+    _lastAdvanceRemainingDuration = remainingDuration;
+
     _advanceTimer = Timer(
       Duration(milliseconds: max(remainingDuration.inMilliseconds, 1)),
       () async {
@@ -329,12 +340,14 @@ class SonosPlayer extends AudioPlayer {
   void _stopAdvanceTimer() {
     _advanceTimer?.cancel();
     _advanceTimer = null;
+    _lastAdvanceRemainingDuration = null;
   }
 
   Future<void> _advance() async {
     _positionOffset = Duration.zero;
     _lastPositionRecordedAt = null;
     _lastKnownPosition = Duration.zero;
+    _lastAdvanceRemainingDuration = null;
     positionDiscontinuity.add(await position);
 
     if (nextSong.value == null) {
@@ -404,7 +417,7 @@ class SonosPlayer extends AudioPlayer {
     positionDiscontinuity.add(await position);
 
     if (currentSong.value?.duration != null) {
-      _setAdvanceTimer(currentSong.value!.duration! - await position);
+      await _setAdvanceTimer(currentSong.value!.duration! - await position);
     }
   }
 }

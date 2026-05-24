@@ -170,6 +170,7 @@ class AudioPlayerMediaKit extends AudioPlayer {
     Duration pos = Duration.zero,
   }) async {
     await super.setCurrent(current, next: next, pos: pos);
+    eventStream.add(AudioPlayerEvent.loading);
     final currentUrl = constructStreamUri(current, pos: !canSeek ? pos : null);
     final nextUrl = constructStreamUri(next);
     _positionOffset = !canSeek ? pos : Duration.zero;

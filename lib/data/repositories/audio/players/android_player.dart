@@ -108,6 +108,7 @@ class AudioPlayerAndroid extends AudioPlayer {
     Duration pos = Duration.zero,
   }) async {
     super.setCurrent(current, next: next, pos: pos);
+    eventStream.add(AudioPlayerEvent.loading);
     await _methodChannel.invokeMethod("setCurrent", {
       "current": await _songToMap(current),
       if (pos > Duration.zero) "pos": pos.inMilliseconds,
