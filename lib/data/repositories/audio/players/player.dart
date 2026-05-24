@@ -58,8 +58,6 @@ abstract class AudioPlayer {
 
   bool get supportsFilePlayback => false;
 
-  bool get autoAppliesReplayGain => false;
-
   ValueNotifier<Song?> currentSong = ValueNotifier(null);
   ValueNotifier<Song?> nextSong = ValueNotifier(null);
 
@@ -103,6 +101,8 @@ abstract class AudioPlayer {
   Future<double> get volume;
 
   Future<void> setVolume(double volume);
+
+  Future<void> applyReplayGain(double replayGain);
 
   Future<void> setCurrent(
     Song current, {

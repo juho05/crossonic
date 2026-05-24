@@ -60,9 +60,11 @@ class SonosPlayer extends AudioPlayer {
   @override
   bool get supportsFilePlayback => false;
 
-  // https://en.community.sonos.com/controllers-and-music-services-229131/volume-normalisation-on-sonos-6849732
   @override
-  bool get autoAppliesReplayGain => true;
+  Future<void> applyReplayGain(double replayGain) async {
+    // already handled by sonos:
+    // https://en.community.sonos.com/controllers-and-music-services-229131/volume-normalisation-on-sonos-6849732
+  }
 
   SonosPlayer({
     required super.downloader,
@@ -450,7 +452,7 @@ class SonosPlayer extends AudioPlayer {
         return;
       case Ok():
     }
-    Log.debug("volume: ${result.value}");
+    Log.debug("sonos volume: ${result.value}");
     _volume = result.value;
   }
 }

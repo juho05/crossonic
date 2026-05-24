@@ -116,8 +116,12 @@ class PlayerManager {
     // don't wait for stop of old player because it might take a while, e.g.
     // when it is no longer reachable
     _player.stop();
+    _player.applyReplayGain(1);
 
     _player = player;
+
+    _volume = await _player.volume;
+    _volumeLinearStream.add(_volume);
   }
 
   Future<void> configureServerURL({
@@ -196,6 +200,7 @@ class PlayerManager {
     _hasPlayed = false;
     _playbackStatus.add(PlaybackStatus.stopped);
     _updatePosition(Duration.zero);
+    await _player.applyReplayGain(1);
     await _player.stop();
   }
 
@@ -268,19 +273,12 @@ class PlayerManager {
     }
   }
 
-  double _replayGainVolume = 1;
-
   Future<void> applyReplayGain(double gain) async {
-    _replayGainVolume = gain;
-    await _updatePlayerVolume();
+    await _player.applyReplayGain(gain);
   }
 
-  Future<void> _updatePlayerVolume({double scalar = 1}) async {
-    double volume = _volume * scalar;
-    if (!_player.autoAppliesReplayGain) {
-      volume *= _replayGainVolume;
-    }
-    await _player.setVolume(volume);
+  Future<void> _updatePlayerVolume() async {
+    await _player.setVolume(_volume);
   }
 
   double _volumeToLinear(double volume) {

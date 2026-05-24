@@ -55,6 +55,9 @@ public class CrossonicPlayer implements Player {
 
     private boolean enabled = true;
 
+    private double targetVolume = 1;
+    private double replayGain = 1;
+
     private final Set<Listener> listeners = new HashSet<>();
 
     public CrossonicPlayer(Context context) {
@@ -121,6 +124,7 @@ public class CrossonicPlayer implements Player {
         FlutterIntegration.setMethodCallback("getBufferedPosition", this::handleGetBufferedPosition);
         FlutterIntegration.setMethodCallback("getVolume", this::handleGetVolume);
         FlutterIntegration.setMethodCallback("setVolume", this::handleSetVolume);
+        FlutterIntegration.setMethodCallback("applyReplayGain", this::handleApplyReplayGain);
         FlutterIntegration.setMethodCallback("seek", this::handleSeek);
         FlutterIntegration.setMethodCallback("stop", this::handleStop);
         FlutterIntegration.setMethodCallback("dispose", this::handleDispose);
@@ -325,9 +329,24 @@ public class CrossonicPlayer implements Player {
             return;
         }
         //noinspection DataFlowIssue
-        final double volume = call.argument("volume");
-        androidPlayer.setVolume(Math.min(1, Math.max(0, (float) volume)));
+        targetVolume = call.argument("volume");
+        updatePlayerVolume();
         result.success(null);
+    }
+
+    private void handleApplyReplayGain(MethodCall call, MethodChannel.Result result) {
+        if (!enabled) {
+            result.success(null);
+            return;
+        }
+        //noinspection DataFlowIssue
+        replayGain = call.argument("replayGain");
+        updatePlayerVolume();
+        result.success(null);
+    }
+
+    private void updatePlayerVolume() {
+        androidPlayer.setVolume(Math.min(1, Math.max(0, (float) (targetVolume * replayGain))));
     }
 
     private void handleSeek(MethodCall call, MethodChannel.Result result) {
@@ -971,7 +990,8 @@ public class CrossonicPlayer implements Player {
 
     @Override
     public void setVolume(float volume) {
-        player.setVolume(volume);
+        targetVolume = volume;
+        updatePlayerVolume();
     }
 
     @Override

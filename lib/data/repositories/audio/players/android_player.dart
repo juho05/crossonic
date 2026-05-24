@@ -146,6 +146,13 @@ class AudioPlayerAndroid extends AudioPlayer {
   }
 
   @override
+  Future<void> applyReplayGain(double replayGain) async {
+    await _methodChannel.invokeMethod("applyReplayGain", {
+      "replayGain": replayGain,
+    });
+  }
+
+  @override
   Future<void> stop() async {
     await _methodChannel.invokeMethod("stop");
   }

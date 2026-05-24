@@ -44,6 +44,7 @@ class AudioPlayerMediaKit extends AudioPlayer {
       _player?.state.buffer ?? Duration.zero + _positionOffset;
 
   double _targetVolume = 1;
+  double _replayGain = 1;
 
   @override
   Future<double> get volume async => _targetVolume;
@@ -268,11 +269,18 @@ class AudioPlayerMediaKit extends AudioPlayer {
     await _applyVolume();
   }
 
+  @override
+  Future<void> applyReplayGain(double replayGain) async {
+    _replayGain = replayGain;
+    await _applyVolume();
+  }
+
   Future<void> _applyVolume() async {
     await _player!.setVolume(_calculatePlayerVolume(_targetVolume));
   }
 
   double _calculatePlayerVolume(double targetVolume) {
+    targetVolume *= _replayGain;
     // mpv volume is cubic:
     // https://github.com/mpv-player/mpv/blob/440f35a26db3fd9f25282bff0f06f4e86e8133c2/player/audio.c#L177
     if (!kIsWeb) {

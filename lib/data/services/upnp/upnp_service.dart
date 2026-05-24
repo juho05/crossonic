@@ -149,6 +149,7 @@ class UpnpService {
     double volume = 1;
     if (currentVolumeStr != null) {
       volume = (double.parse(currentVolumeStr) / 100).clamp(0, 1);
+      volume = pow(volume, 3) as double;
     }
     return Result.ok(volume);
   }
