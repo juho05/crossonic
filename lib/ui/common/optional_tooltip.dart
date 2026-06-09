@@ -6,6 +6,9 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class OptionalTooltip extends StatelessWidget {
@@ -25,6 +28,9 @@ class OptionalTooltip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (message == null || message!.isEmpty) return child;
+    // don't build tooltips on mobile
+    if (!kIsWeb && !Platform.isAndroid && !Platform.isIOS) return child;
+
     return Tooltip(
       triggerMode: triggerOnLongPress
           ? TooltipTriggerMode.longPress

@@ -45,117 +45,124 @@ class ClickableListItem extends StatelessWidget {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
     final textColor = !enabled ? theme.disabledColor : null;
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final child = InkWell(
-          onTap: enabled ? onTap : null,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: Row(
-              children: [
-                ?leading,
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      OptionalTooltip(
-                        message: title,
-                        triggerOnLongPress: false,
-                        child: Text(
-                          title,
-                          style: textTheme.bodyMedium!.copyWith(
-                            fontSize: 15,
-                            color: textColor,
-                            fontWeight: titleBold
-                                ? FontWeight.w600
-                                : FontWeight.w400,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      if (extraInfo.isNotEmpty ||
-                          downloadStatus != DownloadStatus.none)
-                        Row(
-                          spacing: 2,
-                          children: [
-                            if (downloadStatus == DownloadStatus.downloaded)
-                              Icon(
-                                Icons.download_for_offline_outlined,
-                                color: textColor ?? Theme.of(context).colorScheme.primary,
-                                size: 15,
-                              ),
-                            if (downloadStatus == DownloadStatus.downloading)
-                              Icon(
-                                Icons.downloading_outlined,
-                                color: textColor ?? Theme.of(
-                                  context,
-                                ).colorScheme.surfaceContainerHighest,
-                                size: 15,
-                              ),
-                            if (downloadStatus == DownloadStatus.enqueued)
-                              Icon(
-                                Icons.schedule,
-                                color: textColor ?? Theme.of(
-                                  context,
-                                ).colorScheme.surfaceContainerHighest,
-                                size: 15,
-                              ),
-                            Expanded(
-                              child: Align(
-                                alignment: Alignment.centerLeft,
-                                child: OptionalTooltip(
-                                  message: extraInfo.join(" • "),
-                                  triggerOnLongPress: false,
-                                  child: Text(
-                                    extraInfo.join(" • "),
-                                    style: textTheme.bodySmall!.copyWith(
-                                      fontWeight: FontWeight.w300,
-                                      fontSize: 12,
-                                      color: textColor,
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 4),
-                if (isFavorite)
-                  Padding(
-                    padding: const EdgeInsets.only(right: 4),
-                    child: Icon(Icons.favorite, size: 15, color: textColor),
-                  ),
-                if (trailingInfo != null && constraints.maxWidth > 320)
-                  Padding(
-                    padding: const EdgeInsets.only(left: 8),
+    // Avoid a per-row LayoutBuilder (relayout boundary + layout-phase build) by
+    // deciding trailing-info visibility from the screen width instead of the
+    // item's width. The difference should be negligible on mobile layouts where this
+    // condition is relevant.
+    final showTrailingInfo = MediaQuery.sizeOf(context).width > 320;
+    final child = InkWell(
+      onTap: enabled ? onTap : null,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+        child: Row(
+          children: [
+            ?leading,
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  OptionalTooltip(
+                    message: title,
+                    triggerOnLongPress: false,
                     child: Text(
-                      trailingInfo!,
-                      style: textTheme.bodySmall!.copyWith(
+                      title,
+                      style: textTheme.bodyMedium!.copyWith(
+                        fontSize: 15,
                         color: textColor,
-                        fontFeatures: [const FontFeature.tabularFigures()],
+                        fontWeight: titleBold
+                            ? FontWeight.w600
+                            : FontWeight.w400,
                       ),
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                if (trailing != null)
-                  Padding(
-                    padding: const EdgeInsets.only(left: 4),
-                    child: trailing!,
-                  ),
-              ],
+                  if (extraInfo.isNotEmpty ||
+                      downloadStatus != DownloadStatus.none)
+                    Row(
+                      spacing: 2,
+                      children: [
+                        if (downloadStatus == DownloadStatus.downloaded)
+                          Icon(
+                            Icons.download_for_offline_outlined,
+                            color:
+                                textColor ??
+                                Theme.of(context).colorScheme.primary,
+                            size: 15,
+                          ),
+                        if (downloadStatus == DownloadStatus.downloading)
+                          Icon(
+                            Icons.downloading_outlined,
+                            color:
+                                textColor ??
+                                Theme.of(
+                                  context,
+                                ).colorScheme.surfaceContainerHighest,
+                            size: 15,
+                          ),
+                        if (downloadStatus == DownloadStatus.enqueued)
+                          Icon(
+                            Icons.schedule,
+                            color:
+                                textColor ??
+                                Theme.of(
+                                  context,
+                                ).colorScheme.surfaceContainerHighest,
+                            size: 15,
+                          ),
+                        Expanded(
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: OptionalTooltip(
+                              message: extraInfo.join(" • "),
+                              triggerOnLongPress: false,
+                              child: Text(
+                                extraInfo.join(" • "),
+                                style: textTheme.bodySmall!.copyWith(
+                                  fontWeight: FontWeight.w300,
+                                  fontSize: 12,
+                                  color: textColor,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                ],
+              ),
             ),
-          ),
-        );
-        return SizedBox(
-          height: verticalExtent,
-          child: opaque ? Material(child: child) : child,
-        );
-      },
+            const SizedBox(width: 4),
+            if (isFavorite)
+              Padding(
+                padding: const EdgeInsets.only(right: 4),
+                child: Icon(Icons.favorite, size: 15, color: textColor),
+              ),
+            if (trailingInfo != null && showTrailingInfo)
+              Padding(
+                padding: const EdgeInsets.only(left: 8),
+                child: Text(
+                  trailingInfo!,
+                  style: textTheme.bodySmall!.copyWith(
+                    color: textColor,
+                    fontFeatures: [const FontFeature.tabularFigures()],
+                  ),
+                ),
+              ),
+            if (trailing != null)
+              Padding(
+                padding: const EdgeInsets.only(left: 4),
+                child: trailing!,
+              ),
+          ],
+        ),
+      ),
+    );
+    return SizedBox(
+      height: verticalExtent,
+      child: opaque ? Material(child: child) : child,
     );
   }
 }

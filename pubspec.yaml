@@ -3,7 +3,7 @@ description: "An OpenSubsonic compatible music player with its own server for ad
 publish_to: "none"
 version: 0.4.0+12
 environment:
-  sdk: ^3.10.1
+  sdk: ^3.12.0
 
 dependencies:
   flutter:

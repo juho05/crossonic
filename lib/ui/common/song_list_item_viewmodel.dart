@@ -45,8 +45,13 @@ class SongListItemViewModel extends ChangeNotifier {
 
     if (!disablePlaybackStatus) {
       _currentSubscription = _playbackManager.queue.current.listen((current) {
-        _currentSongId = current?.id;
-        notifyListeners();
+        final newId = current?.id;
+        final wasCurrent = _currentSongId == song.id;
+        final isCurrent = newId == song.id;
+        _currentSongId = newId;
+        if (wasCurrent != isCurrent) {
+          notifyListeners();
+        }
       });
       _statusSubscription = _playbackManager.player.playbackStatus.listen((
         status,
