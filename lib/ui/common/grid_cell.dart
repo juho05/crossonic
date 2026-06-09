@@ -23,6 +23,11 @@ class GridCell extends StatelessWidget {
   final void Function()? onTap;
   final DownloadStatus downloadStatus;
 
+  // Explicit cover side length, forwarded to CoverArtDecorated so grids that
+  // lay out every tile to the same extent can skip the per-cell layout
+  // measurement. Null lets the cover measure itself.
+  final double? coverSize;
+
   final Widget? topLeft;
   final Widget? topRight;
   final Widget? bottomLeft;
@@ -34,6 +39,7 @@ class GridCell extends StatelessWidget {
     required this.menuOptions,
     required this.coverId,
     required this.placeholderIcon,
+    this.coverSize,
     this.onTap,
     Iterable<String> extraInfo = const [],
     this.circularCover = false,
@@ -67,6 +73,7 @@ class GridCell extends StatelessWidget {
                     : BorderRadius.circular(7),
                 isFavorite: isFavorite,
                 placeholderIcon: placeholderIcon,
+                size: coverSize,
                 coverId: coverId,
                 downloadStatus: downloadStatus,
                 bottomLeft: bottomLeft,

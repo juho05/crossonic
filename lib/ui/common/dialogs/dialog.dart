@@ -6,7 +6,6 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import 'package:crossonic/ui/common/shimmer.dart';
 import 'package:flutter/material.dart';
 
 class CrossonicDialog extends StatelessWidget {
@@ -23,16 +22,12 @@ class CrossonicDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final shimmerGradient = Shimmer.createGradient(context);
     return Dialog(
       insetPadding: const EdgeInsets.all(8),
       constraints: maxWidth != null
           ? BoxConstraints(maxWidth: maxWidth!)
           : null,
-      child: Shimmer(
-        linearGradient: shimmerGradient,
-        child: Padding(padding: contentPadding, child: child),
-      ),
+      child: Padding(padding: contentPadding, child: child),
     );
   }
 }

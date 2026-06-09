@@ -22,11 +22,13 @@ import 'package:provider/provider.dart';
 class ArtistGridCell extends StatefulWidget {
   final Artist artist;
   final bool showReleaseCount;
+  final double? coverSize;
 
   const ArtistGridCell({
     super.key,
     required this.artist,
     this.showReleaseCount = true,
+    this.coverSize,
   });
 
   @override
@@ -141,6 +143,7 @@ class _ArtistGridCellState extends State<ArtistGridCell> {
       builder: (context, _) {
         return GridCell(
           title: a.name,
+          coverSize: widget.coverSize,
           coverId: a.coverId,
           isFavorite: _viewModel.favorite,
           menuOptions: menuOptions,

@@ -13,7 +13,7 @@ import 'package:crossonic/ui/common/buttons.dart';
 import 'package:crossonic/ui/common/clickable_list_item.dart';
 import 'package:crossonic/ui/common/dialogs/add_to_playlist.dart';
 import 'package:crossonic/ui/common/dialogs/confirmation.dart';
-import 'package:crossonic/ui/common/shimmer.dart';
+import 'package:crossonic/ui/common/loading_box.dart';
 import 'package:crossonic/ui/common/song_list_item.dart';
 import 'package:crossonic/ui/queue/create_queue_dialog.dart';
 import 'package:crossonic/ui/queue/queue_viewmodel.dart';
@@ -48,237 +48,232 @@ class _QueuePageState extends State<QueuePage> {
 
   @override
   Widget build(BuildContext context) {
-    final shimmerGradient = Shimmer.createGradient(context);
     return Scaffold(
       appBar: AppBar(title: const Text("Queue")),
       body: SafeArea(
-        child: Shimmer(
-          linearGradient: shimmerGradient,
-          child: ListenableBuilder(
-            listenable: _viewModel,
-            builder: (context, _) {
-              final theme = Theme.of(context);
+        child: ListenableBuilder(
+          listenable: _viewModel,
+          builder: (context, _) {
+            final theme = Theme.of(context);
 
-              Widget songListItem(int i, Song? s, {bool floating = false}) {
-                if (s == null) {
-                  return Padding(
-                    key: ValueKey("$i-loading"),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(5),
-                      child: const ShimmerLoading(child: Material()),
-                    ),
-                  );
-                }
-                return SongListItem(
-                  song: s,
-                  key: ValueKey("$i-${s.id}"),
-                  enableLongPressReorder: !floating,
-                  opaque: floating,
-                  reorderIndex: i,
-                  showDragHandle: true,
-                  showPlaybackStatus: false,
-                  showRemoveButton: true,
-                  onRemove: () {
-                    _viewModel.remove(i);
-                  },
-                  onTap: (_) {
-                    _viewModel.goto(i);
-                  },
+            Widget songListItem(int i, Song? s, {bool floating = false}) {
+              if (s == null) {
+                return Padding(
+                  key: ValueKey("$i-loading"),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(5),
+                    child: const LoadingBox(),
+                  ),
                 );
               }
+              return SongListItem(
+                song: s,
+                key: ValueKey("$i-${s.id}"),
+                enableLongPressReorder: !floating,
+                opaque: floating,
+                reorderIndex: i,
+                showDragHandle: true,
+                showPlaybackStatus: false,
+                showRemoveButton: true,
+                onRemove: () {
+                  _viewModel.remove(i);
+                },
+                onTap: (_) {
+                  _viewModel.goto(i);
+                },
+              );
+            }
 
-              return CustomScrollView(
-                slivers: [
-                  SliverPadding(
-                    padding: const EdgeInsets.only(left: 8, bottom: 8),
-                    sliver: SliverToBoxAdapter(
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          spacing: 4,
-                          children: [
-                            Button(
-                              onPressed: () {
-                                context.router.push(const SelectQueueRoute());
-                              },
-                              icon: Icons.queue_music,
-                              outlined: _viewModel.isDefaultQueue,
-                              child: Text(_viewModel.currentQueueName),
-                            ),
-                            OutlinedButton.icon(
-                              onPressed: () {
-                                CreateQueueDialog.show(context);
-                              },
-                              label: const Text("Save"),
-                              icon: const Icon(Icons.save_as_outlined),
-                            ),
-                            OutlinedButton.icon(
-                              onPressed: () async {
-                                AddToPlaylistDialog.show(
-                                  context,
-                                  "Queue",
-                                  () async {
-                                    return Result.ok(
-                                      await _viewModel.getAllSongs(),
-                                    );
-                                  },
-                                );
-                              },
-                              label: const Text("Playlist"),
-                              icon: const Icon(Icons.playlist_add),
-                            ),
-                          ],
-                        ),
+            return CustomScrollView(
+              slivers: [
+                SliverPadding(
+                  padding: const EdgeInsets.only(left: 8, bottom: 8),
+                  sliver: SliverToBoxAdapter(
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        spacing: 4,
+                        children: [
+                          Button(
+                            onPressed: () {
+                              context.router.push(const SelectQueueRoute());
+                            },
+                            icon: Icons.queue_music,
+                            outlined: _viewModel.isDefaultQueue,
+                            child: Text(_viewModel.currentQueueName),
+                          ),
+                          OutlinedButton.icon(
+                            onPressed: () {
+                              CreateQueueDialog.show(context);
+                            },
+                            label: const Text("Save"),
+                            icon: const Icon(Icons.save_as_outlined),
+                          ),
+                          OutlinedButton.icon(
+                            onPressed: () async {
+                              AddToPlaylistDialog.show(
+                                context,
+                                "Queue",
+                                () async {
+                                  return Result.ok(
+                                    await _viewModel.getAllSongs(),
+                                  );
+                                },
+                              );
+                            },
+                            label: const Text("Playlist"),
+                            icon: const Icon(Icons.playlist_add),
+                          ),
+                        ],
                       ),
                     ),
                   ),
-                  SliverList.list(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(left: 8),
-                        child: Text(
-                          "Current",
-                          style: theme.textTheme.headlineSmall!.copyWith(
-                            fontSize: 20,
-                          ),
+                ),
+                SliverList.list(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(left: 8),
+                      child: Text(
+                        "Current",
+                        style: theme.textTheme.headlineSmall!.copyWith(
+                          fontSize: 20,
                         ),
                       ),
-                      if (_viewModel.currentSong != null)
-                        SongListItem(
-                          key: ValueKey(
-                            "current-${_viewModel.currentSong!.id}",
+                    ),
+                    if (_viewModel.currentSong != null)
+                      SongListItem(
+                        key: ValueKey("current-${_viewModel.currentSong!.id}"),
+                        song: _viewModel.currentSong!,
+                      ),
+                    if (_viewModel.currentSong == null)
+                      const Padding(
+                        padding: EdgeInsets.all(8),
+                        child: Text("Inactive playback"),
+                      ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              "Priority queue (${_viewModel.prioQueueLength})",
+                              style: theme.textTheme.headlineSmall!.copyWith(
+                                fontSize: 20,
+                              ),
+                            ),
                           ),
-                          song: _viewModel.currentSong!,
-                        ),
-                      if (_viewModel.currentSong == null)
-                        const Padding(
-                          padding: EdgeInsets.all(8),
-                          child: Text("Inactive playback"),
-                        ),
-                      Padding(
+                          if (_viewModel.prioQueueLength > 0)
+                            IconButton(
+                              onPressed: () async {
+                                if (!(await ConfirmationDialog.showCancel(
+                                  context,
+                                  "Shuffle priority queue?",
+                                ))) {
+                                  return;
+                                }
+                                _viewModel.shufflePriorityQueue();
+                              },
+                              icon: const Icon(Icons.shuffle),
+                            ),
+                          if (_viewModel.prioQueueLength > 0)
+                            IconButton(
+                              onPressed: () async {
+                                if (!(await ConfirmationDialog.showCancel(
+                                  context,
+                                  "Clear priority queue?",
+                                ))) {
+                                  return;
+                                }
+                                _viewModel.clearPriorityQueue();
+                              },
+                              icon: const Icon(Icons.delete_sweep_outlined),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                SliverReorderableList(
+                  itemCount:
+                      _viewModel.prioQueueLength + 1 + _viewModel.queueLength,
+                  itemExtentBuilder: (index, dimensions) {
+                    if (index == _viewModel.prioQueueLength) return 40;
+                    return ClickableListItem.verticalExtent;
+                  },
+                  proxyDecorator: (child, index, animation) {
+                    final song = index < _viewModel.prioQueueLength
+                        ? _viewModel.getPrioSong(index)
+                        : _viewModel.getSong(
+                            index - 1 - _viewModel.prioQueueLength,
+                          );
+                    return songListItem(index, song, floating: true);
+                  },
+                  itemBuilder: (context, i) {
+                    if (i < _viewModel.prioQueueLength) {
+                      final s = _viewModel.getPrioSong(i);
+                      return songListItem(i, s);
+                    }
+                    if (i == _viewModel.prioQueueLength) {
+                      return Padding(
+                        key: _queueSeparatorKey,
                         padding: const EdgeInsets.symmetric(horizontal: 8),
                         child: Row(
                           children: [
                             Expanded(
                               child: Text(
-                                "Priority queue (${_viewModel.prioQueueLength})",
+                                "Queue (${_viewModel.queueLength})",
                                 style: theme.textTheme.headlineSmall!.copyWith(
                                   fontSize: 20,
                                 ),
                               ),
                             ),
-                            if (_viewModel.prioQueueLength > 0)
+                            if (_viewModel.queueLength > 0)
                               IconButton(
                                 onPressed: () async {
                                   if (!(await ConfirmationDialog.showCancel(
                                     context,
-                                    "Shuffle priority queue?",
+                                    "Shuffle queue?",
                                   ))) {
                                     return;
                                   }
-                                  _viewModel.shufflePriorityQueue();
+                                  _viewModel.shuffleQueue();
                                 },
                                 icon: const Icon(Icons.shuffle),
                               ),
-                            if (_viewModel.prioQueueLength > 0)
+                            if (_viewModel.queueLength > 0)
                               IconButton(
                                 onPressed: () async {
                                   if (!(await ConfirmationDialog.showCancel(
                                     context,
-                                    "Clear priority queue?",
+                                    "Clear queue?",
                                   ))) {
                                     return;
                                   }
-                                  _viewModel.clearPriorityQueue();
+                                  _viewModel.clearQueue();
                                 },
                                 icon: const Icon(Icons.delete_sweep_outlined),
                               ),
                           ],
                         ),
-                      ),
-                    ],
-                  ),
-                  SliverReorderableList(
-                    itemCount:
-                        _viewModel.prioQueueLength + 1 + _viewModel.queueLength,
-                    itemExtentBuilder: (index, dimensions) {
-                      if (index == _viewModel.prioQueueLength) return 40;
-                      return ClickableListItem.verticalExtent;
-                    },
-                    proxyDecorator: (child, index, animation) {
-                      final song = index < _viewModel.prioQueueLength
-                          ? _viewModel.getPrioSong(index)
-                          : _viewModel.getSong(
-                              index - 1 - _viewModel.prioQueueLength,
-                            );
-                      return songListItem(index, song, floating: true);
-                    },
-                    itemBuilder: (context, i) {
-                      if (i < _viewModel.prioQueueLength) {
-                        final s = _viewModel.getPrioSong(i);
-                        return songListItem(i, s);
-                      }
-                      if (i == _viewModel.prioQueueLength) {
-                        return Padding(
-                          key: _queueSeparatorKey,
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  "Queue (${_viewModel.queueLength})",
-                                  style: theme.textTheme.headlineSmall!
-                                      .copyWith(fontSize: 20),
-                                ),
-                              ),
-                              if (_viewModel.queueLength > 0)
-                                IconButton(
-                                  onPressed: () async {
-                                    if (!(await ConfirmationDialog.showCancel(
-                                      context,
-                                      "Shuffle queue?",
-                                    ))) {
-                                      return;
-                                    }
-                                    _viewModel.shuffleQueue();
-                                  },
-                                  icon: const Icon(Icons.shuffle),
-                                ),
-                              if (_viewModel.queueLength > 0)
-                                IconButton(
-                                  onPressed: () async {
-                                    if (!(await ConfirmationDialog.showCancel(
-                                      context,
-                                      "Clear queue?",
-                                    ))) {
-                                      return;
-                                    }
-                                    _viewModel.clearQueue();
-                                  },
-                                  icon: const Icon(Icons.delete_sweep_outlined),
-                                ),
-                            ],
-                          ),
-                        );
-                      }
-                      final s = _viewModel.getSong(
-                        i - 1 - _viewModel.prioQueueLength,
                       );
-                      return songListItem(i, s);
-                    },
-                    onReorderStart: (_) {
-                      HapticFeedback.lightImpact();
-                    },
-                    onReorderItem: _viewModel.reorder,
-                  ),
-                ],
-              );
-            },
-          ),
+                    }
+                    final s = _viewModel.getSong(
+                      i - 1 - _viewModel.prioQueueLength,
+                    );
+                    return songListItem(i, s);
+                  },
+                  onReorderStart: (_) {
+                    HapticFeedback.lightImpact();
+                  },
+                  onReorderItem: _viewModel.reorder,
+                ),
+              ],
+            );
+          },
         ),
       ),
     );

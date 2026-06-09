@@ -27,6 +27,7 @@ class AlbumGridCell extends StatefulWidget {
   final bool showYear;
   final bool disableGoToArtist;
   final List<Album>? alternatives;
+  final double? coverSize;
 
   const AlbumGridCell({
     super.key,
@@ -35,6 +36,7 @@ class AlbumGridCell extends StatefulWidget {
     this.showYear = true,
     this.disableGoToArtist = false,
     this.alternatives,
+    this.coverSize,
   });
 
   @override
@@ -155,6 +157,7 @@ class _AlbumGridCellState extends State<AlbumGridCell> {
       builder: (context, _) {
         return GridCell(
           menuOptions: menuOptions,
+          coverSize: widget.coverSize,
           coverId: a.coverId,
           isFavorite: _viewModel.favorite,
           placeholderIcon: Icons.album,

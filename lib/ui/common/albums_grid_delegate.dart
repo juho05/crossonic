@@ -6,7 +6,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 
 class AlbumsGridDelegate extends SliverGridDelegateWithMaxCrossAxisExtent {
   AlbumsGridDelegate()
@@ -16,4 +16,13 @@ class AlbumsGridDelegate extends SliverGridDelegateWithMaxCrossAxisExtent {
         crossAxisSpacing: 2,
         mainAxisSpacing: 2,
       );
+
+  double coverSize(SliverConstraints constraints) {
+    final tileCrossExtent = getLayout(
+      constraints,
+    ).getGeometryForChildIndex(0).crossAxisExtent;
+    return (tileCrossExtent - _gridCellPadding).clamp(0.0, double.infinity);
+  }
+
+  static const double _gridCellPadding = 4 * 2;
 }

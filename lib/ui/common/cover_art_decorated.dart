@@ -22,6 +22,8 @@ class CoverArtDecorated extends StatefulWidget {
   final BorderRadiusGeometry borderRadius;
   final bool uploading;
 
+  final double? size;
+
   final bool isFavorite;
   final DownloadStatus downloadStatus;
 
@@ -38,6 +40,7 @@ class CoverArtDecorated extends StatefulWidget {
     required this.placeholderIcon,
     required this.borderRadius,
     required this.isFavorite,
+    this.size,
     this.uploading = false,
     this.downloadStatus = DownloadStatus.none,
     this.menuOptions = const [],
@@ -56,123 +59,122 @@ class _CoverArtDecoratedState extends State<CoverArtDecorated> {
 
   @override
   Widget build(BuildContext context) {
-    final child = LayoutBuilder(
-      builder: (context, constraints) {
-        final size = min(constraints.maxWidth, constraints.maxHeight);
-        return Align(
-          alignment: Alignment.center,
-          child: SizedBox.square(
-            dimension: size,
-            child: Provider<OnCoverIconButtonSize>.value(
-              value: size >= 256
-                  ? OnCoverIconButtonSize.large
-                  : OnCoverIconButtonSize.normal,
-              builder: (context, _) {
-                final buttonSize = context.read<OnCoverIconButtonSize>();
-                final largeLayout = buttonSize == OnCoverIconButtonSize.large;
-                if (widget.uploading) {
-                  return const Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: CircularProgressIndicator.adaptive(),
-                  );
-                }
-
-                final cover = CoverArt(
-                  size: size,
-                  placeholderIcon: widget.placeholderIcon,
-                  borderRadius: widget.borderRadius,
-                  coverId: widget.coverId,
-                );
-
-                final stackChildren = [
-                  cover,
-                  if (widget.topLeft != null || widget.isFavorite)
-                    Align(
-                      alignment: Alignment.topLeft,
-                      child: Padding(
-                        padding: EdgeInsets.all(largeLayout ? 8 : 3),
-                        child:
-                            widget.topLeft ??
-                            DecoratedIcon(
-                              decoration: const IconDecoration(
-                                border: IconBorder(
-                                  color: Colors.black,
-                                  width: 2,
-                                ),
-                              ),
-                              icon: Icon(
-                                Icons.favorite,
-                                size: largeLayout ? 26 : 20,
-                                color: const Color.fromARGB(255, 248, 248, 248),
-                              ),
-                            ),
-                      ),
-                    ),
-                  if (widget.topRight != null ||
-                      widget.downloadStatus != DownloadStatus.none)
-                    Align(
-                      alignment: Alignment.topRight,
-                      child: Padding(
-                        padding: EdgeInsets.all(largeLayout ? 8 : 3),
-                        child:
-                            widget.topRight ??
-                            DecoratedIcon(
-                              decoration: const IconDecoration(
-                                border: IconBorder(
-                                  color: Colors.black,
-                                  width: 1,
-                                ),
-                              ),
-                              icon: Icon(
-                                widget.downloadStatus ==
-                                        DownloadStatus.downloading
-                                    ? Icons.downloading_outlined
-                                    : Icons.download_for_offline_outlined,
-                                size: largeLayout ? 26 : 20,
-                                color: const Color.fromARGB(255, 248, 248, 248),
-                              ),
-                            ),
-                      ),
-                    ),
-                  if (widget.bottomLeft != null)
-                    Align(
-                      alignment: Alignment.bottomLeft,
-                      child: Padding(
-                        padding: EdgeInsets.all(largeLayout ? 8 : 3),
-                        child: widget.bottomLeft,
-                      ),
-                    ),
-                  if (widget.bottomRight != null || _showMenu)
-                    Align(
-                      alignment: Alignment.bottomRight,
-                      child: Padding(
-                        padding: EdgeInsets.all(largeLayout ? 8 : 3),
-                        child:
-                            widget.bottomRight ??
-                            OnCoverMenuButton(menuOptions: widget.menuOptions),
-                      ),
-                    ),
-                ];
-
-                if (stackChildren.length == 1) {
-                  return cover;
-                }
-
-                return Stack(
-                  fit: StackFit.loose,
-                  alignment: Alignment.center,
-                  children: stackChildren,
-                );
-              },
+    final Widget child = widget.size != null
+        ? _buildContent(context, widget.size!)
+        : LayoutBuilder(
+            builder: (context, constraints) => _buildContent(
+              context,
+              min(constraints.maxWidth, constraints.maxHeight),
             ),
-          ),
-        );
-      },
-    );
+          );
     if (_showMenu) {
       return WithContextMenu(options: widget.menuOptions, child: child);
     }
     return child;
+  }
+
+  Widget _buildContent(BuildContext context, double size) {
+    return Align(
+      alignment: Alignment.center,
+      child: SizedBox.square(
+        dimension: size,
+        child: Provider<OnCoverIconButtonSize>.value(
+          value: size >= 256
+              ? OnCoverIconButtonSize.large
+              : OnCoverIconButtonSize.normal,
+          builder: (context, _) {
+            final buttonSize = context.read<OnCoverIconButtonSize>();
+            final largeLayout = buttonSize == OnCoverIconButtonSize.large;
+            if (widget.uploading) {
+              return const Padding(
+                padding: EdgeInsets.all(8.0),
+                child: CircularProgressIndicator.adaptive(),
+              );
+            }
+
+            final cover = CoverArt(
+              size: size,
+              placeholderIcon: widget.placeholderIcon,
+              borderRadius: widget.borderRadius,
+              coverId: widget.coverId,
+            );
+
+            final stackChildren = [
+              cover,
+              if (widget.topLeft != null || widget.isFavorite)
+                Align(
+                  alignment: Alignment.topLeft,
+                  child: Padding(
+                    padding: EdgeInsets.all(largeLayout ? 8 : 3),
+                    child:
+                        widget.topLeft ??
+                        DecoratedIcon(
+                          decoration: const IconDecoration(
+                            border: IconBorder(color: Colors.black, width: 2),
+                          ),
+                          icon: Icon(
+                            Icons.favorite,
+                            size: largeLayout ? 26 : 20,
+                            color: const Color.fromARGB(255, 248, 248, 248),
+                          ),
+                        ),
+                  ),
+                ),
+              if (widget.topRight != null ||
+                  widget.downloadStatus != DownloadStatus.none)
+                Align(
+                  alignment: Alignment.topRight,
+                  child: Padding(
+                    padding: EdgeInsets.all(largeLayout ? 8 : 3),
+                    child:
+                        widget.topRight ??
+                        DecoratedIcon(
+                          decoration: const IconDecoration(
+                            border: IconBorder(color: Colors.black, width: 1),
+                          ),
+                          icon: Icon(
+                            widget.downloadStatus == DownloadStatus.downloading
+                                ? Icons.downloading_outlined
+                                : Icons.download_for_offline_outlined,
+                            size: largeLayout ? 26 : 20,
+                            color: const Color.fromARGB(255, 248, 248, 248),
+                          ),
+                        ),
+                  ),
+                ),
+              if (widget.bottomLeft != null)
+                Align(
+                  alignment: Alignment.bottomLeft,
+                  child: Padding(
+                    padding: EdgeInsets.all(largeLayout ? 8 : 3),
+                    child: widget.bottomLeft,
+                  ),
+                ),
+              if (widget.bottomRight != null || _showMenu)
+                Align(
+                  alignment: Alignment.bottomRight,
+                  child: Padding(
+                    padding: EdgeInsets.all(largeLayout ? 8 : 3),
+                    child:
+                        widget.bottomRight ??
+                        OnCoverMenuButton(menuOptions: widget.menuOptions),
+                  ),
+                ),
+            ];
+
+            if (stackChildren.length == 1) {
+              return cover;
+            }
+
+            return Stack(
+              fit: StackFit.loose,
+              alignment: Alignment.center,
+              children: stackChildren,
+            );
+          },
+        ),
+      ),
+    );
   }
 }
 

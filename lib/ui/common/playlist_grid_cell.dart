@@ -20,6 +20,7 @@ class PlaylistGridCell extends StatefulWidget {
   final String? coverId;
   final bool download;
   final DownloadStatus downloadStatus;
+  final double? coverSize;
 
   final void Function()? onTap;
   final void Function()? onPlay;
@@ -37,6 +38,7 @@ class PlaylistGridCell extends StatefulWidget {
     this.downloadStatus = DownloadStatus.none,
     this.coverId,
     required this.download,
+    this.coverSize,
     this.onTap,
     this.onPlay,
     this.onShuffle,
@@ -107,6 +109,7 @@ class _PlaylistGridCellState extends State<PlaylistGridCell> {
     return GridCell(
       title: widget.name,
       coverId: widget.coverId,
+      coverSize: widget.coverSize,
       menuOptions: menuOptions,
       placeholderIcon: Icons.album,
       downloadStatus: widget.downloadStatus,

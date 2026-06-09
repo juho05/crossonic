@@ -121,31 +121,41 @@ class _ArtistsPageState extends State<ArtistsPage> {
                 ),
               SliverPadding(
                 padding: const EdgeInsetsGeometry.all(4),
-                sliver: SliverGrid(
-                  gridDelegate: AlbumsGridDelegate(),
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      if (index > _viewModel.artists.length) {
-                        return null;
-                      }
-                      if (index == _viewModel.artists.length) {
-                        return switch (_viewModel.status) {
-                          FetchStatus.success => null,
-                          FetchStatus.failure => const Center(
-                            child: Icon(Icons.wifi_off),
-                          ),
-                          _ => const Center(
-                            child: CircularProgressIndicator.adaptive(),
-                          ),
-                        };
-                      }
-                      final a = _viewModel.artists[index];
-                      return ArtistGridCell(artist: a, key: ValueKey(a.id));
-                    },
-                    childCount:
-                        (_viewModel.status == FetchStatus.success ? 0 : 1) +
-                        _viewModel.artists.length,
-                  ),
+                sliver: SliverLayoutBuilder(
+                  builder: (context, constraints) {
+                    final delegate = AlbumsGridDelegate();
+                    final coverSize = delegate.coverSize(constraints);
+                    return SliverGrid(
+                      gridDelegate: delegate,
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          if (index > _viewModel.artists.length) {
+                            return null;
+                          }
+                          if (index == _viewModel.artists.length) {
+                            return switch (_viewModel.status) {
+                              FetchStatus.success => null,
+                              FetchStatus.failure => const Center(
+                                child: Icon(Icons.wifi_off),
+                              ),
+                              _ => const Center(
+                                child: CircularProgressIndicator.adaptive(),
+                              ),
+                            };
+                          }
+                          final a = _viewModel.artists[index];
+                          return ArtistGridCell(
+                            artist: a,
+                            key: ValueKey(a.id),
+                            coverSize: coverSize,
+                          );
+                        },
+                        childCount:
+                            (_viewModel.status == FetchStatus.success ? 0 : 1) +
+                            _viewModel.artists.length,
+                      ),
+                    );
+                  },
                 ),
               ),
             ],

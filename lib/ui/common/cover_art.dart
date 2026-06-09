@@ -12,7 +12,7 @@ import 'dart:math';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:crossonic/data/repositories/cover/cover_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/subsonic_repository.dart';
-import 'package:crossonic/ui/common/shimmer.dart';
+import 'package:crossonic/ui/common/loading_box.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -95,7 +95,7 @@ class _CoverArtState extends State<CoverArt> {
                     errorWidget: (context, url, error) => placeholder(size),
                     fadeInDuration: const Duration(milliseconds: 100),
                     fadeOutDuration: const Duration(milliseconds: 100),
-                    placeholder: (context, url) => const ShimmerLoading(),
+                    placeholder: (context, url) => const LoadingBox(),
                     cacheManager: context.read<CoverRepository>(),
                     memCacheWidth: Platform.isAndroid || Platform.isIOS
                         ? (size * dpi).ceil()

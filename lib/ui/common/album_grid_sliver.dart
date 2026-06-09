@@ -29,30 +29,42 @@ class AlbumGridSliver extends StatelessWidget {
         child: Center(child: Text("No releases found")),
       );
     }
+    final delegate = AlbumsGridDelegate();
     return SliverPadding(
       padding: const EdgeInsetsGeometry.symmetric(horizontal: 4),
-      sliver: SliverGrid(
-        gridDelegate: AlbumsGridDelegate(),
-        delegate: SliverChildBuilderDelegate(
-          (context, index) {
-            if (index > albums.length) {
-              return null;
-            }
-            if (index == albums.length) {
-              return switch (fetchStatus) {
-                FetchStatus.success => null,
-                FetchStatus.failure => const Center(
-                  child: Icon(Icons.wifi_off),
-                ),
-                _ => const Center(child: CircularProgressIndicator.adaptive()),
-              };
-            }
-            final a = albums[index];
-            return AlbumGridCell(album: a);
-          },
-          childCount:
-              (fetchStatus == FetchStatus.success ? 0 : 1) + albums.length,
-        ),
+      sliver: SliverLayoutBuilder(
+        builder: (context, constraints) {
+          final coverSize = delegate.coverSize(constraints);
+          return SliverGrid(
+            gridDelegate: delegate,
+            delegate: SliverChildBuilderDelegate(
+              (context, index) {
+                if (index > albums.length) {
+                  return null;
+                }
+                if (index == albums.length) {
+                  return switch (fetchStatus) {
+                    FetchStatus.success => null,
+                    FetchStatus.failure => const Center(
+                      child: Icon(Icons.wifi_off),
+                    ),
+                    _ => const Center(
+                      child: CircularProgressIndicator.adaptive(),
+                    ),
+                  };
+                }
+                final a = albums[index];
+                return AlbumGridCell(
+                  album: a,
+                  key: ValueKey(a.id),
+                  coverSize: coverSize,
+                );
+              },
+              childCount:
+                  (fetchStatus == FetchStatus.success ? 0 : 1) + albums.length,
+            ),
+          );
+        },
       ),
     );
   }

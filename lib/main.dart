@@ -39,6 +39,8 @@ final defaultDarkColorScheme = ColorScheme.fromSeed(
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  PaintingBinding.instance.imageCache.maximumSizeBytes = 200 << 20; // 200 MB
+
   MethodChannelService methodChannelService = MethodChannelService();
 
   LogRepository logRepository = LogRepository();
