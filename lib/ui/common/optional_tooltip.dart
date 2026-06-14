@@ -14,13 +14,11 @@ import 'package:flutter/material.dart';
 class OptionalTooltip extends StatelessWidget {
   final String? message;
   final Widget child;
-  final bool triggerOnLongPress;
   final bool enableDelay;
 
   const OptionalTooltip({
     super.key,
     this.message,
-    this.triggerOnLongPress = true,
     this.enableDelay = true,
     required this.child,
   });
@@ -29,12 +27,10 @@ class OptionalTooltip extends StatelessWidget {
   Widget build(BuildContext context) {
     if (message == null || message!.isEmpty) return child;
     // don't build tooltips on mobile
-    if (!kIsWeb && !Platform.isAndroid && !Platform.isIOS) return child;
+    if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) return child;
 
     return Tooltip(
-      triggerMode: triggerOnLongPress
-          ? TooltipTriggerMode.longPress
-          : TooltipTriggerMode.manual,
+      triggerMode: TooltipTriggerMode.manual,
       waitDuration: const Duration(milliseconds: 500),
       message: message,
       child: child,

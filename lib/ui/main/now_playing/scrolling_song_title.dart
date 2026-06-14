@@ -26,7 +26,6 @@ class ScrollingSongTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     return OptionalTooltip(
       message: title,
-      triggerOnLongPress: false,
       child: TextScroll(
         title,
         textAlign: textAlign,

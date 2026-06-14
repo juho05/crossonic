@@ -84,7 +84,6 @@ class GridCell extends StatelessWidget {
               const SizedBox(height: 2),
               OptionalTooltip(
                 message: title,
-                triggerOnLongPress: false,
                 child: Text(
                   title,
                   overflow: TextOverflow.ellipsis,
@@ -96,7 +95,6 @@ class GridCell extends StatelessWidget {
               ),
               OptionalTooltip(
                 message: extraInfo,
-                triggerOnLongPress: false,
                 child: Text(
                   extraInfo,
                   overflow: TextOverflow.ellipsis,

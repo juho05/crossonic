@@ -47,7 +47,6 @@ class NowPlayingCollapsed extends StatelessWidget {
               children: [
                 OptionalTooltip(
                   message: _viewModel.album?.name,
-                  triggerOnLongPress: false,
                   child: SizedBox(
                     height: 40,
                     child: CoverArt(
@@ -74,7 +73,6 @@ class NowPlayingCollapsed extends StatelessWidget {
                       Flexible(
                         child: OptionalTooltip(
                           message: _viewModel.displayArtist,
-                          triggerOnLongPress: false,
                           child: Text(
                             _viewModel.displayArtist,
                             style: textStyle.bodySmall!.copyWith(

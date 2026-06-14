@@ -65,7 +65,6 @@ class ClickableListItem extends StatelessWidget {
                 children: [
                   OptionalTooltip(
                     message: title,
-                    triggerOnLongPress: false,
                     child: Text(
                       title,
                       style: textTheme.bodyMedium!.copyWith(
@@ -116,7 +115,6 @@ class ClickableListItem extends StatelessWidget {
                             alignment: Alignment.centerLeft,
                             child: OptionalTooltip(
                               message: extraInfo.join(" • "),
-                              triggerOnLongPress: false,
                               child: Text(
                                 extraInfo.join(" • "),
                                 style: textTheme.bodySmall!.copyWith(
