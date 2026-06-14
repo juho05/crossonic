@@ -170,7 +170,8 @@ class PlayerManager {
   Future<void> play() async {
     Log.trace("play");
 
-    if (_playbackStatus.value == PlaybackStatus.playing) {
+    if (_playbackStatus.value == PlaybackStatus.playing ||
+        _playbackStatus.value == PlaybackStatus.stopped) {
       return;
     }
 
@@ -185,7 +186,8 @@ class PlayerManager {
 
     Log.debug("player manager pause called");
 
-    if (_playbackStatus.value == PlaybackStatus.paused) {
+    if (_playbackStatus.value == PlaybackStatus.paused ||
+        _playbackStatus.value == PlaybackStatus.stopped) {
       return;
     }
 
