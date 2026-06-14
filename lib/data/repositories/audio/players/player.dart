@@ -74,7 +74,7 @@ abstract class AudioPlayer {
     _coverUri = coverUri;
     _supportsTimeOffset = supportsTimeOffset;
     _supportsTimeOffsetMs = supportsTimeOffsetMs;
-    _maxBitRate = _maxBitRate;
+    _maxBitRate = maxBitRate;
     _format = format;
     if (updateCurrentMediaItem && currentSong.value != null) {
       await setCurrent(
