@@ -12,6 +12,7 @@ import androidx.annotation.Nullable;
 import androidx.media3.common.C;
 import androidx.media3.common.ParserException;
 import androidx.media3.common.PlaybackException;
+import androidx.media3.common.util.UnstableApi;
 import androidx.media3.datasource.DataSourceException;
 import androidx.media3.datasource.HttpDataSource;
 import androidx.media3.exoplayer.upstream.DefaultLoadErrorHandlingPolicy;
@@ -21,6 +22,7 @@ import java.io.FileNotFoundException;
 
 import static java.lang.Math.min;
 
+@UnstableApi
 public class CrossonicLoadErrorHandlingPolicy extends DefaultLoadErrorHandlingPolicy {
     @Override
     public int getMinimumLoadableRetryCount(int dataType) {
@@ -45,9 +47,16 @@ public class CrossonicLoadErrorHandlingPolicy extends DefaultLoadErrorHandlingPo
     }
 
     private boolean isNonRetriableException(Throwable exception) {
+        if (exception instanceof HttpDataSource.InvalidResponseCodeException e) {
+            final int code = e.responseCode;
+            if (code >= 400 && code < 500) {
+                return true;
+            }
+        }
         return exception instanceof ParserException
                 || exception instanceof FileNotFoundException
                 || exception instanceof HttpDataSource.CleartextNotPermittedException
+                || exception instanceof HttpDataSource.InvalidContentTypeException
                 || exception instanceof Loader.UnexpectedLoaderException
                 || (exception instanceof DataSourceException
                 && ((DataSourceException) exception).reason

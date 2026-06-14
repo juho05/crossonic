@@ -22,6 +22,8 @@ import androidx.media3.common.text.Cue;
 import androidx.media3.common.text.CueGroup;
 import androidx.media3.common.util.Size;
 import androidx.media3.common.util.UnstableApi;
+import androidx.media3.datasource.DefaultHttpDataSource;
+import androidx.media3.datasource.HttpDataSource;
 import androidx.media3.exoplayer.ExoPlayer;
 import androidx.media3.exoplayer.Renderer;
 import androidx.media3.exoplayer.RenderersFactory;
@@ -77,9 +79,24 @@ public class CrossonicPlayer implements Player {
                         new Renderer[]{
                                 new MediaCodecAudioRenderer(context, MediaCodecSelector.DEFAULT, handler, audioListener)
                         };
+
+        final HttpDataSource.Factory httpDataSourceFactory = new DefaultHttpDataSource.Factory()
+                .setConnectTimeoutMs(15000)
+                .setReadTimeoutMs(60000)
+                .setAllowCrossProtocolRedirects(true);
+
         final ExoPlayer.Builder builder = new ExoPlayer.Builder(context, audioOnlyRenderersFactory);
-        builder.setMediaSourceFactory(new DefaultMediaSourceFactory(context, new DefaultExtractorsFactory().setConstantBitrateSeekingEnabled(true)).setLoadErrorHandlingPolicy(new CrossonicLoadErrorHandlingPolicy()));
-        builder.setAudioAttributes(new AudioAttributes.Builder().setUsage(C.USAGE_MEDIA).setContentType(C.AUDIO_CONTENT_TYPE_MUSIC).setAllowedCapturePolicy(C.ALLOW_CAPTURE_BY_ALL).build(), true);
+
+        builder.setMediaSourceFactory(new DefaultMediaSourceFactory(context, new DefaultExtractorsFactory()
+                .setConstantBitrateSeekingEnabled(true))
+                .setLoadErrorHandlingPolicy(new CrossonicLoadErrorHandlingPolicy())
+                .setDataSourceFactory(httpDataSourceFactory));
+
+        builder.setAudioAttributes(new AudioAttributes.Builder()
+                .setUsage(C.USAGE_MEDIA)
+                .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
+                .setAllowedCapturePolicy(C.ALLOW_CAPTURE_BY_ALL).build(), true);
+
         builder.setHandleAudioBecomingNoisy(true);
 
         final ExoPlayer player = builder.build();
@@ -101,6 +118,8 @@ public class CrossonicPlayer implements Player {
                         .setTrackTypeDisabled(C.TRACK_TYPE_METADATA, true)
                         .build()
         );
+        player.setPreloadConfiguration(new ExoPlayer.PreloadConfiguration(10_000_000));
+        player.setWakeMode(C.WAKE_MODE_NETWORK);
 
         return player;
     }
