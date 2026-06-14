@@ -917,7 +917,7 @@ public class CrossonicPlayer implements Player {
     @Override
     public long getDuration() {
         final var mediaItem = player.getCurrentMediaItem();
-        if (mediaItem == null) return 0;
+        if (mediaItem == null) return C.TIME_UNSET;
         final Long duration = mediaItem.mediaMetadata.durationMs;
         if (duration != null) return duration;
         return player.getDuration();

@@ -9,11 +9,10 @@
 package org.crossonic.app;
 
 import androidx.annotation.OptIn;
+import androidx.media3.common.C;
 import androidx.media3.common.Timeline;
 import androidx.media3.common.util.UnstableApi;
 import org.jspecify.annotations.NonNull;
-
-import java.util.Objects;
 
 public class CustomTimeline extends Timeline {
     private final Timeline originalTimeline;
@@ -31,6 +30,7 @@ public class CustomTimeline extends Timeline {
     @Override
     public @NonNull Window getWindow(int windowIndex, @NonNull Window window, long defaultPositionProjectionUs) {
         final Window w = originalTimeline.getWindow(windowIndex, window, defaultPositionProjectionUs);
+        final Long durationMs = window.mediaItem.mediaMetadata.durationMs;
         window.set(
                 w.uid,
                 w.mediaItem,
@@ -42,7 +42,7 @@ public class CustomTimeline extends Timeline {
                 w.isDynamic,
                 w.liveConfiguration,
                 w.defaultPositionUs,
-                Objects.requireNonNull(window.mediaItem.mediaMetadata.durationMs)*1000,
+                durationMs != null ? durationMs * 1000 : C.TIME_UNSET,
                 w.firstPeriodIndex,
                 w.lastPeriodIndex,
                 w.positionInFirstPeriodUs

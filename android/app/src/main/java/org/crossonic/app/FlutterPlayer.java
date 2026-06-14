@@ -109,7 +109,7 @@ public class FlutterPlayer extends SimpleBasePlayer {
 
         final var mediaItemDataBuilder = new MediaItemData.Builder(mediaItem.mediaId);
         if (mediaItem.mediaMetadata.durationMs != null) {
-            mediaItemDataBuilder.setDurationUs(mediaItem.mediaMetadata.durationMs);
+            mediaItemDataBuilder.setDurationUs(mediaItem.mediaMetadata.durationMs * 1000);
         }
         // TODO support seeking
         mediaItemDataBuilder.setIsSeekable(false);
