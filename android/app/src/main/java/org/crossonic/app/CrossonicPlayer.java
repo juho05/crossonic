@@ -443,10 +443,10 @@ public class CrossonicPlayer implements Player {
     private String mapToQuery(Map<String, List<String>> map) {
         StringBuilder sb = new StringBuilder();
         for (String key : map.keySet()) {
-            if (sb.length() > 0) {
-                sb.append("&");
-            }
             for (String value : Objects.requireNonNull(map.get(key))) {
+                if (sb.length() > 0) {
+                    sb.append("&");
+                }
                 try {
                     sb.append(URLEncoder.encode(key, "UTF-8")).append("=").append(URLEncoder.encode(value, "UTF-8"));
                 } catch (UnsupportedEncodingException e) {
