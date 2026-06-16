@@ -31,7 +31,7 @@ public class ChangePlayer extends ForwardingSimpleBasePlayer {
 
         activePlayer = flutterPlayer;
         setPlayer(flutterPlayer);
-        activePlayer.stop();
+        androidPlayer.stop();
         CLog.debug("ChangePlayer", "flutter player active", null);
     }
 
