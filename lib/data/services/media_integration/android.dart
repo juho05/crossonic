@@ -64,7 +64,7 @@ class MediaIntegrationAndroid implements MediaIntegration {
         await _onPlayNext?.call();
       case "playPrev":
         await _onPlayPrev?.call();
-      case "setLoop":
+      case "loop":
         await _onLoopChanged?.call(data!["loop"]);
       case "play":
         await _onPlay?.call();

@@ -347,7 +347,7 @@ public class CrossonicPlayer implements Player {
             return;
         }
         //noinspection DataFlowIssue
-        targetVolume = call.argument("volume");
+        targetVolume = ((Number) call.argument("volume")).doubleValue();
         updatePlayerVolume();
         result.success(null);
     }
@@ -358,7 +358,7 @@ public class CrossonicPlayer implements Player {
             return;
         }
         //noinspection DataFlowIssue
-        replayGain = call.argument("replayGain");
+        replayGain = ((Number) call.argument("replayGain")).doubleValue();
         updatePlayerVolume();
         result.success(null);
     }
