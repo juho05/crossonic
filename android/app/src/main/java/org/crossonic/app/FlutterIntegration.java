@@ -28,6 +28,7 @@ public class FlutterIntegration {
     private static class MCall {
         MethodCall call;
         MethodChannel.Result result;
+
         MCall(MethodCall call, MethodChannel.Result result) {
             this.call = call;
             this.result = result;
@@ -58,6 +59,7 @@ public class FlutterIntegration {
             public void onListen(Object arguments, EventChannel.EventSink events) {
                 eventSink = events;
             }
+
             @Override
             public void onCancel(Object arguments) {
                 eventSink = null;
@@ -68,6 +70,8 @@ public class FlutterIntegration {
         return flutterEngine;
     }
 
+    private static final Handler mainThreadHandler = new Handler(Looper.getMainLooper());
+
     public static void sendEvent(String event, Map<String, Object> data) {
         if (eventSink == null) return;
         final Map<String, Object> map = new HashMap<>();
@@ -75,13 +79,12 @@ public class FlutterIntegration {
         if (data != null) {
             map.put("data", data);
         }
-        eventSink.success(map);
+        mainThreadHandler.post(() -> eventSink.success(map));
     }
 
-    private static final Handler mainThreadHandler = new Handler(Looper.getMainLooper());
     public static ListenableFuture<Object> invokeMethod(String method, @Nullable Object arguments) {
-        return CallbackToFutureAdapter.getFuture(completer->{
-            mainThreadHandler.post(()-> methodChannel.invokeMethod(method, arguments, new MethodChannel.Result() {
+        return CallbackToFutureAdapter.getFuture(completer -> {
+            mainThreadHandler.post(() -> methodChannel.invokeMethod(method, arguments, new MethodChannel.Result() {
                 @Override
                 public void success(@Nullable @org.jspecify.annotations.Nullable Object result) {
                     completer.set(result);
