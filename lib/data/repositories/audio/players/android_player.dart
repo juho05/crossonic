@@ -22,6 +22,9 @@ class AudioPlayerAndroid extends AudioPlayer {
 
   DateTime? _initTime;
 
+  @override
+  bool get supportsFilePlayback => true;
+
   AudioPlayerAndroid({
     required MethodChannelService methodChannel,
     required CoverRepository coverRepository,

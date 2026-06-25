@@ -26,6 +26,9 @@ class AudioPlayerMediaKit extends AudioPlayer {
 
   Player? _player;
 
+  @override
+  bool get supportsFilePlayback => true;
+
   AudioPlayerMediaKit({
     required super.downloader,
     required MediaIntegration integration,
