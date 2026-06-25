@@ -12,6 +12,7 @@ import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/data/repositories/settings/appearance.dart';
 import 'package:crossonic/data/repositories/settings/home_page_layout.dart';
 import 'package:crossonic/data/repositories/settings/logging.dart';
+import 'package:crossonic/data/repositories/settings/prefetch.dart';
 import 'package:crossonic/data/repositories/settings/replay_gain.dart';
 import 'package:crossonic/data/repositories/settings/transcoding.dart';
 import 'package:crossonic/data/repositories/settings/version_checking.dart';
@@ -22,6 +23,7 @@ class SettingsRepository {
   final LoggingSettings logging;
   final ReplayGainSettings replayGain;
   final TranscodingSettings transcoding;
+  final PrefetchSettings prefetch;
   final HomeLayoutSettings homeLayout;
   final AppearanceSettings appearanceSettings;
   final WorkaroundSettings workarounds;
@@ -38,6 +40,7 @@ class SettingsRepository {
          subsonicRepository: subsonic,
        ),
        homeLayout = HomeLayoutSettings(keyValueRepository: keyValueRepository),
+       prefetch = PrefetchSettings(keyValueRepository: keyValueRepository),
        appearanceSettings = AppearanceSettings(
          keyValueRepository: keyValueRepository,
        ),
@@ -63,6 +66,7 @@ class SettingsRepository {
     await Future.wait([
       replayGain.load(),
       transcoding.load(),
+      prefetch.load(),
       homeLayout.load(),
       appearanceSettings.load(),
       workarounds.load(),
@@ -73,6 +77,7 @@ class SettingsRepository {
   void dispose() {
     replayGain.dispose();
     transcoding.dispose();
+    prefetch.dispose();
     homeLayout.dispose();
     appearanceSettings.dispose();
     workarounds.dispose();

@@ -50,6 +50,8 @@ class PlayerManager {
 
   Future<Duration> get bufferedPosition async => await _player.bufferedPosition;
 
+  bool get supportsFilePlayback => _player.supportsFilePlayback;
+
   double _volume = 1;
 
   final BehaviorSubject<double> _volumeLinearStream = BehaviorSubject.seeded(1);

@@ -10,6 +10,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:background_downloader/background_downloader.dart';
+import 'package:crossonic/data/repositories/audio/players/local_song_source.dart';
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
 import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/data/repositories/playlist/downloader_storage.dart';
@@ -22,7 +23,7 @@ import 'package:path_provider/path_provider.dart';
 
 enum DownloadStatus { none, enqueued, downloading, downloaded }
 
-class SongDownloader extends ChangeNotifier {
+class SongDownloader extends ChangeNotifier implements LocalSongSource {
   static const _taskGroup = "song_download";
 
   final db.Database _db;
@@ -32,12 +33,10 @@ class SongDownloader extends ChangeNotifier {
   final Map<String, DownloadStatus> _downloadStatus = {};
 
   SongDownloader({
-    required db.Database db,
-    required AuthRepository auth,
-    required SubsonicService subsonic,
-  }) : _db = db,
-       _auth = auth,
-       _subsonic = subsonic;
+    required this._db,
+    required this._auth,
+    required this._subsonic,
+  });
 
   String? _dir;
 
@@ -105,16 +104,20 @@ class SongDownloader extends ChangeNotifier {
     notifyListeners();
   }
 
+  @override
   bool isDownloaded(String songId) =>
       _downloadStatus[songId] == DownloadStatus.downloaded;
+
   bool isDownloading(String songId) =>
       _downloadStatus[songId] == DownloadStatus.downloading;
+
   bool isEnqueued(String songId) =>
       _downloadStatus[songId] == DownloadStatus.enqueued;
 
   DownloadStatus getStatus(String songId) =>
       _downloadStatus[songId] ?? DownloadStatus.none;
 
+  @override
   String? getPath(String songId) {
     if (kIsWeb || _dir == null) return null;
     final p = path.join(_dir!, songId);
@@ -123,6 +126,7 @@ class SongDownloader extends ChangeNotifier {
   }
 
   Timer? _updateDebounce;
+
   void update([bool disableTimeout = false]) {
     if (kIsWeb) return;
     _updateDebounce?.cancel();
@@ -134,6 +138,7 @@ class SongDownloader extends ChangeNotifier {
   }
 
   bool _updating = false;
+
   Future<void> _update() async {
     if (kIsWeb || _updating || _dir == null) return;
     _updating = true;

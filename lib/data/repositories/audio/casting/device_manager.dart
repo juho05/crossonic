@@ -15,14 +15,14 @@ import 'package:crossonic/data/repositories/audio/casting/device_discoverer.dart
 import 'package:crossonic/data/repositories/audio/casting/local_device.dart';
 import 'package:crossonic/data/repositories/audio/casting/sonos/sonos_device.dart';
 import 'package:crossonic/data/repositories/audio/casting/sonos/sonos_discoverer.dart';
+import 'package:crossonic/data/repositories/audio/players/local_song_source.dart';
 import 'package:crossonic/data/repositories/audio/players/player.dart';
 import 'package:crossonic/data/repositories/audio/players/sonos_player.dart';
-import 'package:crossonic/data/repositories/playlist/song_downloader.dart';
 import 'package:crossonic/data/services/upnp/upnp_service.dart';
 import 'package:flutter/foundation.dart';
 
 class DeviceManager extends ChangeNotifier {
-  final SongDownloader _songDownloader;
+  final LocalSongSource _localSource;
   final UpnpService _upnpService;
 
   final List<DeviceDiscoverer> _discoverers = [
@@ -37,11 +37,7 @@ class DeviceManager extends ChangeNotifier {
 
   bool get discovering => _discovering;
 
-  DeviceManager({
-    required SongDownloader songDownloader,
-    required UpnpService upnpService,
-  }) : _songDownloader = songDownloader,
-       _upnpService = upnpService {
+  DeviceManager({required this._localSource, required this._upnpService}) {
     _registerDeviceStreams();
   }
 
@@ -85,7 +81,7 @@ class DeviceManager extends ChangeNotifier {
   Future<AudioPlayer?> createPlayerFromDevice(Device device) async {
     if (device is SonosDevice) {
       return SonosPlayer(
-        downloader: _songDownloader,
+        downloader: _localSource,
         device: device,
         upnpService: _upnpService,
       );

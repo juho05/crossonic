@@ -17,6 +17,7 @@ import 'package:crossonic/data/repositories/audio/casting/device_manager.dart';
 import 'package:crossonic/data/repositories/audio/playback_manager.dart';
 import 'package:crossonic/data/repositories/audio/player_manager.dart';
 import 'package:crossonic/data/repositories/audio/players/android_player.dart';
+import 'package:crossonic/data/repositories/audio/players/local_song_source.dart';
 import 'package:crossonic/data/repositories/audio/players/mediakit_player.dart';
 import 'package:crossonic/data/repositories/audio/players/player.dart';
 import 'package:crossonic/data/repositories/audio/queue/queue_manager.dart';
@@ -29,6 +30,7 @@ import 'package:crossonic/data/repositories/logger/log_repository.dart';
 import 'package:crossonic/data/repositories/playlist/downloader_storage.dart';
 import 'package:crossonic/data/repositories/playlist/playlist_repository.dart';
 import 'package:crossonic/data/repositories/playlist/song_downloader.dart';
+import 'package:crossonic/data/repositories/prefetch/queue_prefetcher.dart';
 import 'package:crossonic/data/repositories/scrobble/scrobbler.dart';
 import 'package:crossonic/data/repositories/settings/settings_repository.dart';
 import 'package:crossonic/data/repositories/song/song_repository.dart';
@@ -134,6 +136,30 @@ Future<List<SingleChildWidget>> createProviders({
     });
   }
 
+  final queueManager = QueueManager(
+    db: database,
+    keyValue: keyValueRepository,
+    songRepo: songRepository,
+  );
+  await queueManager.init();
+
+  final queuePrefetcher = QueuePrefetcher(
+    auth: authRepository,
+    subsonic: subsonicService,
+    songDownloader: songDownloader,
+    queue: queueManager,
+    settings: settings.prefetch,
+    transcoding: settings.transcoding,
+  );
+  if (!kIsWeb) {
+    await queuePrefetcher.init();
+  }
+
+  final LocalSongSource localSource = CompositeLocalSource([
+    songDownloader,
+    queuePrefetcher,
+  ]);
+
   final coverRepository = CoverRepository(
     authRepository: authRepository,
     subsonicRepository: subsonicRepository,
@@ -192,12 +218,12 @@ Future<List<SingleChildWidget>> createProviders({
     localPlayer = AudioPlayerAndroid(
       methodChannel: methodChannelService,
       coverRepository: coverRepository,
-      downloader: songDownloader,
+      downloader: localSource,
       settings: settings,
     );
   } else {
     final player = AudioPlayerMediaKit(
-      downloader: songDownloader,
+      downloader: localSource,
       integration: mediaIntegration,
     );
     await player.init();
@@ -206,17 +232,10 @@ Future<List<SingleChildWidget>> createProviders({
 
   final playerManager = PlayerManager(localPlayer: localPlayer);
 
-  final queueManager = QueueManager(
-    db: database,
-    keyValue: keyValueRepository,
-    songRepo: songRepository,
-  );
-  await queueManager.init();
-
   final upnpService = UpnpService();
 
   final deviceManager = DeviceManager(
-    songDownloader: songDownloader,
+    localSource: localSource,
     upnpService: upnpService,
   );
 
@@ -229,6 +248,7 @@ Future<List<SingleChildWidget>> createProviders({
     subsonicRepository: subsonicRepository,
     integration: mediaIntegration,
     methodChannel: methodChannelService,
+    queuePrefetcher: queuePrefetcher,
   );
 
   return [

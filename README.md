@@ -77,6 +77,7 @@ iOS/iPadOS builds will soon be available via TestFlight.
 - [x] Replay gain
 - [x] Load/save queues
 - [x] Multi-library support
+- [x] Queue prefetching
 
 ### Out-of-scope
 

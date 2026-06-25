@@ -6,6 +6,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 
@@ -16,6 +17,7 @@ import 'package:crossonic/data/repositories/audio/players/android_player.dart';
 import 'package:crossonic/data/repositories/audio/queue/queue_manager.dart';
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
 import 'package:crossonic/data/repositories/logger/log.dart';
+import 'package:crossonic/data/repositories/prefetch/queue_prefetcher.dart';
 import 'package:crossonic/data/repositories/settings/replay_gain.dart';
 import 'package:crossonic/data/repositories/settings/settings_repository.dart';
 import 'package:crossonic/data/repositories/settings/transcoding.dart';
@@ -47,18 +49,20 @@ class PlaybackManager {
 
   final MediaIntegration _integration;
 
+  final QueuePrefetcher _prefetcher;
+
   PlaybackManager({
     required QueueManager queueManager,
     required PlayerManager playerManager,
-    required DeviceManager deviceManager,
+    required this._deviceManager,
     required AuthRepository authRepository,
     required SettingsRepository settingsRepository,
     required SubsonicRepository subsonicRepository,
-    required MediaIntegration integration,
-    required MethodChannelService methodChannel,
+    required this._integration,
+    required this._methodChannel,
+    required QueuePrefetcher queuePrefetcher,
   }) : _queue = queueManager,
        _player = playerManager,
-       _deviceManager = deviceManager,
        _auth = authRepository,
        _settings = settingsRepository,
        _subsonic = subsonicRepository,
@@ -66,8 +70,7 @@ class PlaybackManager {
          settingsRepository.transcoding.codec,
          settingsRepository.transcoding.maxBitRate,
        ),
-       _integration = integration,
-       _methodChannel = methodChannel {
+       _prefetcher = queuePrefetcher {
     _auth.addListener(_onAuthChanged);
     _onAuthChanged();
 
@@ -75,6 +78,10 @@ class PlaybackManager {
 
     _settings.transcoding.addListener(_onTranscodingChanged);
     _settings.replayGain.addListener(_applyReplayGain);
+    _settings.prefetch.addListener(_refreshPrefetchState);
+
+    _prefetcher.songCached.listen(_onSongCached);
+    _refreshPrefetchState();
 
     _integration.ensureInitialized(
       onPlay: _player.play,
@@ -164,6 +171,8 @@ class PlaybackManager {
     _player.connectPlayerStreams();
 
     await _applyReplayGain();
+
+    _refreshPrefetchState();
 
     Log.debug("player: $player");
 
@@ -303,6 +312,81 @@ class PlaybackManager {
     Log.debug("replay gain of current song: $gain dB -> $volume");
 
     await _player.applyReplayGain(volume);
+  }
+
+  static const Duration _prefetchBufferThreshold = Duration(seconds: 3);
+
+  Timer? _prefetchMonitor;
+  Timer? _prefetchThrottleTimer;
+
+  void _refreshPrefetchState() {
+    if (_player.supportsFilePlayback && _settings.prefetch.enabled) {
+      _prefetcher.enable();
+      _startPrefetchMonitor();
+    } else {
+      _prefetcher.disable();
+      _stopPrefetchMonitor();
+      _prefetcher.setThrottled(false);
+    }
+  }
+
+  void _startPrefetchMonitor() {
+    _prefetchMonitor ??= Timer.periodic(
+      const Duration(seconds: 1),
+      (_) => _evaluatePrefetchPressure(),
+    );
+  }
+
+  void _stopPrefetchMonitor() {
+    _prefetchMonitor?.cancel();
+    _prefetchMonitor = null;
+    _prefetchThrottleTimer?.cancel();
+    _prefetchThrottleTimer = null;
+  }
+
+  Future<void> _evaluatePrefetchPressure() async {
+    final status = _player.playbackStatus.value;
+    if (status == PlaybackStatus.stopped || status == PlaybackStatus.paused) {
+      _unthrottlePrefetch();
+      return;
+    }
+
+    final buffered = await _player.bufferedPosition;
+    final ahead = buffered - _player.position;
+    final healthy =
+        status == PlaybackStatus.playing &&
+        (_player.position < const Duration(seconds: 3) ||
+            ahead >= _prefetchBufferThreshold);
+
+    if (healthy) {
+      _unthrottlePrefetch();
+    } else {
+      _prefetchThrottleTimer ??= Timer(const Duration(seconds: 1), () {
+        _prefetchThrottleTimer = null;
+        _prefetcher.setThrottled(true);
+      });
+    }
+  }
+
+  void _unthrottlePrefetch() {
+    _prefetchThrottleTimer?.cancel();
+    _prefetchThrottleTimer = null;
+    _prefetcher.setThrottled(false);
+  }
+
+  void _onSongCached(Song song) {
+    if (!_player.supportsFilePlayback) return;
+    final next = _queue.currentAndNext.value.next;
+    if (next == null || next.id != song.id) return;
+
+    final duration = _queue.current.value?.duration;
+    if (duration != null &&
+        duration - _player.position <= const Duration(seconds: 10)) {
+      return;
+    }
+
+    Log.debug("prefetched next song ${next.id} ready, re-setting next");
+    _player.setNext(next);
   }
 
   Future<void> _configurePlayerServerURL() async {

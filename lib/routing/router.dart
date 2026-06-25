@@ -208,6 +208,12 @@ class AppRouter extends RootStackRouter {
       restorationId: (match) => match.fullPath,
     ),
     AutoRoute(
+      path: "/settings/prefetch",
+      page: PrefetchRoute.page,
+      title: (context, data) => "Prefetch",
+      restorationId: (match) => match.fullPath,
+    ),
+    AutoRoute(
       path: "/settings/scan",
       page: ScanRoute.page,
       title: (context, data) => "Scan",

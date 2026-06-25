@@ -77,6 +77,12 @@ class _SettingsPageState extends State<SettingsPage> {
             trailing: const Icon(Icons.arrow_forward_ios),
             onTap: () => context.router.push(const ReplayGainRoute()),
           ),
+          if (!kIsWeb)
+            ListTile(
+              title: const Text("Prefetch"),
+              trailing: const Icon(Icons.arrow_forward_ios),
+              onTap: () => context.router.push(const PrefetchRoute()),
+            ),
           ListTile(
             title: const Text("Scan"),
             trailing: const Icon(Icons.arrow_forward_ios),

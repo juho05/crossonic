@@ -11,7 +11,7 @@ import 'dart:async';
 import 'package:background_downloader/background_downloader.dart';
 import 'package:crossonic/data/repositories/audio/casting/device.dart';
 import 'package:crossonic/data/repositories/audio/casting/local_device.dart';
-import 'package:crossonic/data/repositories/playlist/song_downloader.dart';
+import 'package:crossonic/data/repositories/audio/players/local_song_source.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
 import 'package:flutter/foundation.dart';
 import 'package:rxdart/rxdart.dart';
@@ -19,7 +19,7 @@ import 'package:rxdart/rxdart.dart';
 enum AudioPlayerEvent { advance, stopped, loading, playing, paused }
 
 abstract class AudioPlayer {
-  final SongDownloader _downloader;
+  final LocalSongSource _downloader;
 
   Device get device => const LocalDevice();
 
@@ -31,7 +31,7 @@ abstract class AudioPlayer {
 
   StreamSubscription? _eventStreamSub;
 
-  AudioPlayer({required SongDownloader downloader}) : _downloader = downloader;
+  AudioPlayer({required this._downloader});
 
   late Uri _streamUri;
   late Uri _coverUri;
