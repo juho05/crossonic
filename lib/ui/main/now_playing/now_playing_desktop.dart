@@ -163,35 +163,36 @@ class NowPlayingDesktop extends StatelessWidget {
                               },
                             ),
                             const SizedBox(width: 5),
-                            if (_viewModel.playbackStatus ==
-                                    PlaybackStatus.loading ||
-                                _viewModel.playbackStatus ==
-                                    PlaybackStatus.stopped)
-                              const SizedBox(
-                                width: 40,
-                                height: 40,
-                                child: Padding(
-                                  padding: EdgeInsets.all(5.0),
-                                  child: CircularProgressIndicator.adaptive(),
+                            IconButton(
+                              icon: switch (_viewModel.playbackStatus) {
+                                PlaybackStatus.loading ||
+                                PlaybackStatus.stopped => const SizedBox(
+                                  width: 40,
+                                  height: 40,
+                                  child: Padding(
+                                    padding: EdgeInsets.all(5.0),
+                                    child: CircularProgressIndicator.adaptive(),
+                                  ),
                                 ),
-                              ),
-                            if (_viewModel.playbackStatus !=
-                                    PlaybackStatus.loading &&
-                                _viewModel.playbackStatus !=
-                                    PlaybackStatus.stopped)
-                              IconButton(
-                                icon: Icon(
+                                _ => Icon(
                                   _viewModel.playbackStatus ==
                                           PlaybackStatus.playing
                                       ? Icons.pause_circle
                                       : Icons.play_circle,
                                   size: 40,
                                 ),
-                                padding: const EdgeInsets.all(0),
-                                onPressed: () {
-                                  _viewModel.playPause();
-                                },
-                              ),
+                              },
+                              padding: const EdgeInsets.all(0),
+                              onPressed:
+                                  _viewModel.playbackStatus ==
+                                          PlaybackStatus.loading ||
+                                      _viewModel.playbackStatus ==
+                                          PlaybackStatus.stopped
+                                  ? null
+                                  : () {
+                                      _viewModel.playPause();
+                                    },
+                            ),
                             const SizedBox(width: 5),
                             IconButton(
                               icon: const Icon(Icons.skip_next, size: 32),
