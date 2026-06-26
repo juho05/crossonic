@@ -12,8 +12,7 @@ import 'package:crossonic/data/repositories/subsonic/models/song.dart';
 class SongListSliverViewModel {
   final PlaybackManager _playbackManager;
 
-  SongListSliverViewModel({required PlaybackManager playbackManager})
-    : _playbackManager = playbackManager;
+  SongListSliverViewModel({required this._playbackManager});
 
   Future<void> play(List<Song> songs, int songIndex, bool single) async {
     _playbackManager.player.playOnNextMediaChange();

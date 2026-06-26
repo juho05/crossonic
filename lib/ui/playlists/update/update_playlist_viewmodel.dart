@@ -26,9 +26,8 @@ class UpdatePlaylistViewModel extends ChangeNotifier {
 
   UpdatePlaylistViewModel({
     required PlaylistRepository playlistRepository,
-    required String playlistId,
-  }) : _repo = playlistRepository,
-       _playlistId = playlistId {
+    required this._playlistId,
+  }) : _repo = playlistRepository {
     _load();
   }
 

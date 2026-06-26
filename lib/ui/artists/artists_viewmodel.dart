@@ -46,13 +46,11 @@ class ArtistsViewModel extends ChangeNotifier {
   StreamSubscription? _musicFolderSub;
 
   ArtistsViewModel({
-    required SubsonicRepository subsonic,
-    required ArtistsPageMode mode,
+    required this._subsonic,
+    required this._mode,
     required MusicFoldersRepository musicFolders,
-    String? initialSeed,
-  }) : _subsonic = subsonic,
-       _mode = mode,
-       _initialSeed = initialSeed {
+    this._initialSeed,
+  }) {
     _musicFolderSub = musicFolders.debounced.listen((event) {
       load(keepSeed: true);
     });

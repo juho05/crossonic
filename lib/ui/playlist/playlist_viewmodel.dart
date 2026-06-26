@@ -67,13 +67,11 @@ class PlaylistViewModel extends ChangeNotifier {
 
   PlaylistViewModel({
     required PlaylistRepository playlistRepository,
-    required PlaybackManager playbackManager,
+    required this._playbackManager,
     required SongDownloader songDownloader,
-    required String playlistId,
+    required this._playlistId,
   }) : _repo = playlistRepository,
-       _playbackManager = playbackManager,
-       _downloader = songDownloader,
-       _playlistId = playlistId {
+       _downloader = songDownloader {
     _downloader.addListener(_onDownloadStatusChanged);
     _repo.addListener(_load);
     _load();

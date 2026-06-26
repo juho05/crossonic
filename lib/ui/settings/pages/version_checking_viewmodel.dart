@@ -23,10 +23,9 @@ class VersionCheckingViewModel extends ChangeNotifier {
   bool get checking => _checking;
 
   VersionCheckingViewModel({
-    required VersionCheckingSettings settings,
-    required VersionRepository repository,
-  }) : _settings = settings,
-       _repository = repository {
+    required this._settings,
+    required this._repository,
+  }) {
     _settings.addListener(_onSettingsChanged);
     _onSettingsChanged();
   }

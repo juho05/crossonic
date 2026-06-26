@@ -29,8 +29,7 @@ class AppImageRepository {
     "applications",
   );
 
-  AppImageRepository({required KeyValueRepository keyValue})
-    : _keyValue = keyValue;
+  AppImageRepository({required this._keyValue});
 
   static bool get isAppImage {
     return !kIsWeb &&

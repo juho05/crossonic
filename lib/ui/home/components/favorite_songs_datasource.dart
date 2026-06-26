@@ -14,8 +14,7 @@ import 'package:crossonic/utils/result.dart';
 class FavoriteSongsDataSource implements HomeComponentDataSource<Song> {
   final SubsonicRepository _repository;
 
-  FavoriteSongsDataSource({required SubsonicRepository repository})
-    : _repository = repository;
+  FavoriteSongsDataSource({required this._repository});
 
   @override
   Future<Result<Iterable<Song>>> get(int count, {String? seed}) async {

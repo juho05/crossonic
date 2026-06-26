@@ -60,12 +60,11 @@ class SongsViewModel extends ChangeNotifier {
 
   SongsViewModel({
     required SubsonicRepository subsonic,
-    required PlaybackManager playbackManager,
+    required this._playbackManager,
     required SongsPageMode mode,
     required MusicFoldersRepository musicFolders,
     String? initialSeed,
   }) : _subsonic = subsonic,
-       _playbackManager = playbackManager,
        _genre = "",
        _initialSeed =
            subsonic.supports.randomSeed && mode == SongsPageMode.random
@@ -83,14 +82,11 @@ class SongsViewModel extends ChangeNotifier {
   }
 
   SongsViewModel.genre({
-    required SubsonicRepository subsonic,
-    required PlaybackManager playbackManager,
+    required this._subsonic,
+    required this._playbackManager,
     required MusicFoldersRepository musicFolders,
-    required String genre,
-  }) : _subsonic = subsonic,
-       _playbackManager = playbackManager,
-       _genre = genre,
-       _initialSeed = null {
+    required this._genre,
+  }) : _initialSeed = null {
     _mode = SongsPageMode.genre;
     refresh();
     _musicFolderSub = musicFolders.debounced.listen((event) {

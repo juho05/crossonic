@@ -18,8 +18,7 @@ import 'package:crossonic/routing/router.gr.dart';
 class AppRouter extends RootStackRouter {
   final AuthRepository _authRepository;
 
-  AppRouter({required AuthRepository authRepository})
-    : _authRepository = authRepository;
+  AppRouter({required this._authRepository});
 
   @override
   List<AutoRouteGuard> get guards => [

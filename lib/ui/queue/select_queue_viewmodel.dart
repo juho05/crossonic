@@ -28,8 +28,7 @@ class SelectQueueViewModel extends ChangeNotifier {
     _loadQueues();
   }
 
-  SelectQueueViewModel({required PlaybackManager playbackManager})
-    : _playbackManager = playbackManager {
+  SelectQueueViewModel({required this._playbackManager}) {
     _playbackManager.queue.addListener(_loadQueues);
     _loadQueues();
   }

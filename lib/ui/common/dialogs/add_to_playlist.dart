@@ -53,10 +53,9 @@ class _AddToPlaylistDialogContent extends StatefulWidget {
   final String? _collectionName;
 
   const _AddToPlaylistDialogContent({
-    required AddToPlaylistViewModel viewModel,
-    String? collectionName,
-  }) : _viewModel = viewModel,
-       _collectionName = collectionName;
+    required this._viewModel,
+    this._collectionName,
+  });
 
   @override
   State<_AddToPlaylistDialogContent> createState() =>

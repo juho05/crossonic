@@ -27,11 +27,10 @@ class NowPlayingExpanded extends StatelessWidget {
   final NowPlayingViewModel _viewModel;
 
   const NowPlayingExpanded({
-    required PanelController panelController,
-    required NowPlayingViewModel viewModel,
+    required this._panelController,
+    required this._viewModel,
     super.key,
-  }) : _panelController = panelController,
-       _viewModel = viewModel;
+  });
 
   @override
   Widget build(BuildContext context) {

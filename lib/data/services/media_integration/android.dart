@@ -19,10 +19,9 @@ class MediaIntegrationAndroid implements MediaIntegration {
   final CoverRepository _coverRepo;
 
   MediaIntegrationAndroid({
-    required MethodChannelService methodChannel,
-    required CoverRepository coverRepo,
-  }) : _methodChannel = methodChannel,
-       _coverRepo = coverRepo;
+    required this._methodChannel,
+    required this._coverRepo,
+  });
 
   Future<void> Function()? _onPlay;
   Future<void> Function()? _onPause;

@@ -27,10 +27,9 @@ class AlbumReleaseDialogViewModel extends ChangeNotifier {
 
   AlbumReleaseDialogViewModel({
     required SubsonicRepository subsonicRepository,
-    required Album album,
+    required this._album,
     List<Album>? alternatives,
   }) : _subsonic = subsonicRepository,
-       _album = album,
        _alternatives = alternatives ?? const [],
        _status = alternatives != null
            ? FetchStatus.success

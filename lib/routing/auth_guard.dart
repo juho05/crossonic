@@ -13,8 +13,7 @@ import 'package:crossonic/routing/router.gr.dart';
 class AuthGuard extends AutoRouteGuard {
   final AuthRepository _authRepository;
 
-  AuthGuard({required AuthRepository authRepository})
-    : _authRepository = authRepository;
+  AuthGuard({required this._authRepository});
 
   @override
   void onNavigation(NavigationResolver resolver, StackRouter router) {

@@ -15,11 +15,7 @@ class ReleasesDataSource implements HomeComponentDataSource<Album> {
   final SubsonicRepository _repository;
   final AlbumsSortMode _mode;
 
-  ReleasesDataSource({
-    required AlbumsSortMode mode,
-    required SubsonicRepository repository,
-  }) : _repository = repository,
-       _mode = mode;
+  ReleasesDataSource({required this._mode, required this._repository});
 
   @override
   Future<Result<Iterable<Album>>> get(int count, {String? seed}) async {

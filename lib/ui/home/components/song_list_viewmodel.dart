@@ -29,11 +29,10 @@ class HomeSongListViewModel extends ChangeNotifier {
   final HomeViewModel _homeViewModel;
 
   HomeSongListViewModel({
-    required HomeComponentDataSource<Song> dataSource,
+    required this._dataSource,
     Stream? refreshStream,
-    required HomeViewModel homeViewModel,
-  }) : _dataSource = dataSource,
-       _homeViewModel = homeViewModel {
+    required this._homeViewModel,
+  }) {
     load().then((_) {
       _refreshStreamSub = refreshStream?.listen((_) => load());
     });

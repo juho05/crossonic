@@ -73,10 +73,9 @@ class NowPlayingViewModel extends ChangeNotifier {
   bool get loopEnabled => _loop;
 
   NowPlayingViewModel({
-    required FavoritesRepository favoritesRepository,
-    required PlaybackManager playbackManager,
-  }) : _favoritesRepository = favoritesRepository,
-       _playbackManager = playbackManager {
+    required this._favoritesRepository,
+    required this._playbackManager,
+  }) {
     _favoritesRepository.addListener(_onFavoriteChanged);
     _currentSongSubscription = _playbackManager.queue.current.listen(
       _onSongChanged,

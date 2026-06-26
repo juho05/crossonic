@@ -41,9 +41,9 @@ class AddToPlaylistViewModel extends ChangeNotifier {
   String _query = "";
 
   AddToPlaylistViewModel({
-    required PlaylistRepository repository,
+    required this._repository,
     required SongLoader songLoader,
-  }) : _repository = repository {
+  }) {
     _load(songLoader);
     _repository.addListener(_onPlaylistsChanged);
   }

@@ -34,11 +34,7 @@ class MusicFoldersViewModel extends ChangeNotifier {
 
   Set<int> get selected => _repo.selected;
 
-  MusicFoldersViewModel({
-    required SubsonicRepository subsonic,
-    required MusicFoldersRepository repo,
-  }) : _subsonic = subsonic,
-       _repo = repo {
+  MusicFoldersViewModel({required this._subsonic, required this._repo}) {
     _repo.addListener(notifyListeners);
     _load();
   }

@@ -67,10 +67,9 @@ class ArtistViewModel extends ChangeNotifier {
   ArtistViewModel({
     required SubsonicRepository subsonicRepository,
     required FavoritesRepository favoritesRepository,
-    required PlaybackManager playbackManager,
+    required this._playbackManager,
   }) : _subsonic = subsonicRepository,
-       _favorites = favoritesRepository,
-       _playbackManager = playbackManager {
+       _favorites = favoritesRepository {
     _favorites.addListener(_onFavoritesChanged);
     _onFavoritesChanged();
   }

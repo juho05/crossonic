@@ -137,8 +137,7 @@ void main() async {
 class MainApp extends StatelessWidget {
   final RouterConfig<Object> _routerConfig;
 
-  const MainApp({super.key, required RouterConfig<Object> routerConfig})
-    : _routerConfig = routerConfig;
+  const MainApp({super.key, required this._routerConfig});
 
   @override
   Widget build(BuildContext context) {

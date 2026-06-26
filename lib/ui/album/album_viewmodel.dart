@@ -57,10 +57,9 @@ class AlbumViewModel extends ChangeNotifier {
   AlbumViewModel({
     required FavoritesRepository favoritesRepository,
     required SubsonicRepository subsonicRepository,
-    required PlaybackManager playbackManager,
+    required this._playbackManager,
   }) : _favorites = favoritesRepository,
-       _subsonic = subsonicRepository,
-       _playbackManager = playbackManager {
+       _subsonic = subsonicRepository {
     _favorites.addListener(_onFavoritesChanged);
     _onFavoritesChanged();
   }

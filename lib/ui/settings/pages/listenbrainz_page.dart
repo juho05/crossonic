@@ -84,8 +84,7 @@ class _ListenBrainzPageState extends State<ListenBrainzPage> {
 class _ConnectedContent extends StatelessWidget {
   final ListenBrainzViewModel _viewModel;
 
-  const _ConnectedContent({required ListenBrainzViewModel viewModel})
-    : _viewModel = viewModel;
+  const _ConnectedContent({required this._viewModel});
 
   @override
   Widget build(BuildContext context) {

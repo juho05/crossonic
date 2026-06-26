@@ -18,16 +18,12 @@ class SonosDevice implements Device {
   final String _renderingControlPath;
 
   SonosDevice({
-    required String name,
-    required String ipAddr,
-    required String avTransportControlPath,
-    required String renderingControlPath,
-    String? modelName,
-  }) : _name = name,
-       _ipAddr = ipAddr,
-       _avTransportControlPath = avTransportControlPath,
-       _renderingControlPath = renderingControlPath,
-       _modelName = modelName;
+    required this._name,
+    required this._ipAddr,
+    required this._avTransportControlPath,
+    required this._renderingControlPath,
+    this._modelName,
+  });
 
   @override
   String get name => _name;

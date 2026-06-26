@@ -25,8 +25,7 @@ class CastingViewModel extends ChangeNotifier {
 
   List<Device> get discoveredDevices => _discoveredDevices;
 
-  CastingViewModel({required PlaybackManager playbackManager})
-    : _playbackManager = playbackManager {
+  CastingViewModel({required this._playbackManager}) {
     _playbackManager.deviceManager.addListener(_onDevicesChanged);
     _onDevicesChanged();
   }

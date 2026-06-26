@@ -25,13 +25,11 @@ class DebugViewModel extends ChangeNotifier {
 
   DebugViewModel({
     required SettingsRepository settings,
-    required CoverRepository coverRepo,
-    required PlaylistRepository playlistRepo,
+    required this._coverRepo,
+    required this._playlistRepo,
   }) : _settings = settings,
        _level = settings.logging.level,
-       _stopIsPause = settings.workarounds.stopIsPause,
-       _coverRepo = coverRepo,
-       _playlistRepo = playlistRepo {
+       _stopIsPause = settings.workarounds.stopIsPause {
     _settings.logging.addListener(_onSettingsChanged);
     _settings.workarounds.addListener(_onSettingsChanged);
   }

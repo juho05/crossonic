@@ -35,12 +35,11 @@ class SongListItemViewModel extends ChangeNotifier {
       _currentSongId == song.id ? _playbackStatus : null;
 
   SongListItemViewModel({
-    required FavoritesRepository favoritesRepository,
-    required PlaybackManager playbackManager,
+    required this._favoritesRepository,
+    required this._playbackManager,
     required this.song,
     bool disablePlaybackStatus = false,
-  }) : _favoritesRepository = favoritesRepository,
-       _playbackManager = playbackManager {
+  }) {
     _favoritesRepository.addListener(_updateFavoriteStatus);
 
     if (!disablePlaybackStatus) {

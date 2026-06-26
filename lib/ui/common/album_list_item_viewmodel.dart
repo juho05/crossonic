@@ -28,13 +28,11 @@ class AlbumListItemViewModel extends ChangeNotifier {
   bool get favorite => _favorite;
 
   AlbumListItemViewModel({
-    required FavoritesRepository favoritesRepository,
-    required PlaybackManager playbackManager,
+    required this._favoritesRepository,
+    required this._playbackManager,
     required SubsonicRepository subsonicRepository,
     required this.album,
-  }) : _favoritesRepository = favoritesRepository,
-       _playbackManager = playbackManager,
-       _subsonic = subsonicRepository {
+  }) : _subsonic = subsonicRepository {
     _favoritesRepository.addListener(_updateFavoriteStatus);
     _updateFavoriteStatus();
   }

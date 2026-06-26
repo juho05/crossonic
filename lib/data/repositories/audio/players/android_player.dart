@@ -26,13 +26,11 @@ class AudioPlayerAndroid extends AudioPlayer {
   bool get supportsFilePlayback => true;
 
   AudioPlayerAndroid({
-    required MethodChannelService methodChannel,
+    required this._methodChannel,
     required CoverRepository coverRepository,
-    required SettingsRepository settings,
+    required this._settings,
     required super.downloader,
-  }) : _methodChannel = methodChannel,
-       _coverRepo = coverRepository,
-       _settings = settings {
+  }) : _coverRepo = coverRepository {
     _initTime = DateTime.now();
     _settings.workarounds.addListener(_onWorkaroundsChanged);
     _methodChannel.addEventListener(_onEvent);

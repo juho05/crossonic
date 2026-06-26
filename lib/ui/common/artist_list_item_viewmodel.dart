@@ -30,11 +30,10 @@ class ArtistListItemViewModel extends ChangeNotifier {
   ArtistListItemViewModel({
     required FavoritesRepository favoritesRepository,
     required SubsonicRepository subsonicRepository,
-    required PlaybackManager playbackManager,
+    required this._playbackManager,
     required this.artist,
   }) : _favorites = favoritesRepository,
-       _subsonic = subsonicRepository,
-       _playbackManager = playbackManager {
+       _subsonic = subsonicRepository {
     _favorites.addListener(_updateFavoriteStatus);
     _updateFavoriteStatus();
   }

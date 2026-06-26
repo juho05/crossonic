@@ -19,10 +19,9 @@ class QueueFab extends StatelessWidget {
 
   const QueueFab({
     super.key,
-    required NowPlayingViewModel nowPlayingViewModel,
-    bool hide = false,
-  }) : _nowPlayingViewModel = nowPlayingViewModel,
-       _hide = hide;
+    required this._nowPlayingViewModel,
+    this._hide = false,
+  });
 
   @override
   Widget build(BuildContext context) {

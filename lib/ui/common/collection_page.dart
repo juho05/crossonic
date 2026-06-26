@@ -581,8 +581,7 @@ class _CollectionPageDesktopState extends State<CollectionPageDesktop> {
 class _ExtraInfoWidget extends StatelessWidget {
   final CollectionExtraInfo _extraInfo;
 
-  const _ExtraInfoWidget({required CollectionExtraInfo extraInfo})
-    : _extraInfo = extraInfo;
+  const _ExtraInfoWidget({required this._extraInfo});
 
   @override
   Widget build(BuildContext context) {

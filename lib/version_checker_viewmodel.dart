@@ -37,12 +37,10 @@ class VersionCheckerViewModel extends ChangeNotifier {
   bool showUpdateSuccessful = false;
 
   VersionCheckerViewModel({
-    required KeyValueRepository keyValue,
-    required VersionRepository versionRepo,
-    required SettingsRepository settings,
-  }) : _keyValue = keyValue,
-       _versionRepo = versionRepo,
-       _settings = settings {
+    required this._keyValue,
+    required this._versionRepo,
+    required this._settings,
+  }) {
     if (!kIsWeb) {
       _checked = Platform.environment["CROSSONIC_DISABLE_VERSION_CHECK"] == "1";
     } else {

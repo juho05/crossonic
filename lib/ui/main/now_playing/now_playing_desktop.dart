@@ -25,8 +25,7 @@ import 'package:flutter/material.dart';
 class NowPlayingDesktop extends StatelessWidget {
   final NowPlayingViewModel _viewModel;
 
-  const NowPlayingDesktop({required NowPlayingViewModel viewModel, super.key})
-    : _viewModel = viewModel;
+  const NowPlayingDesktop({required this._viewModel, super.key});
 
   @override
   Widget build(BuildContext context) {

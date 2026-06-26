@@ -30,10 +30,9 @@ class HomeReleaseListViewModel extends ChangeNotifier {
 
   HomeReleaseListViewModel({
     Stream? refreshStream,
-    required HomeComponentDataSource<Album> dataSource,
-    required HomeViewModel homeViewModel,
-  }) : _dataSource = dataSource,
-       _homeViewModel = homeViewModel {
+    required this._dataSource,
+    required this._homeViewModel,
+  }) {
     load().then((_) {
       _refreshStreamSub = refreshStream?.listen((_) => load());
     });

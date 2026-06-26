@@ -32,7 +32,7 @@ class ScanViewModel extends ChangeNotifier {
 
   Timer? _refreshTimer;
 
-  ScanViewModel({required SubsonicRepository subsonic}) : _subsonic = subsonic {
+  ScanViewModel({required this._subsonic}) {
     _status = FetchStatus.loading;
     _loadStatus();
   }

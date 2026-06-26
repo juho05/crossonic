@@ -26,8 +26,7 @@ class ConnectServerViewModel extends ChangeNotifier {
   String? _serverUrl;
   String? get serverUrl => _serverUrl;
 
-  ConnectServerViewModel({required AuthRepository authRepository})
-    : _authRepository = authRepository {
+  ConnectServerViewModel({required this._authRepository}) {
     connect = Command1(_connect);
     tryCurrentUrlOnWeb();
   }

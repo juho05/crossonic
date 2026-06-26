@@ -35,13 +35,10 @@ class WebHelper {
   final http.Client _http = http.Client();
 
   WebHelper({
-    required CoverRepository coverRepo,
-    required Database db,
-    required SubsonicRepository subsonic,
-  }) : _coverRepo = coverRepo,
-       _db = db,
-       _subsonic = subsonic,
-       _memCache = {};
+    required this._coverRepo,
+    required this._db,
+    required this._subsonic,
+  }) : _memCache = {};
 
   ///Download the file from the url
   Stream<FileResponse> downloadFile(

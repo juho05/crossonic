@@ -52,12 +52,10 @@ class AuthRepository extends ChangeNotifier {
   Uri? get serverUri => _serverUri;
 
   AuthRepository({
-    required SubsonicService openSubsonicService,
+    required this._openSubsonicService,
     required KeyValueRepository keyValueRepository,
-    required Database database,
+    required this._database,
   }) : _keyValue = keyValueRepository,
-       _database = database,
-       _openSubsonicService = openSubsonicService,
        _storage = kIsWeb || !Platform.isLinux
            ? EncryptedStorageSecureStorage()
            : EncryptedStorageLinux(keyValueRepo: keyValueRepository);

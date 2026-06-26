@@ -29,11 +29,7 @@ class VersionRepository {
   final GitHubService _github;
   final KeyValueRepository _keyValue;
 
-  VersionRepository({
-    required GitHubService github,
-    required KeyValueRepository keyValue,
-  }) : _github = github,
-       _keyValue = keyValue;
+  VersionRepository({required this._github, required this._keyValue});
 
   Future<Result<Version?>> getLatestVersion({bool force = false}) async {
     final result = await getLatestVersionTag(force: force);

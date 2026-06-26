@@ -35,10 +35,9 @@ class ThemeManager extends ChangeNotifier {
   StreamSubscription? _preferenceStreamSubscription;
 
   ThemeManager({
-    required KeyValueRepository keyValue,
+    required this._keyValue,
     required AppearanceSettings appearanceSettings,
-  }) : _keyValue = keyValue,
-       _settings = appearanceSettings {
+  }) : _settings = appearanceSettings {
     if (!kIsWeb && Platform.isLinux) {
       _dbus = DBusInterface();
       _loadLinuxSystemTheme();

@@ -51,8 +51,7 @@ class QueueViewModel extends ChangeNotifier {
 
   bool get isDefaultQueue => _currentQueue?.isDefault ?? true;
 
-  QueueViewModel({required PlaybackManager playbackManager})
-    : _playbackManager = playbackManager {
+  QueueViewModel({required this._playbackManager}) {
     _playbackManager.queue.addListener(_queueChanged);
     _currentSubscription = _playbackManager.queue.current.listen(
       _currentChanged,

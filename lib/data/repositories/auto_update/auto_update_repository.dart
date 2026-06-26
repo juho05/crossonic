@@ -58,10 +58,9 @@ class AutoUpdateRepository extends ChangeNotifier {
   ValueStream<double> get downloadProgress => _downloadProgress.stream;
 
   AutoUpdateRepository({
-    required VersionRepository versionRepository,
-    required GitHubService github,
-  }) : _versionRepository = versionRepository,
-       _github = github {
+    required this._versionRepository,
+    required this._github,
+  }) {
     if (Platform.isAndroid) {
       Log.debug("update platform: Android");
       _updater = UpdaterAndroid();

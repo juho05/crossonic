@@ -58,12 +58,10 @@ class QueueManager extends ChangeNotifier {
   int _prioLength = 0;
 
   QueueManager({
-    required Database db,
-    required SongRepository songRepo,
-    required KeyValueRepository keyValue,
-  }) : _db = db,
-       _songRepo = songRepo,
-       _keyValue = keyValue;
+    required this._db,
+    required this._songRepo,
+    required this._keyValue,
+  });
 
   Future<void> init() async {
     await _db.managers.queueTable.create(

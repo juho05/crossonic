@@ -50,8 +50,7 @@ class LoginViewModel extends ChangeNotifier {
 
   late final Command1<void, LoginData> login;
 
-  LoginViewModel({required AuthRepository authRepository})
-    : _authRepository = authRepository {
+  LoginViewModel({required this._authRepository}) {
     login = Command1(_login);
   }
 

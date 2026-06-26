@@ -39,18 +39,13 @@ class PlaylistRepository extends ChangeNotifier {
   bool get changeCoverSupported => _auth.serverFeatures.value.isCrossonic;
 
   PlaylistRepository({
-    required SubsonicService subsonic,
-    required AuthRepository auth,
-    required Database db,
-    required CoverRepository coverRepository,
-    required SongDownloader songDownloader,
+    required this._subsonic,
+    required this._auth,
+    required this._db,
+    required this._coverRepository,
+    required this._songDownloader,
     required SongRepository songRepository,
-  }) : _subsonic = subsonic,
-       _auth = auth,
-       _db = db,
-       _coverRepository = coverRepository,
-       _songDownloader = songDownloader,
-       _songRepo = songRepository {
+  }) : _songRepo = songRepository {
     _requestQueue = SequentialRequestQueue(onAllDone: _onRequestQueueDone);
     _auth.addListener(_onAuthChanged);
     _onAuthChanged();

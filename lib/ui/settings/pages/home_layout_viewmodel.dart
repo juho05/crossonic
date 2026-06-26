@@ -15,8 +15,7 @@ class HomeLayoutViewModel extends ChangeNotifier {
   List<HomeContentOption> activeComponents = [];
   List<HomeContentOption> inactiveComponents = [];
 
-  HomeLayoutViewModel({required HomeLayoutSettings settings})
-    : _settings = settings {
+  HomeLayoutViewModel({required this._settings}) {
     _settings.addListener(_onSettingsChanged);
     _onSettingsChanged();
   }

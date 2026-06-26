@@ -21,8 +21,7 @@ class CreateQueueViewModel extends ChangeNotifier {
 
   bool get isValid => _name.isNotEmpty;
 
-  CreateQueueViewModel({required PlaybackManager playbackManager})
-    : _playbackManager = playbackManager;
+  CreateQueueViewModel({required this._playbackManager});
 
   Future<void> create() async {
     await _playbackManager.queue.createNewQueue(_name);

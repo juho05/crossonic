@@ -29,7 +29,7 @@ class LogRepository {
   bool _flushing = false;
   Timer? _debounceTimer;
 
-  LogRepository({Database? db}) : _db = db, _buffer = DoubleLinkedQueue();
+  LogRepository({this._db}) : _buffer = DoubleLinkedQueue();
 
   Future<void> enablePersistence(Database db) async {
     assert(_db == null);

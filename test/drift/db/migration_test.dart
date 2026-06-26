@@ -62,7 +62,9 @@ void main() {
       },
       validateItems: (newDb) async {
         expect(
-            expectedNewKeyValueData, await newDb.select(newDb.keyValue).get());
+          expectedNewKeyValueData,
+          await newDb.select(newDb.keyValue).get(),
+        );
       },
     );
   });

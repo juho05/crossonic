@@ -25,14 +25,11 @@ class AndroidAutoRepository {
   final PlaybackManager _playbackManager;
 
   AndroidAutoRepository({
-    required MethodChannelService methodChannel,
-    required PlaylistRepository playlistRepo,
-    required CoverRepository coverRepository,
-    required PlaybackManager playbackManager,
-  }) : _playlistRepo = playlistRepo,
-       _methodChannel = methodChannel,
-       _coverRepository = coverRepository,
-       _playbackManager = playbackManager {
+    required this._methodChannel,
+    required this._playlistRepo,
+    required this._coverRepository,
+    required this._playbackManager,
+  }) {
     if (kIsWeb || !Platform.isAndroid) return;
     _methodChannel.handleMethodCall("onGetChildren", _onGetChildren);
     _methodChannel.handleMethodCall("getCoverFile", _getCoverFile);

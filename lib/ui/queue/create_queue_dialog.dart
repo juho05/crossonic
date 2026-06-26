@@ -31,8 +31,7 @@ class CreateQueueDialog {
 class _CreateQueueDialogContent extends StatefulWidget {
   final CreateQueueViewModel _viewModel;
 
-  const _CreateQueueDialogContent({required CreateQueueViewModel viewModel})
-    : _viewModel = viewModel;
+  const _CreateQueueDialogContent({required this._viewModel});
 
   @override
   State<_CreateQueueDialogContent> createState() =>

@@ -16,7 +16,11 @@ class MusicFolderModel {
   final String? name;
   final int? songCount;
 
-  MusicFolderModel({required this.id, required this.name, required this.songCount});
+  MusicFolderModel({
+    required this.id,
+    required this.name,
+    required this.songCount,
+  });
 
   factory MusicFolderModel.fromJson(Map<String, dynamic> json) =>
       _$MusicFolderModelFromJson(json);

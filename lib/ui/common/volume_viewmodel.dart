@@ -39,8 +39,7 @@ class VolumeViewModel extends ChangeNotifier {
 
   StreamSubscription? _volumeSubscription;
 
-  VolumeViewModel({required PlaybackManager playbackManager})
-    : _playbackManager = playbackManager {
+  VolumeViewModel({required this._playbackManager}) {
     _volume = _playbackManager.player.volumeCubic;
     _volumeSubscription = _playbackManager.player.volumeLinearStream.listen((
       _,

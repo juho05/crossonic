@@ -34,11 +34,9 @@ class MusicFoldersRepository extends ChangeNotifier {
 
   MusicFoldersRepository({
     required AuthRepository auth,
-    required SubsonicService subsonic,
-    required KeyValueRepository keyValue,
-  }) : _auth = auth,
-       _subsonic = subsonic,
-       _keyValue = keyValue {
+    required this._subsonic,
+    required this._keyValue,
+  }) : _auth = auth {
     auth.addListener(_onAuthChanged);
     addListener(_onChanged);
   }

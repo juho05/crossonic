@@ -21,9 +21,7 @@ class SongRepository {
   final Database _db;
   final FavoritesRepository _favorites;
 
-  SongRepository({required Database db, required FavoritesRepository favorites})
-    : _db = db,
-      _favorites = favorites;
+  SongRepository({required this._db, required this._favorites});
 
   Song songFromDBModel(SongTableData model) {
     return Song(

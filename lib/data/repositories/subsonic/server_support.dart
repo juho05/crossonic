@@ -68,5 +68,5 @@ class ServerSupport {
   bool get albumMBIDIsReleaseGroupMBID => _features.isCrossonic;
 
   final ServerFeatures _features;
-  ServerSupport({required ServerFeatures features}) : _features = features;
+  ServerSupport({required this._features});
 }

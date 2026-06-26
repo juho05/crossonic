@@ -23,12 +23,10 @@ class FavoritesRepository extends ChangeNotifier {
   final Set<(FavoriteType, String)> _favoriteIDs = {};
 
   FavoritesRepository({
-    required AuthRepository auth,
-    required SubsonicService subsonic,
+    required this._auth,
+    required this._subsonic,
     required Database database,
-  }) : _auth = auth,
-       _subsonic = subsonic,
-       _db = database {
+  }) : _db = database {
     _auth.addListener(_load);
   }
 
@@ -80,8 +78,9 @@ class FavoritesRepository extends ChangeNotifier {
     String id,
     bool favorite,
   ) async {
-    if (_favoriteIDs.contains((type, id)) == favorite)
+    if (_favoriteIDs.contains((type, id)) == favorite) {
       return const Result.ok(null);
+    }
 
     if (favorite) {
       _favoriteIDs.add((type, id));

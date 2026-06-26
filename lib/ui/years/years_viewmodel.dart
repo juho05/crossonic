@@ -37,11 +37,10 @@ class YearsViewModel extends ChangeNotifier {
 
   StreamSubscription? _musicFolderSub;
   YearsViewModel({
-    required SubsonicRepository subsonic,
+    required this._subsonic,
     required MusicFoldersRepository musicFolders,
   }) : _fromYear = DateTime.now().year - 10,
-       _toYear = DateTime.now().year,
-       _subsonic = subsonic {
+       _toYear = DateTime.now().year {
     _musicFolderSub = musicFolders.debounced.listen((event) {
       refresh();
     });

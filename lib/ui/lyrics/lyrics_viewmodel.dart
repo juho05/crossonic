@@ -58,11 +58,7 @@ class LyricsViewModel extends ChangeNotifier {
 
   ValueStream<int?> get selectedLine => _selectedLine.stream;
 
-  LyricsViewModel({
-    required SubsonicRepository subsonic,
-    required PlaybackManager playbackManager,
-  }) : _subsonic = subsonic,
-       _playbackManager = playbackManager {
+  LyricsViewModel({required this._subsonic, required this._playbackManager}) {
     _currentSubscription = _playbackManager.queue.current.listen(
       _onCurrentChanged,
     );

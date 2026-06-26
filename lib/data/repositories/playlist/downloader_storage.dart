@@ -31,7 +31,7 @@ class DownloaderStorage implements PersistentStorage {
   static const typeResume = "resume";
   static const typeRecord = "record";
 
-  DownloaderStorage({required db.Database db}) : _db = db;
+  DownloaderStorage({required this._db});
 
   @override
   Future<void> initialize() async {

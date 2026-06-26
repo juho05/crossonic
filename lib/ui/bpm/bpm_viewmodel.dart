@@ -51,11 +51,10 @@ class BpmViewModel extends ChangeNotifier {
   StreamSubscription? _musicFolderSub;
 
   BpmViewModel({
-    required SubsonicRepository subsonic,
-    required PlaybackManager playbackManager,
+    required this._subsonic,
+    required this._playbackManager,
     required MusicFoldersRepository musicFolders,
-  }) : _subsonic = subsonic,
-       _playbackManager = playbackManager {
+  }) {
     _musicFolderSub = musicFolders.debounced.listen((event) {
       refresh();
     });

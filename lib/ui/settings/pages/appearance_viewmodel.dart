@@ -18,8 +18,7 @@ class AppearanceViewModel extends ChangeNotifier {
   bool _dynamicColors = false;
   bool get dynamicColors => _dynamicColors;
 
-  AppearanceViewModel({required AppearanceSettings settings})
-    : _settings = settings {
+  AppearanceViewModel({required this._settings}) {
     _settings.addListener(_onSettingsChanged);
     _onSettingsChanged();
   }

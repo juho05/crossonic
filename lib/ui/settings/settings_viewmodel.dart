@@ -24,9 +24,9 @@ class SettingsViewModel extends ChangeNotifier {
       "v${(await VersionRepository.getCurrentVersion())}";
 
   SettingsViewModel({
-    required AuthRepository authRepository,
+    required this._authRepository,
     required VersionRepository versionRepository,
-  }) : _authRepository = authRepository;
+  });
 
   Future<void> logout() async {
     _loggingOut = true;

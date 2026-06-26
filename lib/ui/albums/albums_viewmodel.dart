@@ -78,12 +78,10 @@ class AlbumsViewModel extends ChangeNotifier {
   }
 
   AlbumsViewModel.genre({
-    required SubsonicRepository subsonic,
-    required String genre,
+    required this._subsonic,
+    required this._genre,
     required MusicFoldersRepository musicFolders,
-  }) : _subsonic = subsonic,
-       _mode = AlbumsPageMode.genre,
-       _genre = genre,
+  }) : _mode = AlbumsPageMode.genre,
        _initialSeed = null {
     refresh();
     _musicFolderSub = musicFolders.debounced.listen((event) {

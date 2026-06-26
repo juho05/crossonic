@@ -42,9 +42,9 @@ class GenresViewModel extends ChangeNotifier {
 
   StreamSubscription? _musicFolderSub;
   GenresViewModel({
-    required SubsonicRepository subsonic,
+    required this._subsonic,
     required MusicFoldersRepository musicFolders,
-  }) : _subsonic = subsonic {
+  }) {
     _musicFolderSub = musicFolders.debounced.listen((event) {
       load();
     });

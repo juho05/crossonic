@@ -30,11 +30,10 @@ class HomeViewModel extends ChangeNotifier {
   StreamSubscription? _musicFolderSub;
 
   HomeViewModel({
-    required HomeLayoutSettings settings,
+    required this._settings,
     required SubsonicRepository subsonicRepository,
     required MusicFoldersRepository musicFolders,
-  }) : _settings = settings,
-       _subsonic = subsonicRepository {
+  }) : _subsonic = subsonicRepository {
     if (_subsonic.supports.randomSeed) {
       _seed = Random().nextDouble().toString();
     }
