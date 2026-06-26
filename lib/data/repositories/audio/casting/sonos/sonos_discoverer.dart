@@ -8,72 +8,78 @@
 
 import 'dart:async';
 
+import 'package:bonsoir/bonsoir.dart';
+import 'package:collection/collection.dart';
 import 'package:crossonic/data/repositories/audio/casting/device.dart';
 import 'package:crossonic/data/repositories/audio/casting/device_discoverer.dart';
 import 'package:crossonic/data/repositories/audio/casting/sonos/sonos_device.dart';
 import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:http/http.dart' as http;
-import 'package:mdns_dart/mdns_dart.dart';
 import 'package:xml/xml.dart';
 
 class SonosDiscoverer extends DeviceDiscoverer {
+  static const _serviceType = "_sonos._tcp";
+
   final _http = http.Client();
 
-  Timer? _discoveryTimer;
+  BonsoirDiscovery? _discovery;
+  StreamSubscription<BonsoirDiscoveryEvent>? _eventSub;
 
-  bool _queryRunning = false;
+  final Set<String> _loadingAddrs = {};
 
   @override
   Future<void> startDiscovery() async {
-    if (_discoveryTimer != null) return;
-
-    if (_queryRunning) {
-      await Future.delayed(const Duration(seconds: 1));
-      return startDiscovery();
-    }
+    if (_discovery != null) return;
 
     Log.debug("discovering sonos devices...");
-    _discoverDevices().then((value) {
-      if (_discoveryTimer != null) return;
-      _discoveryTimer = Timer.periodic(const Duration(seconds: 10), (_) async {
-        await _discoverDevices();
-      });
+
+    final discovery = BonsoirDiscovery(type: _serviceType);
+    _discovery = discovery;
+    await discovery.initialize();
+
+    _eventSub = discovery.eventStream?.listen((event) {
+      switch (event) {
+        case BonsoirDiscoveryServiceFoundEvent():
+          event.service.resolve(discovery.serviceResolver);
+        case BonsoirDiscoveryServiceResolvedEvent():
+          _onServiceResolved(event.service);
+        default:
+      }
     });
+
+    await discovery.start();
   }
 
-  Future<void> _discoverDevices() async {
-    _queryRunning = true;
+  Future<void> _onServiceResolved(BonsoirService service) async {
+    final ipAddr =
+        service.hostAddresses.where((a) => !a.contains(":")).firstOrNull ??
+        service.hostAddresses.firstOrNull;
+    if (ipAddr == null) return;
+    if (!_loadingAddrs.add(ipAddr)) return;
     try {
-      final stream = await MDNSClient.query(
-        QueryParams(
-          service: "_sonos._tcp",
-          timeout: const Duration(seconds: 3),
-        ),
+      Log.debug(
+        "found sonos device at $ipAddr: ${service.name}, loading device info...",
       );
-      await for (final entry in stream) {
-        final ipAddr = entry.addrsV4?.firstOrNull?.address;
-        if (ipAddr == null) return;
+      final device = await _loadDeviceInfo(ipAddr);
+      if (device != null) {
         Log.debug(
-          "found sonos device at $ipAddr: ${entry.name}, loading device info...",
+          "new valid sonos device: ${device.name} (${(device as SonosDevice).ipAddr})",
         );
-        final device = await _loadDeviceInfo(ipAddr);
-        if (device != null) {
-          Log.debug(
-            "new valid sonos device: ${device.name} (${(device as SonosDevice).ipAddr})",
-          );
-          discoveredController.add(device);
-        }
+        discoveredController.add(device);
       }
     } finally {
-      _queryRunning = false;
+      _loadingAddrs.remove(ipAddr);
     }
   }
 
   @override
   Future<void> stopDiscovery() async {
     Log.debug("stopping sonos discovery...");
-    _discoveryTimer?.cancel();
-    _discoveryTimer = null;
+    await _eventSub?.cancel();
+    _eventSub = null;
+    await _discovery?.stop();
+    _discovery = null;
+    _loadingAddrs.clear();
   }
 
   Future<Device?> _loadDeviceInfo(String ipAddr) async {

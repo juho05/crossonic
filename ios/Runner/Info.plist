@@ -39,6 +39,12 @@
 	<string>Take cover images for playlists</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Not actually used but required for image picker</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>Discover and control Sonos speakers on your local network.</string>
+	<key>NSBonjourServices</key>
+	<array>
+		<string>_sonos._tcp</string>
+	</array>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

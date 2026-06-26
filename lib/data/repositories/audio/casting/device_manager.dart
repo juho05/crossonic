@@ -8,7 +8,6 @@
 
 import 'dart:async';
 import 'dart:collection';
-import 'dart:io';
 
 import 'package:crossonic/data/repositories/audio/casting/device.dart';
 import 'package:crossonic/data/repositories/audio/casting/device_discoverer.dart';
@@ -25,9 +24,7 @@ class DeviceManager extends ChangeNotifier {
   final LocalSongSource _localSource;
   final UpnpService _upnpService;
 
-  final List<DeviceDiscoverer> _discoverers = [
-    if (!kIsWeb && !Platform.isIOS) SonosDiscoverer(),
-  ];
+  final List<DeviceDiscoverer> _discoverers = [if (!kIsWeb) SonosDiscoverer()];
 
   final List<Device> _devices = [const LocalDevice()];
 
