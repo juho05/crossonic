@@ -187,7 +187,7 @@ class PlaybackManager {
   Future<void> playNext() async {
     Log.trace("play next");
     if (!_queue.canAdvance) {
-      Log.warn("ignoring play next request because there is not next song");
+      Log.warn("ignoring play next request because there is no next song");
       return;
     }
     await _queue.skipNext();
