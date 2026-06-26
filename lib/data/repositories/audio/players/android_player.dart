@@ -115,6 +115,7 @@ class AudioPlayerAndroid extends AudioPlayer {
       if (pos > Duration.zero) "pos": pos.inMilliseconds,
       if (next != null) "next": await _songToMap(next),
     });
+    positionDiscontinuity.add(pos);
   }
 
   @override
