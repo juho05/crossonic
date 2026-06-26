@@ -22,6 +22,7 @@ import androidx.media3.common.text.Cue;
 import androidx.media3.common.text.CueGroup;
 import androidx.media3.common.util.Size;
 import androidx.media3.common.util.UnstableApi;
+import androidx.media3.datasource.DefaultDataSource;
 import androidx.media3.datasource.DefaultHttpDataSource;
 import androidx.media3.datasource.HttpDataSource;
 import androidx.media3.exoplayer.ExoPlayer;
@@ -85,12 +86,15 @@ public class CrossonicPlayer implements Player {
                 .setReadTimeoutMs(60000)
                 .setAllowCrossProtocolRedirects(true);
 
+        final DefaultDataSource.Factory dataSourceFactory =
+                new DefaultDataSource.Factory(context, httpDataSourceFactory);
+
         final ExoPlayer.Builder builder = new ExoPlayer.Builder(context, audioOnlyRenderersFactory);
 
         builder.setMediaSourceFactory(new DefaultMediaSourceFactory(context, new DefaultExtractorsFactory()
                 .setConstantBitrateSeekingEnabled(true))
                 .setLoadErrorHandlingPolicy(new CrossonicLoadErrorHandlingPolicy())
-                .setDataSourceFactory(httpDataSourceFactory));
+                .setDataSourceFactory(dataSourceFactory));
 
         builder.setAudioAttributes(new AudioAttributes.Builder()
                 .setUsage(C.USAGE_MEDIA)
