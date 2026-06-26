@@ -10,7 +10,10 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:crossonic/data/repositories/audio/playback_manager.dart';
+import 'package:crossonic/data/repositories/audio/players/local_song_source.dart';
 import 'package:crossonic/data/repositories/audio/queue/queue.dart';
+import 'package:crossonic/data/repositories/playlist/song_downloader.dart';
+import 'package:crossonic/data/repositories/prefetch/queue_prefetcher.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
 import 'package:flutter/material.dart';
 
@@ -19,7 +22,10 @@ class QueueViewModel extends ChangeNotifier {
   static const int _pageBuffer = 50;
 
   final PlaybackManager _playbackManager;
+  final CompositeLocalSource _compositeLocalSource;
+  final QueuePrefetcher _queuePrefetcher;
   late final StreamSubscription _currentSubscription;
+  late final StreamSubscription _currentDownloadSubscription;
 
   Song? _currentSong;
 
@@ -51,7 +57,11 @@ class QueueViewModel extends ChangeNotifier {
 
   bool get isDefaultQueue => _currentQueue?.isDefault ?? true;
 
-  QueueViewModel({required this._playbackManager}) {
+  QueueViewModel({
+    required this._playbackManager,
+    required this._compositeLocalSource,
+    required this._queuePrefetcher,
+  }) {
     _playbackManager.queue.addListener(_queueChanged);
     _currentSubscription = _playbackManager.queue.current.listen(
       _currentChanged,
@@ -59,6 +69,9 @@ class QueueViewModel extends ChangeNotifier {
     _queueChanged().then((value) {
       _currentChanged(_playbackManager.queue.current.value);
     });
+    _queuePrefetcher.addListener(notifyListeners);
+    _currentDownloadSubscription = _queuePrefetcher.currentDownloadSongId
+        .listen((_) => notifyListeners());
   }
 
   Song? getSong(int queueIndex) {
@@ -215,6 +228,16 @@ class QueueViewModel extends ChangeNotifier {
     return await _playbackManager.queue.getRegularSongs();
   }
 
+  DownloadStatus getDownloadStatus(String songId) {
+    if (_compositeLocalSource.isDownloaded(songId)) {
+      return DownloadStatus.downloaded;
+    }
+    if (_queuePrefetcher.currentDownloadSongId.value == songId) {
+      return DownloadStatus.downloading;
+    }
+    return DownloadStatus.none;
+  }
+
   Future<void> _queueChanged() async {
     if (_reordering) return;
     if (_playbackManager.queue.currentQueueId != _currentQueue?.id) {
@@ -253,6 +276,8 @@ class QueueViewModel extends ChangeNotifier {
   Future<void> dispose() async {
     await _currentSubscription.cancel();
     _playbackManager.queue.removeListener(_queueChanged);
+    _queuePrefetcher.removeListener(notifyListeners);
+    _currentDownloadSubscription.cancel();
     super.dispose();
   }
 }

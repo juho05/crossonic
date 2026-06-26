@@ -24,6 +24,7 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
+import 'package:rxdart/rxdart.dart';
 
 class _PrefetchException implements Exception {
   final String message;
@@ -47,7 +48,6 @@ class _PrefetchTask {
 }
 
 class QueuePrefetcher extends ChangeNotifier implements LocalSongSource {
-  static const int _maxConcurrent = 1;
   static const Duration _stallTimeout = Duration(seconds: 20);
   static const Duration _connectTimeout = Duration(seconds: 15);
 
@@ -65,6 +65,12 @@ class QueuePrefetcher extends ChangeNotifier implements LocalSongSource {
       StreamController.broadcast();
 
   Stream<Song> get songCached => _songCachedController.stream;
+
+  final BehaviorSubject<String?> _currentDownloadSongId =
+      BehaviorSubject.seeded(null);
+
+  ValueStream<String?> get currentDownloadSongId =>
+      _currentDownloadSongId.stream;
 
   String? _dir;
 
@@ -287,7 +293,7 @@ class QueuePrefetcher extends ChangeNotifier implements LocalSongSource {
     }
 
     for (final song in desired) {
-      if (_tasks.length >= _maxConcurrent) break;
+      if (_tasks.isNotEmpty) break;
       final id = song.id;
       if (_songDownloader.isDownloaded(id)) continue;
       if (_cached[id] == activeTag) continue;
@@ -412,107 +418,114 @@ class QueuePrefetcher extends ChangeNotifier implements LocalSongSource {
       }
     }
 
-    final request = http.Request("GET", _streamUriFor(id));
-    if (append && received > 0) {
-      request.headers["range"] = "bytes=$received-";
-    }
+    _currentDownloadSongId.add(id);
+    try {
+      final request = http.Request("GET", _streamUriFor(id));
+      if (append && received > 0) {
+        request.headers["range"] = "bytes=$received-";
+      }
 
-    final response = await _client.send(request).timeout(_connectTimeout);
+      final response = await _client.send(request).timeout(_connectTimeout);
 
-    if (task.canceled) {
-      response.stream.drain<void>().catchError((_) {});
-      return false;
-    }
+      if (task.canceled) {
+        response.stream.drain<void>().catchError((_) {});
+        return false;
+      }
 
-    if (append && received > 0 && response.statusCode != 206) {
-      append = false;
-      received = 0;
-      task.received = 0;
-      task.canResume = false;
-    }
-    if (!append && response.statusCode != 200) {
-      response.stream.drain<void>().catchError((_) {});
-      throw _PrefetchException("unexpected status ${response.statusCode}");
-    }
+      if (append && received > 0 && response.statusCode != 206) {
+        append = false;
+        received = 0;
+        task.received = 0;
+        task.canResume = false;
+      }
+      if (!append && response.statusCode != 200) {
+        response.stream.drain<void>().catchError((_) {});
+        throw _PrefetchException("unexpected status ${response.statusCode}");
+      }
 
-    int? declaredTotal;
-    if (response.statusCode == 206) {
-      declaredTotal = _parseContentRangeTotal(
-        response.headers["content-range"],
+      int? declaredTotal;
+      if (response.statusCode == 206) {
+        declaredTotal = _parseContentRangeTotal(
+          response.headers["content-range"],
+        );
+      } else if (response.contentLength != null) {
+        declaredTotal = response.contentLength;
+      }
+      final acceptRanges =
+          (response.headers["accept-ranges"]?.toLowerCase() ?? "") == "bytes";
+      task.canResume = acceptRanges && declaredTotal != null;
+
+      final sink = partFile.openWrite(
+        mode: append ? FileMode.writeOnlyAppend : FileMode.writeOnly,
       );
-    } else if (response.contentLength != null) {
-      declaredTotal = response.contentLength;
-    }
-    final acceptRanges =
-        (response.headers["accept-ranges"]?.toLowerCase() ?? "") == "bytes";
-    task.canResume = acceptRanges && declaredTotal != null;
 
-    final sink = partFile.openWrite(
-      mode: append ? FileMode.writeOnlyAppend : FileMode.writeOnly,
-    );
+      final completer = Completer<bool>();
+      final started = DateTime.now();
+      final cap = _totalTimeCap(task.song.duration);
+      Timer? stall;
+      StreamSubscription<List<int>>? sub;
 
-    final completer = Completer<bool>();
-    final started = DateTime.now();
-    final cap = _totalTimeCap(task.song.duration);
-    Timer? stall;
-    StreamSubscription<List<int>>? sub;
-
-    void finish(bool ok, [Object? err]) {
-      stall?.cancel();
-      final s = sub;
-      sub = null;
-      s?.cancel();
-      if (!completer.isCompleted) {
-        if (err != null) {
-          completer.completeError(err);
-        } else {
-          completer.complete(ok);
+      void finish(bool ok, [Object? err]) {
+        stall?.cancel();
+        final s = sub;
+        sub = null;
+        s?.cancel();
+        if (!completer.isCompleted) {
+          if (err != null) {
+            completer.completeError(err);
+          } else {
+            completer.complete(ok);
+          }
         }
       }
-    }
 
-    void resetStall() {
-      stall?.cancel();
-      stall = Timer(
-        _stallTimeout,
-        () => finish(false, _PrefetchException("stall")),
+      void resetStall() {
+        stall?.cancel();
+        stall = Timer(
+          _stallTimeout,
+          () => finish(false, _PrefetchException("stall")),
+        );
+      }
+
+      task.abort = () => finish(false);
+      resetStall();
+      sub = response.stream.listen(
+        (chunk) {
+          sink.add(chunk);
+          received += chunk.length;
+          task.received = received;
+          resetStall();
+          if (DateTime.now().difference(started) > cap) {
+            finish(false, _PrefetchException("total time cap exceeded"));
+          }
+        },
+        onError: (Object e) => finish(false, e),
+        onDone: () => finish(true),
+        cancelOnError: true,
       );
-    }
 
-    task.abort = () => finish(false);
-    resetStall();
-    sub = response.stream.listen(
-      (chunk) {
-        sink.add(chunk);
-        received += chunk.length;
-        task.received = received;
-        resetStall();
-        if (DateTime.now().difference(started) > cap) {
-          finish(false, _PrefetchException("total time cap exceeded"));
-        }
-      },
-      onError: (Object e) => finish(false, e),
-      onDone: () => finish(true),
-      cancelOnError: true,
-    );
+      bool ok;
+      try {
+        ok = await completer.future;
+      } finally {
+        task.abort = null;
+        await sink.flush();
+        await sink.close();
+      }
 
-    bool ok;
-    try {
-      ok = await completer.future;
+      if (task.canceled || !ok) return false;
+
+      if (declaredTotal != null && received != declaredTotal) {
+        throw _PrefetchException(
+          "incomplete download $received/$declaredTotal",
+        );
+      }
+
+      await partFile.rename(_finalPath(id, task.transcodeTag));
+      return true;
     } finally {
-      task.abort = null;
-      await sink.flush();
-      await sink.close();
+      _currentDownloadSongId.add(null);
     }
-
-    if (task.canceled || !ok) return false;
-
-    if (declaredTotal != null && received != declaredTotal) {
-      throw _PrefetchException("incomplete download $received/$declaredTotal");
-    }
-
-    await partFile.rename(_finalPath(id, task.transcodeTag));
-    return true;
   }
 
   Uri _streamUriFor(String id) {

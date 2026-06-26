@@ -37,7 +37,11 @@ class _QueuePageState extends State<QueuePage> {
   @override
   void initState() {
     super.initState();
-    _viewModel = QueueViewModel(playbackManager: context.read());
+    _viewModel = QueueViewModel(
+      playbackManager: context.read(),
+      compositeLocalSource: context.read(),
+      queuePrefetcher: context.read(),
+    );
   }
 
   @override
@@ -79,6 +83,7 @@ class _QueuePageState extends State<QueuePage> {
                 showDragHandle: true,
                 showPlaybackStatus: false,
                 showRemoveButton: true,
+                downloadStatus: _viewModel.getDownloadStatus(s.id),
                 onRemove: () {
                   _viewModel.remove(i);
                 },

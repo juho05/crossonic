@@ -155,7 +155,7 @@ Future<List<SingleChildWidget>> createProviders({
     await queuePrefetcher.init();
   }
 
-  final LocalSongSource localSource = CompositeLocalSource([
+  final CompositeLocalSource compositeLocalSource = CompositeLocalSource([
     songDownloader,
     queuePrefetcher,
   ]);
@@ -218,12 +218,12 @@ Future<List<SingleChildWidget>> createProviders({
     localPlayer = AudioPlayerAndroid(
       methodChannel: methodChannelService,
       coverRepository: coverRepository,
-      downloader: localSource,
+      downloader: compositeLocalSource,
       settings: settings,
     );
   } else {
     final player = AudioPlayerMediaKit(
-      downloader: localSource,
+      downloader: compositeLocalSource,
       integration: mediaIntegration,
     );
     await player.init();
@@ -235,7 +235,7 @@ Future<List<SingleChildWidget>> createProviders({
   final upnpService = UpnpService();
 
   final deviceManager = DeviceManager(
-    localSource: localSource,
+    localSource: compositeLocalSource,
     upnpService: upnpService,
   );
 
@@ -274,6 +274,8 @@ Future<List<SingleChildWidget>> createProviders({
     ChangeNotifierProvider.value(value: musicFoldersRepo),
     ChangeNotifierProvider.value(value: favoritesRepository),
     ChangeNotifierProvider.value(value: songDownloader),
+    ChangeNotifierProvider.value(value: queuePrefetcher),
+    Provider.value(value: compositeLocalSource),
     Provider.value(value: subsonicRepository),
     Provider.value(value: settings),
     Provider.value(value: coverRepository),
