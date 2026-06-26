@@ -81,6 +81,7 @@ class PlaybackManager {
     _settings.prefetch.addListener(_refreshPrefetchState);
 
     _prefetcher.songCached.listen(_onSongCached);
+    _prefetcher.songRemovedFromCache.listen(_onSongRemovedFromCache);
     _refreshPrefetchState();
 
     _integration.ensureInitialized(
@@ -386,6 +387,17 @@ class PlaybackManager {
     }
 
     Log.debug("prefetched next song ${next.id} ready, re-setting next");
+    _player.setNext(next);
+  }
+
+  void _onSongRemovedFromCache(String id) {
+    if (!_player.supportsFilePlayback) return;
+    final next = _queue.currentAndNext.value.next;
+    if (next?.id != id) return;
+
+    Log.debug(
+      "prefetched next song $id removed from cache, re-setting next to network url",
+    );
     _player.setNext(next);
   }
 

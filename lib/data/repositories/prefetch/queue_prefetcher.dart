@@ -66,6 +66,12 @@ class QueuePrefetcher extends ChangeNotifier implements LocalSongSource {
 
   Stream<Song> get songCached => _songCachedController.stream;
 
+  final StreamController<String> _songRemovedFromCacheController =
+      StreamController.broadcast();
+
+  Stream<String> get songRemovedFromCache =>
+      _songRemovedFromCacheController.stream;
+
   final BehaviorSubject<String?> _currentDownloadSongId =
       BehaviorSubject.seeded(null);
 
@@ -114,10 +120,7 @@ class QueuePrefetcher extends ChangeNotifier implements LocalSongSource {
     if (kIsWeb) return;
     final appCacheDir = await getApplicationCacheDirectory();
     _dir = path.join(appCacheDir.path, "prefetch");
-    try {
-      await Directory(_dir!).delete(recursive: true);
-    } catch (_) {}
-    await Directory(_dir!).create(recursive: true);
+    await clear();
     await _updateTranscoding();
     _scheduleWindowUpdate();
   }
@@ -238,14 +241,30 @@ class QueuePrefetcher extends ChangeNotifier implements LocalSongSource {
 
   Future<void> clear() async {
     _cancelAllTasks();
-    _cached.clear();
+
+    final currentId = _queue.current.value?.id;
+
+    for (final id in _cached.keys.toList()) {
+      if (id == currentId) continue;
+      _cached.remove(id);
+      _songRemovedFromCacheController.add(id);
+    }
     _partial.clear();
+
     if (_dir != null) {
       try {
-        await Directory(_dir!).delete(recursive: true);
-        await Directory(_dir!).create(recursive: true);
+        await for (final entry in Directory(_dir!).list()) {
+          if (currentId != null &&
+              path.basename(entry.path).startsWith("$currentId-")) {
+            continue;
+          }
+          try {
+            await entry.delete(recursive: true);
+          } catch (_) {}
+        }
       } catch (_) {}
     }
+
     notifyListeners();
   }
 
@@ -279,9 +298,7 @@ class QueuePrefetcher extends ChangeNotifier implements LocalSongSource {
     for (final id in _cached.keys.toList()) {
       if (id == _queue.current.value?.id) continue;
       if (!desiredIds.contains(id) || _cached[id] != activeTag) {
-        _cached.remove(id);
-        _deleteCachedFiles(id);
-        notifyListeners();
+        _evictCached(id);
       }
     }
 
@@ -608,6 +625,14 @@ class QueuePrefetcher extends ChangeNotifier implements LocalSongSource {
     } catch (_) {}
   }
 
+  void _evictCached(String id) {
+    if (id == _queue.current.value?.id) return;
+    if (_cached.remove(id) == null) return;
+    _deleteCachedFiles(id);
+    _songRemovedFromCacheController.add(id);
+    notifyListeners();
+  }
+
   Future<void> _deleteCachedFiles(String id) async {
     if (_dir == null) return;
     try {
@@ -632,6 +657,7 @@ class QueuePrefetcher extends ChangeNotifier implements LocalSongSource {
     _auth.removeListener(_onAuthChanged);
     _cancelAllTasks();
     _songCachedController.close();
+    _songRemovedFromCacheController.close();
     _client.close();
     super.dispose();
   }
