@@ -55,7 +55,7 @@ class Database extends _$Database {
   Database([QueryExecutor? e]) : super(e ?? _openConnection());
 
   @override
-  int get schemaVersion => 10;
+  int get schemaVersion => 11;
 
   Future<void> clearAll() async {
     await customStatement("PRAGMA foreign_keys = OFF");
@@ -128,12 +128,24 @@ class Database extends _$Database {
               await m.createTable(schema.queueSong);
               await m.createTable(schema.priorityQueue);
               await m.createIndex(playlistSongIndex);
+              await m.createIndex(queueSongIndex);
+              await m.createIndex(prioQueueSongIndex);
             },
             from9To10: (m, schema) async {
               await m.addColumn(schema.song, schema.song.contentType);
               await m.addColumn(schema.song, schema.song.sampleRate);
               await m.addColumn(schema.song, schema.song.bitDepth);
               await m.addColumn(schema.song, schema.song.bitRate);
+            },
+            from10To11: (m, schema) async {
+              // These indexes were missing originally in from8To9. Add them here
+              // for users who already ran the incomplete migration.
+              await customStatement(
+                'CREATE INDEX IF NOT EXISTS queue_song_index ON queue_song ("index" ASC)',
+              );
+              await customStatement(
+                'CREATE INDEX IF NOT EXISTS prio_queue_song_index ON priority_queue ("index" ASC)',
+              );
             },
           ),
         ),
