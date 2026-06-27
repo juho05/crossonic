@@ -55,7 +55,7 @@ abstract class Command<T> extends ChangeNotifier {
 
   /// The result of the most recent action.
   ///
-  /// Returns `null` if the action is running or completed with an error.
+  /// Returns `null` if the action has not yet completed.
   Result<T>? get result => _result;
 
   /// Clears the most recent action's result.

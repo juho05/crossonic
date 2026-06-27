@@ -15,10 +15,12 @@ import 'package:flutter/foundation.dart';
 import 'package:logger/logger.dart';
 
 class Log {
-  static late final Logger _logger;
+  static Logger _logger = Logger(level: Level.off);
   static late final LogRepository _repo;
   static late final DateTime sessionStartTime;
   static late final MethodChannelService _methodChannel;
+
+  static bool _initialized = false;
 
   static const String _excludePath =
       "package:crossonic/data/repositories/logger/log.dart";
@@ -30,6 +32,7 @@ class Log {
     sessionStartTime = DateTime.now();
     _repo = repository;
     _methodChannel = methodChannel;
+    _initialized = true;
     Logger.level = level;
     _logger = Logger(
       printer: PrettyPrinter(
@@ -151,6 +154,7 @@ class Log {
     tag ??= _getCallerTag(3);
     st ??= StackTrace.current;
     _logger.log(level, "[$tag] $msg", error: e, stackTrace: st);
+    if (!_initialized) return;
     _repo.store(
       LogMessage(
         sessionStartTime: sessionStartTime,
