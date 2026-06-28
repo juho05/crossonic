@@ -38,6 +38,21 @@ void main() {
         expect(count, 1);
       });
     });
+
+    test('cancel prevents the pending trailing call', () {
+      fakeAsync((async) {
+        var count = 0;
+        final throttle = Throttle(action: () => count++, delay: delay);
+
+        throttle();
+        throttle();
+        expect(count, 1, reason: 'leading call fired');
+
+        throttle.cancel();
+        async.elapse(delay);
+        expect(count, 1, reason: 'cancelled trailing call does not fire');
+      });
+    });
   });
 
   group('Throttle (trailing only)', () {
@@ -75,6 +90,42 @@ void main() {
 
         async.elapse(delay);
         expect(received, [1, 3], reason: 'trailing call uses the latest');
+      });
+    });
+
+    test('trailing only defers to the end of the window with latest arg', () {
+      fakeAsync((async) {
+        final received = <int>[];
+        final throttle = Throttle1<int>(
+          action: received.add,
+          delay: delay,
+          leading: false,
+        );
+
+        throttle(1);
+        throttle(2);
+        expect(received, isEmpty, reason: 'nothing fires immediately');
+
+        async.elapse(delay);
+        expect(received, [2], reason: 'single trailing call uses the latest arg');
+      });
+    });
+
+    test('cancel prevents the pending trailing call', () {
+      fakeAsync((async) {
+        final received = <int>[];
+        final throttle = Throttle1<int>(
+          action: received.add,
+          delay: delay,
+        );
+
+        throttle(1);
+        throttle(2);
+        expect(received, [1], reason: 'leading call fired');
+
+        throttle.cancel();
+        async.elapse(delay);
+        expect(received, [1], reason: 'cancelled trailing call does not fire');
       });
     });
   });

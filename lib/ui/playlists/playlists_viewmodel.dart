@@ -163,13 +163,13 @@ class PlaylistsViewModel extends ChangeNotifier {
 
   Future<Result<void>> toggleDownload(Playlist playlist) async {
     final newState = !playlist.download;
-    final result = _repo.setDownload(playlist.id, newState);
+    final result = await _repo.setDownload(playlist.id, newState);
     if (result is Ok) {
       final index = _playlists.indexWhere((p) => p.$1.id == playlist.id);
       if (index >= 0) {
         _playlists[index] = (_playlists[index].$1, DownloadStatus.downloading);
       }
-      notifyListeners();
+      _updateFiltered();
     }
     return result;
   }

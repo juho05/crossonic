@@ -211,14 +211,14 @@ class NowPlayingViewModel extends ChangeNotifier {
 
   @override
   Future<void> dispose() async {
+    _positionTimer?.cancel();
+    _bufferedPositionTimer?.cancel();
     _favoritesRepository.removeListener(_onFavoriteChanged);
     _playbackManager.queue.removeListener(_onQueueChanged);
     await _positionUpdateSubscription.cancel();
     await _loopSubscription.cancel();
     await _currentSongSubscription.cancel();
     await _playbackStatusSubscription.cancel();
-    _positionTimer?.cancel();
-    _bufferedPositionTimer?.cancel();
     super.dispose();
   }
 }

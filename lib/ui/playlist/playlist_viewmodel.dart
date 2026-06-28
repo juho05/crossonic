@@ -202,6 +202,7 @@ class PlaylistViewModel extends ChangeNotifier {
         if (result.value == null) {
           _playlist = null;
           Log.error("playlist '$_playlistId' does not exist");
+          notifyListeners();
           return;
         }
         _playlist = result.value!.playlist;

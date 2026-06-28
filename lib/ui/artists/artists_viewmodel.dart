@@ -100,7 +100,9 @@ class ArtistsViewModel extends ChangeNotifier {
   void _sortArtists() {
     switch (_mode) {
       case ArtistsPageMode.alphabetical:
-        artists.sort((a, b) => a.name.compareTo(b.name));
+        artists.sort(
+          (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()),
+        );
       case ArtistsPageMode.random:
         if (_seed != null) {
           artists.shuffle(Random(_seed.hashCode));

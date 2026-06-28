@@ -31,6 +31,7 @@ class ScanViewModel extends ChangeNotifier {
   ScanStatus get scanStatus => _scanStatus;
 
   Timer? _refreshTimer;
+  bool _disposed = false;
 
   ScanViewModel({required this._subsonic}) {
     _status = FetchStatus.loading;
@@ -63,8 +64,10 @@ class ScanViewModel extends ChangeNotifier {
   }
 
   Future<void> _loadStatus() async {
+    if (_disposed) return;
     notifyListeners();
     final result = await _subsonic.getScanStatus();
+    if (_disposed) return;
     switch (result) {
       case Err():
         _status = FetchStatus.failure;
@@ -89,6 +92,7 @@ class ScanViewModel extends ChangeNotifier {
 
   @override
   void dispose() {
+    _disposed = true;
     _refreshTimer?.cancel();
     super.dispose();
   }
