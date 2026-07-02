@@ -56,6 +56,21 @@ void main() {
       expect(vm.askToIntegrate, isFalse);
       vm.dispose();
     });
+
+    // shownDialog() is called from inside the Consumer builder during build, so
+    // it must not notify or it would trigger a rebuild loop.
+    test('does not notify listeners', () async {
+      when(() => repo.shouldIntegrate()).thenAnswer((_) async => true);
+      final vm = buildViewModel();
+      await vm.check();
+      var notifications = 0;
+      vm.addListener(() => notifications++);
+
+      vm.shownDialog();
+
+      expect(notifications, 0);
+      vm.dispose();
+    });
   });
 
   group('disable', () {

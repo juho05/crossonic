@@ -93,6 +93,7 @@ void main() {
     when(() => playback.player).thenReturn(player);
     when(() => playback.queue).thenReturn(queue);
     when(() => player.playOnNextMediaChange()).thenReturn(null);
+    when(() => queue.replace(any())).thenAnswer((_) async {});
     when(() => queue.replace(any(), any())).thenAnswer((_) async {});
     when(() => queue.addAll(any(), any())).thenAnswer((_) async {});
     when(() => queue.clear(priorityQueue: any(named: 'priorityQueue')))
@@ -199,6 +200,116 @@ void main() {
       expect(vm.listItems.length, songs.length + 1);
       expect(vm.discTitles, {1: 'The Only Disc'});
     });
+
+    test('inserts disc headers for a multi-disc album without disc titles',
+        () async {
+      final songs = [
+        makeSong('a', discNr: 1),
+        makeSong('b', discNr: 2),
+      ];
+      when(() => subsonic.getAlbum(any()))
+          .thenAnswer((_) async => Result.ok(makeAlbum(songs: songs)));
+      final vm = buildViewModel();
+
+      await vm.load('album-1');
+      await settle();
+
+      final discHeaders =
+          vm.listItems.where((i) => i.$1 != null).map((i) => i.$1).toList();
+      expect(discHeaders, [1, 2]);
+      expect(vm.listItems.length, songs.length + 2);
+      expect(vm.discTitles, isEmpty);
+    });
+
+    test('loads the album description', () async {
+      when(() => subsonic.getAlbum(any())).thenAnswer(
+        (_) async => Result.ok(makeAlbum(songs: [makeSong('a')])),
+      );
+      when(() => subsonic.getAlbumInfo(any())).thenAnswer(
+        (_) async => Result.ok(AlbumInfo(description: 'About this album')),
+      );
+      final vm = buildViewModel();
+
+      await vm.load('album-1');
+      await settle();
+
+      expect(vm.description, 'About this album');
+    });
+
+    test('falls back to an empty description when info has none', () async {
+      when(() => subsonic.getAlbum(any())).thenAnswer(
+        (_) async => Result.ok(makeAlbum(songs: [makeSong('a')])),
+      );
+      when(() => subsonic.getAlbumInfo(any()))
+          .thenAnswer((_) async => Result.ok(AlbumInfo(description: null)));
+      final vm = buildViewModel();
+
+      await vm.load('album-1');
+      await settle();
+
+      expect(vm.description, '');
+    });
+
+    test('falls back to an empty description when info fails to load', () async {
+      when(() => subsonic.getAlbum(any())).thenAnswer(
+        (_) async => Result.ok(makeAlbum(songs: [makeSong('a')])),
+      );
+      when(() => subsonic.getAlbumInfo(any()))
+          .thenAnswer((_) async => Result.error(Exception('offline')));
+      final vm = buildViewModel();
+
+      await vm.load('album-1');
+      await settle();
+
+      expect(vm.description, '');
+    });
+  });
+
+  group('alternatives', () {
+    test('are not requested when the server does not support them', () async {
+      when(() => subsonic.getAlbum(any())).thenAnswer(
+        (_) async => Result.ok(makeAlbum(songs: [makeSong('a')])),
+      );
+      when(() => supports.getAlternateAlbumVersions).thenReturn(false);
+      final vm = buildViewModel();
+
+      await vm.load('album-1');
+      await settle();
+
+      expect(vm.alternatives, isEmpty);
+      verifyNever(() => subsonic.getAlternateAlbumVersions(any()));
+    });
+
+    test('populate from the repository when supported', () async {
+      when(() => subsonic.getAlbum(any())).thenAnswer(
+        (_) async => Result.ok(makeAlbum(songs: [makeSong('a')])),
+      );
+      when(() => supports.getAlternateAlbumVersions).thenReturn(true);
+      final alt = makeAlbum(id: 'album-2', songs: [makeSong('x')]);
+      when(() => subsonic.getAlternateAlbumVersions(any()))
+          .thenAnswer((_) async => Result.ok([alt]));
+      final vm = buildViewModel();
+
+      await vm.load('album-1');
+      await settle();
+
+      expect(vm.alternatives.map((a) => a.id), ['album-2']);
+    });
+
+    test('stay empty when the alternatives request fails', () async {
+      when(() => subsonic.getAlbum(any())).thenAnswer(
+        (_) async => Result.ok(makeAlbum(songs: [makeSong('a')])),
+      );
+      when(() => supports.getAlternateAlbumVersions).thenReturn(true);
+      when(() => subsonic.getAlternateAlbumVersions(any()))
+          .thenAnswer((_) async => Result.error(Exception('nope')));
+      final vm = buildViewModel();
+
+      await vm.load('album-1');
+      await settle();
+
+      expect(vm.alternatives, isEmpty);
+    });
   });
 
   group('toggleFavorite', () {
@@ -288,6 +399,171 @@ void main() {
 
       verify(() => queue.clear(priorityQueue: false)).called(1);
       verifyNever(() => player.playOnNextMediaChange());
+    });
+
+    test('single replaces the queue with only the selected song', () async {
+      final songs = [makeSong('a'), makeSong('b'), makeSong('c')];
+      when(() => subsonic.getAlbum(any()))
+          .thenAnswer((_) async => Result.ok(makeAlbum(songs: songs)));
+      final vm = buildViewModel();
+      await vm.load('album-1');
+      await settle();
+
+      vm.play(1, true);
+
+      verify(() => player.playOnNextMediaChange()).called(1);
+      verify(() => queue.replace([songs[1]])).called(1);
+      verifyNever(() => queue.replace(any(), any()));
+    });
+  });
+
+  group('playDisc', () {
+    test('replaces the queue with only the songs of the given disc', () async {
+      final songs = [
+        makeSong('a', discNr: 1),
+        makeSong('b', discNr: 1),
+        makeSong('c', discNr: 2),
+        makeSong('d', discNr: 2),
+      ];
+      when(() => subsonic.getAlbum(any()))
+          .thenAnswer((_) async => Result.ok(makeAlbum(songs: songs)));
+      final vm = buildViewModel();
+      await vm.load('album-1');
+      await settle();
+
+      vm.playDisc(2);
+
+      verify(() => player.playOnNextMediaChange()).called(1);
+      final passed =
+          verify(() => queue.replace(captureAny())).captured.single as List<Song>;
+      expect(passed.map((s) => s.id), ['c', 'd']);
+    });
+
+    test('shuffle keeps the same disc songs, order aside', () async {
+      final songs = [
+        makeSong('a', discNr: 1),
+        makeSong('b', discNr: 1),
+        makeSong('c', discNr: 1),
+      ];
+      when(() => subsonic.getAlbum(any()))
+          .thenAnswer((_) async => Result.ok(makeAlbum(songs: songs)));
+      final vm = buildViewModel();
+      await vm.load('album-1');
+      await settle();
+
+      vm.playDisc(1, shuffle: true);
+
+      verify(() => player.playOnNextMediaChange()).called(1);
+      final passed =
+          verify(() => queue.replace(captureAny())).captured.single as List<Song>;
+      expect(passed.map((s) => s.id).toSet(), {'a', 'b', 'c'});
+    });
+  });
+
+  group('addDiscToQueue', () {
+    test('adds the disc songs to the queue with the given priority', () async {
+      final songs = [
+        makeSong('a', discNr: 1),
+        makeSong('b', discNr: 2),
+        makeSong('c', discNr: 2),
+      ];
+      when(() => subsonic.getAlbum(any()))
+          .thenAnswer((_) async => Result.ok(makeAlbum(songs: songs)));
+      final vm = buildViewModel();
+      await vm.load('album-1');
+      await settle();
+
+      vm.addDiscToQueue(2, true);
+
+      final captured =
+          verify(() => queue.addAll(captureAny(), true)).captured.single
+              as List<Song>;
+      expect(captured.map((s) => s.id), ['b', 'c']);
+    });
+
+    test('is a no-op when the disc has no songs', () async {
+      final songs = [makeSong('a', discNr: 1)];
+      when(() => subsonic.getAlbum(any()))
+          .thenAnswer((_) async => Result.ok(makeAlbum(songs: songs)));
+      final vm = buildViewModel();
+      await vm.load('album-1');
+      await settle();
+
+      vm.addDiscToQueue(2, false);
+
+      verifyNever(() => queue.addAll(any(), any()));
+    });
+  });
+
+  group('shuffle', () {
+    test('replaces the queue with all songs shuffled', () async {
+      final songs = [makeSong('a'), makeSong('b'), makeSong('c')];
+      when(() => subsonic.getAlbum(any()))
+          .thenAnswer((_) async => Result.ok(makeAlbum(songs: songs)));
+      final vm = buildViewModel();
+      await vm.load('album-1');
+      await settle();
+
+      vm.shuffle();
+
+      verify(() => player.playOnNextMediaChange()).called(1);
+      final passed =
+          verify(() => queue.replace(captureAny())).captured.single as List<Song>;
+      expect(passed.map((s) => s.id).toSet(), {'a', 'b', 'c'});
+    });
+
+    test('clears the queue when the album has no songs', () async {
+      when(() => subsonic.getAlbum(any()))
+          .thenAnswer((_) async => Result.ok(makeAlbum(songs: [])));
+      final vm = buildViewModel();
+      await vm.load('album-1');
+      await settle();
+
+      vm.shuffle();
+
+      verify(() => queue.clear(priorityQueue: false)).called(1);
+      verifyNever(() => player.playOnNextMediaChange());
+      verifyNever(() => queue.replace(any()));
+    });
+  });
+
+  group('addToQueue', () {
+    test('adds all songs to the queue with the given priority', () async {
+      final songs = [makeSong('a'), makeSong('b')];
+      when(() => subsonic.getAlbum(any()))
+          .thenAnswer((_) async => Result.ok(makeAlbum(songs: songs)));
+      final vm = buildViewModel();
+      await vm.load('album-1');
+      await settle();
+
+      vm.addToQueue(true);
+
+      verify(() => queue.addAll(songs, true)).called(1);
+    });
+
+    test('is a no-op when the album has no songs', () async {
+      when(() => subsonic.getAlbum(any()))
+          .thenAnswer((_) async => Result.ok(makeAlbum(songs: [])));
+      final vm = buildViewModel();
+      await vm.load('album-1');
+      await settle();
+
+      vm.addToQueue(false);
+
+      verifyNever(() => queue.addAll(any(), any()));
+    });
+  });
+
+  group('dispose', () {
+    test('removes the favorites listener', () {
+      final vm = buildViewModel();
+      final listener =
+          verify(() => favorites.addListener(captureAny())).captured.single
+              as void Function();
+
+      vm.dispose();
+
+      verify(() => favorites.removeListener(listener)).called(1);
     });
   });
 }

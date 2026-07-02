@@ -158,14 +158,83 @@ void main() {
     });
   });
 
-  test('reloads (keeping the seed) when the music folder selection changes',
-      () async {
-    when(() => subsonic.getArtists())
-        .thenAnswer((_) async => Result.ok([makeArtist('A')]));
-    buildViewModel(ArtistsPageMode.alphabetical);
+  group('music folder changes', () {
+    test('reload when the selection changes', () async {
+      when(() => subsonic.getArtists())
+          .thenAnswer((_) async => Result.ok([makeArtist('A')]));
+      buildViewModel(ArtistsPageMode.alphabetical);
 
-    debounced.add(null);
-    await Future.delayed(Duration.zero);
+      debounced.add(null);
+      await Future.delayed(Duration.zero);
+
+      verify(() => subsonic.getArtists()).called(1);
+    });
+
+    test('keep the random order across the reload', () async {
+      when(() => supports.randomSeed).thenReturn(true);
+      final list = List.generate(10, (i) => makeArtist('a$i'));
+      when(() => subsonic.getArtists())
+          .thenAnswer((_) async => Result.ok(list));
+      final vm = buildViewModel(ArtistsPageMode.random);
+      await vm.load();
+      final firstOrder = vm.artists.map((a) => a.name).toList();
+
+      debounced.add(null);
+      await Future.delayed(Duration.zero);
+
+      // asserting a second fetch happened is what makes the equal-order check
+      // meaningful: it rules out the reload silently not running
+      verify(() => subsonic.getArtists()).called(2);
+      expect(vm.artists.map((a) => a.name).toList(), firstOrder);
+    });
+  });
+
+  test('a plain reload reshuffles random mode with a fresh seed', () async {
+    when(() => supports.randomSeed).thenReturn(true);
+    final list = List.generate(50, (i) => makeArtist('a$i'));
+    when(() => subsonic.getArtists()).thenAnswer((_) async => Result.ok(list));
+    final vm = buildViewModel(ArtistsPageMode.random);
+    await vm.load();
+    final firstOrder = vm.artists.map((a) => a.name).toList();
+
+    await vm.load();
+
+    expect(vm.artists.map((a) => a.name).toList(), isNot(firstOrder));
+  });
+
+  test('random mode reproduces the same order for the same initial seed',
+      () async {
+    when(() => supports.randomSeed).thenReturn(true);
+    final list = List.generate(10, (i) => makeArtist('a$i'));
+    when(() => subsonic.getArtists()).thenAnswer((_) async => Result.ok(list));
+
+    ArtistsViewModel makeVm() => ArtistsViewModel(
+          subsonic: subsonic,
+          mode: ArtistsPageMode.random,
+          musicFolders: musicFolders,
+          initialSeed: 'shared-seed',
+        );
+
+    final vm1 = makeVm();
+    await vm1.load();
+    final vm2 = makeVm();
+    await vm2.load();
+
+    final order = vm1.artists.map((a) => a.name).toList();
+    expect(vm2.artists.map((a) => a.name).toList(), order);
+    expect(order, isNot(list.map((a) => a.name).toList()),
+        reason: 'the seed must actually shuffle, not keep source order');
+  });
+
+  test('ignores a concurrent fetch while one is already in flight', () async {
+    final completer = Completer<Result<Iterable<Artist>>>();
+    when(() => subsonic.getArtists()).thenAnswer((_) => completer.future);
+    final vm = buildViewModel(ArtistsPageMode.alphabetical);
+
+    final first = vm.load();
+    final second = vm.load();
+    completer.complete(Result.ok([makeArtist('A')]));
+    await Future.wait([first, second]);
 
     verify(() => subsonic.getArtists()).called(1);
   });

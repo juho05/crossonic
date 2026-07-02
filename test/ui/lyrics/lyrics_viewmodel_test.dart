@@ -145,7 +145,9 @@ void main() {
       await Future.delayed(Duration.zero);
 
       expect(vm.status, FetchStatus.failure);
-      expect(seen, contains(FetchStatus.failure));
+      expect(seen, containsAllInOrder([FetchStatus.loading, FetchStatus.failure]));
+      expect(vm.lyrics, isNull);
+      expect(vm.selectedLine.value, isNull);
     });
 
     test('success sets lyrics and syncedMode = supportsSync and notifies',
@@ -180,6 +182,34 @@ void main() {
 
       expect(vm.supportsSync, isFalse);
       expect(vm.syncedMode, isFalse);
+    });
+
+    test('song change refetches lyrics, resets selection and syncedMode',
+        () async {
+      final lyricsA = makeSyncedLyrics([
+        (startMs: 0, text: 'a0'),
+        (startMs: 1000, text: 'a1'),
+      ]);
+      final lyricsB = makeUnsyncedLyrics(['b0', 'b1']);
+      when(() => player.position)
+          .thenReturn(const Duration(milliseconds: 1500));
+      when(() => subsonic.getLyricsLines(any()))
+          .thenAnswer((_) async => Result.ok(lyricsA));
+      final vm = await buildViewModel();
+
+      currentSubject.add(makeSong('a'));
+      await Future.delayed(Duration.zero);
+      expect(vm.lyrics, same(lyricsA));
+      expect(vm.syncedMode, isTrue);
+      expect(vm.selectedLine.value, 1);
+
+      when(() => subsonic.getLyricsLines(any()))
+          .thenAnswer((_) async => Result.ok(lyricsB));
+      currentSubject.add(makeSong('b'));
+      await Future.delayed(Duration.zero);
+      expect(vm.lyrics, same(lyricsB));
+      expect(vm.syncedMode, isFalse);
+      expect(vm.selectedLine.value, isNull);
     });
   });
 
@@ -323,6 +353,41 @@ void main() {
         async.elapse(const Duration(milliseconds: 100));
 
         expect(vm.selectedLine.value, 1);
+        vm.dispose();
+      });
+    });
+
+    test('timer advancing within same line does not re-emit selectedLine', () {
+      fakeAsync((async) {
+        setupMocks();
+        final lyrics = makeSyncedLyrics([
+          (startMs: 0, text: 'line 0'),
+          (startMs: 1000, text: 'line 1'),
+        ]);
+        when(() => subsonic.getLyricsLines(any()))
+            .thenAnswer((_) async => Result.ok(lyrics));
+
+        final vm =
+            LyricsViewModel(subsonic: subsonic, playbackManager: playback);
+        currentSubject.add(makeSong('s1'));
+        async.flushMicrotasks();
+
+        when(() => player.position)
+            .thenReturn(const Duration(milliseconds: 200));
+        statusSubject.add(PlaybackStatus.playing);
+        async.flushMicrotasks();
+        expect(vm.selectedLine.value, 0);
+
+        final emissions = <int?>[];
+        final sub = vm.selectedLine.skip(1).listen(emissions.add);
+
+        when(() => player.position)
+            .thenReturn(const Duration(milliseconds: 500));
+        async.elapse(const Duration(milliseconds: 100));
+
+        expect(vm.selectedLine.value, 0);
+        expect(emissions, isEmpty);
+        sub.cancel();
         vm.dispose();
       });
     });

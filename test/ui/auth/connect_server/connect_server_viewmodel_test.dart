@@ -69,5 +69,34 @@ void main() {
           verify(() => auth.connect(captureAny())).captured.single as Uri;
       expect(captured.path, '/sub');
     });
+
+    test('strips the trailing slash from a root path', () async {
+      when(() => auth.connect(any()))
+          .thenAnswer((_) async => const Result.ok(null));
+      final vm = buildViewModel();
+
+      await vm.connect.execute(Uri.parse('https://music.example.com/'));
+
+      final captured =
+          verify(() => auth.connect(captureAny())).captured.single as Uri;
+      expect(captured.path, isEmpty);
+    });
+
+    test('preserves scheme, host and port while normalizing the path',
+        () async {
+      when(() => auth.connect(any()))
+          .thenAnswer((_) async => const Result.ok(null));
+      final vm = buildViewModel();
+
+      await vm.connect
+          .execute(Uri.parse('https://music.example.com:8080/sub/'));
+
+      final captured =
+          verify(() => auth.connect(captureAny())).captured.single as Uri;
+      expect(captured.scheme, 'https');
+      expect(captured.host, 'music.example.com');
+      expect(captured.port, 8080);
+      expect(captured.path, '/sub');
+    });
   });
 }

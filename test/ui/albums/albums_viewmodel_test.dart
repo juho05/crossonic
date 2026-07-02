@@ -154,8 +154,10 @@ void main() {
     });
 
     test('nextPage no-ops even when not at end', () async {
-      when(() => subsonic.getAlbums(any(), any(), any(), any()))
-          .thenAnswer((_) async => const Result.ok([]));
+      // Return a full page so _reachedEnd stays false; this isolates the
+      // random-without-seed guard as the sole reason nextPage no-ops.
+      when(() => subsonic.getAlbums(any(), any(), any(), any())).thenAnswer(
+          (_) async => Result.ok(List.generate(500, (i) => makeAlbum('$i'))));
 
       final vm = buildViewModel(mode: AlbumsPageMode.random);
       await Future.delayed(Duration.zero);
@@ -260,6 +262,78 @@ void main() {
       expect(seed1, isNotNull);
       expect(seeds2.single, isNotNull);
       expect(seeds2.single, isNot(equals(seed1)));
+    });
+  });
+
+  group('initialSeed', () {
+    setUp(() {
+      when(() => supports.randomSeed).thenReturn(true);
+      when(() => subsonic.getAlbums(any(), any(), any(), any()))
+          .thenAnswer((_) async => const Result.ok([]));
+    });
+
+    test('random mode uses the provided seed for the first fetch', () async {
+      buildViewModel(mode: AlbumsPageMode.random, initialSeed: 'my-seed');
+      await Future.delayed(Duration.zero);
+
+      final seeds = verify(
+        () => subsonic.getAlbums(any(), any(), any(), captureAny()),
+      ).captured;
+      expect(seeds.single, 'my-seed');
+    });
+
+    test('seed persists across pages of the initial fetch but not a refresh',
+        () async {
+      when(() => subsonic.getAlbums(any(), any(), any(), any())).thenAnswer(
+          (_) async => Result.ok(List.generate(250, (i) => makeAlbum('$i'))));
+
+      final vm =
+          buildViewModel(mode: AlbumsPageMode.random, initialSeed: 'my-seed');
+      await Future.delayed(Duration.zero);
+
+      await vm.nextPage();
+
+      // initial fetch (page 0) and its additional page both use the seed
+      final seeds = verify(
+        () => subsonic.getAlbums(any(), any(), any(), captureAny()),
+      ).captured;
+      expect(seeds, everyElement('my-seed'));
+
+      await vm.refresh();
+
+      final refreshedSeed = verify(
+        () => subsonic.getAlbums(any(), any(), any(), captureAny()),
+      ).captured.single;
+      expect(refreshedSeed, isNot('my-seed'));
+    });
+  });
+
+  group('mode setter', () {
+    test('changing mode refetches with the new sort mode', () async {
+      when(() => subsonic.getAlbums(any(), any(), any(), any()))
+          .thenAnswer((_) async => const Result.ok([]));
+
+      final vm = buildViewModel(mode: AlbumsPageMode.alphabetical);
+      await Future.delayed(Duration.zero);
+      clearInteractions(subsonic);
+
+      vm.mode = AlbumsPageMode.favorites;
+      await Future.delayed(Duration.zero);
+
+      final sorts = verify(
+        () => subsonic.getAlbums(captureAny(), any(), any(), any()),
+      ).captured;
+      expect(sorts.single, AlbumsSortMode.starred);
+    });
+
+    test('throws when set to genre', () async {
+      when(() => subsonic.getAlbums(any(), any(), any(), any()))
+          .thenAnswer((_) async => const Result.ok([]));
+
+      final vm = buildViewModel();
+      await Future.delayed(Duration.zero);
+
+      expect(() => vm.mode = AlbumsPageMode.genre, throwsException);
     });
   });
 
