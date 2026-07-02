@@ -181,9 +181,6 @@ class QueueViewModel extends ChangeNotifier {
     bool oldIsPrio = _isPriorityQueue(oldIndex);
     bool oldIsQueue = _isQueue(oldIndex);
 
-    bool newIsPrio = _isPriorityQueue(newIndex - 1);
-    bool newIsQueue = _isQueue(newIndex);
-
     final Song song;
 
     // local reorder
@@ -194,8 +191,14 @@ class QueueViewModel extends ChangeNotifier {
       song = _queue.removeAt(oldIndex - prioQueueLength - 1);
       _reorderQueueLengthOverride = queueLength - 1;
     } else {
+      _reordering = false;
       return;
     }
+
+    // newIndex is in post-removal coordinates; classify it after applying the
+    // length override so the priority/queue boundary reflects the removal.
+    bool newIsPrio = _isPriorityQueue(newIndex - 1);
+    bool newIsQueue = _isQueue(newIndex);
 
     if (newIsPrio) {
       _priorityQueue.insert(newIndex, song);
