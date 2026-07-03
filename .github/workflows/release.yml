@@ -22,6 +22,25 @@ jobs:
           VERSION=$(sed -n 's/^version: \([0-9]*\.[0-9]*\.[0-9]*\).*/\1/p' pubspec.yaml)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: "stable"
+
+      - name: Dependencies
+        run: flutter pub get
+
+      - name: Build generated files
+        run: flutter pub run build_runner build
+
+      - name: Run tests
+        run: flutter test
+
   draft_release:
     needs: build
     runs-on: ubuntu-latest
@@ -497,6 +516,7 @@ jobs:
   release:
     needs:
       - build
+      - test
       - draft_release
       - build_android
       - build_linux_x86_64_TGZ
