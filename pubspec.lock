@@ -1371,13 +1371,12 @@ packages:
     source: hosted
     version: "4.3.0"
   permission_handler_windows:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: permission_handler_windows
-      sha256: "1a790728016f79a41216d88672dbc5df30e686e811ad4e698bfc51f76ad91f1e"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.2.1"
+      path: "dependency_overrides/stubs/permission_handler_windows"
+      relative: true
+    source: path
+    version: "0.0.0"
   petitparser:
     dependency: transitive
     description:

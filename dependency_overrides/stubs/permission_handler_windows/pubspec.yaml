@@ -1,0 +1,20 @@
+name: permission_handler_windows
+description: Stub implementation of permission_handler for Windows.
+version: 0.0.0
+
+environment:
+  sdk: ">=3.3.0 <4.0.0"
+  flutter: ">=3.19.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  permission_handler_platform_interface: ^4.1.0
+
+flutter:
+  plugin:
+    implements: permission_handler
+    platforms:
+      windows:
+        dartPluginClass: PermissionHandlerWindowsStub
+        fileName: permission_handler_windows.dart
