@@ -102,6 +102,37 @@ jobs:
         working-directory: ${{ env.APK_BUILD_DIR }}
         run: flutter build apk --split-per-abi
 
+      - name: Verify APK signature
+        working-directory: ${{ env.APK_BUILD_DIR }}
+        env:
+          EXPECTED_CERT_SHA256: ${{ vars.ANDROID_SIGNING_CERT_SHA256 }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "$EXPECTED_CERT_SHA256" ]; then
+            echo "::error::ANDROID_SIGNING_CERT_SHA256 variable is not set"
+            exit 1
+          fi
+          EXPECTED=$(echo "$EXPECTED_CERT_SHA256" | tr -d ': ' | tr '[:upper:]' '[:lower:]')
+          echo "Expected signing certificate SHA-256: $EXPECTED"
+
+          BUILD_TOOLS=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -n1)
+          APKSIGNER="$BUILD_TOOLS/apksigner"
+
+          for apk in build/app/outputs/flutter-apk/app-*-release.apk; do
+            echo "::group::Verifying $apk"
+            "$APKSIGNER" verify --verbose "$apk"
+            ACTUAL=$("$APKSIGNER" verify --print-certs "$apk" \
+              | grep -i 'SHA-256 digest' | head -n1 | awk '{print $NF}' | tr '[:upper:]' '[:lower:]')
+            echo "Signer certificate SHA-256: $ACTUAL"
+            if [ "$ACTUAL" != "$EXPECTED" ]; then
+              echo "::error::$apk is not signed with the expected certificate"
+              exit 1
+            fi
+            echo "$apk is signed with the correct certificate"
+            echo "::endgroup::"
+          done
+
       - name: Prepare AndroidManifest.xml for Play Store
         working-directory: ${{ env.APK_BUILD_DIR }}
         run: |
@@ -111,6 +142,32 @@ jobs:
       - name: Build App Bundle
         working-directory: ${{ env.APK_BUILD_DIR }}
         run: flutter build appbundle --dart-define=VERSION_CHECK=false --dart-define=PLAYSTORE=true
+
+      - name: Verify App Bundle signature
+        working-directory: ${{ env.APK_BUILD_DIR }}
+        env:
+          EXPECTED_CERT_SHA256: ${{ vars.ANDROID_SIGNING_CERT_SHA256 }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "$EXPECTED_CERT_SHA256" ]; then
+            echo "::error::ANDROID_SIGNING_CERT_SHA256 variable is not set"
+            exit 1
+          fi
+          EXPECTED=$(echo "$EXPECTED_CERT_SHA256" | tr -d ': ' | tr '[:upper:]' '[:lower:]')
+          echo "Expected signing certificate SHA-256: $EXPECTED"
+
+          AAB=build/app/outputs/bundle/release/app-release.aab
+          echo "Verifying $AAB"
+          jarsigner -verify "$AAB"
+          ACTUAL=$(keytool -printcert -jarfile "$AAB" \
+            | grep -i 'SHA256:' | head -n1 | awk '{print $2}' | tr -d ':' | tr '[:upper:]' '[:lower:]')
+          echo "Signer certificate SHA-256: $ACTUAL"
+          if [ "$ACTUAL" != "$EXPECTED" ]; then
+            echo "::error::$AAB is not signed with the expected certificate"
+            exit 1
+          fi
+          echo "$AAB is signed with the correct certificate"
 
       - name: Upload App Bundle
         uses: actions/upload-artifact@v7
@@ -410,6 +467,38 @@ jobs:
           echo "Attach staple"
           xcrun stapler staple Crossonic.app
 
+      - name: Verify code signature
+        env:
+          EXPECTED_TEAM_ID: ${{ vars.APPLE_TEAM_ID }}
+        run: |
+          set -euo pipefail
+          APP_PATH="build/macos/Build/Products/Release/Crossonic.app"
+
+          echo "Verifying code signature integrity..."
+          codesign --verify --deep --strict --verbose=2 "$APP_PATH"
+
+          echo "Checking signing certificate..."
+          if [ -z "$EXPECTED_TEAM_ID" ]; then
+            echo "::error::APPLE_TEAM_ID variable is not set"
+            exit 1
+          fi
+          INFO=$(codesign -dvv "$APP_PATH" 2>&1)
+          AUTHORITY=$(echo "$INFO" | grep '^Authority=' | head -n1 | cut -d= -f2-)
+          TEAM_ID=$(echo "$INFO" | grep '^TeamIdentifier=' | cut -d= -f2-)
+          echo "Signing authority: $AUTHORITY"
+          echo "Team identifier: $TEAM_ID"
+          case "$AUTHORITY" in
+            "Developer ID Application: "*) echo "Signed with a Developer ID Application certificate" ;;
+            *) echo "::error::App bundle not signed with a Developer ID Application certificate: $AUTHORITY"; exit 1 ;;
+          esac
+          if [ "$TEAM_ID" != "$EXPECTED_TEAM_ID" ]; then
+            echo "::error::App bundle signed with unexpected team ID: $TEAM_ID (expected $EXPECTED_TEAM_ID)"
+            exit 1
+          fi
+
+          echo "Verifying notarization via Gatekeeper..."
+          spctl --assess --type execute --verbose=4 "$APP_PATH"
+
       - name: Clean up keychain
         if: ${{ always() }}
         run: |
@@ -469,6 +558,49 @@ jobs:
         run: flutter build ipa --dart-define=VERSION_CHECK=false --export-options-plist=./ios/Runner/ExportOptions.plist
       - name: Move .ipa to working directory
         run: mv build/ios/ipa/crossonic.ipa ./Crossonic.ipa
+
+      - name: Verify IPA signature
+        env:
+          EXPECTED_TEAM_ID: ${{ vars.APPLE_TEAM_ID }}
+        run: |
+          set -euo pipefail
+
+          EXPECTED_CERT=$(/usr/libexec/PlistBuddy -c "Print :signingCertificate" ios/Runner/ExportOptions.plist)
+          echo "Expected team ID: $EXPECTED_TEAM_ID"
+          echo "Expected certificate: $EXPECTED_CERT"
+          if [ -z "$EXPECTED_TEAM_ID" ]; then
+            echo "::error::APPLE_TEAM_ID variable is not set"
+            exit 1
+          fi
+          if [ -z "$EXPECTED_CERT" ]; then
+            echo "::error::signingCertificate is not set in ios/Runner/ExportOptions.plist"
+            exit 1
+          fi
+
+          rm -rf ipa_verify
+          unzip -q Crossonic.ipa -d ipa_verify
+          APP_PATH=$(ls -d ipa_verify/Payload/*.app | head -n1)
+
+          echo "Verifying code signature integrity..."
+          codesign --verify --deep --strict --verbose=2 "$APP_PATH"
+
+          INFO=$(codesign -dvv "$APP_PATH" 2>&1)
+          echo "$INFO"
+          TEAM_ID=$(echo "$INFO" | grep '^TeamIdentifier=' | cut -d= -f2-)
+          AUTHORITY=$(echo "$INFO" | grep '^Authority=' | head -n1 | cut -d= -f2-)
+
+          if [ -z "$AUTHORITY" ]; then
+            echo "::error::IPA has no signing authority (not signed)"
+            exit 1
+          fi
+          if [ "$TEAM_ID" != "$EXPECTED_TEAM_ID" ]; then
+            echo "::error::IPA signed with unexpected team ID: $TEAM_ID (expected $EXPECTED_TEAM_ID)"
+            exit 1
+          fi
+          case "$AUTHORITY" in
+            "$EXPECTED_CERT"*) echo "IPA signed with the correct certificate: $AUTHORITY" ;;
+            *) echo "::error::IPA signed with unexpected certificate: $AUTHORITY (expected $EXPECTED_CERT)"; exit 1 ;;
+          esac
 
       - name: Clean up keychain and provisioning profile
         if: ${{ always() }}
