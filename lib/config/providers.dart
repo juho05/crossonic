@@ -45,6 +45,7 @@ import 'package:crossonic/data/services/media_integration/android.dart';
 import 'package:crossonic/data/services/media_integration/media_integration.dart';
 import 'package:crossonic/data/services/methodchannel/method_channel_service.dart';
 import 'package:crossonic/data/services/opensubsonic/subsonic_service.dart';
+import 'package:crossonic/data/services/permissions/local_network_permission.dart';
 import 'package:crossonic/data/services/upnp/upnp_service.dart';
 import 'package:crossonic/integrate_appimage_viewmodel.dart';
 import 'package:crossonic/version_checker_viewmodel.dart';
@@ -237,6 +238,9 @@ Future<List<SingleChildWidget>> createProviders({
   final deviceManager = DeviceManager(
     localSource: compositeLocalSource,
     upnpService: upnpService,
+    localNetworkPermission: LocalNetworkPermission(
+      methodChannel: methodChannelService,
+    ),
   );
 
   final playbackManager = PlaybackManager(

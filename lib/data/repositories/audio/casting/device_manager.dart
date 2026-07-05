@@ -17,12 +17,14 @@ import 'package:crossonic/data/repositories/audio/casting/sonos/sonos_discoverer
 import 'package:crossonic/data/repositories/audio/players/local_song_source.dart';
 import 'package:crossonic/data/repositories/audio/players/player.dart';
 import 'package:crossonic/data/repositories/audio/players/sonos_player.dart';
+import 'package:crossonic/data/services/permissions/local_network_permission.dart';
 import 'package:crossonic/data/services/upnp/upnp_service.dart';
 import 'package:flutter/foundation.dart';
 
 class DeviceManager extends ChangeNotifier {
   final LocalSongSource _localSource;
   final UpnpService _upnpService;
+  final LocalNetworkPermission _localNetworkPermission;
 
   final List<DeviceDiscoverer> _discoverers = [if (!kIsWeb) SonosDiscoverer()];
 
@@ -34,13 +36,19 @@ class DeviceManager extends ChangeNotifier {
 
   bool get discovering => _discovering;
 
-  DeviceManager({required this._localSource, required this._upnpService}) {
+  DeviceManager({
+    required this._localSource,
+    required this._upnpService,
+    required this._localNetworkPermission,
+  }) {
     _registerDeviceStreams();
   }
 
   Future<void> startDiscovery() async {
     _discovering = true;
     notifyListeners();
+
+    await _localNetworkPermission.request();
 
     for (final d in _discoverers) {
       await d.startDiscovery();
