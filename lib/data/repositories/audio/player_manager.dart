@@ -116,12 +116,20 @@ class PlayerManager {
   Future<void> changePlayer(AudioPlayer? player) async {
     player ??= _localPlayer;
 
+    final oldPlayer = _player;
+
     // don't wait for stop of old player because it might take a while, e.g.
     // when it is no longer reachable
     _player.stop();
     _player.applyReplayGain(1);
 
     _player = player;
+
+    // dispose the replaced player to release its timers, subscriptions and
+    // connections; never dispose the reused local player
+    if (oldPlayer != _localPlayer && oldPlayer != player) {
+      oldPlayer.dispose();
+    }
 
     _volume = await _player.volume;
     _volumeLinearStream.add(_volume);

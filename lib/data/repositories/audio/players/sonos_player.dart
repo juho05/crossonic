@@ -33,6 +33,10 @@ class SonosPlayer extends AudioPlayer {
 
   bool _setNextFailed = false;
 
+  bool _disposed = false;
+
+  StreamSubscription<AudioPlayerEvent>? _eventSub;
+
   @override
   Future<Duration> get position async =>
       _lastKnownPosition +
@@ -77,7 +81,7 @@ class SonosPlayer extends AudioPlayer {
          avTransportControlUri: device.avTransportControlUri,
          renderingControlUri: device.renderingControlUri,
        ) {
-    eventStream.listen((event) async {
+    _eventSub = eventStream.listen((event) async {
       if (event == AudioPlayerEvent.advance) return;
       if (event == AudioPlayerEvent.playing) {
         _startPollingTimer();
@@ -86,6 +90,16 @@ class SonosPlayer extends AudioPlayer {
         _stopPollingTimer();
       }
     });
+  }
+
+  @override
+  Future<void> dispose() async {
+    _disposed = true;
+    _stopAdvanceTimer();
+    _stopPollingTimer();
+    await _eventSub?.cancel();
+    _eventSub = null;
+    await super.dispose();
   }
 
   @override
@@ -98,7 +112,7 @@ class SonosPlayer extends AudioPlayer {
     String? format,
     bool updateCurrentMediaItem = false,
   }) async {
-    super.configureServerURL(
+    await super.configureServerURL(
       streamUri: streamUri,
       coverUri: coverUri,
       supportsTimeOffset: supportsTimeOffset,
@@ -222,8 +236,13 @@ class SonosPlayer extends AudioPlayer {
     await setNextMediaItem();
   }
 
+  static const _maxPlayAttempts = 3;
+
   @override
-  Future<void> play() async {
+  Future<void> play() => _play();
+
+  Future<void> _play({int attempt = 0}) async {
+    if (_disposed) return;
     if (eventStream.value == AudioPlayerEvent.playing) return;
 
     eventStream.add(AudioPlayerEvent.loading);
@@ -248,8 +267,18 @@ class SonosPlayer extends AudioPlayer {
       }
     }
 
+    if (_disposed) return;
+
+    if (attempt + 1 >= _maxPlayAttempts) {
+      Log.error(
+        "failed to start sonos playback after $_maxPlayAttempts attempts",
+      );
+      _publishPlayerEvent(UpnpTransportState.pausedPlayback);
+      return;
+    }
+
     await setCurrent(currentSong.value!, next: nextSong.value, pos: pos);
-    await play();
+    await _play(attempt: attempt + 1);
   }
 
   @override

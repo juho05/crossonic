@@ -147,33 +147,33 @@ class PlaybackManager {
     final play = _player.playbackStatus.value == PlaybackStatus.playing;
     final pos = _player.position;
 
-    if (!kIsWeb && Platform.isAndroid) {
-      if (player is AudioPlayerAndroid || player == null) {
-        Log.debug("enabling android player");
-        await _methodChannel.invokeMethod("setPlayerEnabled", {
-          "enabled": true,
-        });
-      } else {
-        Log.debug("disabling android player");
-        await _methodChannel.invokeMethod("setPlayerEnabled", {
-          "enabled": false,
-        });
+    try {
+      if (!kIsWeb && Platform.isAndroid) {
+        if (player is AudioPlayerAndroid || player == null) {
+          Log.debug("enabling android player");
+          await _methodChannel.invokeMethod("setPlayerEnabled", {
+            "enabled": true,
+          });
+        } else {
+          Log.debug("disabling android player");
+          await _methodChannel.invokeMethod("setPlayerEnabled", {
+            "enabled": false,
+          });
+        }
       }
+
+      await _player.changePlayer(player);
+      await _configurePlayerServerURL();
+
+      final next = _queue.currentAndNext.value.next;
+      if (_queue.current.value != null) {
+        await _player.setCurrent(_queue.current.value!, next: next, pos: pos);
+      }
+    } finally {
+      _player.connectPlayerStreams();
+      await _applyReplayGain();
+      _refreshPrefetchState();
     }
-
-    await _player.changePlayer(player);
-    await _configurePlayerServerURL();
-
-    final next = _queue.currentAndNext.value.next;
-    if (_queue.current.value != null) {
-      await _player.setCurrent(_queue.current.value!, next: next, pos: pos);
-    }
-
-    _player.connectPlayerStreams();
-
-    await _applyReplayGain();
-
-    _refreshPrefetchState();
 
     Log.debug("player: $player");
 

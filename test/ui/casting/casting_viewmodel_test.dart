@@ -185,9 +185,40 @@ void main() {
       expect(vm.connecting, isFalse);
     });
 
-    test('selectDevice when no prior current does not insert null', () async {
+    test('does not rethrow when changeDevice fails', () async {
+      final vm = buildViewModel();
+      when(() => playback.changeDevice(d1)).thenThrow(Exception('unreachable'));
+
+      await expectLater(vm.selectDevice(d1), completes);
+    });
+
+    test('clears connecting when changeDevice fails', () async {
+      final vm = buildViewModel();
+      when(() => playback.changeDevice(d1)).thenThrow(Exception('unreachable'));
+
+      await vm.selectDevice(d1);
+
+      expect(vm.connecting, isFalse);
+    });
+
+    test('reverts currentDevice to actual player device when changeDevice fails',
+        () async {
+      final vm = buildViewModel();
+      when(() => playback.changeDevice(d1)).thenThrow(Exception('unreachable'));
+
+      await vm.selectDevice(d1);
+
+      expect(vm.currentDevice, local);
+      expect(vm.discoveredDevices, [d1, d2]);
+    });
+
+    test('previously current device reappears in discovered after selecting',
+        () async {
       setupMocks(devices: [d1, d2], currentDevice: d1);
       final vm = buildViewModel();
+      expect(vm.currentDevice, d1);
+      expect(vm.discoveredDevices, [d2]);
+
       when(() => playback.changeDevice(d2)).thenAnswer((_) async {
         when(() => player.device).thenReturn(d2);
         when(() => deviceManager.devices).thenReturn([d1, d2]);
@@ -195,7 +226,8 @@ void main() {
 
       await vm.selectDevice(d2);
 
-      expect(vm.discoveredDevices, isNot(contains(null)));
+      expect(vm.currentDevice, d2);
+      expect(vm.discoveredDevices, [d1]);
     });
   });
 

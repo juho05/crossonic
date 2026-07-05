@@ -8,6 +8,7 @@
 
 import 'package:crossonic/data/repositories/audio/casting/device.dart';
 import 'package:crossonic/data/repositories/audio/playback_manager.dart';
+import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:flutter/material.dart';
 
 class CastingViewModel extends ChangeNotifier {
@@ -51,8 +52,13 @@ class CastingViewModel extends ChangeNotifier {
     _connecting = true;
     notifyListeners();
 
-    await _playbackManager.changeDevice(device);
-    await _onDevicesChanged();
+    try {
+      await _playbackManager.changeDevice(device);
+    } catch (e, st) {
+      Log.error("failed to connect to device ${device.name}", e: e, st: st);
+    } finally {
+      await _onDevicesChanged();
+    }
   }
 
   @override
