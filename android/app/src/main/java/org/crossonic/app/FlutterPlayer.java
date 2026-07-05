@@ -9,6 +9,7 @@
 package org.crossonic.app;
 
 import androidx.annotation.NonNull;
+import androidx.media3.common.C;
 import androidx.media3.common.MediaItem;
 import androidx.media3.common.SimpleBasePlayer;
 import androidx.media3.common.util.UnstableApi;
@@ -111,8 +112,7 @@ public class FlutterPlayer extends SimpleBasePlayer {
         if (mediaItem.mediaMetadata.durationMs != null) {
             mediaItemDataBuilder.setDurationUs(mediaItem.mediaMetadata.durationMs * 1000);
         }
-        // TODO support seeking
-        mediaItemDataBuilder.setIsSeekable(false);
+        mediaItemDataBuilder.setIsSeekable(true);
         mediaItemDataBuilder.setMediaItem(mediaItem);
         mediaItemDataBuilder.setMediaMetadata(mediaItem.mediaMetadata);
 
@@ -154,6 +154,21 @@ public class FlutterPlayer extends SimpleBasePlayer {
 
     @NonNull
     @Override
+    protected ListenableFuture<?> handleSeek(int mediaItemIndex, long positionMs, int seekCommand) {
+        if (positionMs == C.TIME_UNSET) {
+            positionMs = 0;
+        }
+        if (playing) {
+            position = PositionSupplier.getExtrapolating(positionMs, 1);
+        } else {
+            position = PositionSupplier.getConstant(positionMs);
+        }
+        FlutterIntegration.sendEvent("seek", Map.of("pos", positionMs));
+        return Futures.immediateVoidFuture();
+    }
+
+    @NonNull
+    @Override
     protected ListenableFuture<?> handleStop() {
         // TODO: re-enable after stop on player change is fixed
         //FlutterIntegration.sendEvent("stop", null);
@@ -171,6 +186,8 @@ public class FlutterPlayer extends SimpleBasePlayer {
             COMMAND_PLAY_PAUSE,
             COMMAND_STOP,
             COMMAND_RELEASE,
+            COMMAND_SEEK_TO_DEFAULT_POSITION,
+            COMMAND_SEEK_IN_CURRENT_MEDIA_ITEM,
             COMMAND_GET_CURRENT_MEDIA_ITEM,
             COMMAND_GET_METADATA,
             COMMAND_GET_TIMELINE

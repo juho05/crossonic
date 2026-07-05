@@ -192,6 +192,9 @@ public class CrossonicPlayer implements Player {
         if (enabled) {
             player.enableAndroid();
         } else {
+            // the flutter player reports absolute positions, so the android-only
+            // time offset must not be applied while it is active
+            positionOffsetMs = 0;
             player.disableAndroid();
         }
         result.success(null);
@@ -468,12 +471,12 @@ public class CrossonicPlayer implements Player {
 
     @Override
     public long getCurrentPosition() {
-        return player.getCurrentPosition() + positionOffsetMs;
+        return player.getCurrentPosition() + (enabled ? positionOffsetMs : 0);
     }
 
     @Override
     public long getBufferedPosition() {
-        return player.getBufferedPosition() + positionOffsetMs;
+        return player.getBufferedPosition() + (enabled ? positionOffsetMs : 0);
     }
 
     // unchanged
@@ -700,6 +703,12 @@ public class CrossonicPlayer implements Player {
         if (positionMs == C.TIME_UNSET) {
             positionMs = 0;
         }
+        if (!enabled) {
+            // flutter player is active: delegate seek to flutter via the media integration
+            CLog.debug("CrossonicPlayer.seekTo", "delegating seek to flutter player", null);
+            player.seekTo(positionMs);
+            return;
+        }
         if (player.isCurrentMediaItemSeekable() && positionOffsetMs == 0) {
             CLog.debug("CrossonicPlayer.seekTo", "performing native player seek", null);
             player.seekTo(positionMs);
@@ -766,7 +775,7 @@ public class CrossonicPlayer implements Player {
 
     @Override
     public boolean hasNextMediaItem() {
-        if (player.hasNextMediaItem()) {
+        if (enabled && player.hasNextMediaItem()) {
             return true;
         }
         // TODO handle with flutter
@@ -775,7 +784,7 @@ public class CrossonicPlayer implements Player {
 
     @Override
     public void seekToNextMediaItem() {
-        if (player.hasNextMediaItem()) {
+        if (enabled && player.hasNextMediaItem()) {
             player.seekToNextMediaItem();
             return;
         }
@@ -1291,6 +1300,12 @@ public class CrossonicPlayer implements Player {
         @Override
         public void onPositionDiscontinuity(
                 @NonNull PositionInfo oldPosition, @NonNull PositionInfo newPosition, @DiscontinuityReason int reason) {
+            if (!enabled) {
+                // the flutter player already reports absolute positions and the
+                // recovery seek below is an android-only workaround
+                listeners.forEach(listener -> listener.onPositionDiscontinuity(oldPosition, newPosition, reason));
+                return;
+            }
             if (reason == Player.DISCONTINUITY_REASON_INTERNAL && newPosition.positionMs < oldPosition.positionMs - 1000 && newPosition.positionMs < 1000) {
                 CLog.warn("CrossonicPlayer.PlayerListener.onPositionDiscontinuity", "Encountered unexpected position discontinuity to start of media file, recovering by calling seekTo", null);
                 seekTo(oldPosition.positionMs + positionOffsetMs);

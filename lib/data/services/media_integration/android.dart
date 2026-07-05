@@ -28,6 +28,7 @@ class MediaIntegrationAndroid implements MediaIntegration {
   Future<void> Function()? _onStop;
   Future<void> Function()? _onPlayNext;
   Future<void> Function()? _onPlayPrev;
+  Future<void> Function(Duration position)? _onSeek;
   Future<void> Function(bool loop)? _onLoopChanged;
 
   @override
@@ -46,6 +47,7 @@ class MediaIntegrationAndroid implements MediaIntegration {
     _onStop = onStop;
     _onPlayNext = onPlayNext;
     _onPlayPrev = onPlayPrev;
+    _onSeek = onSeek;
     _onLoopChanged = onLoopChanged;
 
     _methodChannel.addEventListener(_onEvent);
@@ -63,6 +65,8 @@ class MediaIntegrationAndroid implements MediaIntegration {
         await _onPlayNext?.call();
       case "playPrev":
         await _onPlayPrev?.call();
+      case "seek":
+        await _onSeek?.call(Duration(milliseconds: data!["pos"]));
       case "loop":
         await _onLoopChanged?.call(data!["loop"]);
       case "play":
