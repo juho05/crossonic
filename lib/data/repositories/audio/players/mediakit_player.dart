@@ -44,7 +44,7 @@ class AudioPlayerMediaKit extends AudioPlayer {
 
   @override
   Future<Duration> get bufferedPosition async =>
-      _player?.state.buffer ?? Duration.zero + _positionOffset;
+      (_player?.state.buffer ?? Duration.zero) + _positionOffset;
 
   double _targetVolume = 1;
   double _replayGain = 1;
