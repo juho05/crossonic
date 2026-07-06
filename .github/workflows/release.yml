@@ -519,6 +519,14 @@ jobs:
   build_ios_ipa:
     needs: build
     runs-on: macos-26
+    # disable unused permissions -> also change xcode pre-action env variables when changing these
+    env:
+      # permission_handler
+      PERMISSION_NOTIFICATIONS: "0"
+      # background_downloader
+      BYPASS_PERMISSION_NOTIFICATIONS: "1"
+      BYPASS_PERMISSION_IOSADDTOPHOTOLIBRARY: "1"
+      BYPASS_PERMISSION_IOSCHANGEPHOTOLIBRARY: "1"
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6

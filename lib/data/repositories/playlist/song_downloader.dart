@@ -58,16 +58,6 @@ class SongDownloader extends ChangeNotifier implements LocalSongSource {
     }
 
     await FileDownloader().trackTasksInGroup(_taskGroup);
-    FileDownloader().configureNotificationForGroup(
-      _taskGroup,
-      running: TaskNotification(
-        "Downloading songs",
-        !kIsWeb && Platform.isIOS
-            ? "Download in progress"
-            : "{numFinished} out of {numTotal} songs downloaded",
-      ),
-      groupNotificationId: _taskGroup,
-    );
     FileDownloader().registerCallbacks(
       group: _taskGroup,
       taskStatusCallback: _statusCallback,

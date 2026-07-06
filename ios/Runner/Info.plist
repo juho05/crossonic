@@ -38,7 +38,7 @@
 	<key>NSCameraUsageDescription</key>
 	<string>Take cover images for playlists</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Not actually used but required for image picker</string>
+	<string>Used when recording videos in the playlist cover picker.</string>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>Discover and control Sonos speakers on your local network.</string>
 	<key>NSBonjourServices</key>
