@@ -205,6 +205,7 @@ class SonosPlayer extends AudioPlayer {
     _setNextFailed = true;
 
     Future<void> setNextMediaItem() async {
+      if (_disposed) return;
       final result = await _upnp.setNextMediaItem(
         _upnpCon,
         next != null
