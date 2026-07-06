@@ -81,18 +81,13 @@ class UpnpMediaItem {
             );
             builder.element(
               "res",
+              attributes: {
+                if (duration != null)
+                  "duration": UpnpService.formatTime(duration!),
+                "protocolInfo": "http-get:*:$contentType:$contentFeatures",
+              },
               nest: () {
-                builder.element(
-                  "res",
-                  attributes: {
-                    if (duration != null)
-                      "duration": UpnpService.formatTime(duration!),
-                    "protocolInfo": "http-get:*:$contentType:$contentFeatures",
-                  },
-                  nest: () {
-                    builder.text(url);
-                  },
-                );
+                builder.text(url);
               },
             );
           },
