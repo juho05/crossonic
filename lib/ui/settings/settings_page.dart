@@ -79,7 +79,7 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
           if (!kIsWeb)
             ListTile(
-              title: const Text("Prefetch"),
+              title: const Text("Queue Prefetching"),
               trailing: const Icon(Icons.arrow_forward_ios),
               onTap: () => context.router.push(const PrefetchRoute()),
             ),

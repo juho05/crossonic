@@ -40,7 +40,7 @@ class _PrefetchPageState extends State<PrefetchPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Prefetch")),
+      appBar: AppBar(title: const Text("Queue Prefetching")),
       body: ListenableBuilder(
         listenable: _viewModel,
         builder: (context, _) {

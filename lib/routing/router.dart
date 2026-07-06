@@ -209,7 +209,7 @@ class AppRouter extends RootStackRouter {
     AutoRoute(
       path: "/settings/prefetch",
       page: PrefetchRoute.page,
-      title: (context, data) => "Prefetch",
+      title: (context, data) => "Queue Prefetching",
       restorationId: (match) => match.fullPath,
     ),
     AutoRoute(

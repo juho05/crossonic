@@ -395,7 +395,9 @@ class QueuePrefetcher extends ChangeNotifier implements LocalSongSource {
         await _delay(_backoff(attempt), task);
       }
     } finally {
-      _tasks.remove(id);
+      // only clear tracking if this task is still the active one; a cancel
+      // may have already removed it and started a replacement for the same id
+      if (identical(_tasks[id], task)) _tasks.remove(id);
       if (completed) {
         _partial.remove(id);
       } else if (task.transcodeTag == _currentProfileTag &&
