@@ -146,9 +146,12 @@ class UpnpService {
         .firstOrNull
         ?.firstChild
         ?.value;
+    final currentVolume = currentVolumeStr != null
+        ? double.tryParse(currentVolumeStr)
+        : null;
     double volume = 1;
-    if (currentVolumeStr != null) {
-      volume = (double.parse(currentVolumeStr) / 100).clamp(0, 1);
+    if (currentVolume != null) {
+      volume = (currentVolume / 100).clamp(0, 1);
       volume = pow(volume, 3) as double;
     }
     return Result.ok(volume);
@@ -202,7 +205,7 @@ class UpnpService {
         ?.value;
     double speed = 1;
     if (currentSpeedStr != null) {
-      speed = double.parse(currentSpeedStr);
+      speed = double.tryParse(currentSpeedStr) ?? 1;
     }
 
     return Result.ok(
@@ -249,7 +252,9 @@ class UpnpService {
       body?.findElements("RelTime").firstOrNull?.firstChild?.value,
     );
 
-    if (track == null ||
+    final trackNr = track != null ? int.tryParse(track) : null;
+
+    if (trackNr == null ||
         trackDuration == null ||
         trackUri == null ||
         position == null) {
@@ -260,7 +265,7 @@ class UpnpService {
 
     return Result.ok(
       UpnpPositionInfo(
-        track: int.parse(track),
+        track: trackNr,
         trackUri: trackUri,
         trackDuration: trackDuration,
         pos: position + delay,
@@ -347,12 +352,14 @@ class UpnpService {
     if (duration == null) return null;
     final parts = duration.split(":");
     if (parts.length < 2 || parts.length > 3) {
-      throw FormatException("invalid duration: $duration");
+      return null;
     }
-    return Duration(
-      seconds: int.parse(parts[parts.length - 1]),
-      minutes: int.parse(parts[parts.length - 2]),
-      hours: parts.length == 3 ? int.parse(parts[0]) : 0,
-    );
+    final seconds = int.tryParse(parts[parts.length - 1]);
+    final minutes = int.tryParse(parts[parts.length - 2]);
+    final hours = parts.length == 3 ? int.tryParse(parts[0]) : 0;
+    if (seconds == null || minutes == null || hours == null) {
+      return null;
+    }
+    return Duration(seconds: seconds, minutes: minutes, hours: hours);
   }
 }

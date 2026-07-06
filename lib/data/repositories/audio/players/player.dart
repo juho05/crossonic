@@ -197,7 +197,7 @@ abstract class AudioPlayer {
       scheme: _coverUri.scheme,
       port: _coverUri.port,
       userInfo: _coverUri.userInfo,
-      fragment: _streamUri.fragment.isNotEmpty ? _streamUri.fragment : null,
+      fragment: _coverUri.fragment.isNotEmpty ? _coverUri.fragment : null,
       queryParameters: queryParams,
     );
   }
