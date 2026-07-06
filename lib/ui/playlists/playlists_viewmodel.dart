@@ -293,7 +293,7 @@ class PlaylistsViewModel extends ChangeNotifier {
       case PlaylistsSort.created:
         return a.created.compareTo(b.created);
       case PlaylistsSort.alphabetical:
-        return a.name.compareTo(b.name);
+        return a.name.toLowerCase().compareTo(b.name.toLowerCase());
       case PlaylistsSort.songCount:
         return a.songCount.compareTo(b.songCount);
       case PlaylistsSort.duration:
