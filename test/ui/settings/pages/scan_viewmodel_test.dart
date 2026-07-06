@@ -63,7 +63,7 @@ void main() {
   });
 
   group('_loadStatus', () {
-    test('error → failure', () async {
+    test('error -> failure', () async {
       when(() => subsonic.getScanStatus())
           .thenAnswer((_) async => Result.error(Exception('network')));
 
@@ -74,7 +74,7 @@ void main() {
       vm.dispose();
     });
 
-    test('success while scanning → starts 250ms periodic poll', () {
+    test('success while scanning -> starts 250ms periodic poll', () {
       fakeAsync((async) {
         when(() => subsonic.getScanStatus())
             .thenAnswer((_) async => Result.ok(scanning()));
@@ -85,7 +85,7 @@ void main() {
         expect(vm.status, FetchStatus.success);
         expect(vm.scanStatus.scanning, isTrue);
 
-        // Advance 500ms — timer should have fired twice
+        // Advance 500ms - timer should have fired twice
         async.elapse(const Duration(milliseconds: 500));
 
         // Initial call + 2 timer-driven calls = at least 3
@@ -111,7 +111,7 @@ void main() {
       });
     });
 
-    test('scanning→not-scanning transition cancels the timer', () {
+    test('scanning->not-scanning transition cancels the timer', () {
       fakeAsync((async) {
         var callCount = 0;
         when(() => subsonic.getScanStatus()).thenAnswer((_) async {
@@ -123,10 +123,10 @@ void main() {
         });
 
         final vm = buildViewModel();
-        async.flushMicrotasks(); // call 1: scanning → starts timer
+        async.flushMicrotasks(); // call 1: scanning -> starts timer
 
         async.elapse(const Duration(milliseconds: 250)); // call 2: scanning
-        async.elapse(const Duration(milliseconds: 250)); // call 3: not scanning → cancels
+        async.elapse(const Duration(milliseconds: 250)); // call 3: not scanning -> cancels
 
         final callsAfterCancel = callCount;
         async.elapse(const Duration(milliseconds: 500));
@@ -145,7 +145,7 @@ void main() {
             .thenAnswer((_) async => Result.ok(scanning()));
 
         final vm = buildViewModel();
-        async.flushMicrotasks(); // first _loadStatus → creates timer
+        async.flushMicrotasks(); // first _loadStatus -> creates timer
 
         // Manually call again (simulating a second path that would try to create timer)
         vm.scan(false);

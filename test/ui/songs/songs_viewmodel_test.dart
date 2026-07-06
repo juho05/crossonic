@@ -190,6 +190,85 @@ void main() {
         ),
       );
     });
+
+    test('initialSeed primes the first random fetch when randomSeed supported',
+        () async {
+      when(() => supports.randomSeed).thenReturn(true);
+
+      final vm = buildViewModel(
+        mode: SongsPageMode.random,
+        initialSeed: 'my-seed',
+      );
+      await Future.delayed(Duration.zero);
+
+      final seeds = verify(
+        () => subsonic.getRandomSongs(
+          count: any(named: 'count'),
+          offset: any(named: 'offset'),
+          seed: captureAny(named: 'seed'),
+        ),
+      ).captured;
+      expect(seeds.single, 'my-seed');
+      expect(vm.status, FetchStatus.success);
+    });
+
+    test('initialSeed ignored when randomSeed unsupported', () async {
+      when(() => supports.randomSeed).thenReturn(false);
+
+      buildViewModel(mode: SongsPageMode.random, initialSeed: 'my-seed');
+      await Future.delayed(Duration.zero);
+
+      final seeds = verify(
+        () => subsonic.getRandomSongs(
+          count: any(named: 'count'),
+          offset: any(named: 'offset'),
+          seed: captureAny(named: 'seed'),
+        ),
+      ).captured;
+      expect(seeds.single, isNull);
+    });
+  });
+
+  group('mode setter', () {
+    test('changing mode re-fetches in the new mode', () async {
+      final vm = buildViewModel(mode: SongsPageMode.random);
+      await Future.delayed(Duration.zero);
+      clearInteractions(subsonic);
+
+      vm.mode = SongsPageMode.favorites;
+      await Future.delayed(Duration.zero);
+
+      expect(vm.mode, SongsPageMode.favorites);
+      verify(() => subsonic.getStarredSongs()).called(1);
+    });
+
+    test('setting mode=all falls back to random when unsupported', () async {
+      when(() => supports.emptySearchString).thenReturn(false);
+      final vm = buildViewModel(mode: SongsPageMode.favorites);
+      await Future.delayed(Duration.zero);
+      clearInteractions(subsonic);
+
+      vm.mode = SongsPageMode.all;
+      await Future.delayed(Duration.zero);
+
+      expect(vm.mode, SongsPageMode.random);
+      verifyNever(
+        () => subsonic.search(
+          any(),
+          songCount: any(named: 'songCount'),
+          songOffset: any(named: 'songOffset'),
+          albumCount: any(named: 'albumCount'),
+          artistCount: any(named: 'artistCount'),
+        ),
+      );
+    });
+
+    test('setting mode=genre throws', () async {
+      final vm = buildViewModel(mode: SongsPageMode.random);
+      await Future.delayed(Duration.zero);
+
+      expect(() => vm.mode = SongsPageMode.genre, throwsException);
+    });
   });
 
   group('mode routing', () {
@@ -255,8 +334,9 @@ void main() {
 
   group('nextPage', () {
     test('no-ops when _reachedEnd', () async {
+      when(() => supports.randomSeed).thenReturn(true);
       final vm = buildViewModel(mode: SongsPageMode.random);
-      await Future.delayed(Duration.zero); // fewer than 500 songs → _reachedEnd
+      await Future.delayed(Duration.zero); // fewer than 500 songs -> _reachedEnd
       clearInteractions(subsonic);
 
       await vm.nextPage();
@@ -282,6 +362,7 @@ void main() {
 
     test('no-ops for random without randomSeed support', () async {
       when(() => supports.randomSeed).thenReturn(false);
+      stubGetRandomSongs(songs: List.generate(500, (i) => makeSong('$i')));
       final vm = buildViewModel(mode: SongsPageMode.random);
       await Future.delayed(Duration.zero);
       clearInteractions(subsonic);
@@ -667,6 +748,24 @@ void main() {
           seed: any(named: 'seed'),
         ),
       ).called(1);
+    });
+
+    test('no longer refreshes after dispose', () async {
+      final vm = buildViewModel(mode: SongsPageMode.random);
+      await Future.delayed(Duration.zero);
+      clearInteractions(subsonic);
+
+      vm.dispose();
+      debounced.add(null);
+      await Future.delayed(Duration.zero);
+
+      verifyNever(
+        () => subsonic.getRandomSongs(
+          count: any(named: 'count'),
+          offset: any(named: 'offset'),
+          seed: any(named: 'seed'),
+        ),
+      );
     });
   });
 }

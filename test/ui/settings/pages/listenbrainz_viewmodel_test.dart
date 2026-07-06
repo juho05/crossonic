@@ -38,7 +38,7 @@ void main() {
       ListenBrainzViewModel(subsonicRepository: subsonic);
 
   group('load', () {
-    test('initial->loading->success, fields populated, ≥2 notifications', () async {
+    test('initial->loading->success, fields populated, >=2 notifications', () async {
       when(() => subsonic.getListenBrainzConfig())
           .thenAnswer((_) async => Result.ok(makeConfig()));
 
@@ -170,6 +170,45 @@ void main() {
       await vm.updateSettings(syncFavorites: true);
 
       expect(vm.scrobbleEnabled, isTrue);
+    });
+  });
+
+  group('disconnect', () {
+    test('success updates username from result and toggles submitting', () async {
+      when(() => subsonic.connectListenBrainz(any()))
+          .thenAnswer((_) async => Result.ok(makeConfig(username: 'user')));
+      when(() => subsonic.disconnectListenBrainz())
+          .thenAnswer((_) async => Result.ok(makeConfig(username: null)));
+
+      final vm = buildViewModel();
+      await vm.connect('token');
+      expect(vm.username, 'user');
+
+      final submittingStates = <bool>[];
+      vm.addListener(() => submittingStates.add(vm.submitting));
+
+      final result = await vm.disconnect();
+
+      expect(result, isA<Ok>());
+      expect(vm.username, isNull);
+      expect(vm.submitting, isFalse);
+      expect(submittingStates, containsAllInOrder([true, false]));
+    });
+
+    test('failure: submitting reset, error returned, username unchanged', () async {
+      when(() => subsonic.connectListenBrainz(any()))
+          .thenAnswer((_) async => Result.ok(makeConfig(username: 'user')));
+      when(() => subsonic.disconnectListenBrainz())
+          .thenAnswer((_) async => Result.error(Exception('server error')));
+
+      final vm = buildViewModel();
+      await vm.connect('token');
+
+      final result = await vm.disconnect();
+
+      expect(result, isA<Err>());
+      expect(vm.submitting, isFalse);
+      expect(vm.username, 'user');
     });
   });
 

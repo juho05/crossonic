@@ -119,6 +119,33 @@ void main() {
       expect(notified, isTrue);
     });
 
+    test('clearing after a populated search resets results and mode',
+        () async {
+      when(() => subsonic.search(
+            any(),
+            artistCount: any(named: 'artistCount'),
+            albumCount: any(named: 'albumCount'),
+            songCount: any(named: 'songCount'),
+          )).thenAnswer((_) async => Result.ok(makeSearchResult(
+            songs: [makeSong('s0')],
+            albums: [makeAlbum('a0')],
+            artists: [makeArtist('ar0')],
+          )));
+
+      final vm = buildViewModel();
+      await vm.updateSearchText('hello');
+      expect(vm.songs, isNotEmpty);
+      expect(vm.searchMode, isTrue);
+
+      await vm.updateSearchText('');
+
+      expect(vm.searchMode, isFalse);
+      expect(vm.searchStatus, FetchStatus.initial);
+      expect(vm.songs, isEmpty);
+      expect(vm.albums, isEmpty);
+      expect(vm.artists, isEmpty);
+    });
+
     test('non-empty search notifies loading then success with results',
         () async {
       final songs = List.generate(15, (i) => makeSong('s$i'));

@@ -62,6 +62,15 @@ void main() {
       expect(vm.fromYear, now - 10);
       expect(vm.toYear, now);
     });
+
+    test('does not fetch on construction', () async {
+      buildViewModel();
+      await Future.delayed(Duration.zero);
+
+      verifyNever(
+        () => subsonic.getAlbumsByYears(any(), any(), any(), any()),
+      );
+    });
   });
 
   group('fromYear setter', () {
@@ -86,7 +95,7 @@ void main() {
       expect(vm.fromYear, initialFrom + 5);
     });
 
-    test('resets status to initial before fetching', () async {
+    test('emits loading then success on change', () async {
       when(() => subsonic.getAlbumsByYears(any(), any(), any(), any()))
           .thenAnswer((_) async => Result.ok([makeAlbum('1')]));
 
@@ -156,6 +165,21 @@ void main() {
   });
 
   group('pagination', () {
+    test('nextPage performs the initial load at offset=0', () async {
+      when(() => subsonic.getAlbumsByYears(any(), any(), any(), any()))
+          .thenAnswer((_) async => Result.ok([makeAlbum('1')]));
+
+      final vm = buildViewModel();
+      await vm.nextPage();
+
+      expect(vm.status, FetchStatus.success);
+      expect(vm.albums.length, 1);
+      final offsets = verify(
+        () => subsonic.getAlbumsByYears(any(), any(), any(), captureAny()),
+      ).captured;
+      expect(offsets.single, 0);
+    });
+
     test('first fetch uses offset=0, nextPage uses offset=100', () async {
       when(() => subsonic.getAlbumsByYears(any(), any(), any(), any()))
           .thenAnswer(
@@ -253,10 +277,23 @@ void main() {
         () => subsonic.getAlbumsByYears(any(), any(), any(), any()),
       ).called(1);
     });
+
+    test('no longer refreshes after dispose', () async {
+      final vm = buildViewModel();
+      clearInteractions(subsonic);
+
+      vm.dispose();
+      debounced.add(null);
+      await Future.delayed(Duration.zero);
+
+      verifyNever(
+        () => subsonic.getAlbumsByYears(any(), any(), any(), any()),
+      );
+    });
   });
 
   group('status sequence', () {
-    test('emits loading then success', () async {
+    test('emits loading then success and populates albums', () async {
       when(() => subsonic.getAlbumsByYears(any(), any(), any(), any()))
           .thenAnswer((_) async => Result.ok([makeAlbum('1')]));
 
@@ -268,6 +305,7 @@ void main() {
 
       expect(statuses, contains(FetchStatus.loading));
       expect(statuses.last, FetchStatus.success);
+      expect(vm.albums.length, 1);
     });
   });
 }

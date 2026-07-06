@@ -216,6 +216,19 @@ void main() {
       expect(vm.playlists.map((p) => p.$1.name).toList(), ['Apple', 'Zebra']);
     });
 
+    test('case-insensitive: lowercase not sorted after uppercase', () async {
+      when(() => repo.getPlaylists()).thenAnswer(
+        (_) async => Result.ok([makePlaylist('1', name: 'apple'), makePlaylist('2', name: 'Banana')]),
+      );
+      final vm = buildViewModel();
+      await settle();
+      vm.offline = false;
+
+      vm.sort = PlaylistsSort.alphabetical;
+
+      expect(vm.playlists.map((p) => p.$1.name).toList(), ['apple', 'Banana']);
+    });
+
     test('descending: z before a', () async {
       when(() => repo.getPlaylists()).thenAnswer(
         (_) async => Result.ok([makePlaylist('1', name: 'Apple'), makePlaylist('2', name: 'Zebra')]),
@@ -580,6 +593,36 @@ void main() {
 
       verify(() => player.playOnNextMediaChange()).called(1);
       verify(() => queue.replace(any())).called(1);
+    });
+
+    test('playlist gone (getPlaylist Ok null): returns error, no playback', () async {
+      final pl = makePlaylist('p1');
+      when(() => repo.getPlaylists()).thenAnswer((_) async => Result.ok([pl]));
+      when(() => repo.getPlaylist('p1'))
+          .thenAnswer((_) async => const Result.ok(null));
+      final vm = buildViewModel();
+      await settle();
+
+      final result = await vm.play(pl);
+
+      expect(result, isA<Err>());
+      verifyNever(() => player.playOnNextMediaChange());
+      verifyNever(() => queue.replace(any()));
+    });
+
+    test('getPlaylist Err: returns error, no playback', () async {
+      final pl = makePlaylist('p1');
+      when(() => repo.getPlaylists()).thenAnswer((_) async => Result.ok([pl]));
+      when(() => repo.getPlaylist('p1'))
+          .thenAnswer((_) async => Result.error(Exception('fetch fail')));
+      final vm = buildViewModel();
+      await settle();
+
+      final result = await vm.play(pl);
+
+      expect(result, isA<Err>());
+      verifyNever(() => player.playOnNextMediaChange());
+      verifyNever(() => queue.replace(any()));
     });
 
     test('with shuffle: shuffles songs before replace', () async {

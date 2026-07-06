@@ -178,11 +178,9 @@ void main() {
       final vm = buildViewModel(refreshStream: refreshController.stream);
       await Future.delayed(Duration.zero);
       vm.dispose();
+      clearInteractions(dataSource);
 
       // After dispose, stream emission should not trigger more loads
-      final callsBefore =
-          verify(() => dataSource.get(any(), seed: any(named: 'seed')))
-              .callCount;
       refreshController.add(false);
       await Future.delayed(Duration.zero);
 

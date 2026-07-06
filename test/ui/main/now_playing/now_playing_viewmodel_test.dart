@@ -186,12 +186,13 @@ void main() {
 
       expect(vm.song, isNull);
       expect(vm.favorite, isFalse);
+      expect(seen, isEmpty);
     });
   });
 
   group('position timer', () {
     test(
-        'playing status starts 50ms periodic timer; 200ms → 4 position ticks',
+        'playing status starts 50ms periodic timer; 200ms -> 4 position ticks',
         () {
       fakeAsync((async) {
         setupMocks();
@@ -272,6 +273,44 @@ void main() {
     });
   });
 
+  group('position content', () {
+    test('positionUpdateStream emission refreshes position from player',
+        () async {
+      final vm = await buildViewModel();
+      when(() => player.position).thenReturn(const Duration(seconds: 10));
+
+      positionUpdateSubject.add(const Duration(seconds: 1));
+      await Future.delayed(Duration.zero);
+
+      expect(vm.position.value.position, const Duration(seconds: 10));
+      await vm.dispose();
+    });
+
+    test('buffered position timer refreshes bufferedPosition while playing', () {
+      fakeAsync((async) {
+        setupMocks();
+        when(() => player.bufferedPosition)
+            .thenAnswer((_) async => const Duration(seconds: 2));
+        final vm = NowPlayingViewModel(
+          favoritesRepository: favorites,
+          playbackManager: playback,
+        );
+        async.flushMicrotasks();
+        expect(vm.position.value.bufferedPosition, const Duration(seconds: 2));
+
+        when(() => player.bufferedPosition)
+            .thenAnswer((_) async => const Duration(seconds: 5));
+        statusSubject.add(PlaybackStatus.playing);
+        async.flushMicrotasks();
+
+        async.elapse(const Duration(milliseconds: 600));
+
+        expect(vm.position.value.bufferedPosition, const Duration(seconds: 5));
+        vm.dispose();
+      });
+    });
+  });
+
   group('stopped status', () {
     test('refreshes hasNamedQueues on stopped', () async {
       final vm = await buildViewModel();
@@ -322,28 +361,20 @@ void main() {
       verifyNever(() => queue.getCurrentQueue());
     });
 
-    test('hasNamedQueues only refreshed when status is stopped', () async {
+    test('queue change does not refresh hasNamedQueues when not stopped',
+        () async {
       statusSubject.add(PlaybackStatus.playing);
-      await Future.delayed(Duration.zero);
-
       final vm = await buildViewModel();
-      // status is playing now because we seeded playing before construction
-      // Actually, the construct sees the statusSubject.value at construction time
-      // Let us just set playing status after construction
       final queueListener =
           verify(() => queue.addListener(captureAny())).captured.last
               as void Function();
       clearInteractions(queue);
 
-      statusSubject.add(PlaybackStatus.playing);
-      await Future.delayed(Duration.zero);
-      clearInteractions(queue);
-      when(() => queue.hasNamedQueues()).thenAnswer((_) async => false);
-
       queueListener();
       await Future.delayed(Duration.zero);
 
       verifyNever(() => queue.hasNamedQueues());
+      await vm.dispose();
     });
   });
 
@@ -459,6 +490,16 @@ void main() {
 
     test('calls play when paused', () async {
       statusSubject.add(PlaybackStatus.paused);
+      final vm = await buildViewModel();
+
+      await vm.playPause();
+
+      verify(() => player.play()).called(1);
+      verifyNever(() => player.pause());
+    });
+
+    test('calls play when stopped', () async {
+      statusSubject.add(PlaybackStatus.stopped);
       final vm = await buildViewModel();
 
       await vm.playPause();

@@ -79,6 +79,22 @@ void main() {
       expect(notified, isTrue);
     });
 
+    test('ignores a re-entrant load while one is already in progress', () async {
+      final completer = Completer<Result<List<Genre>>>();
+      when(() => subsonic.getGenres()).thenAnswer((_) => completer.future);
+      final vm = buildViewModel();
+
+      final first = vm.load(); // sets status to loading, then awaits
+      final second = vm.load(); // status == loading -> returns immediately
+
+      completer.complete(
+        Result.ok([Genre(name: 'Rock', songCount: 1, albumCount: 1)]),
+      );
+      await Future.wait([first, second]);
+
+      verify(() => subsonic.getGenres()).called(1);
+    });
+
     test('notifies with loading then success status sequence', () async {
       when(() => subsonic.getGenres()).thenAnswer(
         (_) async => Result.ok([Genre(name: 'Rock', songCount: 5, albumCount: 3)]),
@@ -158,7 +174,7 @@ void main() {
       expect(notified, isFalse);
     });
 
-    test('random → random reshuffles and notifies', () async {
+    test('random -> random reshuffles and notifies', () async {
       when(() => subsonic.getGenres()).thenAnswer(
         (_) async => Result.ok([
           Genre(name: 'Rock', songCount: 1, albumCount: 1),
@@ -212,5 +228,17 @@ void main() {
     await Future.delayed(Duration.zero);
 
     verify(() => subsonic.getGenres()).called(1);
+  });
+
+  test('dispose stops handling music folder events', () async {
+    when(() => subsonic.getGenres()).thenAnswer((_) async => Result.ok([]));
+    final vm = buildViewModel();
+
+    vm.dispose();
+
+    debounced.add(null);
+    await Future.delayed(Duration.zero);
+
+    verifyNever(() => subsonic.getGenres());
   });
 }

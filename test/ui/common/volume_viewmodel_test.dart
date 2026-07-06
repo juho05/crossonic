@@ -69,18 +69,20 @@ void main() {
       });
     });
 
-    test('calls player.volumeCubic on trailing edge after delay', () {
+    test('writes the latest queued value on the trailing edge after delay', () {
       fakeAsync((async) {
         setupMocks();
         when(() => player.volumeCubic = any<double>()).thenReturn(0.0);
         final vm = VolumeViewModel(playbackManager: playback);
 
-        vm.volume = 0.3; // leading edge fires immediately
+        vm.volume = 0.3; // leading edge writes 0.3 immediately
+        vm.volume = 0.6; // queued for the trailing edge
+        verify(() => player.volumeCubic = 0.3).called(1);
+        verifyNever(() => player.volumeCubic = 0.6);
 
         async.elapse(const Duration(milliseconds: 100));
 
-        // trailing edge fires after 100ms with the latest value
-        verify(() => player.volumeCubic = 0.3).called(greaterThanOrEqualTo(1));
+        verify(() => player.volumeCubic = 0.6).called(1);
 
         vm.dispose();
       });
@@ -159,15 +161,17 @@ void main() {
     test('cancels subscription so stream events no longer notify', () async {
       when(() => player.volumeCubic).thenReturn(0.5);
       final vm = buildViewModel();
+      var notifications = 0;
+      vm.addListener(() => notifications++);
 
       vm.dispose();
 
       when(() => player.volumeCubic).thenReturn(0.9);
-      var notified = false;
-      // Can't add listener after dispose, so just verify no crash
       volumeLinearSubject.add(0.729);
       await Future.delayed(Duration.zero);
-      expect(notified, isFalse);
+
+      // A leaked subscription would call notifyListeners() after dispose and throw.
+      expect(notifications, 0);
     });
   });
 }

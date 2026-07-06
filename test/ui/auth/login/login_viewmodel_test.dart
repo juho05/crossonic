@@ -19,6 +19,11 @@ ServerFeatures featuresUsernameOnly() => ServerFeatures(
       supportsPasswordAuth: false,
     );
 
+ServerFeatures featuresPasswordOnly() => ServerFeatures(
+      supportsTokenAuth: false,
+      supportsPasswordAuth: true,
+    );
+
 ServerFeatures featuresApiKeyOnly() => ServerFeatures(
       apiKeyAuthentication: {1},
     );
@@ -39,6 +44,13 @@ void main() {
   group('supportedAuthTypes', () {
     test('contains usernamePassword when token auth supported', () {
       when(() => auth.serverFeatures).thenReturn(ValueNotifier(featuresUsernameOnly()));
+      final vm = buildViewModel();
+      expect(vm.supportedAuthTypes, contains(AuthType.usernamePassword));
+      vm.dispose();
+    });
+
+    test('contains usernamePassword when only password auth supported', () {
+      when(() => auth.serverFeatures).thenReturn(ValueNotifier(featuresPasswordOnly()));
       final vm = buildViewModel();
       expect(vm.supportedAuthTypes, contains(AuthType.usernamePassword));
       vm.dispose();

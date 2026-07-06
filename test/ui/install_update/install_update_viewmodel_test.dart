@@ -63,20 +63,22 @@ void main() {
   });
 
   group('installUpdate', () {
-    test('Ok returns Ok', () async {
+    test('delegates to repo.update and returns Ok', () async {
       when(() => repo.update()).thenAnswer((_) async => const Result.ok(null));
       final vm = buildViewModel();
       final result = await vm.installUpdate();
       expect(result, isA<Ok>());
+      verify(() => repo.update()).called(1);
       vm.dispose();
     });
 
-    test('Err returns Err unchanged, no throw', () async {
+    test('Err returns same error unchanged, no throw', () async {
       final error = Exception('update failed');
       when(() => repo.update()).thenAnswer((_) async => Result.error(error));
       final vm = buildViewModel();
       final result = await vm.installUpdate();
       expect(result, isA<Err>());
+      expect((result as Err).error, same(error));
       vm.dispose();
     });
   });

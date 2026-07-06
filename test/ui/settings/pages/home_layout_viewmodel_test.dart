@@ -40,14 +40,11 @@ void main() {
       vm.dispose();
     });
 
-    test('notified on construction', () {
-      var notifications = 0;
-      late HomeLayoutViewModel vm;
-      vm = HomeLayoutViewModel(settings: settings);
-      vm.addListener(() => notifications++);
-      // constructor already fired, so subsequent setting change triggers
-      settings.selectedOptions = [HomeContentOption.randomSongs];
-      expect(notifications, greaterThanOrEqualTo(1));
+    test('populates lists from settings on construction', () {
+      settings.selectedOptions = [HomeContentOption.favoriteSongs];
+      final vm = buildViewModel();
+      expect(vm.activeComponents, [HomeContentOption.favoriteSongs]);
+      expect(vm.inactiveComponents, isNot(contains(HomeContentOption.favoriteSongs)));
       vm.dispose();
     });
   });

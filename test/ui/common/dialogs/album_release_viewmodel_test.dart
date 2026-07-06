@@ -97,7 +97,7 @@ void main() {
   });
 
   group('null alternatives + supported', () {
-    test('initial→loading→success, sorted+populated', () async {
+    test('initial->loading->success, sorted+populated', () async {
       when(() => supports.getAlternateAlbumVersions).thenReturn(true);
       final fetchedAlbums = [
         makeAlbum(id: 'x', releaseDate: Date(year: 2019)),
@@ -122,7 +122,20 @@ void main() {
       vm.dispose();
     });
 
-    test('loading→failure when fetch fails, list stays empty', () async {
+    test('empty fetch result -> success, empty', () async {
+      when(() => supports.getAlternateAlbumVersions).thenReturn(true);
+      when(() => subsonic.getAlternateAlbumVersions('base'))
+          .thenAnswer((_) async => const Result.ok([]));
+
+      final vm = buildViewModel();
+      await Future.delayed(Duration.zero);
+
+      expect(vm.status, FetchStatus.success);
+      expect(vm.alternatives, isEmpty);
+      vm.dispose();
+    });
+
+    test('loading->failure when fetch fails, list stays empty', () async {
       when(() => supports.getAlternateAlbumVersions).thenReturn(true);
       when(() => subsonic.getAlternateAlbumVersions(any()))
           .thenAnswer((_) async => Result.error(Exception('network')));
@@ -175,6 +188,17 @@ void main() {
       final vm = buildViewModel(alternatives: [noVersion, withVersion]);
 
       expect(vm.alternatives.first.id, 'a');
+      vm.dispose();
+    });
+
+    test('date beats version: date-holder sorts before version-only', () {
+      when(() => supports.getAlternateAlbumVersions).thenReturn(false);
+      final versionOnly = makeAlbum(id: 'a', version: 'Deluxe');
+      final dateOnly = makeAlbum(id: 'b', releaseDate: Date(year: 2000));
+      final vm = buildViewModel(alternatives: [versionOnly, dateOnly]);
+
+      expect(vm.alternatives.first.id, 'b',
+          reason: 'a release date outranks a version');
       vm.dispose();
     });
 

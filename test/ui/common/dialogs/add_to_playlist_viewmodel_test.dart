@@ -267,7 +267,7 @@ void main() {
       verify(() => repo.addTracks('pl-1', any())).called(1);
     });
 
-    test('duplicate, askDuplicate → true: song included', () async {
+    test('duplicate, askDuplicate -> true: song included', () async {
       final pl = makePlaylist('pl-1');
       when(
         () => repo.getPlaylists(orderBy: any(named: 'orderBy')),
@@ -367,6 +367,46 @@ void main() {
 
       expect(count, 0);
       verifyNever(() => repo.addTracks(any(), any()));
+    });
+
+    test('getTrackIdsInPlaylist Ok(null): playlist skipped, not counted', () async {
+      final pl = makePlaylist('pl-1');
+      when(
+        () => repo.getPlaylists(orderBy: any(named: 'orderBy')),
+      ).thenAnswer((_) async => Result.ok([pl]));
+      when(() => repo.getTrackIdsInPlaylist('pl-1'))
+          .thenAnswer((_) async => const Result.ok(null));
+
+      final vm = buildViewModel(songs: [makeSong('s1'), makeSong('s2')]);
+      await settle();
+
+      vm.toggleSelection(pl);
+
+      final count = await vm.addSongsToPlaylists((p, s) async => true);
+
+      expect(count, 0);
+      verifyNever(() => repo.addTracks(any(), any()));
+    });
+
+    test('addTracks Err: playlist not counted', () async {
+      final pl = makePlaylist('pl-1');
+      when(
+        () => repo.getPlaylists(orderBy: any(named: 'orderBy')),
+      ).thenAnswer((_) async => Result.ok([pl]));
+      when(() => repo.getTrackIdsInPlaylist('pl-1'))
+          .thenAnswer((_) async => const Result.ok(<String>{}));
+      when(() => repo.addTracks('pl-1', any()))
+          .thenAnswer((_) async => Result.error(Exception('fail')));
+
+      final vm = buildViewModel(songs: [makeSong('s1'), makeSong('s2')]);
+      await settle();
+
+      vm.toggleSelection(pl);
+
+      final count = await vm.addSongsToPlaylists((p, s) async => true);
+
+      expect(count, 0);
+      verify(() => repo.addTracks('pl-1', any())).called(1);
     });
   });
 

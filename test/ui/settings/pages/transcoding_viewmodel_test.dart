@@ -131,17 +131,36 @@ void main() {
   });
 
   group('supportsMobile', () {
-    test('pass-through from transcoding settings', () {
+    test('false before settings loaded', () {
       final vm = buildViewModel();
-      expect(vm.supportsMobile, transcoding.supportsMobile);
+      expect(vm.supportsMobile, isFalse);
       vm.dispose();
     });
   });
 
   group('availableCodecs', () {
-    test('pass-through from transcoding settings', () {
+    test('surfaces the server-supported codecs', () {
+      when(() => supports.transcodeCodecs)
+          .thenReturn([TranscodingCodec.opus, TranscodingCodec.vorbis]);
       final vm = buildViewModel();
-      expect(vm.availableCodecs, transcoding.availableCodecs);
+      expect(vm.availableCodecs,
+          [TranscodingCodec.opus, TranscodingCodec.vorbis]);
+      vm.dispose();
+    });
+  });
+
+  group('reset', () {
+    test('delegates to transcoding.reset restoring bit-rate defaults', () {
+      final vm = buildViewModel();
+      transcoding.maxBitRate = 320;
+      transcoding.maxBitRateMobile = 64;
+
+      vm.reset();
+
+      expect(transcoding.maxBitRate, 256);
+      expect(transcoding.maxBitRateMobile, 128);
+      expect(vm.maxBitRate, 256);
+      expect(vm.maxBitRateMobile, 128);
       vm.dispose();
     });
   });

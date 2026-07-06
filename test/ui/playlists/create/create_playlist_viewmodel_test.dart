@@ -160,6 +160,26 @@ void main() {
     verify(() => repo.addTracks('pl-1', any())).called(1);
   });
 
+  test('description Err does not prevent addTracks', () async {
+    when(() => repo.create(any()))
+        .thenAnswer((_) async => const Result.ok('pl-1'));
+    when(() => repo.updatePlaylistMetadata(any(), comment: any(named: 'comment')))
+        .thenAnswer((_) async => Result.error(Exception('desc fail')));
+    when(() => repo.addTracks(any(), any()))
+        .thenAnswer((_) async => const Result.ok(null));
+
+    final vm = buildViewModel();
+
+    final result = await vm.create(
+      'Name',
+      description: 'desc',
+      songs: [makeSong('s1')],
+    );
+
+    expect(result, isA<Ok<String>>());
+    verify(() => repo.addTracks('pl-1', any())).called(1);
+  });
+
   test('create throws: finally resets loading and notifies', () async {
     when(() => repo.create(any())).thenThrow(Exception('unexpected'));
 

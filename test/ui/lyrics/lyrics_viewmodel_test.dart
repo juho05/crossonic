@@ -125,7 +125,7 @@ void main() {
   }
 
   group('_fetch', () {
-    test('null song → status success, lyrics null, selectedLine null', () async {
+    test('null song -> status success, lyrics null, selectedLine null', () async {
       final vm = await buildViewModel();
 
       expect(vm.status, FetchStatus.success);

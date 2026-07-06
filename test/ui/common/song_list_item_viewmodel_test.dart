@@ -125,6 +125,15 @@ void main() {
       expect(vm.playbackStatus, isNull);
     });
 
+    test('reflects an already-current song at construction', () {
+      current.add(makeSong('a'));
+      status.add(PlaybackStatus.playing);
+
+      final vm = buildViewModel();
+
+      expect(vm.playbackStatus, PlaybackStatus.playing);
+    });
+
     test('never tracks status when playback status is disabled', () async {
       final vm = buildViewModel(disablePlaybackStatus: true);
 
@@ -151,6 +160,21 @@ void main() {
       expect(vm.favorite, isTrue);
       expect(notified, isTrue);
       verify(() => favorites.setFavorite(FavoriteType.song, 'a', true))
+          .called(1);
+    });
+
+    test('unfavorites and persists false when already favorite', () async {
+      when(() => favorites.isFavorite(FavoriteType.song, 'a')).thenReturn(true);
+      when(() => favorites.setFavorite(any(), any(), any()))
+          .thenAnswer((_) async => const Result.ok(null));
+      final vm = buildViewModel();
+      expect(vm.favorite, isTrue);
+
+      final result = await vm.toggleFavorite();
+
+      expect(result, isA<Ok>());
+      expect(vm.favorite, isFalse);
+      verify(() => favorites.setFavorite(FavoriteType.song, 'a', false))
           .called(1);
     });
 
@@ -185,6 +209,16 @@ void main() {
 
     expect(vm.favorite, isTrue);
     expect(notified, isTrue);
+  });
+
+  test('dispose stops reacting to external favorite changes', () {
+    final vm = buildViewModel();
+    final listener =
+        verify(() => favorites.addListener(captureAny())).captured.first
+            as void Function();
+
+    vm.dispose();
+    verify(() => favorites.removeListener(listener)).called(1);
   });
 
   group('playback actions', () {

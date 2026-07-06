@@ -129,6 +129,15 @@ void main() {
     });
   });
 
+  test('reflects the repository favorite state at construction', () {
+    when(() => favorites.isFavorite(FavoriteType.album, 'album-1'))
+        .thenReturn(true);
+
+    final vm = buildViewModel();
+
+    expect(vm.favorite, isTrue);
+  });
+
   test('reflects external favorite changes from the repository', () {
     final vm = buildViewModel();
     final listener =
@@ -143,6 +152,14 @@ void main() {
     expect(vm.favorite, isTrue);
   });
 
+  test('stops listening to the repository after dispose', () {
+    final vm = buildViewModel();
+
+    vm.dispose();
+
+    verify(() => favorites.removeListener(any())).called(1);
+  });
+
   group('play', () {
     test('replaces the queue with the album songs', () async {
       final songs = [makeSong('a'), makeSong('b')];
@@ -151,6 +168,20 @@ void main() {
       final vm = buildViewModel();
 
       final result = await vm.play();
+
+      expect(result, isA<Ok>());
+      verify(() => player.playOnNextMediaChange()).called(1);
+      verify(() => queue.replace(songs, 0)).called(1);
+    });
+
+    test('shuffles the album songs in place before replacing the queue',
+        () async {
+      final songs = [makeSong('a'), makeSong('b')];
+      when(() => subsonic.getAlbumSongs(any()))
+          .thenAnswer((_) async => Result.ok(songs));
+      final vm = buildViewModel();
+
+      final result = await vm.play(shuffle: true);
 
       expect(result, isA<Ok>());
       verify(() => player.playOnNextMediaChange()).called(1);
@@ -193,6 +224,31 @@ void main() {
 
       expect(result, isA<Err>());
       verifyNever(() => queue.addAll(any(), any()));
+    });
+  });
+
+  group('getSongs', () {
+    test('returns the album songs from the repository', () async {
+      final songs = [makeSong('a'), makeSong('b')];
+      when(() => subsonic.getAlbumSongs(any()))
+          .thenAnswer((_) async => Result.ok(songs));
+      final vm = buildViewModel();
+
+      final result = await vm.getSongs();
+
+      expect(result, isA<Ok>());
+      expect((result as Ok).value, songs);
+    });
+
+    test('propagates the error', () async {
+      final failure = Exception('nope');
+      when(() => subsonic.getAlbumSongs(any()))
+          .thenAnswer((_) async => Result.error(failure));
+      final vm = buildViewModel();
+
+      final result = await vm.getSongs();
+
+      expect((result as Err).error, same(failure));
     });
   });
 }

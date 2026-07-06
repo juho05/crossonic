@@ -152,6 +152,25 @@ void main() {
       vm.dispose();
     });
 
+    test('release dates render with missing month/day (year only) and full', () async {
+      when(() => service.getSong(any(), any())).thenAnswer(
+        (_) async => Result.ok(_makeSong(
+          releaseDate: ItemDateModel(year: 2020, month: null, day: null),
+          originalReleaseDate: ItemDateModel(year: 2019, month: 5, day: 3),
+        )),
+      );
+
+      final vm = MediaInfoDialogViewModel.song(
+          subsonicService: service, authRepository: auth, id: 's1');
+      await Future.delayed(Duration.zero);
+
+      expect(vm.status, FetchStatus.success);
+      expect(vm.fields.firstWhere((f) => f.$1 == 'Release date').$2, '2020');
+      expect(vm.fields.firstWhere((f) => f.$1 == 'Original release date').$2,
+          '2019-05-03');
+      vm.dispose();
+    });
+
     test('MBID URL present on crossonic server', () async {
       when(() => auth.serverFeatures).thenReturn(ValueNotifier(ServerFeatures(isCrossonic: true)));
       when(() => service.getSong(any(), any()))
@@ -254,6 +273,25 @@ void main() {
       await Future.delayed(Duration.zero);
       expect(vmWith.fields.any((f) => f.$1 == 'Release group MBID'), isTrue);
       vmWith.dispose();
+    });
+
+    test('release dates render with missing month/day (year only) and full', () async {
+      when(() => service.getAlbum(any(), any())).thenAnswer(
+        (_) async => Result.ok(_makeAlbum(
+          releaseDate: ItemDateModel(year: 2001, month: null, day: null),
+          originalReleaseDate: ItemDateModel(year: 1999, month: 12, day: 25),
+        )),
+      );
+
+      final vm = MediaInfoDialogViewModel.album(
+          subsonicService: service, authRepository: auth, id: 'a1');
+      await Future.delayed(Duration.zero);
+
+      expect(vm.status, FetchStatus.success);
+      expect(vm.fields.firstWhere((f) => f.$1 == 'Release date').$2, '2001');
+      expect(vm.fields.firstWhere((f) => f.$1 == 'Original release date').$2,
+          '1999-12-25');
+      vm.dispose();
     });
 
     test('single releaseType -> "Release type"; multiple -> "Release types"', () async {
@@ -434,6 +472,8 @@ AlbumID3Model _makeAlbum({
   String? mbid,
   String? releaseMbid,
   List<String>? releaseTypes,
+  ItemDateModel? releaseDate,
+  ItemDateModel? originalReleaseDate,
 }) =>
     AlbumID3Model(
       id: id,
@@ -461,8 +501,8 @@ AlbumID3Model _makeAlbum({
       releaseTypes: releaseTypes,
       moods: null,
       sortName: null,
-      originalReleaseDate: null,
-      releaseDate: null,
+      originalReleaseDate: originalReleaseDate,
+      releaseDate: releaseDate,
       isCompilation: null,
       explicitStatus: null,
       discTitles: null,

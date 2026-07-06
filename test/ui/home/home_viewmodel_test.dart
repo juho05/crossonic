@@ -105,9 +105,28 @@ void main() {
       vm.refresh(true);
 
       expect(vm.seed, isNotNull);
-      expect(notifications, isNotEmpty);
-      // In most cases the random seed will be different (very unlikely to be equal)
-      // We just assert it was regenerated (non-null and a notification was fired)
+      expect(vm.seed, isNot(seedBefore));
+      expect(notifications, [vm.seed]);
+      vm.dispose();
+    });
+
+    test('refresh(true) does not touch seed or notify when randomSeed unsupported but still emits true', () async {
+      when(() => supports.randomSeed).thenReturn(false);
+      final vm = buildViewModel();
+
+      final notifications = <String?>[];
+      vm.addListener(() => notifications.add(vm.seed));
+
+      final emitted = <bool>[];
+      final sub = vm.refreshStream.listen(emitted.add);
+
+      vm.refresh(true);
+      await Future.delayed(Duration.zero);
+
+      expect(vm.seed, isNull);
+      expect(notifications, isEmpty);
+      expect(emitted, [true]);
+      await sub.cancel();
       vm.dispose();
     });
 

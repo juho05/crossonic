@@ -125,7 +125,7 @@ void main() {
       ).thenAnswer((_) async => const Result.ok(null));
     });
 
-    test('toggles loading true→false and passes args', () async {
+    test('toggles loading true->false and passes args', () async {
       final vm = buildViewModel();
       await settle();
 

@@ -112,6 +112,52 @@ void main() {
       expect(vm.showUpdateSuccessful, isFalse);
       vm.dispose();
     });
+
+    test('persisted current newer than running -> no banner', () async {
+      when(() => keyValue.loadObject<Version>(any(), any()))
+          .thenAnswer((_) async => _newer);
+      when(() => keyValue.loadDateTime(any())).thenAnswer((_) async => null);
+      when(() => versionRepo.getLatestVersion())
+          .thenAnswer((_) async => const Result.ok(null));
+
+      final vm = build();
+      await vm.check();
+
+      expect(vm.showUpdateSuccessful, isFalse);
+      vm.dispose();
+    });
+  });
+
+  group('current version persistence', () {
+    test('stores running version when different from persisted', () async {
+      when(() => keyValue.loadObject<Version>(any(), any()))
+          .thenAnswer((_) async => null);
+      when(() => keyValue.loadDateTime(any())).thenAnswer((_) async => null);
+      when(() => versionRepo.getLatestVersion())
+          .thenAnswer((_) async => const Result.ok(null));
+
+      final vm = build();
+      await vm.check();
+
+      final stored =
+          verify(() => keyValue.store<Version>(any(), captureAny())).captured;
+      expect(stored, contains(_current));
+      vm.dispose();
+    });
+
+    test('does not re-store when persisted equals running', () async {
+      when(() => keyValue.loadObject<Version>(any(), any()))
+          .thenAnswer((_) async => _current);
+      when(() => keyValue.loadDateTime(any())).thenAnswer((_) async => null);
+      when(() => versionRepo.getLatestVersion())
+          .thenAnswer((_) async => const Result.ok(null));
+
+      final vm = build();
+      await vm.check();
+
+      verifyNever(() => keyValue.store<Version>(any(), any()));
+      vm.dispose();
+    });
   });
 
   group('last-displayed throttle', () {

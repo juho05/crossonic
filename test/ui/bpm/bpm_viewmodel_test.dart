@@ -181,7 +181,7 @@ void main() {
           )).thenAnswer((_) async => const Result.ok([]));
     }
 
-    test('start < 50 → minBpm=0', () async {
+    test('start < 50 -> minBpm=0', () async {
       stubGetSongs();
       final vm = buildViewModel();
       vm.bpmRange = const RangeValues(45, 140);
@@ -196,7 +196,7 @@ void main() {
           )).called(1);
     });
 
-    test('start == 60 → minBpm=60', () async {
+    test('start == 60 -> minBpm=60', () async {
       stubGetSongs();
       final vm = buildViewModel();
       vm.bpmRange = const RangeValues(60, 140);
@@ -374,7 +374,7 @@ void main() {
       verify(() => queueManager.replace(songs)).called(1);
     });
 
-    test('shuffle with start < 50 -> minBpm=0, end > 200 → maxBpm=null',
+    test('shuffle with start < 50 -> minBpm=0, end > 200 -> maxBpm=null',
         () async {
       when(() => subsonic.getSongs(
             sort: SongsSortMode.random,
@@ -411,6 +411,43 @@ void main() {
       expect(result, isA<Err>());
       verifyNever(() => playerManager.playOnNextMediaChange());
       verifyNever(() => queueManager.replace(any()));
+    });
+  });
+
+  group('play / addToQueue', () {
+    void stubRefresh(List<Song> songs) {
+      when(() => subsonic.getSongs(
+            sort: any(named: 'sort'),
+            count: any(named: 'count'),
+            offset: any(named: 'offset'),
+            minBpm: any(named: 'minBpm'),
+            maxBpm: any(named: 'maxBpm'),
+          )).thenAnswer((_) async => Result.ok(songs));
+    }
+
+    test('play: enqueues current songs and plays on next media change',
+        () async {
+      stubRefresh([makeSong('a'), makeSong('b')]);
+      when(() => playerManager.playOnNextMediaChange()).thenReturn(null);
+      when(() => queueManager.replace(any())).thenAnswer((_) async {});
+
+      final vm = buildViewModel();
+      await vm.refresh();
+      vm.play();
+
+      verify(() => playerManager.playOnNextMediaChange()).called(1);
+      verify(() => queueManager.replace(vm.songs)).called(1);
+    });
+
+    test('addToQueue: forwards current songs and priority flag', () async {
+      stubRefresh([makeSong('a')]);
+      when(() => queueManager.addAll(any(), any())).thenAnswer((_) async {});
+
+      final vm = buildViewModel();
+      await vm.refresh();
+      vm.addToQueue(true);
+
+      verify(() => queueManager.addAll(vm.songs, true)).called(1);
     });
   });
 

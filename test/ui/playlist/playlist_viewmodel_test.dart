@@ -152,7 +152,7 @@ void main() {
       expect(notified, isTrue);
     });
 
-    test('all songs downloaded → downloadStatus downloaded', () async {
+    test('all songs downloaded -> downloadStatus downloaded', () async {
       final pl = makePlaylist(download: true);
       when(() => repo.getPlaylist('pl-1')).thenAnswer(
         (_) async => Result.ok((playlist: pl, tracks: [makeSong('s1')])),
@@ -166,7 +166,7 @@ void main() {
       expect(vm.downloadedTracks, 1);
     });
 
-    test('download=false → downloadStatus none', () async {
+    test('download=false -> downloadStatus none', () async {
       final pl = makePlaylist(download: false);
       when(() => repo.getPlaylist('pl-1')).thenAnswer(
         (_) async => Result.ok((playlist: pl, tracks: [makeSong('s1')])),
@@ -309,7 +309,7 @@ void main() {
       });
     });
 
-    test('no status change → no notification', () {
+    test('no status change -> no notification', () {
       fakeAsync((async) {
         final s1 = makeSong('s1');
         final pl = makePlaylist(download: true);
@@ -379,7 +379,7 @@ void main() {
   });
 
   group('shuffle', () {
-    test('empty tracks → clear queue', () async {
+    test('empty tracks -> clear queue', () async {
       when(() => repo.getPlaylist('pl-1'))
           .thenAnswer((_) async => const Result.ok(null));
       final vm = buildViewModel();
@@ -390,7 +390,7 @@ void main() {
       verify(() => queue.clear(priorityQueue: false)).called(1);
     });
 
-    test('non-empty → replace shuffled + playOnNextMediaChange', () async {
+    test('non-empty -> replace shuffled + playOnNextMediaChange', () async {
       final pl = makePlaylist();
       when(() => repo.getPlaylist('pl-1')).thenAnswer(
         (_) async => Result.ok((
@@ -521,6 +521,65 @@ void main() {
 
       expect(seen, [true, false]);
       verify(() => repo.setCover('pl-1', '', any())).called(1);
+    });
+  });
+
+  group('toggleDownload', () {
+    test('enable: downloadStatus downloading, notifies, setDownload(true)', () async {
+      final pl = makePlaylist(download: false);
+      when(() => repo.getPlaylist('pl-1')).thenAnswer(
+        (_) async => Result.ok((playlist: pl, tracks: [])),
+      );
+      when(() => repo.setDownload('pl-1', any()))
+          .thenAnswer((_) async => const Result.ok(null));
+      final vm = buildViewModel();
+      await settle();
+
+      var notified = false;
+      vm.addListener(() => notified = true);
+
+      final result = await vm.toggleDownload();
+
+      expect(result, isA<Ok>());
+      expect(vm.downloadStatus, DownloadStatus.downloading);
+      expect(notified, isTrue);
+      verify(() => repo.setDownload('pl-1', true)).called(1);
+    });
+
+    test('disable: downloadStatus none, setDownload(false)', () async {
+      final pl = makePlaylist(download: true);
+      when(() => repo.getPlaylist('pl-1')).thenAnswer(
+        (_) async => Result.ok((playlist: pl, tracks: [])),
+      );
+      when(() => repo.setDownload('pl-1', any()))
+          .thenAnswer((_) async => const Result.ok(null));
+      final vm = buildViewModel();
+      await settle();
+
+      await vm.toggleDownload();
+
+      expect(vm.downloadStatus, DownloadStatus.none);
+      verify(() => repo.setDownload('pl-1', false)).called(1);
+    });
+
+    test('Err: no state change, no notification', () async {
+      final pl = makePlaylist(download: false);
+      when(() => repo.getPlaylist('pl-1')).thenAnswer(
+        (_) async => Result.ok((playlist: pl, tracks: [])),
+      );
+      when(() => repo.setDownload('pl-1', any()))
+          .thenAnswer((_) async => Result.error(Exception('fail')));
+      final vm = buildViewModel();
+      await settle();
+
+      var notified = false;
+      vm.addListener(() => notified = true);
+
+      final result = await vm.toggleDownload();
+
+      expect(result, isA<Err>());
+      expect(vm.downloadStatus, DownloadStatus.none);
+      expect(notified, isFalse);
     });
   });
 }

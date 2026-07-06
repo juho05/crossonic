@@ -233,6 +233,30 @@ void main() {
 
       verify(() => queue.addAll(songs, false)).called(1);
     });
+
+    test('appends even on the first batch (never replaces)', () async {
+      final songs = [makeSong('s1')];
+      when(
+        () => subsonic.incrementallyLoadArtistSongs(
+          any(),
+          any(),
+          shuffleReleases: any(named: 'shuffleReleases'),
+          shuffleSongs: any(named: 'shuffleSongs'),
+        ),
+      ).thenAnswer((invocation) async {
+        final cb = invocation.positionalArguments[1]
+            as Future<void> Function(List<Song>, bool);
+        await cb(songs, true);
+        return const Result.ok(null);
+      });
+      final vm = buildViewModel();
+
+      await vm.onAddToQueue(true);
+
+      verify(() => queue.addAll(songs, true)).called(1);
+      verifyNever(() => queue.replace(any(), any()));
+      verifyNever(() => player.playOnNextMediaChange());
+    });
   });
 
   group('play', () {
@@ -284,6 +308,29 @@ void main() {
       verify(() => queue.addAll(songs, false)).called(1);
       verifyNever(() => queue.replace(any(), any()));
       verifyNever(() => player.playOnNextMediaChange());
+    });
+
+    test('forwards shuffle flags (shuffleAlbums -> shuffleReleases)', () async {
+      when(
+        () => subsonic.incrementallyLoadArtistSongs(
+          any(),
+          any(),
+          shuffleReleases: any(named: 'shuffleReleases'),
+          shuffleSongs: any(named: 'shuffleSongs'),
+        ),
+      ).thenAnswer((_) async => const Result.ok(null));
+      final vm = buildViewModel();
+
+      await vm.play(shuffleAlbums: true, shuffleSongs: false);
+
+      verify(
+        () => subsonic.incrementallyLoadArtistSongs(
+          any(),
+          any(),
+          shuffleReleases: true,
+          shuffleSongs: false,
+        ),
+      ).called(1);
     });
   });
 
