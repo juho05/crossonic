@@ -243,7 +243,6 @@ class PlaylistRepository extends ChangeNotifier {
             )
             .delete();
         if (newIndex > oldIndex) {
-          newIndex--;
           await _db.customUpdate(
             "UPDATE playlist_song SET \"index\" = \"index\" - 1 WHERE playlist_id = ? AND \"index\" > ? AND \"index\" <= ?",
             variables: [
@@ -526,15 +525,14 @@ class PlaylistRepository extends ChangeNotifier {
           .getSingleOrNull();
       if (playlist == null) return const Result.ok(null);
 
-      final dbSongs = await _db
-          .select(_db.songTable)
-          .join([
-            innerJoin(
-              _db.playlistSongTable,
-              _db.playlistSongTable.playlistId.equals(id) &
-                  _db.playlistSongTable.songId.equalsExp(_db.songTable.id),
-            ),
-          ])
+      final query = _db.select(_db.songTable).join([
+        innerJoin(
+          _db.playlistSongTable,
+          _db.playlistSongTable.playlistId.equals(id) &
+              _db.playlistSongTable.songId.equalsExp(_db.songTable.id),
+        ),
+      ])..orderBy([OrderingTerm.asc(_db.playlistSongTable.index)]);
+      final dbSongs = await query
           .map((p) {
             return p.readTable(_db.songTable);
           })
