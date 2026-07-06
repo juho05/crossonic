@@ -1,7 +1,7 @@
 name: crossonic
 description: "An OpenSubsonic compatible music player with its own server for additional features."
 publish_to: "none"
-version: 0.4.0+12
+version: 0.5.0+13
 environment:
   sdk: ^3.12.0
 
@@ -49,15 +49,15 @@ dependencies:
   flutter_svg: ^2.3.0
   url_launcher: ^6.3.2
   linkfy_text: ^1.1.6
-  package_info_plus: ^9.0.0
+  package_info_plus: ^10.2.0
   dbus: ^0.7.14
   dbus_secrets: ^0.0.2
   cryptography_plus: ^3.0.0
   xdg_directories: ^1.1.0
   collection: ^1.19.1
   logger: ^2.7.0
-  share_plus: ^12.0.0
-  device_info_plus: ^12.1.0
+  share_plus: ^13.2.0
+  device_info_plus: ^13.2.0
   android_package_installer: ^0.0.3
   permission_handler: ^12.0.3
   open_file: ^4.0.0
@@ -70,7 +70,7 @@ dependencies:
   media_kit_libs_audio: ^1.0.7
   dynamic_color: ^1.8.1
   file_selector: ^1.1.0
-  file_picker: ^11.0.2
+  file_picker: ^12.0.0-beta.7
   uuid: ^4.5.3
   xml: ^6.6.1
   bonsoir: ^7.1.4

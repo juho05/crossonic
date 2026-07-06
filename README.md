@@ -57,7 +57,7 @@ iOS/iPadOS builds will soon be available via TestFlight.
     - [x] Drag&drop reorder
     - [x] Change cover (*crossonic-server only*)
 - [x] Configure [ListenBrainz](https://listenbrainz.org) connection (*crossonic-server only*)
-- [x] Full [OpenSubsonic](https://opensubsonic.netlify.app/) support (*gracefully handles missing features on the
+- [x] [OpenSubsonic](https://opensubsonic.netlify.app/) support (*gracefully handles missing features on the
   server*)
     - API Key Authentication
     - Transcoded seek
@@ -78,6 +78,11 @@ iOS/iPadOS builds will soon be available via TestFlight.
 - [x] Load/save queues
 - [x] Multi-library support
 - [x] Queue prefetching
+- [x] Casting
+    - [x] Native AirPlay (*iOS/macOS only*)
+    - [x] SONOS
+    - [ ] general UpnP
+    - [ ] Chromecast
 
 ### Out-of-scope
 
