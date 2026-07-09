@@ -8,6 +8,10 @@
 
 package org.crossonic.app;
 
+import android.content.Context;
+import android.os.Handler;
+import android.os.PowerManager;
+
 import androidx.annotation.NonNull;
 import androidx.media3.common.C;
 import androidx.media3.common.MediaItem;
@@ -32,10 +36,64 @@ public class FlutterPlayer extends SimpleBasePlayer {
     private boolean loading = false;
     private PositionSupplier position = PositionSupplier.ZERO;
 
+    private boolean active = false;
+    private final PowerManager.WakeLock wakeLock;
 
-    public FlutterPlayer() {
+    private static final long WAKE_LOCK_TIMEOUT_MS = 90_000L;
+    private final Handler handler;
+    private final Runnable wakeLockTimeout = this::onWakeLockTimeout;
+
+    public FlutterPlayer(@NonNull Context context) {
         super(Util.getCurrentOrMainLooper());
+        handler = new Handler(Util.getCurrentOrMainLooper());
+        final Context appContext = context.getApplicationContext();
+
+        final PowerManager powerManager = (PowerManager) appContext.getSystemService(Context.POWER_SERVICE);
+        wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "crossonic:cast-playback");
+        wakeLock.setReferenceCounted(false);
+
         registerMethodHandlers();
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
+        updateWakeLock();
+    }
+
+    private void updateWakeLock() {
+        final boolean shouldHold = active && (playing || loading);
+        CLog.debug("FlutterPlayer", "updateWakeLock: active=" + active + ", playing=" + playing + ", loading=" + loading + " -> hold=" + shouldHold, null);
+        if (shouldHold) {
+            if (!wakeLock.isHeld()) {
+                wakeLock.acquire();
+            }
+            armWakeLockTimeout();
+        } else {
+            handler.removeCallbacks(wakeLockTimeout);
+            releaseWakeLock();
+        }
+    }
+
+    private void releaseWakeLock() {
+        if (wakeLock.isHeld()) {
+            wakeLock.release();
+        }
+    }
+
+    private void armWakeLockTimeout() {
+        handler.removeCallbacks(wakeLockTimeout);
+        handler.postDelayed(wakeLockTimeout, WAKE_LOCK_TIMEOUT_MS);
+    }
+
+    private void onWakeLockTimeout() {
+        CLog.warn("FlutterPlayer", "wake lock backstop fired (no position updates in " + WAKE_LOCK_TIMEOUT_MS + "ms); force-releasing lock", null);
+        releaseWakeLock();
+    }
+
+    private void refreshWakeLockTimeout() {
+        if (wakeLock.isHeld()) {
+            armWakeLockTimeout();
+        }
     }
 
     private void registerMethodHandlers() {
@@ -54,6 +112,7 @@ public class FlutterPlayer extends SimpleBasePlayer {
         final long pos = ((Number) Objects.requireNonNull(call.argument("pos"))).longValue();
         if (playing) {
             position = PositionSupplier.getExtrapolating(pos, 1);
+            refreshWakeLockTimeout();
         } else {
             position = PositionSupplier.getConstant(pos);
         }
@@ -90,6 +149,7 @@ public class FlutterPlayer extends SimpleBasePlayer {
                 position = PositionSupplier.getExtrapolating(position.get(), 1);
                 break;
         }
+        updateWakeLock();
         invalidateState();
         result.success(null);
     }
@@ -178,6 +238,10 @@ public class FlutterPlayer extends SimpleBasePlayer {
     @NonNull
     @Override
     protected ListenableFuture<?> handleRelease() {
+        active = false;
+        playing = false;
+        loading = false;
+        updateWakeLock();
         unregisterMethodHandlers();
         return Futures.immediateVoidFuture();
     }

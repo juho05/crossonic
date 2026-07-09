@@ -65,7 +65,7 @@ public class CrossonicPlayer implements Player {
 
     public CrossonicPlayer(Context context) {
         androidPlayer = buildAndroidPlayer(context);
-        final Player flutterPlayer = buildFlutterPlayer(context);
+        final FlutterPlayer flutterPlayer = buildFlutterPlayer(context);
         player = new ChangePlayer(androidPlayer, flutterPlayer);
         player.addListener(new PlayerListener());
         registerMethodHandlers();
@@ -128,8 +128,8 @@ public class CrossonicPlayer implements Player {
         return player;
     }
 
-    private Player buildFlutterPlayer(Context context) {
-        return new FlutterPlayer();
+    private FlutterPlayer buildFlutterPlayer(Context context) {
+        return new FlutterPlayer(context);
     }
 
     // ====== method channel handlers ======

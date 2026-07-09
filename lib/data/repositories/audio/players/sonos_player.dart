@@ -161,6 +161,7 @@ class SonosPlayer extends AudioPlayer {
     );
     if (currentResult is Err) {
       Log.error("failed to set current media item", e: currentResult.error);
+      _publishPlayerEvent(UpnpTransportState.pausedPlayback);
       return;
     }
     Log.debug("set current set media item done");
@@ -172,7 +173,7 @@ class SonosPlayer extends AudioPlayer {
       UpnpTransportState.playing,
       UpnpTransportState.stopped,
     });
-    _publishPlayerEvent(state);
+    _publishPlayerEvent(state ?? UpnpTransportState.pausedPlayback);
     if (eventStream.value == AudioPlayerEvent.playing) {
       await _syncPosition();
     }
@@ -254,6 +255,7 @@ class SonosPlayer extends AudioPlayer {
     if (pos - _positionOffset == Duration.zero) {
       final result = await _upnp.play(_upnpCon);
       if (result is! Ok) {
+        _publishPlayerEvent(UpnpTransportState.pausedPlayback);
         return;
       }
 
@@ -298,7 +300,7 @@ class SonosPlayer extends AudioPlayer {
       UpnpTransportState.pausedPlayback,
     });
     Log.debug("publishing new state: $state");
-    _publishPlayerEvent(state);
+    _publishPlayerEvent(state ?? UpnpTransportState.pausedPlayback);
   }
 
   @override
@@ -307,15 +309,16 @@ class SonosPlayer extends AudioPlayer {
     eventStream.add(AudioPlayerEvent.loading);
 
     final result = await _upnp.stop(_upnpCon);
+    if (result is Err) {
+      Log.error("failed to stop sonos playback", e: result.error);
+    }
 
     await _waitForTransportState({UpnpTransportState.stopped});
 
-    if (result is Ok) {
-      eventStream.add(AudioPlayerEvent.stopped);
-      _lastKnownPosition = Duration.zero;
-      _lastPositionRecordedAt = null;
-      _positionOffset = Duration.zero;
-    }
+    eventStream.add(AudioPlayerEvent.stopped);
+    _lastKnownPosition = Duration.zero;
+    _lastPositionRecordedAt = null;
+    _positionOffset = Duration.zero;
   }
 
   @override

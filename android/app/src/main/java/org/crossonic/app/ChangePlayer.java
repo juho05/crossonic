@@ -15,11 +15,11 @@ import androidx.media3.common.util.UnstableApi;
 @UnstableApi
 public class ChangePlayer extends ForwardingSimpleBasePlayer {
     private final Player androidPlayer;
-    private final Player flutterPlayer;
+    private final FlutterPlayer flutterPlayer;
 
     Player activePlayer;
 
-    public ChangePlayer(Player androidPlayer, Player flutterPlayer) {
+    public ChangePlayer(Player androidPlayer, FlutterPlayer flutterPlayer) {
         super(androidPlayer);
         this.androidPlayer = androidPlayer;
         this.flutterPlayer = flutterPlayer;
@@ -32,12 +32,14 @@ public class ChangePlayer extends ForwardingSimpleBasePlayer {
         activePlayer = flutterPlayer;
         setPlayer(flutterPlayer);
         androidPlayer.stop();
+        flutterPlayer.setActive(true);
         CLog.debug("ChangePlayer", "flutter player active", null);
     }
 
     public void enableAndroid() {
         if (activePlayer == androidPlayer) return;
         activePlayer = androidPlayer;
+        flutterPlayer.setActive(false);
         setPlayer(androidPlayer);
         CLog.debug("ChangePlayer", "android player active", null);
     }
