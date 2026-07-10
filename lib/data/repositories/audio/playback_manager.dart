@@ -436,6 +436,8 @@ class PlaybackManager {
 
     final songDuration = _queue.current.value!.duration;
 
+    await _applyReplayGain();
+
     if (songDuration != null &&
         songDuration - pos < const Duration(seconds: 1)) {
       Log.debug(
