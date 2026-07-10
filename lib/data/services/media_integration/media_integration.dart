@@ -22,6 +22,8 @@ abstract interface class MediaIntegration {
     required Future<void> Function() onStop,
     required Future<void> Function(double volume) onVolumeChanged,
     required Future<void> Function(bool loop) onLoopChanged,
+    required Future<void> Function() onVolumeUp,
+    required Future<void> Function() onVolumeDown,
   });
 
   void updateLoop(bool loop);

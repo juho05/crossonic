@@ -30,6 +30,8 @@ class MediaIntegrationAndroid implements MediaIntegration {
   Future<void> Function()? _onPlayPrev;
   Future<void> Function(Duration position)? _onSeek;
   Future<void> Function(bool loop)? _onLoopChanged;
+  Future<void> Function()? _onVolumeUp;
+  Future<void> Function()? _onVolumeDown;
 
   @override
   Future<void> ensureInitialized({
@@ -41,6 +43,8 @@ class MediaIntegrationAndroid implements MediaIntegration {
     required Future<void> Function() onStop,
     required Future<void> Function(double volume) onVolumeChanged,
     required Future<void> Function(bool loop) onLoopChanged,
+    required Future<void> Function() onVolumeUp,
+    required Future<void> Function() onVolumeDown,
   }) async {
     _onPlay = onPlay;
     _onPause = onPause;
@@ -49,6 +53,8 @@ class MediaIntegrationAndroid implements MediaIntegration {
     _onPlayPrev = onPlayPrev;
     _onSeek = onSeek;
     _onLoopChanged = onLoopChanged;
+    _onVolumeUp = onVolumeUp;
+    _onVolumeDown = onVolumeDown;
 
     _methodChannel.addEventListener(_onEvent);
   }
@@ -76,6 +82,10 @@ class MediaIntegrationAndroid implements MediaIntegration {
         await _onPause?.call();
       case "stop":
         await _onStop?.call();
+      case "volumeUp":
+        await _onVolumeUp?.call();
+      case "volumeDown":
+        await _onVolumeDown?.call();
     }
   }
 

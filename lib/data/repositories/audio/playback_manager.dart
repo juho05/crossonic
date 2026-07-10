@@ -14,6 +14,7 @@ import 'package:crossonic/data/repositories/audio/casting/device.dart';
 import 'package:crossonic/data/repositories/audio/casting/device_manager.dart';
 import 'package:crossonic/data/repositories/audio/player_manager.dart';
 import 'package:crossonic/data/repositories/audio/players/android_player.dart';
+import 'package:crossonic/data/repositories/audio/players/sonos_player.dart';
 import 'package:crossonic/data/repositories/audio/queue/queue_manager.dart';
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
 import 'package:crossonic/data/repositories/logger/log.dart';
@@ -25,6 +26,7 @@ import 'package:crossonic/data/repositories/subsonic/models/song.dart';
 import 'package:crossonic/data/repositories/subsonic/subsonic_repository.dart';
 import 'package:crossonic/data/services/media_integration/media_integration.dart';
 import 'package:crossonic/data/services/methodchannel/method_channel_service.dart';
+import 'package:crossonic/utils/throttle.dart';
 import 'package:flutter/foundation.dart';
 
 class PlaybackManager {
@@ -93,6 +95,8 @@ class PlaybackManager {
       onSeek: _player.seek,
       onStop: _player.stop,
       onVolumeChanged: (volume) async => _player.volumeLinear = volume,
+      onVolumeUp: () async => _stepVolume(_volumeKeyStep),
+      onVolumeDown: () async => _stepVolume(-_volumeKeyStep),
     );
 
     _queue.looping.listen((loop) {
@@ -139,6 +143,35 @@ class PlaybackManager {
     );
   }
 
+  static const double _volumeKeyStep = 0.03;
+
+  final StreamController<void> _volumeKeyEvents = StreamController.broadcast();
+
+  Stream<void> get volumeKeyEvents => _volumeKeyEvents.stream;
+
+  Throttle1<double>? _volumeKeyThrottle;
+  double? _volumeKeyTarget;
+  Timer? _volumeKeyResync;
+
+  void _stepVolume(double delta) {
+    _volumeKeyThrottle ??= Throttle1(
+      action: (v) => _player.volumeCubic = v,
+      delay: const Duration(milliseconds: 150),
+      leading: true,
+      trailing: true,
+    );
+    _volumeKeyTarget = ((_volumeKeyTarget ?? _player.volumeCubic) + delta)
+        .clamp(0.0, 1.0);
+    _volumeKeyThrottle!.call(_volumeKeyTarget!);
+    _volumeKeyEvents.add(null);
+
+    _volumeKeyResync?.cancel();
+    _volumeKeyResync = Timer(
+      const Duration(milliseconds: 500),
+      () => _volumeKeyTarget = null,
+    );
+  }
+
   Future<void> changeDevice(Device device) async {
     final player = await deviceManager.createPlayerFromDevice(device);
 
@@ -160,6 +193,10 @@ class PlaybackManager {
             "enabled": false,
           });
         }
+
+        await _methodChannel.invokeMethod("setInterceptVolumeKeys", {
+          "enabled": player is SonosPlayer,
+        });
       }
 
       await _player.changePlayer(player);

@@ -12,6 +12,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Build;
+import android.view.KeyEvent;
 import androidx.annotation.NonNull;
 import androidx.media3.session.MediaController;
 import androidx.media3.session.SessionToken;
@@ -28,6 +29,8 @@ public class MainActivity extends FlutterActivity {
 
     private MethodChannel.Result pendingLocalNetworkResult;
 
+    private static boolean interceptVolumeKeys = false;
+
     @Override
     protected void onStart() {
         super.onStart();
@@ -36,6 +39,11 @@ public class MainActivity extends FlutterActivity {
         mediaControllerFuture = new MediaController.Builder(this, sessionToken).buildAsync();
 
         FlutterIntegration.setMethodCallback("requestLocalNetworkPermission", (call, result) -> handleRequestLocalNetworkPermission(result));
+        FlutterIntegration.setMethodCallback("setInterceptVolumeKeys", (call, result) -> {
+            Boolean enabled = call.argument("enabled");
+            interceptVolumeKeys = enabled != null && enabled;
+            result.success(null);
+        });
     }
 
     @Override
@@ -45,6 +53,21 @@ public class MainActivity extends FlutterActivity {
         MediaController.releaseFuture(mediaControllerFuture);
 
         FlutterIntegration.removeMethodCallback("requestLocalNetworkPermission");
+        FlutterIntegration.removeMethodCallback("setInterceptVolumeKeys");
+    }
+
+    @Override
+    public boolean dispatchKeyEvent(KeyEvent event) {
+        if (interceptVolumeKeys) {
+            int code = event.getKeyCode();
+            if (code == KeyEvent.KEYCODE_VOLUME_UP || code == KeyEvent.KEYCODE_VOLUME_DOWN) {
+                if (event.getAction() == KeyEvent.ACTION_DOWN) {
+                    FlutterIntegration.sendEvent(code == KeyEvent.KEYCODE_VOLUME_UP ? "volumeUp" : "volumeDown", null);
+                }
+                return true;
+            }
+        }
+        return super.dispatchKeyEvent(event);
     }
 
     private void handleRequestLocalNetworkPermission(@NonNull MethodChannel.Result result) {

@@ -41,6 +41,8 @@ class AudioServiceIntegration extends asv.BaseAudioHandler
     required Future<void> Function() onStop,
     required Future<void> Function(double volume) onVolumeChanged,
     required Future<void> Function(bool loop) onLoopChanged,
+    required Future<void> Function() onVolumeUp,
+    required Future<void> Function() onVolumeDown,
   }) async {
     if (_onPlay != null) return;
     _onPlay = onPlay;

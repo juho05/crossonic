@@ -19,6 +19,7 @@ import 'package:crossonic/data/repositories/version/version.dart';
 import 'package:crossonic/data/repositories/version/version_repository.dart';
 import 'package:crossonic/data/services/methodchannel/method_channel_service.dart';
 import 'package:crossonic/routing/router.dart';
+import 'package:crossonic/ui/common/volume_hud.dart';
 import 'package:crossonic/window_listener.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/foundation.dart';
@@ -175,6 +176,9 @@ class MainApp extends StatelessWidget {
               themeMode: themeManager.themeMode,
               debugShowCheckedModeBanner: false,
               routerConfig: _routerConfig,
+              builder: (context, child) => Stack(
+                children: [child!, const Positioned.fill(child: VolumeHud())],
+              ),
             );
           },
         );

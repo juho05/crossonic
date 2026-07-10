@@ -28,6 +28,8 @@ class SMTCIntegration implements MediaIntegration {
     required Future<void> Function() onStop,
     required Future<void> Function(double volume) onVolumeChanged,
     required Future<void> Function(bool loop) onLoopChanged,
+    required Future<void> Function() onVolumeUp,
+    required Future<void> Function() onVolumeDown,
   }) async {
     if (_initialized) return;
     _initialized = true;
