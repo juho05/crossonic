@@ -6,6 +6,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:crossonic/data/repositories/logger/log.dart';
@@ -40,24 +41,39 @@ class LocalNetworkPermission {
   // nothing needs to be requested manually here.
   Future<bool> requestIfLocal(Uri uri) async {
     if (kIsWeb || !Platform.isAndroid) return true;
-    if (!await targetsLocalNetwork(uri)) return true;
-    return request();
-  }
+    if (await hasPermission()) return true;
 
-  static Future<bool> targetsLocalNetwork(Uri uri) async {
     final host = uri.host;
-    if (host.isEmpty) return false;
-    if (host.toLowerCase().endsWith(".local")) return true;
+    if (host.isEmpty) return true;
 
     final literal = InternetAddress.tryParse(host);
-    if (literal != null) return _isPrivate(literal);
+    if (literal != null) return _isPrivate(literal) ? request() : true;
+    if (host.toLowerCase().endsWith(".local")) return request();
 
+    // Resolving a hostname can be slow, so it must not delay the startup path.
+    // Request the permission only once it is known to point at a local address.
+    unawaited(_requestIfHostnameLocal(host));
+    return true;
+  }
+
+  Future<void> _requestIfHostnameLocal(String host) async {
     try {
       final addresses = await InternetAddress.lookup(
         host,
-      ).timeout(const Duration(seconds: 3), onTimeout: () => const []);
-      return addresses.any(_isPrivate);
-    } catch (_) {
+      ).timeout(const Duration(milliseconds: 1500), onTimeout: () => const []);
+      if (addresses.any(_isPrivate)) await request();
+    } catch (_) {}
+  }
+
+  Future<bool> hasPermission() async {
+    if (kIsWeb || !Platform.isAndroid) return true;
+    try {
+      final granted = await _methodChannel.invokeMethod<bool>(
+        "hasLocalNetworkPermission",
+      );
+      return granted ?? false;
+    } catch (e, st) {
+      Log.warn("failed to query local network permission", e: e, st: st);
       return false;
     }
   }

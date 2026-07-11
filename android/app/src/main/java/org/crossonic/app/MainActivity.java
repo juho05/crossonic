@@ -39,6 +39,7 @@ public class MainActivity extends FlutterActivity {
         mediaControllerFuture = new MediaController.Builder(this, sessionToken).buildAsync();
 
         FlutterIntegration.setMethodCallback("requestLocalNetworkPermission", (call, result) -> handleRequestLocalNetworkPermission(result));
+        FlutterIntegration.setMethodCallback("hasLocalNetworkPermission", (call, result) -> result.success(hasLocalNetworkPermission()));
         FlutterIntegration.setMethodCallback("setInterceptVolumeKeys", (call, result) -> {
             Boolean enabled = call.argument("enabled");
             interceptVolumeKeys = enabled != null && enabled;
@@ -53,6 +54,7 @@ public class MainActivity extends FlutterActivity {
         MediaController.releaseFuture(mediaControllerFuture);
 
         FlutterIntegration.removeMethodCallback("requestLocalNetworkPermission");
+        FlutterIntegration.removeMethodCallback("hasLocalNetworkPermission");
         FlutterIntegration.removeMethodCallback("setInterceptVolumeKeys");
     }
 
@@ -70,9 +72,13 @@ public class MainActivity extends FlutterActivity {
         return super.dispatchKeyEvent(event);
     }
 
+    // Before Android 17 (API 37) local network access is implicitly granted via the INTERNET permission.
+    private boolean hasLocalNetworkPermission() {
+        return Build.VERSION.SDK_INT < 37 || checkSelfPermission(LOCAL_NETWORK_PERMISSION) == PackageManager.PERMISSION_GRANTED;
+    }
+
     private void handleRequestLocalNetworkPermission(@NonNull MethodChannel.Result result) {
-        // Before Android 17 (API 37) local network access is implicitly granted via the INTERNET permission.
-        if (Build.VERSION.SDK_INT < 37 || checkSelfPermission(LOCAL_NETWORK_PERMISSION) == PackageManager.PERMISSION_GRANTED) {
+        if (hasLocalNetworkPermission()) {
             result.success(true);
             return;
         }
