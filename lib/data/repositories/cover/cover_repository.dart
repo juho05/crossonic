@@ -440,35 +440,37 @@ class CoverRepository extends BaseCacheManager {
       }
       Log.debug("Total cover cache size: ${_formatKBSizeInMB(totalSizeKB)} MB");
 
-      final select = _db.select(_db.coverCacheTable)
+      // covers referenced by a song in a downloaded playlist must be kept.
+      final downloadedRef = _db.selectOnly(_db.songTable)
+        ..addColumns([_db.songTable.id])
         ..join([
-          leftOuterJoin(
-            _db.songTable,
-            _db.songTable.coverId.equalsExp(_db.coverCacheTable.coverId),
-          ),
-          leftOuterJoin(
+          innerJoin(
             _db.playlistSongTable,
             _db.playlistSongTable.songId.equalsExp(_db.songTable.id),
           ),
-          leftOuterJoin(
+          innerJoin(
             _db.playlistTable,
             _db.playlistTable.id.equalsExp(_db.playlistSongTable.playlistId),
           ),
-        ]);
-      select.where(
-        (f) =>
-            f.fileFullyWritten &
-            f.downloadTime.isSmallerThanValue(
-              startTime.subtract(const Duration(minutes: 10)),
-            ) &
-            (_db.songTable.coverId.isNull() |
-                _db.playlistTable.id.isNull() |
-                _db.playlistTable.download.not()),
-      );
-      select.orderBy([(o) => OrderingTerm.asc(o.downloadTime)]);
-      select.limit(
-        max(min(((totalSizeKB - _mBToKB(1000)) / 50).round(), 10), 300),
-      );
+        ])
+        ..where(
+          _db.songTable.coverId.equalsExp(_db.coverCacheTable.coverId) &
+              _db.playlistTable.download,
+        );
+
+      final select = _db.select(_db.coverCacheTable)
+        ..where(
+          (f) =>
+              f.fileFullyWritten &
+              f.downloadTime.isSmallerThanValue(
+                startTime.subtract(const Duration(minutes: 10)),
+              ) &
+              notExistsQuery(downloadedRef),
+        )
+        ..orderBy([(o) => OrderingTerm.asc(o.downloadTime)])
+        ..limit(
+          min(max(((totalSizeKB - _mBToKB(1000)) / 50).round(), 10), 300),
+        );
       final oldFiles = await select.get();
 
       if (oldFiles.isEmpty) {
