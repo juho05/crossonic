@@ -76,12 +76,17 @@ Future<List<SingleChildWidget>> createProviders({
 
   final keyValueRepository = KeyValueRepository(database: database);
 
+  final localNetworkPermission = LocalNetworkPermission(
+    methodChannel: methodChannelService,
+  );
+
   AuthRepository authRepository;
   try {
     authRepository = AuthRepository(
       openSubsonicService: subsonicService,
       keyValueRepository: keyValueRepository,
       database: database,
+      localNetworkPermission: localNetworkPermission,
     );
     await authRepository.loadState();
   } on Exception catch (e, st) {
@@ -238,9 +243,7 @@ Future<List<SingleChildWidget>> createProviders({
   final deviceManager = DeviceManager(
     localSource: compositeLocalSource,
     upnpService: upnpService,
-    localNetworkPermission: LocalNetworkPermission(
-      methodChannel: methodChannelService,
-    ),
+    localNetworkPermission: localNetworkPermission,
   );
 
   final playbackManager = PlaybackManager(
