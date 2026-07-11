@@ -120,6 +120,7 @@ class QueuePrefetcher extends ChangeNotifier implements LocalSongSource {
     if (kIsWeb) return;
     final appCacheDir = await getApplicationCacheDirectory();
     _dir = path.join(appCacheDir.path, "prefetch");
+    await Directory(_dir!).create(recursive: true);
     await clear();
     await _updateTranscoding();
     _scheduleWindowUpdate();
@@ -474,6 +475,9 @@ class QueuePrefetcher extends ChangeNotifier implements LocalSongSource {
           (response.headers["accept-ranges"]?.toLowerCase() ?? "") == "bytes";
       task.canResume = acceptRanges && declaredTotal != null;
 
+      try {
+        await partFile.parent.create(recursive: true);
+      } catch (_) {}
       final sink = partFile.openWrite(
         mode: append ? FileMode.writeOnlyAppend : FileMode.writeOnly,
       );
@@ -508,6 +512,7 @@ class QueuePrefetcher extends ChangeNotifier implements LocalSongSource {
 
       task.abort = () => finish(false);
       resetStall();
+      sink.done.then((_) {}, onError: (Object e) => finish(false, e));
       sub = response.stream.listen(
         (chunk) {
           sink.add(chunk);
