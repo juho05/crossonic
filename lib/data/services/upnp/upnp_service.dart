@@ -16,6 +16,7 @@ import 'package:crossonic/data/services/upnp/upnp_mediaitem.dart';
 import 'package:crossonic/data/services/upnp/upnp_position_info.dart';
 import 'package:crossonic/data/services/upnp/upnp_transport_info.dart';
 import 'package:crossonic/utils/result.dart';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:xml/xml.dart';
 
@@ -290,8 +291,7 @@ class UpnpService {
         '  </s:Body>\n'
         '</s:Envelope>';
 
-    // TODO sanitize urls
-    Log.debug("Upnp request [$method]:\n$xmlBody");
+    Log.debug("Upnp request [$method]:\n${sanitizeLog(xmlBody)}");
     try {
       final response = await _http
           .post(
@@ -309,12 +309,11 @@ class UpnpService {
       if (response.statusCode >= 300) {
         return Result.error(
           UpnpError(
-            "unsuccessful soap request: ${response.statusCode}\n${response.body}",
+            "unsuccessful soap request: ${response.statusCode}\n${sanitizeLog(response.body)}",
           ),
         );
       }
-      // TODO sanitize urls
-      Log.debug("Upnp response [$method]:\n${response.body}");
+      Log.debug("Upnp response [$method]:\n${sanitizeLog(response.body)}");
 
       final responseXml = XmlDocument.parse(response.body);
 
@@ -328,7 +327,7 @@ class UpnpService {
 
       if (responseElement == null) {
         Log.warn(
-          "couldn't find response element in sonos response for $method:\n${response.body}",
+          "couldn't find response element in sonos response for $method:\n${sanitizeLog(response.body)}",
         );
       }
 
@@ -337,6 +336,17 @@ class UpnpService {
       return Result.error(e);
     }
   }
+
+  // Redacts credential query params (p, t, s, apiKey) from stream/cover urls
+  // embedded in the xml bodies. Handles xml-escaped (&amp;) and double-escaped
+  // (&amp;amp;) separators, so it must run on the raw string, not parsed uris.
+  static final _credentialParam = RegExp(
+    r'([?&](?:amp;)*(?:p|t|s|apiKey)=)[^&<\s]*',
+  );
+
+  @visibleForTesting
+  static String sanitizeLog(String body) =>
+      body.replaceAllMapped(_credentialParam, (m) => "${m[1]}xxx");
 
   static String formatTime(Duration duration) {
     var seconds = duration.inSeconds;
