@@ -129,13 +129,17 @@ class QueuePrefetcher extends ChangeNotifier implements LocalSongSource {
   String get _currentProfileTag =>
       "${_format ?? 'default'}-${_maxBitRate ?? 0}";
 
-  bool get _canDownload =>
-      !kIsWeb &&
-      _settings.enabled &&
-      _enabledByPlayer &&
-      !_throttled &&
-      _auth.isAuthenticated &&
-      _dir != null;
+  bool get _canDownload => _downloadBlockedReason == null;
+
+  String? get _downloadBlockedReason {
+    if (kIsWeb) return "web";
+    if (!_settings.enabled) return "disabled in settings";
+    if (!_enabledByPlayer) return "disabled by player";
+    if (_throttled) return "throttled";
+    if (!_auth.isAuthenticated) return "not authenticated";
+    if (_dir == null) return "cache dir not ready";
+    return null;
+  }
 
   @override
   bool isDownloaded(String id) => !kIsWeb && _cached[id] == _currentProfileTag;
@@ -154,18 +158,23 @@ class QueuePrefetcher extends ChangeNotifier implements LocalSongSource {
 
   void enable() {
     if (_enabledByPlayer) return;
+    Log.debug("prefetch enabled by player");
     _enabledByPlayer = true;
     _scheduleReconcile();
   }
 
   void disable() {
     if (!_enabledByPlayer) return;
+    Log.debug(
+      "prefetch disabled by player, canceling ${_tasks.length} task(s)",
+    );
     _enabledByPlayer = false;
     _cancelAllTasks();
   }
 
   void setThrottled(bool throttled) {
     if (_throttled == throttled) return;
+    Log.debug("prefetch throttled=$throttled");
     _throttled = throttled;
     if (throttled) {
       _cancelAllTasks();
@@ -176,6 +185,7 @@ class QueuePrefetcher extends ChangeNotifier implements LocalSongSource {
 
   void _onSettingsChanged() {
     if (_wasEnabledInSettings && !_settings.enabled) {
+      Log.debug("prefetch disabled in settings, clearing cache");
       _wasEnabledInSettings = false;
       clear();
       return;
@@ -187,9 +197,11 @@ class QueuePrefetcher extends ChangeNotifier implements LocalSongSource {
 
   void _onAuthChanged() {
     if (_auth.isAuthenticated) {
+      Log.trace("prefetch auth changed: authenticated");
       _updateTranscoding();
       _scheduleWindowUpdate();
     } else {
+      Log.debug("prefetch auth changed: logged out, clearing cache");
       _prioWindow = [];
       _regularWindow = [];
       clear();
@@ -203,6 +215,7 @@ class QueuePrefetcher extends ChangeNotifier implements LocalSongSource {
     if (_format == format && _maxBitRate == maxBitRate) return;
     _format = format;
     _maxBitRate = maxBitRate;
+    Log.debug("prefetch transcoding profile changed to $_currentProfileTag");
     notifyListeners();
     _scheduleReconcile();
   }
@@ -237,10 +250,17 @@ class QueuePrefetcher extends ChangeNotifier implements LocalSongSource {
     }
     _prioWindow = priority;
     _regularWindow = regular;
+    Log.trace(
+      "prefetch window updated: prio=${priority.length} regular=${regular.length} "
+      "(count=$count)",
+    );
     _scheduleReconcile();
   }
 
   Future<void> clear() async {
+    Log.debug(
+      "prefetch clear (cached=${_cached.length}, tasks=${_tasks.length})",
+    );
     _cancelAllTasks();
 
     final currentId = _queue.current.value?.id;
@@ -280,7 +300,14 @@ class QueuePrefetcher extends ChangeNotifier implements LocalSongSource {
   void _reconcile() {
     if (kIsWeb || _dir == null) return;
 
-    if (!_canDownload) {
+    final blockedReason = _downloadBlockedReason;
+    if (blockedReason != null) {
+      if (_tasks.isNotEmpty) {
+        Log.debug(
+          "prefetch reconcile blocked ($blockedReason), "
+          "canceling ${_tasks.length} task(s)",
+        );
+      }
       _cancelAllTasks();
       return;
     }
@@ -289,6 +316,11 @@ class QueuePrefetcher extends ChangeNotifier implements LocalSongSource {
 
     final desired = _desiredSongs();
     final desiredIds = desired.map((s) => s.id).toSet();
+
+    Log.trace(
+      "prefetch reconcile: desired=${desiredIds.length} tag=$activeTag "
+      "tasks=${_tasks.length} cached=${_cached.length} partial=${_partial.length}",
+    );
 
     for (final id in _tasks.keys.toList()) {
       if (!desiredIds.contains(id) || _tasks[id]!.transcodeTag != activeTag) {
@@ -336,6 +368,7 @@ class QueuePrefetcher extends ChangeNotifier implements LocalSongSource {
   void _discardPartial(String id) {
     final tag = _partial.remove(id);
     if (tag != null) {
+      Log.trace("prefetch discard partial $id ($tag)");
       _deleteFile(_partPath(id, tag));
     }
   }
@@ -346,13 +379,17 @@ class QueuePrefetcher extends ChangeNotifier implements LocalSongSource {
       task.canResume = true;
     }
     _tasks[song.id] = task;
-    Log.trace("prefetch enqueue ${song.id} (${song.title})");
+    Log.debug(
+      "prefetch enqueue ${song.id} tag=$transcodeTag"
+      "${task.canResume ? ' resumable' : ''}",
+    );
     _runTask(task);
   }
 
   void _cancelTask(String id) {
     final task = _tasks.remove(id);
     if (task == null) return;
+    Log.trace("prefetch cancel $id (received ${task.received} bytes)");
     task.canceled = true;
     task.abort?.call();
   }
@@ -381,7 +418,10 @@ class QueuePrefetcher extends ChangeNotifier implements LocalSongSource {
           if (await _attemptDownload(task)) {
             _cached[id] = task.transcodeTag;
             completed = true;
-            Log.debug("prefetch completed $id (${task.transcodeTag})");
+            Log.debug(
+              "prefetch completed $id (${task.transcodeTag}, "
+              "${task.received} bytes, ${attempt + 1} attempt(s))",
+            );
             _songCachedController.add(task.song);
             notifyListeners();
             break;
@@ -389,11 +429,15 @@ class QueuePrefetcher extends ChangeNotifier implements LocalSongSource {
           if (task.canceled) break;
         } catch (e) {
           if (task.canceled) break;
-          Log.debug("prefetch attempt failed for $id: $e");
+          Log.warn("prefetch attempt ${attempt + 1} failed for $id: $e");
         }
 
         attempt++;
-        await _delay(_backoff(attempt), task);
+        final backoff = _backoff(attempt);
+        Log.debug(
+          "prefetch retry $id in ${backoff.inMilliseconds}ms (attempt $attempt)",
+        );
+        await _delay(backoff, task);
       }
     } finally {
       // only clear tracking if this task is still the active one; a cancel
@@ -407,6 +451,9 @@ class QueuePrefetcher extends ChangeNotifier implements LocalSongSource {
         // keep the partial file so a future task can resume it instead of
         // restarting from scratch (e.g. after throttling or a brief stall)
         _partial[id] = task.transcodeTag;
+        Log.trace(
+          "prefetch keep partial $id (${task.received} bytes) for resume",
+        );
       } else {
         _partial.remove(id);
         await _deleteFile(_partPath(id, task.transcodeTag));
@@ -474,6 +521,12 @@ class QueuePrefetcher extends ChangeNotifier implements LocalSongSource {
       final acceptRanges =
           (response.headers["accept-ranges"]?.toLowerCase() ?? "") == "bytes";
       task.canResume = acceptRanges && declaredTotal != null;
+
+      Log.debug(
+        "prefetch download $id status=${response.statusCode} "
+        "${append ? 'resume from $received' : 'fresh'} "
+        "total=${declaredTotal ?? 'unknown'}",
+      );
 
       try {
         await partFile.parent.create(recursive: true);
@@ -635,6 +688,7 @@ class QueuePrefetcher extends ChangeNotifier implements LocalSongSource {
   void _evictCached(String id) {
     if (id == _queue.current.value?.id) return;
     if (_cached.remove(id) == null) return;
+    Log.trace("prefetch evict cached $id");
     _deleteCachedFiles(id);
     _songRemovedFromCacheController.add(id);
     notifyListeners();
