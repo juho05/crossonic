@@ -115,20 +115,15 @@ abstract class AudioPlayer {
   }) async {
     currentSong.value = current;
     nextSong.value = next;
-    _canSeek =
-        _format == "raw" ||
-        (currentSong.value != null &&
-            supportsFilePlayback &&
-            _downloader.isDownloaded(currentSong.value!.id));
+    _currentIsLocalFile = _isLocalFile(current);
+    _nextIsLocalFile = _isLocalFile(next);
+    _canSeek = _format == "raw" || _currentIsLocalFile;
   }
 
   Future<void> setNext(Song? next) async {
     nextSong.value = next;
-    _nextCanSeek =
-        _format == "raw" ||
-        (nextSong.value != null &&
-            supportsFilePlayback &&
-            _downloader.isDownloaded(nextSong.value!.id));
+    _nextIsLocalFile = _isLocalFile(next);
+    _nextCanSeek = _format == "raw" || _nextIsLocalFile;
   }
 
   Future<void> play();
@@ -144,6 +139,8 @@ abstract class AudioPlayer {
     currentSong.value = nextSong.value;
     nextSong.value = null;
     _canSeek = _nextCanSeek;
+    _currentIsLocalFile = _nextIsLocalFile;
+    _nextIsLocalFile = false;
     eventStream.add(AudioPlayerEvent.advance);
   }
 
@@ -152,6 +149,14 @@ abstract class AudioPlayer {
 
   @protected
   bool get canSeek => !supportsTimeOffset || _canSeek;
+
+  bool _currentIsLocalFile = false;
+  bool _nextIsLocalFile = false;
+
+  bool get playingLocalFile => _currentIsLocalFile;
+
+  bool _isLocalFile(Song? s) =>
+      s != null && supportsFilePlayback && _downloader.isDownloaded(s.id);
 
   @protected
   Uri? constructStreamUri(Song? s, {Duration? pos}) {

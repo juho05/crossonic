@@ -52,6 +52,8 @@ class PlayerManager {
 
   bool get supportsFilePlayback => _player.supportsFilePlayback;
 
+  bool get playingLocalFile => _player.playingLocalFile;
+
   double _volume = 1;
 
   final BehaviorSubject<double> _volumeLinearStream = BehaviorSubject.seeded(1);

@@ -21,6 +21,7 @@ class LogRepository {
 
   final StreamController<LogMessage> _newMessageStream =
       StreamController.broadcast();
+
   Stream<LogMessage> get newMessageStream => _newMessageStream.stream;
 
   Database? _db;

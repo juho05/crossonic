@@ -384,21 +384,38 @@ class PlaybackManager {
 
   Future<void> _evaluatePrefetchPressure() async {
     final status = _player.playbackStatus.value;
-    if (status == PlaybackStatus.stopped || status == PlaybackStatus.paused) {
+    if (status == PlaybackStatus.stopped ||
+        status == PlaybackStatus.paused ||
+        _player.playingLocalFile) {
       _unthrottlePrefetch();
       return;
     }
 
     final buffered = await _player.bufferedPosition;
-    final ahead = buffered - _player.position;
+    final position = _player.position;
+    final ahead = buffered - position;
+
+    final duration = _queue.current.value?.duration;
+    final fullyBuffered =
+        // ignore if duration is unknown
+        duration == null ||
+        // buffered position might be negative if duration is unknown to native player
+        buffered < Duration.zero ||
+        buffered >= duration - const Duration(seconds: 1);
+
     final healthy =
-        status == PlaybackStatus.playing &&
-        (_player.position < const Duration(seconds: 3) ||
-            ahead >= _prefetchBufferThreshold);
+        status != PlaybackStatus.loading &&
+        (position < const Duration(seconds: 3) ||
+            ahead >= _prefetchBufferThreshold ||
+            fullyBuffered);
 
     if (healthy) {
       _unthrottlePrefetch();
     } else {
+      Log.debug(
+        "prefetch pressure: status=${status.name} pos=$position "
+        "buffered=$buffered ahead=$ahead duration=$duration",
+      );
       _prefetchThrottleTimer ??= Timer(const Duration(seconds: 1), () {
         _prefetchThrottleTimer = null;
         _prefetcher.setThrottled(true);
