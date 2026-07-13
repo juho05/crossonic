@@ -9,20 +9,48 @@
 import 'package:auto_route/annotations.dart';
 import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/data/repositories/logger/log_message.dart';
+import 'package:crossonic/data/repositories/logger/log_repository.dart';
 import 'package:crossonic/ui/common/toast.dart';
 import 'package:crossonic/ui/settings/pages/logs/log_colors.dart';
 import 'package:crossonic/utils/format.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 
 @RoutePage()
-class LogDetailsPage extends StatelessWidget {
+class LogDetailsPage extends StatefulWidget {
   final LogMessage msg;
 
   const LogDetailsPage({super.key, required this.msg});
 
   @override
+  State<LogDetailsPage> createState() => _LogDetailsPageState();
+}
+
+class _LogDetailsPageState extends State<LogDetailsPage> {
+  String? _stackTrace;
+
+  @override
+  void initState() {
+    super.initState();
+    _stackTrace = widget.msg.stackTrace;
+    final id = widget.msg.id;
+    if (_stackTrace == null && id != null) {
+      _loadStackTrace(context.read<LogRepository>(), id);
+    }
+  }
+
+  Future<void> _loadStackTrace(LogRepository repository, int id) async {
+    final stackTrace = await repository.getStackTrace(id);
+    if (!mounted) return;
+    setState(() {
+      _stackTrace = stackTrace ?? "";
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final msg = widget.msg;
     final textStyle = Theme.of(context).textTheme.bodyMedium!;
     return Scaffold(
       appBar: AppBar(title: const Text("Message Details")),
@@ -53,8 +81,10 @@ class LogDetailsPage extends StatelessWidget {
                   content: msg.exception!,
                 ),
               LogMessageDetailsField(
+                // recreate when stack-trace load so initialValue re-applies
+                key: ValueKey(_stackTrace != null),
                 label: "Stack Trace",
-                content: msg.stackTrace,
+                content: _stackTrace ?? "",
               ),
               LogMessageDetailsField(
                 label: "Session",

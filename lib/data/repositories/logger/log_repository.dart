@@ -70,7 +70,7 @@ class LogRepository {
           level: msg.level,
           tag: msg.tag,
           exception: Value(msg.exception),
-          stackTrace: msg.stackTrace,
+          stackTrace: msg.stackTrace ?? "",
         ),
       );
     } catch (e, st) {
@@ -102,7 +102,10 @@ class LogRepository {
     _debounceTimer?.cancel();
     _debounceTimer = null;
 
-    if (_buffer.isEmpty) return;
+    if (_buffer.isEmpty) {
+      _flushing = false;
+      return;
+    }
 
     final buffer = _buffer;
     _buffer = DoubleLinkedQueue();
@@ -115,7 +118,7 @@ class LogRepository {
             message: e.message,
             sessionStartTime: e.sessionStartTime,
             time: e.time,
-            stackTrace: e.stackTrace,
+            stackTrace: e.stackTrace ?? "",
             exception: Value(e.exception),
           ),
         ),
@@ -144,27 +147,21 @@ class LogRepository {
     }
   }
 
-  Future<List<LogMessage>> getMessages(DateTime sessionTime) async {
-    final result = await _db?.managers.logMessageTable
-        .filter((f) => f.sessionStartTime(sessionTime))
-        .orderBy((o) => o.time.asc())
-        .get();
-    final dbMessages =
-        result?.map(
-          (e) => LogMessage(
-            sessionStartTime: e.sessionStartTime,
-            tag: e.tag,
-            message: e.message,
-            level: e.level,
-            exception: e.exception,
-            stackTrace: e.stackTrace,
-            time: e.time,
-          ),
-        ) ??
-        [];
+  Future<List<LogMessage>> getMessages(
+    DateTime sessionTime, {
+    bool withStackTraces = false,
+  }) async {
+    final dbMessages = await _getDbMessages(
+      sessionTime,
+      withStackTraces: withStackTraces,
+    );
 
     if (_buffer.isEmpty || sessionTime != Log.sessionStartTime) {
-      return dbMessages.toList();
+      return dbMessages;
+    }
+
+    if (dbMessages.isEmpty) {
+      return _buffer.toList();
     }
 
     if (_buffer.first.time.isAfter(dbMessages.last.time)) {
@@ -180,6 +177,53 @@ class LogRepository {
         .toList();
     remaining.sort((a, b) => a.time.compareTo(b.time));
     return dbBeforeFirstBuffer.followedBy(remaining).toList();
+  }
+
+  Future<List<LogMessage>> _getDbMessages(
+    DateTime sessionTime, {
+    required bool withStackTraces,
+  }) async {
+    final db = _db;
+    if (db == null) return [];
+    final table = db.logMessageTable;
+    final query = db.selectOnly(table)
+      ..addColumns([
+        table.id,
+        table.time,
+        table.level,
+        table.tag,
+        table.message,
+        table.exception,
+        if (withStackTraces) table.stackTrace,
+      ])
+      ..where(table.sessionStartTime.equals(sessionTime))
+      ..orderBy([OrderingTerm.asc(table.time)]);
+    return query
+        .map(
+          (row) => LogMessage(
+            id: row.read(table.id),
+            sessionStartTime: sessionTime,
+            time: row.read(table.time)!,
+            level: row.readWithConverter(table.level)!,
+            tag: row.read(table.tag)!,
+            message: row.read(table.message)!,
+            exception: row.read(table.exception),
+            stackTrace: withStackTraces ? row.read(table.stackTrace) : null,
+          ),
+        )
+        .get();
+  }
+
+  Future<String?> getStackTrace(int id) async {
+    final db = _db;
+    if (db == null) return null;
+    final table = db.logMessageTable;
+    final query = db.selectOnly(table)
+      ..addColumns([table.stackTrace])
+      ..where(table.id.equals(id))
+      ..limit(1);
+    final row = await query.getSingleOrNull();
+    return row?.read(table.stackTrace);
   }
 
   Future<List<DateTime>> getSessions() async {

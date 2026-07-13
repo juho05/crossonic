@@ -9,15 +9,19 @@
 import 'package:logger/logger.dart';
 
 class LogMessage {
+  // null for messages that have not been persisted yet
+  final int? id;
   final DateTime sessionStartTime;
   final DateTime time;
   final Level level;
   final String tag;
   final String message;
-  final String stackTrace;
+  // null if the message was loaded without its stack trace
+  final String? stackTrace;
   final String? exception;
 
   LogMessage({
+    this.id,
     required this.sessionStartTime,
     required this.time,
     required this.level,
@@ -33,7 +37,8 @@ class LogMessage {
     if (exception != null) {
       msg += "\nException: $exception";
     }
-    return "$msg\n${stackTrace.split("\n").take(_stackTraceLines[level] ?? 50).join("\n")}";
+    if (stackTrace == null) return msg;
+    return "$msg\n${stackTrace!.split("\n").take(_stackTraceLines[level] ?? 50).join("\n")}";
   }
 
   static const Map<Level, int> _stackTraceLines = {

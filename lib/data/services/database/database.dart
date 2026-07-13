@@ -55,7 +55,7 @@ class Database extends _$Database {
   Database([QueryExecutor? e]) : super(e ?? _openConnection());
 
   @override
-  int get schemaVersion => 11;
+  int get schemaVersion => 12;
 
   Future<void> clearAll() async {
     await customStatement("PRAGMA foreign_keys = OFF");
@@ -146,6 +146,9 @@ class Database extends _$Database {
               await customStatement(
                 'CREATE INDEX IF NOT EXISTS prio_queue_song_index ON priority_queue ("index" ASC)',
               );
+            },
+            from11To12: (m, schema) async {
+              await m.createIndex(logMessageSessionIndex);
             },
           ),
         ),

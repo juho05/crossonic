@@ -9,6 +9,13 @@
 import 'package:crossonic/data/services/database/converters/log_level_converter.dart';
 import 'package:drift/drift.dart';
 
+@TableIndex(
+  name: 'log_message_session_index',
+  columns: {
+    IndexedColumn(#sessionStartTime, orderBy: OrderingMode.asc),
+    IndexedColumn(#time, orderBy: OrderingMode.asc),
+  },
+)
 class LogMessageTable extends Table {
   late final id = integer().autoIncrement()();
   late final sessionStartTime = dateTime()();

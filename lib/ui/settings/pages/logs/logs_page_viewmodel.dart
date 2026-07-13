@@ -144,7 +144,7 @@ class LogsPageViewModel extends ChangeNotifier {
     Rect? sharePositionOrigin,
   }) async {
     final timeStr = DateFormat("yyyy-MM-dd_HH-mm-ss").format(sessionTime);
-    final bytes = utf8.encode(_exportLog(filtered: filtered));
+    final bytes = utf8.encode(await _exportLog(filtered: filtered));
     final fileName = "crossonic-logs_$timeStr.txt";
 
     final result = await SharePlus.instance.share(
@@ -165,7 +165,7 @@ class LogsPageViewModel extends ChangeNotifier {
   Future<Result<bool>> saveLog({required bool filtered}) async {
     try {
       final timeStr = DateFormat("yyyy-MM-dd_HH-mm-ss").format(sessionTime);
-      final bytes = utf8.encode(_exportLog(filtered: filtered));
+      final bytes = utf8.encode(await _exportLog(filtered: filtered));
 
       if (kIsWeb || Platform.isAndroid || Platform.isIOS) {
         final outputFile = await FilePicker.saveFile(
@@ -189,31 +189,30 @@ class LogsPageViewModel extends ChangeNotifier {
     }
   }
 
-  String _exportLog({required bool filtered}) {
+  Future<String> _exportLog({required bool filtered}) async {
+    // the displayed messages do not contain their stack traces
+    final messages = await _repository.getMessages(
+      sessionTime,
+      withStackTraces: true,
+    );
     String logStr =
         "========================= Crossonic Logs ${formatDateTime(sessionTime)} =========================\n";
-    if (filtered) {
-      logStr += _filteredMessages
-          .map((msg) => msg.toString())
-          .join("\n--------------------------------------------------\n");
-    } else {
-      logStr += _logMessages
-          .map((msg) => msg.toString())
-          .join("\n--------------------------------------------------\n");
-    }
+    logStr += messages
+        .where((msg) => !filtered || _matchesFilter(msg))
+        .map((msg) => msg.toString())
+        .join("\n--------------------------------------------------\n");
     return logStr;
   }
 
+  bool _matchesFilter(LogMessage msg) {
+    return enabledLevels.contains(msg.level) &&
+        (searchText.isEmpty ||
+            msg.tag.toLowerCase().contains(searchText) ||
+            msg.message.toLowerCase().contains(searchText));
+  }
+
   void _updateFilteredLogMessages() {
-    _filteredMessages = _logMessages
-        .where(
-          (m) =>
-              enabledLevels.contains(m.level) &&
-              (searchText.isEmpty ||
-                  m.tag.toLowerCase().contains(searchText) ||
-                  m.message.toLowerCase().contains(searchText)),
-        )
-        .toList();
+    _filteredMessages = _logMessages.where(_matchesFilter).toList();
     notifyListeners();
   }
 
