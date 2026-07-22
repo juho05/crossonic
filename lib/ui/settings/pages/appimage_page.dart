@@ -7,8 +7,10 @@
  */
 
 import 'package:auto_route/auto_route.dart';
+import 'package:crossonic/data/services/restart/restart.dart';
 import 'package:crossonic/ui/common/buttons.dart';
 import 'package:crossonic/ui/settings/pages/appimage_settings_viewmodel.dart';
+import 'package:crossonic/utils/result.dart';
 import 'package:crossonic/utils/result_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -60,6 +62,9 @@ class AppImagePage extends StatelessWidget {
                                 final result = await viewModel.integrate();
                                 if (!context.mounted) return;
                                 toastResult(context, result);
+                                if (result is Ok) {
+                                  Restart.restart();
+                                }
                               }
                             : null,
                         icon: Icons.install_desktop,
