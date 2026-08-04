@@ -23,6 +23,7 @@ import 'package:crossonic/ui/main/now_playing/now_playing_viewmodel.dart';
 import 'package:crossonic/ui/main/queue_fab.dart';
 import 'package:crossonic/version_checker.dart';
 import 'package:flutter/material.dart';
+import 'package:predictive_transition/predictive_transition.dart';
 import 'package:provider/provider.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 
@@ -53,8 +54,38 @@ class _MainPageState extends State<MainPage> {
     _layoutModeManager = LayoutModeManager();
   }
 
+  // Back press while the panel is expanded closes it instead of navigating.
+  // Returning false leaves the event to the router.
+  Future<bool> _closeExpandedNowPlaying() async {
+    if (!_expandedVisible) return false;
+    if (!(ModalRoute.of(context)?.isCurrent ?? true)) return false;
+    try {
+      _slidingUpPanelController.close();
+    } catch (_) {
+      return false;
+    }
+    return true;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return PopScope(
+      // reports to the platform that back is handled, the listener below runs
+      // before the routers get the event
+      canPop: !_expandedVisible,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        _closeExpandedNowPlaying();
+      },
+      child: BackButtonListener(
+        onBackButtonPressed: _closeExpandedNowPlaying,
+        child: _buildContent(context, theme),
+      ),
+    );
+  }
+
+  Widget _buildContent(BuildContext context, ThemeData theme) {
     return VersionChecker(
       child: IntegrateAppImage(
         child: AutoHideFABDetector(
@@ -65,330 +96,353 @@ class _MainPageState extends State<MainPage> {
               musicFolders: context.read(),
             ),
             builder: (context, _) {
-              return AutoTabsRouter(
-                routes: const [HomeRoute(), BrowseRoute(), PlaylistsRoute()],
-                homeIndex: 0,
-                builder: (context, child) {
-                  final tabsRouter = AutoTabsRouter.of(context);
+              return Theme(
+                data: theme.copyWith(
+                  pageTransitionsTheme: PageTransitionsTheme(
+                    builders: <TargetPlatform, PageTransitionsBuilder>{
+                      ...theme.pageTransitionsTheme.builders,
+                      TargetPlatform.android:
+                          const PredictiveFullscreenPageTransitionsBuilder(),
+                    },
+                  ),
+                ),
+                child: AutoTabsRouter(
+                  routes: const [HomeRoute(), BrowseRoute(), PlaylistsRoute()],
+                  homeIndex: 0,
+                  builder: (context, child) {
+                    final tabsRouter = AutoTabsRouter.of(context);
 
-                  Future<void> switchTab(int index) async {
-                    try {
-                      _slidingUpPanelController.close();
-                    } catch (_) {}
+                    Future<void> switchTab(int index) async {
+                      try {
+                        _slidingUpPanelController.close();
+                      } catch (_) {}
 
-                    if (index == 3) {
-                      context.router.push(const SettingsRoute());
-                      return;
-                    }
-
-                    if (index == tabsRouter.activeIndex) {
-                      final routeName = switch (index) {
-                        0 => "HomeRoute",
-                        1 => "BrowseRoute",
-                        2 => "PlaylistsRoute",
-                        _ => "",
-                      };
-                      final router = tabsRouter.childControllers.firstWhere(
-                        (c) => c.stack.first.name == routeName,
-                      );
-                      while (router.canPop()) {
-                        await router.maybePop();
+                      if (index == 3) {
+                        context.router.push(const SettingsRoute());
+                        return;
                       }
-                      return;
-                    }
-                    switch (index) {
-                      case 0:
-                        context.read<HomeViewModel>().refresh(false);
-                      case 2:
-                        context.read<PlaylistRepository>().refresh();
-                    }
-                    tabsRouter.setActiveIndex(index);
-                  }
 
-                  return ChangeNotifierProvider.value(
-                    value: _layoutModeManager,
-                    builder: (context, _) {
-                      return OrientationBuilder(
-                        builder: (BuildContext context, Orientation orientation) {
-                          WidgetsBinding.instance.addPostFrameCallback((_) {
-                            _layoutModeManager.update(
-                              orientation == Orientation.landscape,
-                            );
-                          });
-                          return ListenableBuilder(
-                            listenable: _nowPlayingViewModel,
-                            builder: (context, _) {
-                              final Widget body;
-                              if (orientation == Orientation.portrait) {
-                                final stopped =
-                                    _nowPlayingViewModel.playbackStatus ==
-                                    PlaybackStatus.stopped;
-                                if (stopped) {
+                      if (index == tabsRouter.activeIndex) {
+                        final routeName = switch (index) {
+                          0 => "HomeRoute",
+                          1 => "BrowseRoute",
+                          2 => "PlaylistsRoute",
+                          _ => "",
+                        };
+                        final router = tabsRouter.childControllers.firstWhere(
+                          (c) => c.stack.first.name == routeName,
+                        );
+                        while (router.canPop()) {
+                          await router.maybePop();
+                        }
+                        return;
+                      }
+                      switch (index) {
+                        case 0:
+                          context.read<HomeViewModel>().refresh(false);
+                        case 2:
+                          context.read<PlaylistRepository>().refresh();
+                      }
+                      tabsRouter.setActiveIndex(index);
+                    }
+
+                    return ChangeNotifierProvider.value(
+                      value: _layoutModeManager,
+                      builder: (context, _) {
+                        return OrientationBuilder(
+                          builder: (BuildContext context, Orientation orientation) {
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              _layoutModeManager.update(
+                                orientation == Orientation.landscape,
+                              );
+                            });
+                            return ListenableBuilder(
+                              listenable: _nowPlayingViewModel,
+                              builder: (context, _) {
+                                final Widget body;
+                                if (orientation == Orientation.portrait) {
+                                  final stopped =
+                                      _nowPlayingViewModel.playbackStatus ==
+                                      PlaybackStatus.stopped;
+                                  if (stopped) {
+                                    try {
+                                      _slidingUpPanelController.close();
+                                    } catch (_) {}
+                                  }
+                                  final bottomPadding = MediaQuery.of(
+                                    context,
+                                  ).viewPadding.bottom;
+                                  body = LayoutBuilder(
+                                    builder: (context, constraints) =>
+                                        SlidingUpPanel(
+                                          minHeight: stopped ? 0 : 53,
+                                          maxHeight: stopped
+                                              ? 0
+                                              : constraints.maxHeight,
+                                          borderRadius: BorderRadius.zero,
+                                          controller: _slidingUpPanelController,
+                                          collapsed: Visibility(
+                                            visible:
+                                                _collapsedVisible && !stopped,
+                                            child: NowPlayingCollapsed(
+                                              panelController:
+                                                  _slidingUpPanelController,
+                                              viewModel: _nowPlayingViewModel,
+                                            ),
+                                          ),
+                                          panelBuilder: (_) => Visibility(
+                                            visible: _expandedVisible,
+                                            child: NowPlayingExpanded(
+                                              panelController:
+                                                  _slidingUpPanelController,
+                                              viewModel: _nowPlayingViewModel,
+                                            ),
+                                          ),
+                                          onPanelSlide: (position) {
+                                            if (!_collapsedVisible ||
+                                                !_expandedVisible) {
+                                              setState(() {
+                                                _collapsedVisible = true;
+                                                _expandedVisible = true;
+                                              });
+                                            }
+                                          },
+                                          onPanelClosed: () {
+                                            if (!_collapsedVisible ||
+                                                _expandedVisible) {
+                                              setState(() {
+                                                _collapsedVisible = true;
+                                                _expandedVisible = false;
+                                              });
+                                            }
+                                          },
+                                          onPanelOpened: () {
+                                            if (_collapsedVisible ||
+                                                !_expandedVisible) {
+                                              setState(() {
+                                                _collapsedVisible = false;
+                                                _expandedVisible = true;
+                                              });
+                                            }
+                                          },
+                                          // an opened panel covers the page
+                                          // below, disabled tickers keep its
+                                          // route from taking the predictive
+                                          // back gesture
+                                          body: TickerMode(
+                                            enabled: _collapsedVisible,
+                                            child: Scaffold(
+                                              appBar: AppBar(
+                                                title: PageTitle(
+                                                  router: tabsRouter,
+                                                ),
+                                                leading:
+                                                    tabsRouter
+                                                        .activeRouterCanPop()
+                                                    ? const AutoLeadingButton()
+                                                    : null,
+                                                forceMaterialTransparency: true,
+                                                actions: [
+                                                  const MusicFoldersButton(),
+                                                  IconButton(
+                                                    icon: const Icon(
+                                                      Icons.settings,
+                                                    ),
+                                                    onPressed: () {
+                                                      context.router.push(
+                                                        const SettingsRoute(),
+                                                      );
+                                                    },
+                                                  ),
+                                                ],
+                                              ),
+                                              body: Padding(
+                                                padding: EdgeInsets.only(
+                                                  bottom:
+                                                      (stopped ? 58 : 111) +
+                                                      bottomPadding,
+                                                ),
+                                                child: SafeArea(child: child),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                  );
+                                } else {
                                   try {
+                                    _collapsedVisible = true;
+                                    _expandedVisible = false;
                                     _slidingUpPanelController.close();
                                   } catch (_) {}
-                                }
-                                final bottomPadding = MediaQuery.of(
-                                  context,
-                                ).viewPadding.bottom;
-                                body = LayoutBuilder(
-                                  builder: (context, constraints) =>
-                                      SlidingUpPanel(
-                                        minHeight: stopped ? 0 : 53,
-                                        maxHeight: stopped
-                                            ? 0
-                                            : constraints.maxHeight,
-                                        borderRadius: BorderRadius.zero,
-                                        controller: _slidingUpPanelController,
-                                        collapsed: Visibility(
-                                          visible:
-                                              _collapsedVisible && !stopped,
-                                          child: NowPlayingCollapsed(
-                                            panelController:
-                                                _slidingUpPanelController,
-                                            viewModel: _nowPlayingViewModel,
-                                          ),
-                                        ),
-                                        panelBuilder: (_) => Visibility(
-                                          visible: _expandedVisible,
-                                          child: NowPlayingExpanded(
-                                            panelController:
-                                                _slidingUpPanelController,
-                                            viewModel: _nowPlayingViewModel,
-                                          ),
-                                        ),
-                                        onPanelSlide: (position) {
-                                          if (!_collapsedVisible ||
-                                              !_expandedVisible) {
-                                            setState(() {
-                                              _collapsedVisible = true;
-                                              _expandedVisible = true;
-                                            });
-                                          }
-                                        },
-                                        onPanelClosed: () {
-                                          if (!_collapsedVisible ||
-                                              _expandedVisible) {
-                                            setState(() {
-                                              _collapsedVisible = true;
-                                              _expandedVisible = false;
-                                            });
-                                          }
-                                        },
-                                        onPanelOpened: () {
-                                          if (_collapsedVisible ||
-                                              !_expandedVisible) {
-                                            setState(() {
-                                              _collapsedVisible = false;
-                                              _expandedVisible = true;
-                                            });
-                                          }
-                                        },
-                                        body: Scaffold(
-                                          appBar: AppBar(
-                                            title: PageTitle(
-                                              router: tabsRouter,
+                                  body = Scaffold(
+                                    appBar: AppBar(
+                                      title: PageTitle(router: tabsRouter),
+                                      forceMaterialTransparency: true,
+                                      leading: tabsRouter.activeRouterCanPop()
+                                          ? const AutoLeadingButton()
+                                          : null,
+                                      actions: [
+                                        if (!tabsRouter.activeRouterCanPop() &&
+                                            tabsRouter.activeIndex == 0)
+                                          Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 4,
                                             ),
-                                            leading:
-                                                tabsRouter.activeRouterCanPop()
-                                                ? const AutoLeadingButton()
-                                                : null,
-                                            forceMaterialTransparency: true,
-                                            actions: [
-                                              const MusicFoldersButton(),
-                                              IconButton(
-                                                icon: const Icon(
-                                                  Icons.settings,
-                                                ),
-                                                onPressed: () {
-                                                  context.router.push(
-                                                    const SettingsRoute(),
-                                                  );
-                                                },
-                                              ),
-                                            ],
-                                          ),
-                                          body: Padding(
-                                            padding: EdgeInsets.only(
-                                              bottom:
-                                                  (stopped ? 58 : 111) +
-                                                  bottomPadding,
+                                            child: IconButton(
+                                              onPressed: () {
+                                                context
+                                                    .read<HomeViewModel>()
+                                                    .refresh(true);
+                                              },
+                                              icon: const Icon(Icons.refresh),
                                             ),
-                                            child: SafeArea(child: child),
                                           ),
-                                        ),
-                                      ),
-                                );
-                              } else {
-                                try {
-                                  _collapsedVisible = true;
-                                  _expandedVisible = false;
-                                  _slidingUpPanelController.close();
-                                } catch (_) {}
-                                body = Scaffold(
-                                  appBar: AppBar(
-                                    title: PageTitle(router: tabsRouter),
-                                    forceMaterialTransparency: true,
-                                    leading: tabsRouter.activeRouterCanPop()
-                                        ? const AutoLeadingButton()
-                                        : null,
-                                    actions: [
-                                      if (!tabsRouter.activeRouterCanPop() &&
-                                          tabsRouter.activeIndex == 0)
-                                        Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 4,
-                                          ),
-                                          child: IconButton(
-                                            onPressed: () {
-                                              context
-                                                  .read<HomeViewModel>()
-                                                  .refresh(true);
-                                            },
-                                            icon: const Icon(Icons.refresh),
-                                          ),
-                                        ),
-                                      const MusicFoldersButton(),
-                                      const SizedBox(width: 8),
-                                    ],
-                                  ),
-                                  floatingActionButton: QueueFab(
-                                    nowPlayingViewModel: _nowPlayingViewModel,
-                                  ),
-                                  body: Column(
-                                    children: [
-                                      Expanded(
-                                        child: SafeArea(
-                                          bottom: false,
-                                          child: child,
-                                        ),
-                                      ),
-                                      ListenableBuilder(
-                                        listenable: _nowPlayingViewModel,
-                                        builder: (context, _) {
-                                          if (_nowPlayingViewModel
-                                                  .playbackStatus ==
-                                              PlaybackStatus.stopped) {
-                                            return const SizedBox.shrink();
-                                          }
-                                          return NowPlayingDesktop(
-                                            viewModel: _nowPlayingViewModel,
-                                          );
-                                        },
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              }
-                              return Row(
-                                children: [
-                                  if (orientation == Orientation.landscape)
-                                    Row(
+                                        const MusicFoldersButton(),
+                                        const SizedBox(width: 8),
+                                      ],
+                                    ),
+                                    floatingActionButton: QueueFab(
+                                      nowPlayingViewModel: _nowPlayingViewModel,
+                                    ),
+                                    body: Column(
                                       children: [
-                                        NavigationRail(
-                                          selectedIndex: tabsRouter.activeIndex,
-                                          onDestinationSelected: switchTab,
-                                          labelType:
-                                              NavigationRailLabelType.all,
-                                          destinations: [
-                                            const NavigationRailDestination(
-                                              icon: Icon(Icons.home_outlined),
-                                              selectedIcon: Icon(Icons.home),
-                                              label: Text("Home"),
-                                            ),
-                                            const NavigationRailDestination(
-                                              icon: Icon(
-                                                Icons.library_music_outlined,
-                                              ),
-                                              selectedIcon: Icon(
-                                                Icons.library_music,
-                                              ),
-                                              label: Text("Browse"),
-                                            ),
-                                            const NavigationRailDestination(
-                                              icon: Icon(
-                                                Icons.queue_music_outlined,
-                                              ),
-                                              selectedIcon: Icon(
-                                                Icons.queue_music,
-                                              ),
-                                              label: Text("Playlists"),
-                                            ),
-                                            const NavigationRailDestination(
-                                              icon: Icon(Icons.settings),
-                                              selectedIcon: Icon(
-                                                Icons.settings,
-                                              ),
-                                              label: Text("Settings"),
-                                            ),
-                                          ],
+                                        Expanded(
+                                          child: SafeArea(
+                                            bottom: false,
+                                            child: child,
+                                          ),
                                         ),
-                                        const VerticalDivider(
-                                          thickness: 1,
-                                          width: 1,
+                                        ListenableBuilder(
+                                          listenable: _nowPlayingViewModel,
+                                          builder: (context, _) {
+                                            if (_nowPlayingViewModel
+                                                    .playbackStatus ==
+                                                PlaybackStatus.stopped) {
+                                              return const SizedBox.shrink();
+                                            }
+                                            return NowPlayingDesktop(
+                                              viewModel: _nowPlayingViewModel,
+                                            );
+                                          },
                                         ),
                                       ],
                                     ),
-                                  Expanded(
-                                    child: Scaffold(
-                                      body: body,
-                                      floatingActionButton: QueueFab(
-                                        nowPlayingViewModel:
-                                            _nowPlayingViewModel,
-                                        hide:
-                                            tabsRouter.activeIndex == 2 &&
-                                            !tabsRouter.activeRouterCanPop(
-                                              ignorePagelessRoutes: true,
-                                            ),
+                                  );
+                                }
+                                return Row(
+                                  children: [
+                                    if (orientation == Orientation.landscape)
+                                      Row(
+                                        children: [
+                                          NavigationRail(
+                                            selectedIndex:
+                                                tabsRouter.activeIndex,
+                                            onDestinationSelected: switchTab,
+                                            labelType:
+                                                NavigationRailLabelType.all,
+                                            destinations: [
+                                              const NavigationRailDestination(
+                                                icon: Icon(Icons.home_outlined),
+                                                selectedIcon: Icon(Icons.home),
+                                                label: Text("Home"),
+                                              ),
+                                              const NavigationRailDestination(
+                                                icon: Icon(
+                                                  Icons.library_music_outlined,
+                                                ),
+                                                selectedIcon: Icon(
+                                                  Icons.library_music,
+                                                ),
+                                                label: Text("Browse"),
+                                              ),
+                                              const NavigationRailDestination(
+                                                icon: Icon(
+                                                  Icons.queue_music_outlined,
+                                                ),
+                                                selectedIcon: Icon(
+                                                  Icons.queue_music,
+                                                ),
+                                                label: Text("Playlists"),
+                                              ),
+                                              const NavigationRailDestination(
+                                                icon: Icon(Icons.settings),
+                                                selectedIcon: Icon(
+                                                  Icons.settings,
+                                                ),
+                                                label: Text("Settings"),
+                                              ),
+                                            ],
+                                          ),
+                                          const VerticalDivider(
+                                            thickness: 1,
+                                            width: 1,
+                                          ),
+                                        ],
                                       ),
-                                      bottomNavigationBar:
-                                          orientation == Orientation.portrait
-                                          ? BottomNavigationBar(
-                                              useLegacyColorScheme: false,
-                                              currentIndex:
-                                                  tabsRouter.activeIndex,
-                                              onTap: switchTab,
-                                              items: [
-                                                BottomNavigationBarItem(
-                                                  icon: Icon(
-                                                    tabsRouter.activeIndex == 0
-                                                        ? Icons.home
-                                                        : Icons.home_outlined,
+                                    Expanded(
+                                      child: Scaffold(
+                                        body: body,
+                                        floatingActionButton: QueueFab(
+                                          nowPlayingViewModel:
+                                              _nowPlayingViewModel,
+                                          hide:
+                                              tabsRouter.activeIndex == 2 &&
+                                              !tabsRouter.activeRouterCanPop(
+                                                ignorePagelessRoutes: true,
+                                              ),
+                                        ),
+                                        bottomNavigationBar:
+                                            orientation == Orientation.portrait
+                                            ? BottomNavigationBar(
+                                                useLegacyColorScheme: false,
+                                                currentIndex:
+                                                    tabsRouter.activeIndex,
+                                                onTap: switchTab,
+                                                items: [
+                                                  BottomNavigationBarItem(
+                                                    icon: Icon(
+                                                      tabsRouter.activeIndex ==
+                                                              0
+                                                          ? Icons.home
+                                                          : Icons.home_outlined,
+                                                    ),
+                                                    label: "Home",
                                                   ),
-                                                  label: "Home",
-                                                ),
-                                                BottomNavigationBarItem(
-                                                  icon: Icon(
-                                                    tabsRouter.activeIndex == 1
-                                                        ? Icons.library_music
-                                                        : Icons
-                                                              .library_music_outlined,
+                                                  BottomNavigationBarItem(
+                                                    icon: Icon(
+                                                      tabsRouter.activeIndex ==
+                                                              1
+                                                          ? Icons.library_music
+                                                          : Icons
+                                                                .library_music_outlined,
+                                                    ),
+                                                    label: "Browse",
                                                   ),
-                                                  label: "Browse",
-                                                ),
-                                                BottomNavigationBarItem(
-                                                  icon: Icon(
-                                                    tabsRouter.activeIndex == 2
-                                                        ? Icons.queue_music
-                                                        : Icons
-                                                              .queue_music_outlined,
+                                                  BottomNavigationBarItem(
+                                                    icon: Icon(
+                                                      tabsRouter.activeIndex ==
+                                                              2
+                                                          ? Icons.queue_music
+                                                          : Icons
+                                                                .queue_music_outlined,
+                                                    ),
+                                                    label: "Playlists",
                                                   ),
-                                                  label: "Playlists",
-                                                ),
-                                              ],
-                                            )
-                                          : null,
+                                                ],
+                                              )
+                                            : null,
+                                      ),
                                     ),
-                                  ),
-                                ],
-                              );
-                            },
-                          );
-                        },
-                      );
-                    },
-                  );
-                },
+                                  ],
+                                );
+                              },
+                            );
+                          },
+                        );
+                      },
+                    );
+                  },
+                ),
               );
             },
           ),

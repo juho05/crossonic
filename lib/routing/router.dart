@@ -21,6 +21,13 @@ class AppRouter extends RootStackRouter {
   AppRouter({required this._authRepository});
 
   @override
+  // TODO: implement defaultRouteType
+  RouteType get defaultRouteType => const RouteType.material(
+    // disables custom predictive back transition and uses configured default value
+    enablePredictiveBackGesture: false,
+  );
+
+  @override
   List<AutoRouteGuard> get guards => [
     AuthGuard(authRepository: _authRepository),
   ];

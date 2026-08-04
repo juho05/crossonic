@@ -74,8 +74,22 @@ dependencies:
   uuid: ^4.5.3
   xml: ^6.6.1
   bonsoir: ^7.1.4
+  predictive_transition:
+    git:
+      url: https://github.com/juho05/flutter_predictive_transition
+      ref: 92d37c71e4c27c69e10b913520693d96bc90c6b1
 
 dependency_overrides:
+  auto_route:
+    git:
+      url: https://github.com/juho05/auto_route_library
+      ref: ec27d6273c2e4d6a57c6cd4721103a42f60f482c
+      path: ./auto_route
+  auto_route_generator:
+    git:
+      url: https://github.com/juho05/auto_route_library
+      ref: ec27d6273c2e4d6a57c6cd4721103a42f60f482c
+      path: ./auto_route_generator
   flutter_secure_storage_darwin:
     path: ./dependency_overrides/flutter_secure_storage/flutter_secure_storage_darwin
   flutter_secure_storage_linux:

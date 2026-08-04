@@ -11,13 +11,12 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"/>
 
-    <!-- TODO: set enableOnBackInvokedCallback to true once bugs are fixed in auto_route-->
     <application
             android:label="@string/app_name"
             android:name=".CrossonicApplication"
             android:allowBackup="false"
             android:usesCleartextTraffic="true"
-            android:enableOnBackInvokedCallback="false"
+            android:enableOnBackInvokedCallback="true"
             android:icon="@mipmap/ic_launcher">
         <activity
                 android:name=".MainActivity"

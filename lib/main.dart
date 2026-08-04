@@ -26,6 +26,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_displaymode/flutter_displaymode.dart';
 import 'package:flutter_single_instance/flutter_single_instance.dart';
+import 'package:predictive_transition/predictive_transition.dart';
 import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -140,6 +141,12 @@ class MainApp extends StatelessWidget {
 
   const MainApp({super.key, required this._routerConfig});
 
+  static const _pageTransitions = PageTransitionsTheme(
+    builders: <TargetPlatform, PageTransitionsBuilder>{
+      TargetPlatform.android: PredictiveTransitionPageTransitionsBuilder(),
+    },
+  );
+
   @override
   Widget build(BuildContext context) {
     final themeManager = context.read<ThemeManager>();
@@ -165,6 +172,7 @@ class MainApp extends StatelessWidget {
                   seedColor: lightPrimary,
                   brightness: Brightness.light,
                 ),
+                pageTransitionsTheme: _pageTransitions,
               ),
               darkTheme: ThemeData(
                 useMaterial3: true,
@@ -172,12 +180,16 @@ class MainApp extends StatelessWidget {
                   seedColor: darkPrimary,
                   brightness: Brightness.dark,
                 ),
+                pageTransitionsTheme: _pageTransitions,
               ),
               themeMode: themeManager.themeMode,
               debugShowCheckedModeBanner: false,
               routerConfig: _routerConfig,
               builder: (context, child) => Stack(
-                children: [child!, const Positioned.fill(child: VolumeHud())],
+                children: [
+                  child!,
+                  const Positioned.fill(child: VolumeHud()),
+                ],
               ),
             );
           },

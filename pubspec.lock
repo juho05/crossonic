@@ -108,18 +108,20 @@ packages:
   auto_route:
     dependency: "direct main"
     description:
-      name: auto_route
-      sha256: e9acfeb3df33d188fce4ad0239ef4238f333b7aa4d95ec52af3c2b9360dcd969
-      url: "https://pub.dev"
-    source: hosted
+      path: auto_route
+      ref: ec27d6273c2e4d6a57c6cd4721103a42f60f482c
+      resolved-ref: ec27d6273c2e4d6a57c6cd4721103a42f60f482c
+      url: "https://github.com/juho05/auto_route_library"
+    source: git
     version: "11.1.0"
   auto_route_generator:
     dependency: "direct dev"
     description:
-      name: auto_route_generator
-      sha256: f58fdb20c51b36afe7bf8a162aea3b22dff580a8a0b5c35e8e3a91367121c8f1
-      url: "https://pub.dev"
-    source: hosted
+      path: auto_route_generator
+      ref: ec27d6273c2e4d6a57c6cd4721103a42f60f482c
+      resolved-ref: ec27d6273c2e4d6a57c6cd4721103a42f60f482c
+      url: "https://github.com/juho05/auto_route_library"
+    source: git
     version: "10.6.0"
   background_downloader:
     dependency: "direct main"
@@ -1425,6 +1427,15 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.5.0"
+  predictive_transition:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: "92d37c71e4c27c69e10b913520693d96bc90c6b1"
+      resolved-ref: "92d37c71e4c27c69e10b913520693d96bc90c6b1"
+      url: "https://github.com/juho05/flutter_predictive_transition"
+    source: git
+    version: "0.2.0"
   protobuf:
     dependency: transitive
     description:
@@ -1999,5 +2010,5 @@ packages:
     source: hosted
     version: "3.1.3"
 sdks:
-  dart: ">=3.12.0 <4.0.0"
+  dart: ">=3.12.2 <4.0.0"
   flutter: ">=3.44.0"
