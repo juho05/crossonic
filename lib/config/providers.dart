@@ -45,7 +45,6 @@ import 'package:crossonic/data/services/media_integration/android.dart';
 import 'package:crossonic/data/services/media_integration/media_integration.dart';
 import 'package:crossonic/data/services/methodchannel/method_channel_service.dart';
 import 'package:crossonic/data/services/opensubsonic/subsonic_service.dart';
-import 'package:crossonic/data/services/permissions/local_network_permission.dart';
 import 'package:crossonic/data/services/upnp/upnp_service.dart';
 import 'package:crossonic/integrate_appimage_viewmodel.dart';
 import 'package:crossonic/version_checker_viewmodel.dart';
@@ -76,17 +75,12 @@ Future<List<SingleChildWidget>> createProviders({
 
   final keyValueRepository = KeyValueRepository(database: database);
 
-  final localNetworkPermission = LocalNetworkPermission(
-    methodChannel: methodChannelService,
-  );
-
   AuthRepository authRepository;
   try {
     authRepository = AuthRepository(
       openSubsonicService: subsonicService,
       keyValueRepository: keyValueRepository,
       database: database,
-      localNetworkPermission: localNetworkPermission,
     );
     await authRepository.loadState();
   } on Exception catch (e, st) {
@@ -243,7 +237,6 @@ Future<List<SingleChildWidget>> createProviders({
   final deviceManager = DeviceManager(
     localSource: compositeLocalSource,
     upnpService: upnpService,
-    localNetworkPermission: localNetworkPermission,
   );
 
   final playbackManager = PlaybackManager(

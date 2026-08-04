@@ -33,7 +33,6 @@ class AuthRepository extends ChangeNotifier {
   final KeyValueRepository _keyValue;
   final Database _database;
   final EncryptedStorage _storage;
-  final LocalNetworkPermission _localNetworkPermission;
 
   Uri? _serverUri;
   AuthState? _state;
@@ -57,7 +56,6 @@ class AuthRepository extends ChangeNotifier {
     required this._openSubsonicService,
     required KeyValueRepository keyValueRepository,
     required this._database,
-    required this._localNetworkPermission,
   }) : _keyValue = keyValueRepository,
        _storage = kIsWeb || !Platform.isLinux
            ? EncryptedStorageSecureStorage()
@@ -82,7 +80,7 @@ class AuthRepository extends ChangeNotifier {
     serverFeatures.value = features;
     _state = await AuthState.load(_storage);
 
-    await _localNetworkPermission.requestIfLocal(_serverUri!);
+    await requestLocalNetworkPermissionIfLocal(_serverUri!);
 
     notifyListeners();
 
@@ -96,7 +94,7 @@ class AuthRepository extends ChangeNotifier {
       await logout(false);
     }
 
-    await _localNetworkPermission.requestIfLocal(serverUri);
+    await requestLocalNetworkPermissionIfLocal(serverUri);
 
     final result = await _openSubsonicService.fetchServerInfo(serverUri);
     switch (result) {

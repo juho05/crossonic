@@ -24,7 +24,6 @@ import 'package:flutter/foundation.dart';
 class DeviceManager extends ChangeNotifier {
   final LocalSongSource _localSource;
   final UpnpService _upnpService;
-  final LocalNetworkPermission _localNetworkPermission;
 
   final List<DeviceDiscoverer> _discoverers = [if (!kIsWeb) SonosDiscoverer()];
 
@@ -36,11 +35,7 @@ class DeviceManager extends ChangeNotifier {
 
   bool get discovering => _discovering;
 
-  DeviceManager({
-    required this._localSource,
-    required this._upnpService,
-    required this._localNetworkPermission,
-  }) {
+  DeviceManager({required this._localSource, required this._upnpService}) {
     _registerDeviceStreams();
   }
 
@@ -48,7 +43,7 @@ class DeviceManager extends ChangeNotifier {
     _discovering = true;
     notifyListeners();
 
-    await _localNetworkPermission.request();
+    await requestLocalNetworkPermission();
 
     for (final d in _discoverers) {
       await d.startDiscovery();
