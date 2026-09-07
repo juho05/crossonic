@@ -8,6 +8,7 @@
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart' show ScrollCacheExtent;
 import 'package:flutter/services.dart';
 
 class RefreshScrollView extends StatelessWidget {
@@ -29,6 +30,7 @@ class RefreshScrollView extends StatelessWidget {
         platform == TargetPlatform.iOS || platform == TargetPlatform.macOS;
     final scrollView = CustomScrollView(
       controller: controller,
+      scrollCacheExtent: const ScrollCacheExtent.pixels(900),
       physics: isCupertino
           ? const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics())
           : const AlwaysScrollableScrollPhysics(),

@@ -279,7 +279,7 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
                     padding: const EdgeInsetsGeometry.all(4),
                     sliver: CoverGridSliver(
                       itemCount: playlists.length,
-                      itemBuilder: (context, index, coverSize) {
+                      itemBuilder: (context, index, geometry) {
                         if (index >= playlists.length) {
                           return null;
                         }
@@ -290,7 +290,7 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
                           key: ValueKey(p.id),
                           extraInfo: ["Songs: ${p.songCount}"],
                           coverId: p.coverId,
-                          coverSize: coverSize,
+                          coverSize: geometry.coverSize,
                           name: p.name,
                           download: p.download,
                           downloadStatus: playlist.$2,

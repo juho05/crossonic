@@ -125,7 +125,7 @@ class _ArtistsPageState extends State<ArtistsPage> {
                   itemCount:
                       (_viewModel.status == FetchStatus.success ? 0 : 1) +
                       _viewModel.artists.length,
-                  itemBuilder: (context, index, coverSize) {
+                  itemBuilder: (context, index, geometry) {
                     if (index > _viewModel.artists.length) {
                       return null;
                     }
@@ -144,7 +144,7 @@ class _ArtistsPageState extends State<ArtistsPage> {
                     return ArtistGridCell(
                       artist: a,
                       key: ValueKey(a.id),
-                      coverSize: coverSize,
+                      coverSize: geometry.coverSize,
                     );
                   },
                 ),

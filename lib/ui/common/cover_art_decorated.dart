@@ -16,7 +16,7 @@ import 'package:flutter/material.dart';
 import 'package:icon_decoration/icon_decoration.dart';
 import 'package:provider/provider.dart';
 
-class CoverArtDecorated extends StatefulWidget {
+class CoverArtDecorated extends StatelessWidget {
   final String? coverId;
   final IconData placeholderIcon;
   final BorderRadiusGeometry borderRadius;
@@ -50,17 +50,12 @@ class CoverArtDecorated extends StatefulWidget {
     this.bottomRight,
   });
 
-  @override
-  State<CoverArtDecorated> createState() => _CoverArtDecoratedState();
-}
-
-class _CoverArtDecoratedState extends State<CoverArtDecorated> {
-  bool get _showMenu => widget.menuOptions.isNotEmpty;
+  bool get _showMenu => menuOptions.isNotEmpty;
 
   @override
   Widget build(BuildContext context) {
-    final Widget child = widget.size != null
-        ? _buildContent(context, widget.size!)
+    final Widget child = size != null
+        ? _buildContent(context, size!)
         : LayoutBuilder(
             builder: (context, constraints) => _buildContent(
               context,
@@ -68,110 +63,110 @@ class _CoverArtDecoratedState extends State<CoverArtDecorated> {
             ),
           );
     if (_showMenu) {
-      return WithContextMenu(options: widget.menuOptions, child: child);
+      return WithContextMenu(options: menuOptions, child: child);
     }
     return child;
   }
 
   Widget _buildContent(BuildContext context, double size) {
+    if (uploading) {
+      return Align(
+        alignment: Alignment.center,
+        child: SizedBox.square(
+          dimension: size,
+          child: const Padding(
+            padding: EdgeInsets.all(8.0),
+            child: CircularProgressIndicator.adaptive(),
+          ),
+        ),
+      );
+    }
+
+    final largeLayout = size >= 256;
+    final cover = CoverArt(
+      size: size,
+      placeholderIcon: placeholderIcon,
+      borderRadius: borderRadius,
+      coverId: coverId,
+    );
+
+    final stackChildren = [
+      cover,
+      if (topLeft != null || isFavorite)
+        Align(
+          alignment: Alignment.topLeft,
+          child: Padding(
+            padding: EdgeInsets.all(largeLayout ? 8 : 3),
+            child:
+                topLeft ??
+                DecoratedIcon(
+                  decoration: const IconDecoration(
+                    border: IconBorder(color: Colors.black, width: 2),
+                  ),
+                  icon: Icon(
+                    Icons.favorite,
+                    size: largeLayout ? 26 : 20,
+                    color: const Color.fromARGB(255, 248, 248, 248),
+                  ),
+                ),
+          ),
+        ),
+      if (topRight != null || downloadStatus != DownloadStatus.none)
+        Align(
+          alignment: Alignment.topRight,
+          child: Padding(
+            padding: EdgeInsets.all(largeLayout ? 8 : 3),
+            child:
+                topRight ??
+                DecoratedIcon(
+                  decoration: const IconDecoration(
+                    border: IconBorder(color: Colors.black, width: 1),
+                  ),
+                  icon: Icon(
+                    downloadStatus == DownloadStatus.downloading
+                        ? Icons.downloading_outlined
+                        : Icons.download_for_offline_outlined,
+                    size: largeLayout ? 26 : 20,
+                    color: const Color.fromARGB(255, 248, 248, 248),
+                  ),
+                ),
+          ),
+        ),
+      if (bottomLeft != null)
+        Align(
+          alignment: Alignment.bottomLeft,
+          child: Padding(
+            padding: EdgeInsets.all(largeLayout ? 8 : 3),
+            child: bottomLeft,
+          ),
+        ),
+      if (bottomRight != null || _showMenu)
+        Align(
+          alignment: Alignment.bottomRight,
+          child: Padding(
+            padding: EdgeInsets.all(largeLayout ? 8 : 3),
+            child: bottomRight ?? OnCoverMenuButton(menuOptions: menuOptions),
+          ),
+        ),
+    ];
+
+    if (stackChildren.length == 1) {
+      return Align(alignment: Alignment.center, child: cover);
+    }
+
     return Align(
       alignment: Alignment.center,
       child: SizedBox.square(
         dimension: size,
         child: Provider<OnCoverIconButtonSize>.value(
-          value: size >= 256
+          value: largeLayout
               ? OnCoverIconButtonSize.large
               : OnCoverIconButtonSize.normal,
-          builder: (context, _) {
-            final buttonSize = context.read<OnCoverIconButtonSize>();
-            final largeLayout = buttonSize == OnCoverIconButtonSize.large;
-            if (widget.uploading) {
-              return const Padding(
-                padding: EdgeInsets.all(8.0),
-                child: CircularProgressIndicator.adaptive(),
-              );
-            }
-
-            final cover = CoverArt(
-              size: size,
-              placeholderIcon: widget.placeholderIcon,
-              borderRadius: widget.borderRadius,
-              coverId: widget.coverId,
-            );
-
-            final stackChildren = [
-              cover,
-              if (widget.topLeft != null || widget.isFavorite)
-                Align(
-                  alignment: Alignment.topLeft,
-                  child: Padding(
-                    padding: EdgeInsets.all(largeLayout ? 8 : 3),
-                    child:
-                        widget.topLeft ??
-                        DecoratedIcon(
-                          decoration: const IconDecoration(
-                            border: IconBorder(color: Colors.black, width: 2),
-                          ),
-                          icon: Icon(
-                            Icons.favorite,
-                            size: largeLayout ? 26 : 20,
-                            color: const Color.fromARGB(255, 248, 248, 248),
-                          ),
-                        ),
-                  ),
-                ),
-              if (widget.topRight != null ||
-                  widget.downloadStatus != DownloadStatus.none)
-                Align(
-                  alignment: Alignment.topRight,
-                  child: Padding(
-                    padding: EdgeInsets.all(largeLayout ? 8 : 3),
-                    child:
-                        widget.topRight ??
-                        DecoratedIcon(
-                          decoration: const IconDecoration(
-                            border: IconBorder(color: Colors.black, width: 1),
-                          ),
-                          icon: Icon(
-                            widget.downloadStatus == DownloadStatus.downloading
-                                ? Icons.downloading_outlined
-                                : Icons.download_for_offline_outlined,
-                            size: largeLayout ? 26 : 20,
-                            color: const Color.fromARGB(255, 248, 248, 248),
-                          ),
-                        ),
-                  ),
-                ),
-              if (widget.bottomLeft != null)
-                Align(
-                  alignment: Alignment.bottomLeft,
-                  child: Padding(
-                    padding: EdgeInsets.all(largeLayout ? 8 : 3),
-                    child: widget.bottomLeft,
-                  ),
-                ),
-              if (widget.bottomRight != null || _showMenu)
-                Align(
-                  alignment: Alignment.bottomRight,
-                  child: Padding(
-                    padding: EdgeInsets.all(largeLayout ? 8 : 3),
-                    child:
-                        widget.bottomRight ??
-                        OnCoverMenuButton(menuOptions: widget.menuOptions),
-                  ),
-                ),
-            ];
-
-            if (stackChildren.length == 1) {
-              return cover;
-            }
-
-            return Stack(
-              fit: StackFit.loose,
-              alignment: Alignment.center,
-              children: stackChildren,
-            );
-          },
+          child: Stack(
+            fit: StackFit.loose,
+            alignment: Alignment.center,
+            children: stackChildren,
+          ),
         ),
       ),
     );

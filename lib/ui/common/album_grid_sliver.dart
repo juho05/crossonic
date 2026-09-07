@@ -9,10 +9,11 @@
 import 'package:crossonic/data/repositories/subsonic/models/album.dart';
 import 'package:crossonic/ui/common/album_grid_cell.dart';
 import 'package:crossonic/ui/common/cover_grid_sliver.dart';
+import 'package:crossonic/ui/common/lazy_sliver_child.dart';
 import 'package:crossonic/utils/fetch_status.dart';
 import 'package:flutter/material.dart';
 
-class AlbumGridSliver extends StatelessWidget {
+class AlbumGridSliver extends StatefulWidget {
   final List<Album> albums;
   final FetchStatus fetchStatus;
 
@@ -23,7 +24,39 @@ class AlbumGridSliver extends StatelessWidget {
   });
 
   @override
+  State<AlbumGridSliver> createState() => _AlbumGridSliverState();
+}
+
+class _AlbumGridSliverState extends State<AlbumGridSliver> {
+  // Reusing the identical widget for an album lets the element tree skip the
+  // cell entirely when the grid rebuilds, e.g. when a page load appends
+  // albums while a fling is in progress.
+  final _cells = Expando<LazySliverChild>();
+  final _budget = ChildCreationBudget();
+
+  Widget _cellFor(Album album, int index, CoverGridGeometry geometry) {
+    _budget.visible = geometry.visible;
+    var cell = _cells[album];
+    if (cell == null ||
+        cell.index != index ||
+        cell.cacheKey != (album, geometry.coverSize)) {
+      cell = LazySliverChild(
+        key: ValueKey(album.id),
+        index: index,
+        budget: _budget,
+        cacheKey: (album, geometry.coverSize),
+        builder: (context) =>
+            AlbumGridCell(album: album, coverSize: geometry.coverSize),
+      );
+      _cells[album] = cell;
+    }
+    return cell;
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final albums = widget.albums;
+    final fetchStatus = widget.fetchStatus;
     if (fetchStatus == FetchStatus.success && albums.isEmpty) {
       return const SliverToBoxAdapter(
         child: Center(child: Text("No releases found")),
@@ -33,7 +66,7 @@ class AlbumGridSliver extends StatelessWidget {
       padding: const EdgeInsetsGeometry.symmetric(horizontal: 4),
       sliver: CoverGridSliver(
         itemCount: (fetchStatus == FetchStatus.success ? 0 : 1) + albums.length,
-        itemBuilder: (context, index, coverSize) {
+        itemBuilder: (context, index, geometry) {
           if (index > albums.length) {
             return null;
           }
@@ -44,12 +77,7 @@ class AlbumGridSliver extends StatelessWidget {
               _ => const Center(child: CircularProgressIndicator.adaptive()),
             };
           }
-          final a = albums[index];
-          return AlbumGridCell(
-            album: a,
-            key: ValueKey(a.id),
-            coverSize: coverSize,
-          );
+          return _cellFor(albums[index], index, geometry);
         },
       ),
     );

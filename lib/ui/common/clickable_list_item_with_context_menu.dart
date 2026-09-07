@@ -12,7 +12,7 @@ import 'package:crossonic/ui/common/menu_button.dart';
 import 'package:crossonic/ui/common/with_context_menu.dart';
 import 'package:flutter/material.dart';
 
-class ClickableListItemWithContextMenu extends StatefulWidget {
+class ClickableListItemWithContextMenu extends StatelessWidget {
   final String title;
   final bool titleBold;
   final Iterable<String> extraInfo;
@@ -46,42 +46,29 @@ class ClickableListItemWithContextMenu extends StatefulWidget {
   });
 
   @override
-  State<ClickableListItemWithContextMenu> createState() =>
-      _ClickableListItemWithContextMenuState();
-}
-
-class _ClickableListItemWithContextMenuState
-    extends State<ClickableListItemWithContextMenu> {
-  @override
   Widget build(BuildContext context) {
-    return WithContextMenu(
-      options: widget.options,
-      openOnLongTap: widget.contextMenuOnLongPress,
-      child: ClickableListItem(
-        title: widget.title,
-        titleBold: widget.titleBold,
-        extraInfo: widget.extraInfo,
-        leading: widget.leading,
-        isFavorite: widget.isFavorite,
-        downloadStatus: widget.downloadStatus,
-        opaque: widget.opaque,
-        trailing: widget.options.isNotEmpty || widget.extraTrailing != null
-            ? Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (widget.extraTrailing?.isNotEmpty ?? false)
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: widget.extraTrailing!,
-                    ),
-                  if (widget.options.isNotEmpty)
-                    MenuButton(options: widget.options),
-                ],
-              )
-            : null,
-        trailingInfo: widget.trailingInfo,
-        onTap: widget.onTap,
-      ),
+    return ClickableListItem(
+      title: title,
+      titleBold: titleBold,
+      extraInfo: extraInfo,
+      leading: leading,
+      isFavorite: isFavorite,
+      downloadStatus: downloadStatus,
+      opaque: opaque,
+      contextMenuOptions: options,
+      contextMenuOnLongPress: contextMenuOnLongPress,
+      trailing: options.isNotEmpty || extraTrailing != null
+          ? Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (extraTrailing?.isNotEmpty ?? false)
+                  Row(mainAxisSize: MainAxisSize.min, children: extraTrailing!),
+                if (options.isNotEmpty) MenuButton(options: options),
+              ],
+            )
+          : null,
+      trailingInfo: trailingInfo,
+      onTap: onTap,
     );
   }
 }

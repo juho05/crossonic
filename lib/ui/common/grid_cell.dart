@@ -56,56 +56,59 @@ class GridCell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    return WithContextMenu(
-      options: menuOptions,
-      openOnLongTap: true,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(10),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(4),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              CoverArtDecorated(
-                borderRadius: circularCover
-                    ? BorderRadius.circular(99999)
-                    : BorderRadius.circular(7),
-                isFavorite: isFavorite,
-                placeholderIcon: placeholderIcon,
-                size: coverSize,
-                coverId: coverId,
-                downloadStatus: downloadStatus,
-                bottomLeft: bottomLeft,
-                bottomRight: bottomRight,
-                topLeft: topLeft,
-                topRight: topRight,
-              ),
-              const SizedBox(height: 2),
-              OptionalTooltip(
-                message: title,
-                child: Text(
-                  title,
-                  overflow: TextOverflow.ellipsis,
-                  style: textTheme.bodyMedium!.copyWith(
-                    fontWeight: FontWeight.w400,
-                    fontSize: 12,
-                  ),
+    Offset menuPosition = Offset.zero;
+    return InkWell(
+      borderRadius: BorderRadius.circular(10),
+      onTap: onTap,
+      onTapDown: (details) => menuPosition = details.globalPosition,
+      onLongPress: () => showContextMenu(context, menuOptions, menuPosition),
+      onSecondaryTapUp: (details) =>
+          showContextMenu(context, menuOptions, details.globalPosition),
+      child: Padding(
+        padding: const EdgeInsets.all(4),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            CoverArtDecorated(
+              borderRadius: circularCover
+                  ? BorderRadius.circular(99999)
+                  : BorderRadius.circular(7),
+              isFavorite: isFavorite,
+              placeholderIcon: placeholderIcon,
+              size: coverSize,
+              coverId: coverId,
+              downloadStatus: downloadStatus,
+              bottomLeft: bottomLeft,
+              bottomRight: bottomRight,
+              topLeft: topLeft,
+              topRight: topRight,
+            ),
+            const SizedBox(height: 2),
+            OptionalTooltip.wrap(
+              message: title,
+              child: Text(
+                title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: textTheme.bodyMedium!.copyWith(
+                  fontWeight: FontWeight.w400,
+                  fontSize: 12,
                 ),
               ),
-              OptionalTooltip(
-                message: extraInfo,
-                child: Text(
-                  extraInfo,
-                  overflow: TextOverflow.ellipsis,
-                  style: textTheme.bodyMedium!.copyWith(
-                    fontWeight: FontWeight.w300,
-                    fontSize: 10,
-                  ),
+            ),
+            OptionalTooltip.wrap(
+              message: extraInfo,
+              child: Text(
+                extraInfo,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: textTheme.bodyMedium!.copyWith(
+                  fontWeight: FontWeight.w300,
+                  fontSize: 10,
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

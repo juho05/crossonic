@@ -17,6 +17,49 @@ class ContextMenuOption {
   ContextMenuOption({this.icon, required this.title, required this.onSelected});
 }
 
+void showContextMenu(
+  BuildContext context,
+  Iterable<ContextMenuOption> options,
+  Offset position,
+) {
+  CustomContextMenuController().show(
+    context: context,
+    contextMenuBuilder: (context) =>
+        _buildContextMenu(context, options, position),
+  );
+}
+
+Widget _buildContextMenu(
+  BuildContext context,
+  Iterable<ContextMenuOption> options,
+  Offset position,
+) {
+  return SafeArea(
+    left: false,
+    top: false,
+    child: DesktopTextSelectionToolbar(
+      anchor: position,
+      children: options
+          .map(
+            (o) => Container(
+              color: Theme.of(context).colorScheme.surfaceContainer,
+              child: MenuItemButton(
+                leadingIcon: o.icon != null ? Icon(o.icon) : null,
+                onPressed: () {
+                  if (o.onSelected != null) {
+                    o.onSelected!();
+                  }
+                  CustomContextMenuController.removeAny();
+                },
+                child: Text(o.title),
+              ),
+            ),
+          )
+          .toList(),
+    ),
+  );
+}
+
 class WithContextMenu extends StatefulWidget {
   final Widget child;
   final Iterable<ContextMenuOption> options;
@@ -46,33 +89,8 @@ class _WithContextMenuState extends State<WithContextMenu> {
     return ContextMenu(
       openOnTap: widget.openOnTap,
       openOnLongTap: widget.openOnLongTap,
-      contextMenuBuilder: (context, offset) {
-        return SafeArea(
-          // don't change the context menu offset
-          left: false,
-          top: false,
-          child: DesktopTextSelectionToolbar(
-            anchor: offset,
-            children: widget.options
-                .map(
-                  (o) => Container(
-                    color: Theme.of(context).colorScheme.surfaceContainer,
-                    child: MenuItemButton(
-                      leadingIcon: o.icon != null ? Icon(o.icon) : null,
-                      onPressed: () {
-                        if (o.onSelected != null) {
-                          o.onSelected!();
-                        }
-                        CustomContextMenuController.removeAny();
-                      },
-                      child: Text(o.title),
-                    ),
-                  ),
-                )
-                .toList(),
-          ),
-        );
-      },
+      contextMenuBuilder: (context, offset) =>
+          _buildContextMenu(context, widget.options, offset),
       child: widget.child,
     );
   }

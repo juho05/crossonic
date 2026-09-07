@@ -23,11 +23,25 @@ class OptionalTooltip extends StatelessWidget {
     required this.child,
   });
 
+  static final bool enabled = kIsWeb || !(Platform.isAndroid || Platform.isIOS);
+
+  static Widget wrap({
+    String? message,
+    bool enableDelay = true,
+    required Widget child,
+  }) {
+    if (!enabled || message == null || message.isEmpty) return child;
+    return OptionalTooltip(
+      message: message,
+      enableDelay: enableDelay,
+      child: child,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (message == null || message!.isEmpty) return child;
-    // don't build tooltips on mobile
-    if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) return child;
+    if (!enabled) return child;
 
     return Tooltip(
       triggerMode: TooltipTriggerMode.manual,

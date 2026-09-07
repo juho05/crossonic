@@ -8,6 +8,7 @@
 
 import 'package:crossonic/data/repositories/playlist/song_downloader.dart';
 import 'package:crossonic/ui/common/optional_tooltip.dart';
+import 'package:crossonic/ui/common/with_context_menu.dart';
 import 'package:flutter/material.dart';
 
 class ClickableListItem extends StatelessWidget {
@@ -25,6 +26,11 @@ class ClickableListItem extends StatelessWidget {
   final bool opaque;
   final bool enabled;
 
+  // opened by the InkWell on long press and secondary tap, a separate gesture
+  // layer per row is measurable when rows are created while scrolling
+  final Iterable<ContextMenuOption> contextMenuOptions;
+  final bool contextMenuOnLongPress;
+
   const ClickableListItem({
     super.key,
     required this.title,
@@ -38,6 +44,8 @@ class ClickableListItem extends StatelessWidget {
     this.downloadStatus = DownloadStatus.none,
     this.opaque = false,
     this.enabled = true,
+    this.contextMenuOptions = const [],
+    this.contextMenuOnLongPress = true,
   });
 
   @override
@@ -47,8 +55,24 @@ class ClickableListItem extends StatelessWidget {
     final textColor = !enabled ? theme.disabledColor : null;
     final showTrailingInfo = MediaQuery.sizeOf(context).width > 320;
     final extraInfoText = extraInfo.join(" • ");
+    final hasMenu = contextMenuOptions.isNotEmpty;
+    // onTapDown fires before a long press, so it supplies the menu position
+    Offset menuPosition = Offset.zero;
     final child = InkWell(
       onTap: enabled ? onTap : null,
+      onTapDown: hasMenu
+          ? (details) => menuPosition = details.globalPosition
+          : null,
+      onLongPress: hasMenu && contextMenuOnLongPress
+          ? () => showContextMenu(context, contextMenuOptions, menuPosition)
+          : null,
+      onSecondaryTapUp: hasMenu
+          ? (details) => showContextMenu(
+              context,
+              contextMenuOptions,
+              details.globalPosition,
+            )
+          : null,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 4),
         child: Row(
@@ -60,7 +84,7 @@ class ClickableListItem extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  OptionalTooltip(
+                  OptionalTooltip.wrap(
                     message: title,
                     child: Text(
                       title,
@@ -110,7 +134,7 @@ class ClickableListItem extends StatelessWidget {
                         Expanded(
                           child: Align(
                             alignment: Alignment.centerLeft,
-                            child: OptionalTooltip(
+                            child: OptionalTooltip.wrap(
                               message: extraInfoText,
                               child: Text(
                                 extraInfoText,

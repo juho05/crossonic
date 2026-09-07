@@ -7,10 +7,24 @@
  */
 
 import 'package:crossonic/ui/common/albums_grid_delegate.dart';
+import 'package:crossonic/ui/common/lazy_sliver_child.dart';
 import 'package:flutter/material.dart';
 
+class CoverGridGeometry {
+  final double coverSize;
+
+  // cells outside of this range are built ahead for the cache area
+  final SliverVisibleRange visible;
+
+  const CoverGridGeometry({required this.coverSize, required this.visible});
+}
+
 typedef CoverGridItemBuilder =
-    Widget? Function(BuildContext context, int index, double coverSize);
+    Widget? Function(
+      BuildContext context,
+      int index,
+      CoverGridGeometry geometry,
+    );
 
 class CoverGridSliver extends StatefulWidget {
   final int itemCount;
@@ -31,6 +45,10 @@ class _CoverGridSliverState extends State<CoverGridSliver> {
 
   SliverChildBuilderDelegate? _childDelegate;
   double? _childDelegateCoverSize;
+  CoverGridGeometry _geometry = const CoverGridGeometry(
+    coverSize: 0,
+    visible: SliverVisibleRange(0, -1),
+  );
 
   @override
   void didUpdateWidget(covariant CoverGridSliver oldWidget) {
@@ -42,7 +60,7 @@ class _CoverGridSliverState extends State<CoverGridSliver> {
     if (_childDelegate == null || coverSize != _childDelegateCoverSize) {
       _childDelegateCoverSize = coverSize;
       _childDelegate = SliverChildBuilderDelegate(
-        (context, index) => widget.itemBuilder(context, index, coverSize),
+        (context, index) => widget.itemBuilder(context, index, _geometry),
         childCount: widget.itemCount,
         addAutomaticKeepAlives: false,
       );
@@ -54,9 +72,19 @@ class _CoverGridSliverState extends State<CoverGridSliver> {
   Widget build(BuildContext context) {
     return SliverLayoutBuilder(
       builder: (context, constraints) {
+        final layout = _gridDelegate.getLayout(constraints);
+        _geometry = CoverGridGeometry(
+          coverSize: _gridDelegate.coverSize(constraints),
+          visible: SliverVisibleRange(
+            layout.getMinChildIndexForScrollOffset(constraints.scrollOffset),
+            layout.getMaxChildIndexForScrollOffset(
+              constraints.scrollOffset + constraints.remainingPaintExtent,
+            ),
+          ),
+        );
         return SliverGrid(
           gridDelegate: _gridDelegate,
-          delegate: _childDelegateFor(_gridDelegate.coverSize(constraints)),
+          delegate: _childDelegateFor(_geometry.coverSize),
         );
       },
     );

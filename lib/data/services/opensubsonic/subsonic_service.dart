@@ -7,6 +7,7 @@
  */
 
 import 'dart:convert';
+import 'dart:isolate';
 
 import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/data/services/opensubsonic/auth.dart';
@@ -66,6 +67,7 @@ enum SongsSortMode {
 
 class SubsonicService {
   static const String _clientName = "crossonic";
+
   // maximum version allowed by airsonic-advanced
   static const String _protocolVersion = "1.15.0";
 
@@ -813,15 +815,31 @@ class SubsonicService {
     }
   }
 
+  static const _isolateDecodeThreshold = 32 * 1024;
+
+  static Future<Map<String, dynamic>> _decodeBody(http.Response response) {
+    final contentType = response.headers["content-type"]?.toLowerCase() ?? "";
+    final hasCharset = contentType.contains("charset");
+    final bytes = response.bodyBytes;
+    Map<String, dynamic> decode() =>
+        jsonDecode(hasCharset ? response.body : utf8.decode(bytes))
+            as Map<String, dynamic>;
+    if (kIsWeb ||
+        (hasCharset && !contentType.contains("utf-8")) ||
+        bytes.length < _isolateDecodeThreshold) {
+      return Future.value(decode());
+    }
+    return Isolate.run(
+      () => jsonDecode(utf8.decode(bytes)) as Map<String, dynamic>,
+    );
+  }
+
   Future<Result<dynamic>> _parseJsonResponse(
     http.Response response,
     String? responseKey, {
     bool optionalResponse = false,
   }) async {
-    final json = response.headers["content-type"]?.contains("charset") ?? false
-        ? response.body
-        : utf8.decode(response.bodyBytes);
-    Map<String, dynamic> body = jsonDecode(json);
+    final Map<String, dynamic> body = await _decodeBody(response);
     if (!body.containsKey("subsonic-response")) {
       return const Result.error(
         UnexpectedResponseException("subsonic-response object missing"),

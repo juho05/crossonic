@@ -43,6 +43,7 @@ class _MainPageState extends State<MainPage> {
 
   var _collapsedVisible = true;
   var _expandedVisible = false;
+  var _wasStopped = false;
 
   @override
   void initState() {
@@ -164,10 +165,19 @@ class _MainPageState extends State<MainPage> {
                                   final stopped =
                                       _nowPlayingViewModel.playbackStatus ==
                                       PlaybackStatus.stopped;
-                                  if (stopped) {
-                                    try {
-                                      _slidingUpPanelController.close();
-                                    } catch (_) {}
+                                  if (stopped != _wasStopped) {
+                                    _wasStopped = stopped;
+                                    if (stopped) {
+                                      WidgetsBinding.instance
+                                          .addPostFrameCallback((_) {
+                                            if (!mounted ||
+                                                !_slidingUpPanelController
+                                                    .isAttached) {
+                                              return;
+                                            }
+                                            _slidingUpPanelController.close();
+                                          });
+                                    }
                                   }
                                   final bottomPadding = MediaQuery.of(
                                     context,

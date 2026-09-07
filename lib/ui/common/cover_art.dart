@@ -174,6 +174,7 @@ class _CoverImageState extends State<_CoverImage>
         image: widget.image,
         fit: BoxFit.cover,
         filterQuality: FilterQuality.low,
+        excludeFromSemantics: true,
         opacity: _fade,
         frameBuilder: _frameBuilder,
         errorBuilder: (context, error, stackTrace) => widget.errorPlaceholder,
