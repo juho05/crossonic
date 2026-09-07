@@ -68,6 +68,7 @@ class SongListSliver extends StatelessWidget {
                   : 0) +
               songs.length,
           itemExtent: ClickableListItem.verticalExtent,
+          addAutomaticKeepAlives: false,
           itemBuilder: (context, index) {
             if (index == songs.length) {
               return switch (fetchStatus) {

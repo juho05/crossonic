@@ -8,8 +8,8 @@
 
 import 'package:auto_route/auto_route.dart';
 import 'package:crossonic/ui/artists/artists_viewmodel.dart';
-import 'package:crossonic/ui/common/albums_grid_delegate.dart';
 import 'package:crossonic/ui/common/artist_grid_cell.dart';
+import 'package:crossonic/ui/common/cover_grid_sliver.dart';
 import 'package:crossonic/ui/common/refresh_scroll_view.dart';
 import 'package:crossonic/ui/main/layout_mode.dart';
 import 'package:crossonic/utils/fetch_status.dart';
@@ -121,39 +121,30 @@ class _ArtistsPageState extends State<ArtistsPage> {
                 ),
               SliverPadding(
                 padding: const EdgeInsetsGeometry.all(4),
-                sliver: SliverLayoutBuilder(
-                  builder: (context, constraints) {
-                    final delegate = AlbumsGridDelegate();
-                    final coverSize = delegate.coverSize(constraints);
-                    return SliverGrid(
-                      gridDelegate: delegate,
-                      delegate: SliverChildBuilderDelegate(
-                        (context, index) {
-                          if (index > _viewModel.artists.length) {
-                            return null;
-                          }
-                          if (index == _viewModel.artists.length) {
-                            return switch (_viewModel.status) {
-                              FetchStatus.success => null,
-                              FetchStatus.failure => const Center(
-                                child: Icon(Icons.wifi_off),
-                              ),
-                              _ => const Center(
-                                child: CircularProgressIndicator.adaptive(),
-                              ),
-                            };
-                          }
-                          final a = _viewModel.artists[index];
-                          return ArtistGridCell(
-                            artist: a,
-                            key: ValueKey(a.id),
-                            coverSize: coverSize,
-                          );
-                        },
-                        childCount:
-                            (_viewModel.status == FetchStatus.success ? 0 : 1) +
-                            _viewModel.artists.length,
-                      ),
+                sliver: CoverGridSliver(
+                  itemCount:
+                      (_viewModel.status == FetchStatus.success ? 0 : 1) +
+                      _viewModel.artists.length,
+                  itemBuilder: (context, index, coverSize) {
+                    if (index > _viewModel.artists.length) {
+                      return null;
+                    }
+                    if (index == _viewModel.artists.length) {
+                      return switch (_viewModel.status) {
+                        FetchStatus.success => null,
+                        FetchStatus.failure => const Center(
+                          child: Icon(Icons.wifi_off),
+                        ),
+                        _ => const Center(
+                          child: CircularProgressIndicator.adaptive(),
+                        ),
+                      };
+                    }
+                    final a = _viewModel.artists[index];
+                    return ArtistGridCell(
+                      artist: a,
+                      key: ValueKey(a.id),
+                      coverSize: coverSize,
                     );
                   },
                 ),

@@ -9,7 +9,7 @@
 import 'package:flutter/rendering.dart';
 
 class AlbumsGridDelegate extends SliverGridDelegateWithMaxCrossAxisExtent {
-  AlbumsGridDelegate()
+  const AlbumsGridDelegate()
     : super(
         maxCrossAxisExtent: 180,
         childAspectRatio: 4.0 / 5,

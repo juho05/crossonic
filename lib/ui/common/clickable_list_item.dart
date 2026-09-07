@@ -45,11 +45,8 @@ class ClickableListItem extends StatelessWidget {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
     final textColor = !enabled ? theme.disabledColor : null;
-    // Avoid a per-row LayoutBuilder (relayout boundary + layout-phase build) by
-    // deciding trailing-info visibility from the screen width instead of the
-    // item's width. The difference should be negligible on mobile layouts where this
-    // condition is relevant.
     final showTrailingInfo = MediaQuery.sizeOf(context).width > 320;
+    final extraInfoText = extraInfo.join(" • ");
     final child = InkWell(
       onTap: enabled ? onTap : null,
       child: Padding(
@@ -114,9 +111,9 @@ class ClickableListItem extends StatelessWidget {
                           child: Align(
                             alignment: Alignment.centerLeft,
                             child: OptionalTooltip(
-                              message: extraInfo.join(" • "),
+                              message: extraInfoText,
                               child: Text(
-                                extraInfo.join(" • "),
+                                extraInfoText,
                                 style: textTheme.bodySmall!.copyWith(
                                   fontWeight: FontWeight.w300,
                                   fontSize: 12,

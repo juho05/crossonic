@@ -8,7 +8,7 @@
 
 import 'package:crossonic/data/repositories/subsonic/models/album.dart';
 import 'package:crossonic/ui/common/album_grid_cell.dart';
-import 'package:crossonic/ui/common/albums_grid_delegate.dart';
+import 'package:crossonic/ui/common/cover_grid_sliver.dart';
 import 'package:crossonic/utils/fetch_status.dart';
 import 'package:flutter/material.dart';
 
@@ -29,40 +29,26 @@ class AlbumGridSliver extends StatelessWidget {
         child: Center(child: Text("No releases found")),
       );
     }
-    final delegate = AlbumsGridDelegate();
     return SliverPadding(
       padding: const EdgeInsetsGeometry.symmetric(horizontal: 4),
-      sliver: SliverLayoutBuilder(
-        builder: (context, constraints) {
-          final coverSize = delegate.coverSize(constraints);
-          return SliverGrid(
-            gridDelegate: delegate,
-            delegate: SliverChildBuilderDelegate(
-              (context, index) {
-                if (index > albums.length) {
-                  return null;
-                }
-                if (index == albums.length) {
-                  return switch (fetchStatus) {
-                    FetchStatus.success => null,
-                    FetchStatus.failure => const Center(
-                      child: Icon(Icons.wifi_off),
-                    ),
-                    _ => const Center(
-                      child: CircularProgressIndicator.adaptive(),
-                    ),
-                  };
-                }
-                final a = albums[index];
-                return AlbumGridCell(
-                  album: a,
-                  key: ValueKey(a.id),
-                  coverSize: coverSize,
-                );
-              },
-              childCount:
-                  (fetchStatus == FetchStatus.success ? 0 : 1) + albums.length,
-            ),
+      sliver: CoverGridSliver(
+        itemCount: (fetchStatus == FetchStatus.success ? 0 : 1) + albums.length,
+        itemBuilder: (context, index, coverSize) {
+          if (index > albums.length) {
+            return null;
+          }
+          if (index == albums.length) {
+            return switch (fetchStatus) {
+              FetchStatus.success => null,
+              FetchStatus.failure => const Center(child: Icon(Icons.wifi_off)),
+              _ => const Center(child: CircularProgressIndicator.adaptive()),
+            };
+          }
+          final a = albums[index];
+          return AlbumGridCell(
+            album: a,
+            key: ValueKey(a.id),
+            coverSize: coverSize,
           );
         },
       ),

@@ -243,7 +243,7 @@ class _ArtistPageState extends State<ArtistPage> {
                     gridAlbums ??= List.of(currentAlbums);
                     final collapsedAlbums = _collapseAlbums(gridAlbums);
                     return SliverGrid.builder(
-                      gridDelegate: AlbumsGridDelegate(),
+                      gridDelegate: const AlbumsGridDelegate(),
                       itemCount: collapsedAlbums.length,
                       itemBuilder: (context, i) => AlbumGridCell(
                         album: collapsedAlbums[i].$1,

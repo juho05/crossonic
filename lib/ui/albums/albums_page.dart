@@ -69,112 +69,110 @@ class _AlbumsPageState extends State<AlbumsPage> {
   @override
   Widget build(BuildContext context) {
     return Material(
-      child: ListenableBuilder(
-        listenable: _viewModel,
-        builder: (context, _) {
-          return RefreshScrollView(
-            onRefresh: () => _viewModel.refresh(),
-            controller: _controller,
-            slivers: [
-              LayoutModeBuilder(
-                builder: (context, isDesktop) {
-                  return SliverToBoxAdapter(
-                    child: _viewModel.mode != AlbumsPageMode.genre
-                        ? Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Row(
-                              spacing: 8,
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(
-                                  child: DropdownMenu<AlbumsPageMode>(
-                                    initialSelection: _viewModel.mode,
-                                    requestFocusOnTap: false,
-                                    leadingIcon: const Icon(Icons.sort),
-                                    label: const Text("Sort/Filter"),
-                                    width: isDesktop ? 240 : null,
-                                    expandedInsets: !isDesktop
-                                        ? EdgeInsets.zero
-                                        : null,
-                                    enableSearch: false,
-                                    dropdownMenuEntries: [
-                                      const DropdownMenuEntry(
-                                        value: AlbumsPageMode.alphabetical,
-                                        label: "Alphabetical",
-                                      ),
-                                      const DropdownMenuEntry(
-                                        value: AlbumsPageMode.favorites,
-                                        label: "Favorites",
-                                      ),
-                                      const DropdownMenuEntry(
-                                        value: AlbumsPageMode.random,
-                                        label: "Random",
-                                      ),
-                                      const DropdownMenuEntry(
-                                        value: AlbumsPageMode.recentlyAdded,
-                                        label: "Recently added",
-                                      ),
-                                      const DropdownMenuEntry(
-                                        value: AlbumsPageMode.recentlyPlayed,
-                                        label: "Recently played",
-                                      ),
-                                      const DropdownMenuEntry(
-                                        value: AlbumsPageMode.frequentlyPlayed,
-                                        label: "Frequently played",
-                                      ),
-                                    ],
-                                    onSelected: (AlbumsPageMode? mode) {
-                                      if (mode == null) return;
-                                      _viewModel.mode = mode;
-                                    },
+      child: RefreshScrollView(
+        onRefresh: () => _viewModel.refresh(),
+        controller: _controller,
+        slivers: [
+          LayoutModeBuilder(
+            builder: (context, isDesktop) {
+              return SliverToBoxAdapter(
+                child: _viewModel.mode != AlbumsPageMode.genre
+                    ? Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Row(
+                          spacing: 8,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: DropdownMenu<AlbumsPageMode>(
+                                initialSelection: _viewModel.mode,
+                                requestFocusOnTap: false,
+                                leadingIcon: const Icon(Icons.sort),
+                                label: const Text("Sort/Filter"),
+                                width: isDesktop ? 240 : null,
+                                expandedInsets: !isDesktop
+                                    ? EdgeInsets.zero
+                                    : null,
+                                enableSearch: false,
+                                dropdownMenuEntries: [
+                                  const DropdownMenuEntry(
+                                    value: AlbumsPageMode.alphabetical,
+                                    label: "Alphabetical",
                                   ),
-                                ),
-                                if (isDesktop)
-                                  IconButton(
-                                    onPressed: () => _viewModel.refresh(),
-                                    icon: const Icon(Icons.refresh),
+                                  const DropdownMenuEntry(
+                                    value: AlbumsPageMode.favorites,
+                                    label: "Favorites",
                                   ),
-                              ],
+                                  const DropdownMenuEntry(
+                                    value: AlbumsPageMode.random,
+                                    label: "Random",
+                                  ),
+                                  const DropdownMenuEntry(
+                                    value: AlbumsPageMode.recentlyAdded,
+                                    label: "Recently added",
+                                  ),
+                                  const DropdownMenuEntry(
+                                    value: AlbumsPageMode.recentlyPlayed,
+                                    label: "Recently played",
+                                  ),
+                                  const DropdownMenuEntry(
+                                    value: AlbumsPageMode.frequentlyPlayed,
+                                    label: "Frequently played",
+                                  ),
+                                ],
+                                onSelected: (AlbumsPageMode? mode) {
+                                  if (mode == null) return;
+                                  _viewModel.mode = mode;
+                                },
+                              ),
                             ),
-                          )
-                        : Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
+                            if (isDesktop)
+                              IconButton(
+                                onPressed: () => _viewModel.refresh(),
+                                icon: const Icon(Icons.refresh),
+                              ),
+                          ],
+                        ),
+                      )
+                    : Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                "Genre: ${widget.genre}",
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context).textTheme.labelLarge!
+                                    .copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18,
+                                    ),
+                              ),
                             ),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    "Genre: ${widget.genre}",
-                                    overflow: TextOverflow.ellipsis,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .labelLarge!
-                                        .copyWith(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 18,
-                                        ),
-                                  ),
-                                ),
-                                if (isDesktop)
-                                  IconButton(
-                                    onPressed: () => _viewModel.refresh(),
-                                    icon: const Icon(Icons.refresh),
-                                  ),
-                              ],
-                            ),
-                          ),
-                  );
-                },
-              ),
-              AlbumGridSliver(
+                            if (isDesktop)
+                              IconButton(
+                                onPressed: () => _viewModel.refresh(),
+                                icon: const Icon(Icons.refresh),
+                              ),
+                          ],
+                        ),
+                      ),
+              );
+            },
+          ),
+          ListenableBuilder(
+            listenable: _viewModel,
+            builder: (context, _) {
+              return AlbumGridSliver(
                 albums: _viewModel.albums,
                 fetchStatus: _viewModel.status,
-              ),
-            ],
-          );
-        },
+              );
+            },
+          ),
+        ],
       ),
     );
   }

@@ -13,6 +13,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class MenuButton extends StatelessWidget {
+  static final bool _compact =
+      kIsWeb || Platform.isWindows || Platform.isMacOS || Platform.isLinux;
+
   final Iterable<ContextMenuOption> options;
   final Icon icon;
   final EdgeInsetsGeometry padding;
@@ -30,26 +33,47 @@ class MenuButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final compact =
-        kIsWeb || Platform.isWindows || Platform.isMacOS || Platform.isLinux;
-    return PopupMenuButton<ContextMenuOption>(
+    final popupMenuTheme = PopupMenuTheme.of(context);
+    final iconTheme = IconTheme.of(context);
+    return IconButton(
       icon: icon,
-      iconSize: iconSize,
-      tooltip: tooltip,
+      iconSize: iconSize ?? popupMenuTheme.iconSize ?? iconTheme.size,
+      color: popupMenuTheme.iconColor ?? iconTheme.color,
       padding: padding,
-      onSelected: (option) {
-        if (option.onSelected == null) return;
-        option.onSelected!();
-      },
+      tooltip: _compact
+          ? tooltip ?? MaterialLocalizations.of(context).showMenuTooltip
+          : null,
+      onPressed: () => _showMenu(context),
+    );
+  }
+
+  Future<void> _showMenu(BuildContext context) async {
+    if (options.isEmpty) return;
+    final button = context.findRenderObject()! as RenderBox;
+    final overlay =
+        Navigator.of(context).overlay!.context.findRenderObject()! as RenderBox;
+    final position = RelativeRect.fromRect(
+      Rect.fromPoints(
+        button.localToGlobal(Offset.zero, ancestor: overlay),
+        button.localToGlobal(
+          button.size.bottomRight(Offset.zero),
+          ancestor: overlay,
+        ),
+      ),
+      Offset.zero & overlay.size,
+    );
+    final option = await showMenu<ContextMenuOption>(
+      context: context,
+      position: position,
       menuPadding: const EdgeInsets.all(0),
-      itemBuilder: (context) => options
+      items: options
           .map(
             (o) => PopupMenuItem<ContextMenuOption>(
               value: o,
-              height: compact ? 40 : kMinInteractiveDimension,
+              height: _compact ? 40 : kMinInteractiveDimension,
               child: ListTile(
-                minVerticalPadding: compact ? 0 : null,
-                minTileHeight: compact ? 40 : null,
+                minVerticalPadding: _compact ? 0 : null,
+                minTileHeight: _compact ? 40 : null,
                 mouseCursor: SystemMouseCursors.click,
                 leading: o.icon != null ? Icon(o.icon) : null,
                 title: Text(o.title),
@@ -58,5 +82,6 @@ class MenuButton extends StatelessWidget {
           )
           .toList(),
     );
+    option?.onSelected?.call();
   }
 }

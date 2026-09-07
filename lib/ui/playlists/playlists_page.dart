@@ -8,9 +8,9 @@
 
 import 'package:auto_route/auto_route.dart';
 import 'package:crossonic/routing/router.gr.dart';
-import 'package:crossonic/ui/common/albums_grid_delegate.dart';
 import 'package:crossonic/ui/common/auto_hide_fab.dart';
 import 'package:crossonic/ui/common/buttons.dart';
+import 'package:crossonic/ui/common/cover_grid_sliver.dart';
 import 'package:crossonic/ui/common/dialogs/add_to_playlist.dart';
 import 'package:crossonic/ui/common/dialogs/confirmation.dart';
 import 'package:crossonic/ui/common/playlist_grid_cell.dart';
@@ -277,109 +277,98 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
                     ),
                   SliverPadding(
                     padding: const EdgeInsetsGeometry.all(4),
-                    sliver: SliverLayoutBuilder(
-                      builder: (context, constraints) {
-                        final delegate = AlbumsGridDelegate();
-                        final coverSize = delegate.coverSize(constraints);
-                        return SliverGrid(
-                          gridDelegate: delegate,
-                          delegate: SliverChildBuilderDelegate((
-                            context,
-                            index,
-                          ) {
-                            if (index >= playlists.length) {
-                              return null;
-                            }
-                            final playlist = playlists[index];
-                            final p = playlists[index].$1;
-                            return PlaylistGridCell(
-                              id: p.id,
-                              key: ValueKey(p.id),
-                              extraInfo: ["Songs: ${p.songCount}"],
-                              coverId: p.coverId,
-                              coverSize: coverSize,
-                              name: p.name,
-                              download: p.download,
-                              downloadStatus: playlist.$2,
-                              onTap: () {
-                                context.router.push(
-                                  PlaylistRoute(playlistId: p.id),
-                                );
-                              },
-                              onPlay: () async {
-                                final result = await _viewModel.play(p);
-                                if (!context.mounted) return;
-                                toastResult(context, result);
-                              },
-                              onShuffle: () async {
-                                final result = await _viewModel.play(
-                                  p,
-                                  shuffle: true,
-                                );
-                                if (!context.mounted) return;
-                                toastResult(context, result);
-                              },
-                              onAddToQueue: (priority) async {
-                                final result = await _viewModel.addToQueue(
-                                  p,
-                                  priority,
-                                );
-                                if (!context.mounted) return;
-                                toastResult(
-                                  context,
-                                  result,
-                                  successMsg:
-                                      "Added '${p.name}' to ${priority ? "priority " : ""}queue",
-                                );
-                              },
-                              onAddToPlaylist: () {
-                                AddToPlaylistDialog.show(
-                                  context,
-                                  p.name,
-                                  () => _viewModel.getTracks(p.id),
-                                );
-                              },
-                              onDelete: () async {
-                                final confirmed =
-                                    await ConfirmationDialog.showYesNo(
-                                      context,
-                                      message: "Delete '${p.name}'?",
-                                    );
-                                if (!(confirmed ?? false) || !context.mounted) {
-                                  return;
-                                }
-                                final result = await _viewModel.delete(p);
-                                if (!context.mounted) return;
-                                toastResult(
-                                  context,
-                                  result,
-                                  successMsg: "Deleted playlist '${p.name}'!",
-                                );
-                              },
-                              onToggleDownload: () async {
-                                if (p.download) {
-                                  final confirmation =
-                                      await ConfirmationDialog.showYesNo(
-                                        context,
-                                        message:
-                                            "You won't be able to play this playlist offline anymore.",
-                                      );
-                                  if (!(confirmation ?? false)) return;
-                                }
-                                final result = await _viewModel.toggleDownload(
-                                  p,
-                                );
-                                if (!context.mounted) return;
-                                toastResult(
-                                  context,
-                                  result,
-                                  successMsg: !p.download
-                                      ? "Scheduling downloads…"
-                                      : null,
-                                );
-                              },
+                    sliver: CoverGridSliver(
+                      itemCount: playlists.length,
+                      itemBuilder: (context, index, coverSize) {
+                        if (index >= playlists.length) {
+                          return null;
+                        }
+                        final playlist = playlists[index];
+                        final p = playlists[index].$1;
+                        return PlaylistGridCell(
+                          id: p.id,
+                          key: ValueKey(p.id),
+                          extraInfo: ["Songs: ${p.songCount}"],
+                          coverId: p.coverId,
+                          coverSize: coverSize,
+                          name: p.name,
+                          download: p.download,
+                          downloadStatus: playlist.$2,
+                          onTap: () {
+                            context.router.push(
+                              PlaylistRoute(playlistId: p.id),
                             );
-                          }, childCount: playlists.length),
+                          },
+                          onPlay: () async {
+                            final result = await _viewModel.play(p);
+                            if (!context.mounted) return;
+                            toastResult(context, result);
+                          },
+                          onShuffle: () async {
+                            final result = await _viewModel.play(
+                              p,
+                              shuffle: true,
+                            );
+                            if (!context.mounted) return;
+                            toastResult(context, result);
+                          },
+                          onAddToQueue: (priority) async {
+                            final result = await _viewModel.addToQueue(
+                              p,
+                              priority,
+                            );
+                            if (!context.mounted) return;
+                            toastResult(
+                              context,
+                              result,
+                              successMsg:
+                                  "Added '${p.name}' to ${priority ? "priority " : ""}queue",
+                            );
+                          },
+                          onAddToPlaylist: () {
+                            AddToPlaylistDialog.show(
+                              context,
+                              p.name,
+                              () => _viewModel.getTracks(p.id),
+                            );
+                          },
+                          onDelete: () async {
+                            final confirmed =
+                                await ConfirmationDialog.showYesNo(
+                                  context,
+                                  message: "Delete '${p.name}'?",
+                                );
+                            if (!(confirmed ?? false) || !context.mounted) {
+                              return;
+                            }
+                            final result = await _viewModel.delete(p);
+                            if (!context.mounted) return;
+                            toastResult(
+                              context,
+                              result,
+                              successMsg: "Deleted playlist '${p.name}'!",
+                            );
+                          },
+                          onToggleDownload: () async {
+                            if (p.download) {
+                              final confirmation =
+                                  await ConfirmationDialog.showYesNo(
+                                    context,
+                                    message:
+                                        "You won't be able to play this playlist offline anymore.",
+                                  );
+                              if (!(confirmation ?? false)) return;
+                            }
+                            final result = await _viewModel.toggleDownload(p);
+                            if (!context.mounted) return;
+                            toastResult(
+                              context,
+                              result,
+                              successMsg: !p.download
+                                  ? "Scheduling downloads…"
+                                  : null,
+                            );
+                          },
                         );
                       },
                     ),

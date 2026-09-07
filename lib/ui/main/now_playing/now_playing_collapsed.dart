@@ -110,82 +110,86 @@ class NowPlayingCollapsed extends StatelessWidget {
                     },
                   ),
                 ),
-                Stack(
-                  alignment: Alignment.center,
-                  fit: StackFit.passthrough,
-                  children: [
-                    StreamBuilder<
-                      ({Duration position, Duration? bufferedPosition})
-                    >(
-                      stream: _viewModel.position,
-                      initialData: _viewModel.position.value,
-                      builder: (context, snapshot) {
-                        final pos =
-                            snapshot.data ??
-                            (position: Duration.zero, bufferedPosition: null);
-                        final showPos =
-                            _viewModel.duration != null &&
-                            (_viewModel.playbackStatus ==
-                                    PlaybackStatus.playing ||
-                                _viewModel.playbackStatus ==
-                                    PlaybackStatus.paused);
-                        final duration = _viewModel.duration ?? Duration.zero;
-                        return Stack(
-                          children: [
-                            CircularProgressIndicator(
-                              value: showPos ? 1 : 0,
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.primary.withAlpha(61),
-                            ),
-                            if (pos.bufferedPosition != null)
+                RepaintBoundary(
+                  child: Stack(
+                    alignment: Alignment.center,
+                    fit: StackFit.passthrough,
+                    children: [
+                      StreamBuilder<
+                        ({Duration position, Duration? bufferedPosition})
+                      >(
+                        stream: _viewModel.position,
+                        initialData: _viewModel.position.value,
+                        builder: (context, snapshot) {
+                          final pos =
+                              snapshot.data ??
+                              (position: Duration.zero, bufferedPosition: null);
+                          final showPos =
+                              _viewModel.duration != null &&
+                              (_viewModel.playbackStatus ==
+                                      PlaybackStatus.playing ||
+                                  _viewModel.playbackStatus ==
+                                      PlaybackStatus.paused);
+                          final duration = _viewModel.duration ?? Duration.zero;
+                          return Stack(
+                            children: [
                               CircularProgressIndicator(
-                                value: showPos
-                                    ? pos.bufferedPosition!.inMilliseconds
-                                              .toDouble() /
-                                          duration.inMilliseconds.toDouble()
-                                    : 0,
+                                value: showPos ? 1 : 0,
                                 color: Theme.of(
                                   context,
                                 ).colorScheme.primary.withAlpha(61),
                               ),
-                            CircularProgressIndicator(
-                              value: showPos
-                                  ? pos.position.inMilliseconds.toDouble() /
-                                        duration.inMilliseconds.toDouble()
-                                  : 0,
-                            ),
-                          ],
-                        );
-                      },
-                    ),
-                    if (_viewModel.playbackStatus != PlaybackStatus.playing &&
-                        _viewModel.playbackStatus != PlaybackStatus.paused)
-                      const SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator.adaptive(),
+                              if (pos.bufferedPosition != null)
+                                CircularProgressIndicator(
+                                  value: showPos
+                                      ? pos.bufferedPosition!.inMilliseconds
+                                                .toDouble() /
+                                            duration.inMilliseconds.toDouble()
+                                      : 0,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.primary.withAlpha(61),
+                                ),
+                              CircularProgressIndicator(
+                                value: showPos
+                                    ? pos.position.inMilliseconds.toDouble() /
+                                          duration.inMilliseconds.toDouble()
+                                    : 0,
+                              ),
+                            ],
+                          );
+                        },
                       ),
-                    IconButton(
-                      icon: switch (_viewModel.playbackStatus) {
-                        PlaybackStatus.stopped || PlaybackStatus.loading =>
-                          const SizedBox(width: 24, height: 24),
-                        _ => Icon(
-                          _viewModel.playbackStatus == PlaybackStatus.playing
-                              ? Icons.pause
-                              : Icons.play_arrow,
-                          size: 24,
+                      if (_viewModel.playbackStatus != PlaybackStatus.playing &&
+                          _viewModel.playbackStatus != PlaybackStatus.paused)
+                        const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator.adaptive(),
                         ),
-                      },
-                      onPressed:
-                          _viewModel.playbackStatus == PlaybackStatus.playing ||
-                              _viewModel.playbackStatus == PlaybackStatus.paused
-                          ? () {
-                              _viewModel.playPause();
-                            }
-                          : null,
-                    ),
-                  ],
+                      IconButton(
+                        icon: switch (_viewModel.playbackStatus) {
+                          PlaybackStatus.stopped || PlaybackStatus.loading =>
+                            const SizedBox(width: 24, height: 24),
+                          _ => Icon(
+                            _viewModel.playbackStatus == PlaybackStatus.playing
+                                ? Icons.pause
+                                : Icons.play_arrow,
+                            size: 24,
+                          ),
+                        },
+                        onPressed:
+                            _viewModel.playbackStatus ==
+                                    PlaybackStatus.playing ||
+                                _viewModel.playbackStatus ==
+                                    PlaybackStatus.paused
+                            ? () {
+                                _viewModel.playPause();
+                              }
+                            : null,
+                      ),
+                    ],
+                  ),
                 ),
                 SizedBox(
                   width: 32,

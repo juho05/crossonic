@@ -227,6 +227,24 @@ class CoverRepository extends BaseCacheManager {
     }
   }
 
+  Future<File> loadCoverFile(String coverId, int size) async {
+    final key = getKey(coverId, size);
+    final cached = await getFileFromCache(key);
+    if (cached != null && cached.validTill.isAfter(DateTime.now())) {
+      return cached.file;
+    }
+    try {
+      return (await downloadFile(key)).file;
+    } on Object catch (e) {
+      if (cached == null) rethrow;
+      if (e is HttpExceptionWithStatus && e.statusCode == 404) {
+        await removeFile(key);
+        rethrow;
+      }
+      return cached.file;
+    }
+  }
+
   Future<void> invalidateCover(String coverId) async {
     if (kIsWeb) return;
     Log.trace("removing all cache objects for cover: $coverId");
@@ -340,6 +358,7 @@ class CoverRepository extends BaseCacheManager {
   }
 
   Timer? _cleanupTimer;
+
   Future<void> _cleanup() async {
     _cleanupTimer?.cancel();
     _cleanupTimer = null;
@@ -514,6 +533,7 @@ class CoverRepository extends BaseCacheManager {
   }
 
   String? _cacheDirPath;
+
   Future<io.Directory> _cacheDir() async {
     _cacheDirPath ??= path.join(
       (await getApplicationCacheDirectory()).path,
@@ -523,6 +543,7 @@ class CoverRepository extends BaseCacheManager {
   }
 
   static final base64UrlCodec = utf8.fuse(base64Url);
+
   Future<File> cacheFile(String id, int size) async {
     final dir = await _cacheDir();
     final encodedId = base64UrlCodec.encode(id);

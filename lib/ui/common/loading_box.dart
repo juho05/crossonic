@@ -9,7 +9,9 @@
 import 'package:flutter/material.dart';
 
 class LoadingBox extends StatelessWidget {
-  const LoadingBox({super.key});
+  final Widget? child;
+
+  const LoadingBox({super.key, this.child});
 
   @override
   Widget build(BuildContext context) {
@@ -17,6 +19,6 @@ class LoadingBox extends StatelessWidget {
     final color = theme.brightness == Brightness.light
         ? theme.colorScheme.surfaceContainer
         : theme.colorScheme.surfaceContainerLow;
-    return ColoredBox(color: color);
+    return ColoredBox(color: color, child: child);
   }
 }

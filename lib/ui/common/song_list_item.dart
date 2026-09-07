@@ -314,7 +314,11 @@ class SongLeadingWidget extends StatelessWidget {
             child: Stack(
               fit: StackFit.expand,
               children: [
-                CoverArt(placeholderIcon: Icons.album, coverId: coverId),
+                CoverArt(
+                  placeholderIcon: Icons.album,
+                  coverId: coverId,
+                  size: 40,
+                ),
                 if (viewModel.playbackStatus != null)
                   const ColoredBox(color: Color.fromARGB(90, 0, 0, 0)),
                 if (viewModel.playbackStatus != null)

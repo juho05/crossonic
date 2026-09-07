@@ -8,9 +8,9 @@
 
 import 'dart:async';
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:collection/collection.dart';
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
+import 'package:crossonic/data/repositories/cover/cover_image_provider.dart';
 import 'package:crossonic/data/repositories/cover/cover_repository.dart';
 import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/data/repositories/playlist/models/playlist.dart';
@@ -24,6 +24,7 @@ import 'package:crossonic/data/services/opensubsonic/subsonic_service.dart';
 import 'package:crossonic/utils/result.dart';
 import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/painting.dart';
 
 enum PlaylistOrderBy { alphabetical, updated, created }
 
@@ -153,7 +154,7 @@ class PlaylistRepository extends ChangeNotifier {
       await _db.managers.playlistTable.filter((f) => f.id(id)).delete();
       notifyListeners();
 
-      return _requestQueue.run(
+      return await _requestQueue.run(
         () => _subsonic.deletePlaylist(_auth.con, id),
         restorePrevState: (e, [st]) async {
           Log.error("Failed to delete remove playlist", e: e, st: st);
@@ -305,7 +306,7 @@ class PlaylistRepository extends ChangeNotifier {
           .get();
 
       _playlistIdsNeedUpdate.add(playlist.id);
-      return _requestQueue.run(
+      return await _requestQueue.run(
         () => _subsonic.createPlaylist(
           _auth.con,
           playlistId: playlist.id,
@@ -532,11 +533,9 @@ class PlaylistRepository extends ChangeNotifier {
               _db.playlistSongTable.songId.equalsExp(_db.songTable.id),
         ),
       ])..orderBy([OrderingTerm.asc(_db.playlistSongTable.index)]);
-      final dbSongs = await query
-          .map((p) {
-            return p.readTable(_db.songTable);
-          })
-          .get();
+      final dbSongs = await query.map((p) {
+        return p.readTable(_db.songTable);
+      }).get();
 
       final songs = dbSongs.map((s) => _songRepo.songFromDBModel(s)).toList();
 
@@ -831,17 +830,17 @@ class PlaylistRepository extends ChangeNotifier {
     if (coverId == null) return;
     Future<void> evict(String id, int resolution) async {
       if (kIsWeb) {
-        await CachedNetworkImage.evictFromCache(
-          _subsonic.getCoverUri(_auth.con, id, size: resolution).toString(),
-        );
+        await NetworkImage(
+          _subsonic
+              .getCoverUri(_auth.con, id, size: resolution, constantSalt: true)
+              .toString(),
+        ).evict();
         return;
       }
-      await CachedNetworkImage.evictFromCache(
-        CoverRepository.getKey(id, resolution),
-        cacheManager: _coverRepository,
-      );
+      await _coverRepository.removeFile(CoverRepository.getKey(id, resolution));
     }
 
+    CoverImageProvider.evictCover(coverId);
     await Future.wait([
       evict(coverId, 64),
       evict(coverId, 128),
