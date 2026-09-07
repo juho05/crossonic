@@ -11,7 +11,7 @@ dependencies:
   cupertino_icons: ^1.0.9
   provider: ^6.1.5+1
   auto_route: ^11.1.0
-  flutter_secure_storage: ^10.3.1
+  flutter_secure_storage: ^11.0.0
   crypto: ^3.0.7
   http: ^1.6.0
   flutter_form_builder: ^10.3.0+2

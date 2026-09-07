@@ -11,7 +11,7 @@ import bonsoir_darwin
 import connectivity_plus
 import device_info_plus
 import dynamic_color
-import file_picker
+import file_picker_darwin
 import file_selector_macos
 import media_kit_libs_macos_audio
 import open_file_mac

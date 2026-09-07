@@ -5,6 +5,18 @@ allprojects {
     }
 }
 
+// AGP 9 rejects plugin subprojects whose compileSdk is below what their
+// AndroidX dependencies require, so raise outdated ones to the app level.
+// Registered before the evaluationDependsOn block below, which evaluates :app early.
+subprojects {
+    afterEvaluate {
+        def androidExt = project.extensions.findByName("android")
+        if (androidExt != null && androidExt.compileSdk != null && androidExt.compileSdk < 37) {
+            androidExt.compileSdk = 37
+        }
+    }
+}
+
 rootProject.buildDir = '../build'
 subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
