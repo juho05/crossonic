@@ -926,8 +926,10 @@ class SubsonicService {
       return Result.ok(response);
     } catch (e, st) {
       Log.error(
-        "Failed to connect to server: ${post ? "POST" : "GET"} $endpointName?${sanitizedQueryUri.query}.query}",
-        e: e,
+        "Failed to connect to server: ${post ? "POST" : "GET"} $endpointName?${sanitizedQueryUri.query}",
+        e: e is http.ClientException
+            ? http.ClientException(e.message, sanitizeUrl(e.uri))
+            : e,
         st: st,
       );
       return Result.error(ConnectionException());
