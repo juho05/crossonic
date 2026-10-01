@@ -1,0 +1,14 @@
+build-essential
+nasm
+ninja-build
+pkg-config
+patchelf
+python3-jinja2
+libvulkan-dev
+libgnutls28-dev
+zlib1g-dev
+libfreetype-dev
+libharfbuzz-dev
+libfribidi-dev
+libasound2-dev
+libpulse-dev

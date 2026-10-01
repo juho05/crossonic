@@ -7,6 +7,7 @@
  */
 
 import 'dart:async';
+import 'dart:io';
 import 'dart:math';
 
 import 'package:audio_session/audio_session.dart';
@@ -18,6 +19,7 @@ import 'package:crossonic/data/services/media_integration/media_integration.dart
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:media_kit/media_kit.dart';
+import 'package:path/path.dart' as path;
 
 class AudioPlayerMediaKit extends AudioPlayer {
   late final AudioSession _audioSession;
@@ -33,7 +35,20 @@ class AudioPlayerMediaKit extends AudioPlayer {
     required super.downloader,
     required MediaIntegration integration,
   }) {
-    MediaKit.ensureInitialized();
+    MediaKit.ensureInitialized(libmpv: _bundledLibmpvPath());
+  }
+
+  // The AppImage ships its own libmpv in the lib directory of the Flutter bundle.
+  static String? _bundledLibmpvPath() {
+    if (kIsWeb || !Platform.isLinux) return null;
+    final libmpv = File(
+      path.join(
+        path.dirname(Platform.resolvedExecutable),
+        "lib",
+        "libmpv.so.2",
+      ),
+    );
+    return libmpv.existsSync() ? libmpv.path : null;
   }
 
   Duration _positionOffset = Duration.zero;

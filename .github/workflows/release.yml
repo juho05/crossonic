@@ -2,6 +2,18 @@ name: Release Draft
 
 on:
   workflow_dispatch:
+    inputs:
+      upload_app_store:
+        description: "Upload the iOS build to App Store Connect"
+        type: boolean
+        default: true
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: read
 
 env:
   FLUTTER_VERSION: "3.47.5"
@@ -10,11 +22,14 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
     outputs:
       version: ${{ steps.get_version.outputs.version }}
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Get version from pubspec.yaml
         id: get_version
@@ -22,45 +37,53 @@ jobs:
           VERSION=$(sed -n 's/^version: \([0-9]*\.[0-9]*\.[0-9]*\).*/\1/p' pubspec.yaml)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
+      - name: Create or update draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: v${{ steps.get_version.outputs.version }}
+          VERSION: ${{ steps.get_version.outputs.version }}
+        run: |
+          if ! IS_DRAFT=$(gh release view "$TAG" --json isDraft -q .isDraft 2>&1); then
+            if [ "$IS_DRAFT" != "release not found" ]; then
+              echo "::error::Failed to look up $TAG: $IS_DRAFT"
+              exit 1
+            fi
+            IS_DRAFT=""
+          fi
+          if [ "$IS_DRAFT" = "false" ]; then
+            echo "::error::$TAG is already published, bump the version in pubspec.yaml"
+            exit 1
+          elif [ "$IS_DRAFT" = "true" ]; then
+            gh release edit "$TAG" --target "$GITHUB_SHA"
+          else
+            PREVIOUS_TAG=$(gh release view --json tagName -q .tagName)
+            sed -e "s|{{VERSION}}|$VERSION|g" \
+              -e "s|{{PREVIOUS_TAG}}|$PREVIOUS_TAG|g" \
+              -e "s|{{REPOSITORY}}|$GITHUB_REPOSITORY|g" \
+              .github/release-template.md > notes.md
+            gh release create "$TAG" --draft --title "$TAG" --target "$GITHUB_SHA" --notes-file notes.md
+          fi
+
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
-      - uses: subosito/flutter-action@v2
-        with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-          channel: "stable"
-
-      - name: Dependencies
-        run: flutter pub get
-
-      - name: Build generated files
-        run: flutter pub run build_runner build
+      - uses: ./.github/actions/flutter-setup
 
       - name: Run tests
         run: flutter test
 
-  draft_release:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Draft release
-        id: draft_release
-        uses: release-drafter/release-drafter@v7
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag: v${{ needs.build.outputs.version }}
-          name: v${{ needs.build.outputs.version }}
-
   build_android:
     needs: build
     runs-on: ubuntu-24.04
+    timeout-minutes: 30
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Copy files to env.APK_BUILD_DIR
         run: |
@@ -80,23 +103,14 @@ jobs:
         run: mkdir android/app/secrets && echo $ENCODED_STRING | base64 -di > android/app/secrets/crossonic.jks
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v6
         with:
           distribution: "temurin"
           java-version: "17"
 
-      - name: Install Flutter
-        uses: subosito/flutter-action@v2
+      - uses: ./.github/actions/flutter-setup
         with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-
-      - name: Dependencies
-        working-directory: ${{ env.APK_BUILD_DIR }}
-        run: flutter pub get
-
-      - name: Build generated files
-        working-directory: ${{ env.APK_BUILD_DIR }}
-        run: flutter pub run build_runner build
+          working-directory: ${{ env.APK_BUILD_DIR }}
 
       - name: Build APK
         working-directory: ${{ env.APK_BUILD_DIR }}
@@ -186,87 +200,88 @@ jobs:
             ${{ env.APK_BUILD_DIR }}/build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
             ${{ env.APK_BUILD_DIR }}/build/app/outputs/flutter-apk/app-x86_64-release.apk
           retention-days: 2
-  build_linux_x86_64_AppImage:
+  build_libmpv_linux_x86_64:
     needs: build
     runs-on: ubuntu-22.04
+    timeout-minutes: 30
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
+
+      - name: Restore libmpv from cache
+        id: cache
+        uses: actions/cache@v6
+        with:
+          path: libmpv
+          key: libmpv-linux-x86-64-ubuntu-22.04-${{ hashFiles('scripts/libmpv/build.sh', 'scripts/libmpv/apt-packages.txt') }}
+
+      - name: Install dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          sudo apt-get update
+          xargs sudo apt-get install -y < scripts/libmpv/apt-packages.txt
+
+      - name: Build libmpv
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: scripts/libmpv/build.sh libmpv
+
+      - name: Upload libmpv
+        uses: actions/upload-artifact@v7
+        with:
+          name: libmpv-linux-x86-64
+          path: libmpv
+          retention-days: 2
+  build_linux_x86_64_AppImage:
+    needs:
+      - build
+      - build_libmpv_linux_x86_64
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v7
 
       - name: Install dependencies
         run: |
           sudo apt-get update
           sudo apt-get remove libunwind-*
-          sudo apt-get install -y clang cmake libgtk-3-dev ninja-build libmpv-dev libmpv1
-          sudo apt-get install -y binutils coreutils desktop-file-utils fakeroot fuse libgdk-pixbuf2.0-dev patchelf python3-pip python3-setuptools squashfs-tools strace util-linux zsync
+          sudo apt-get install -y clang cmake libgtk-3-dev ninja-build
+          sudo apt-get install -y appstream desktop-file-utils zsync
 
-      - uses: subosito/flutter-action@v2
-        with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-          channel: "stable"
+      - uses: ./.github/actions/flutter-setup
 
-      - name: Dependencies
-        run: flutter pub get
-      - name: Build generated files
-        run: flutter pub run build_runner build
       - name: Compile linux
         run: flutter build linux
 
-      # AppImage
-      - name: Copy compiled linux files
-        run: |
-          mkdir AppDir
-          cp -r build/linux/x64/release/bundle/* AppDir/
-
-      - name: Copy logo to AppDir
-        run: |
-          mkdir -p AppDir/usr/share/icons/hicolor/32x32/apps
-          cp assets/icon/desktop/crossonic-32.png AppDir/usr/share/icons/hicolor/32x32/apps/crossonic.png
-          mkdir -p AppDir/usr/share/icons/hicolor/128x128/apps
-          cp assets/icon/desktop/crossonic-128.png AppDir/usr/share/icons/hicolor/128x128/apps/crossonic.png
-          mkdir -p AppDir/usr/share/icons/hicolor/256x256/apps
-          cp assets/icon/desktop/crossonic-256.png AppDir/usr/share/icons/hicolor/256x256/apps/crossonic.png
-
-      - name: Copy recipe to correct location
-        run: cp scripts/appimage/AppImageBuilder_x86_64.yml AppImageBuilder.yml
-
-      - name: Set version in recipe
-        run: |
-          sed -i 's|version: latest|version: ${{ needs.build.outputs.version }}|g' AppImageBuilder.yml
+      - name: Download libmpv
+        uses: actions/download-artifact@v8
+        with:
+          name: libmpv-linux-x86-64
+          path: libmpv
 
       - name: Build AppImage
         run: |
-          wget -O appimagetool.AppImage https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
-          chmod +x appimagetool.AppImage
-          wget -O appimage-builder.AppImage https://github.com/AppImageCrafters/appimage-builder/releases/download/v1.1.0/appimage-builder-1.1.0-x86_64.AppImage
-          chmod +x appimage-builder.AppImage
-          ./appimage-builder.AppImage --appimage-extract
-          sed -i 's|"https://github.com/AppImage/AppImageKit/releases/download/continuous/runtime-%s"|"https://github.com/AppImage/type2-runtime/releases/download/continuous/runtime-%s"|g' squashfs-root/usr/lib/python3.8/site-packages/appimagebuilder/modules/appimage.py
-          sed -i 's|"https://github.com/AppImage/AppImageKit/releases/download/continuous/runtime-%s"|"https://github.com/AppImage/type2-runtime/releases/download/continuous/runtime-%s"|g' squashfs-root/usr/lib/python3.8/site-packages/appimagebuilder/modules/prime/appimage_primer.py
-          sed -i 's|"xz"|"zstd"|g' squashfs-root/usr/lib/python3.8/site-packages/appimagebuilder/modules/prime/appimage_primer.py
-          ./appimagetool.AppImage squashfs-root appimage-builder.AppImage
-          ./appimage-builder.AppImage --recipe=./AppImageBuilder.yml
-          rm appimagetool.AppImage
-          rm appimage-builder.AppImage
+          scripts/appimage/build.sh "${{ needs.build.outputs.version }}" libmpv \
+            "gh-releases-zsync|${{ github.repository_owner }}|${{ github.event.repository.name }}|latest|Crossonic-*-linux-x86-64.AppImage.zsync"
+
+      - name: Check AppImage dependencies
+        run: scripts/appimage/check-deps.sh "Crossonic-${{ needs.build.outputs.version }}-linux-x86-64.AppImage"
 
       - name: Upload AppImage file
         uses: actions/upload-artifact@v7
         with:
           name: appimage-x86-64-result
-          path: ./*.AppImage
-          retention-days: 2
-      - name: Upload AppImage.zsync file
-        uses: actions/upload-artifact@v7
-        with:
-          name: appimage-zsync-x86-64-result
-          path: ./*.AppImage.zsync
+          path: |
+            ./*.AppImage
+            ./*.AppImage.zsync
           retention-days: 2
   build_linux_x86_64_TGZ:
     needs: build
     runs-on: ubuntu-24.04
+    timeout-minutes: 15
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Install dependencies
         run: |
@@ -274,15 +289,8 @@ jobs:
           sudo apt-get remove libunwind-*
           sudo apt-get install -y clang cmake libgtk-3-dev ninja-build libmpv-dev libmpv2
 
-      - uses: subosito/flutter-action@v2
-        with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-          channel: "stable"
+      - uses: ./.github/actions/flutter-setup
 
-      - name: Dependencies
-        run: flutter pub get
-      - name: Build generated files
-        run: flutter pub run build_runner build
       - name: Compile linux
         run: flutter build linux
 
@@ -302,44 +310,29 @@ jobs:
   build_windows_x86_64:
     needs: build
     runs-on: windows-latest
+    timeout-minutes: 25
 
     steps:
       - name: Fix long file paths
         run: git config --system core.longpaths true
 
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
-      - uses: subosito/flutter-action@v2
-        with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-          channel: "stable"
+      - uses: ./.github/actions/flutter-setup
 
-      - name: Dependencies
-        run: flutter pub get
-      - name: Build generated files
-        run: flutter pub run build_runner build
       - name: Compile for Windows
         run: flutter build windows
 
-      - name: Build iss script
-        run: dart run inno_bundle:build --no-app --release --no-installer
-
-      - name: Output config into github output
-        id: envs
-        run: echo $(dart run inno_bundle:build --envs --no-hf) | Out-File -FilePath $Env:GITHUB_OUTPUT -Encoding utf8 -Append
-
       - name: Build installer
-        uses: Minionguyjpro/Inno-Setup-Action@v1.2.7
-        with:
-          path: ./build/windows/x64/installer/Release/inno-script.iss
-          options: /Fcrossonic-installer
+        run: dart run inno_bundle --no-app --release
 
       - name: Upload installer
         uses: actions/upload-artifact@v7
         with:
           name: windows-installer-x86-64-result
-          path: ./build/windows/x64/installer/Release/crossonic-installer.exe
+          path: ./build/windows/x64/installer/Release/*-Installer.exe
+          if-no-files-found: error
           retention-days: 2
 
       - name: Add DLL files
@@ -360,19 +353,13 @@ jobs:
   build_macos_dmg:
     needs: build
     runs-on: macos-26
+    timeout-minutes: 40
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
-      - uses: subosito/flutter-action@v2
-        with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-          channel: "stable"
+      - uses: ./.github/actions/flutter-setup
 
-      - name: Dependencies
-        run: flutter pub get
-      - name: Build generated files
-        run: flutter pub run build_runner build
       - name: Compile for macOS
         run: flutter build macos
 
@@ -419,7 +406,7 @@ jobs:
           
           # Sign frameworks first (innermost first)
           echo "Signing frameworks..."
-          find "$APP_PATH/Contents/Frameworks" -name "*.framework" -type d | while read framework; do
+          find "$APP_PATH/Contents/Frameworks" -depth -name "*.framework" -type d | while read framework; do
             echo "Signing framework: $framework"
           
             # Sign binaries inside framework
@@ -499,16 +486,25 @@ jobs:
           echo "Verifying notarization via Gatekeeper..."
           spctl --assess --type execute --verbose=4 "$APP_PATH"
 
-      - name: Clean up keychain
-        if: ${{ always() }}
-        run: |
-          security delete-keychain build.keychain
-
       - name: Create .dmg file
         run: |
           npm install -g appdmg
           cd scripts/dmg
           appdmg config.json ../../Crossonic.dmg
+
+      - name: Sign and notarize .dmg file
+        env:
+          MACOS_CERTIFICATE_NAME: ${{ secrets.PROD_MACOS_CERTIFICATE_NAME }}
+        run: |
+          codesign --force --timestamp --sign "$MACOS_CERTIFICATE_NAME" Crossonic.dmg
+          xcrun notarytool submit Crossonic.dmg --keychain-profile "notarytool-profile" --wait
+          xcrun stapler staple Crossonic.dmg
+          spctl -a -t open --context context:primary-signature -vv Crossonic.dmg
+
+      - name: Clean up keychain
+        if: ${{ always() }}
+        run: |
+          security delete-keychain build.keychain
 
       - name: Upload .dmg file
         uses: actions/upload-artifact@v7
@@ -519,6 +515,7 @@ jobs:
   build_ios_ipa:
     needs: build
     runs-on: macos-26
+    timeout-minutes: 20
     # disable unused permissions -> also change xcode pre-action env variables when changing these
     env:
       # permission_handler
@@ -529,7 +526,7 @@ jobs:
       BYPASS_PERMISSION_IOSCHANGEPHOTOLIBRARY: "1"
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Install Apple certification and provisioning profile
         env:
@@ -553,15 +550,8 @@ jobs:
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           cp build_pp.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles
 
-      - uses: subosito/flutter-action@v2
-        with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-          channel: "stable"
+      - uses: ./.github/actions/flutter-setup
 
-      - name: Dependencies
-        run: flutter pub get
-      - name: Build generated files
-        run: flutter pub run build_runner build
       - name: Compile for iOS
         run: flutter build ipa --dart-define=VERSION_CHECK=false --export-options-plist=./ios/Runner/ExportOptions.plist
       - name: Move .ipa to working directory
@@ -614,7 +604,7 @@ jobs:
         if: ${{ always() }}
         run: |
           security delete-keychain build.keychain
-          rm ~/Library/MobileDevice/Provisioning\ Profiles/build_pp.mobileprovision
+          rm -f ~/Library/MobileDevice/Provisioning\ Profiles/build_pp.mobileprovision
 
       - name: Upload .ipa file
         uses: actions/upload-artifact@v7
@@ -625,20 +615,14 @@ jobs:
   build_web_zip:
     needs: build
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
-      - uses: subosito/flutter-action@v2
-        with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-          channel: "stable"
+      - uses: ./.github/actions/flutter-setup
 
-      - name: Dependencies
-        run: flutter pub get
-      - name: Build generated files
-        run: flutter pub run build_runner build
       - name: Compile for web
         run: flutter build web --wasm
 
@@ -657,7 +641,6 @@ jobs:
     needs:
       - build
       - test
-      - draft_release
       - build_android
       - build_linux_x86_64_TGZ
       - build_linux_x86_64_AppImage
@@ -665,7 +648,12 @@ jobs:
       - build_macos_dmg
       - build_ios_ipa
       - build_web_zip
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
     steps:
       - name: Create uploads directory
         run: mkdir uploads
@@ -701,16 +689,10 @@ jobs:
           name: appimage-x86-64-result
           path: appimage-x86-64-result
 
-      - name: Download AppImage.zsync file
-        uses: actions/download-artifact@v8
-        with:
-          name: appimage-zsync-x86-64-result
-          path: appimage-zsync-x86-64-result
-
       - name: Copy AppImage files to uploads
         run: |
-          cp appimage-x86-64-result/*.AppImage uploads/Crossonic-${{ needs.build.outputs.version }}-linux-x86-64.AppImage
-          cp appimage-zsync-x86-64-result/*.AppImage.zsync uploads/Crossonic-${{ needs.build.outputs.version }}-linux-x86-64.AppImage.zsync
+          cp appimage-x86-64-result/Crossonic-${{ needs.build.outputs.version }}-linux-x86-64.AppImage uploads/
+          cp appimage-x86-64-result/Crossonic-${{ needs.build.outputs.version }}-linux-x86-64.AppImage.zsync uploads/
 
       # WINDOWS ZIP (x86_64)
       - name: Download windows zip file
@@ -730,7 +712,7 @@ jobs:
           path: windows-installer-x86-64-result
 
       - name: Copy installer file to uploads
-        run: cp windows-installer-x86-64-result/crossonic-installer.exe uploads/Crossonic-${{ needs.build.outputs.version }}-windows-x86-64.exe
+        run: cp windows-installer-x86-64-result/*-Installer.exe uploads/Crossonic-${{ needs.build.outputs.version }}-windows-x86-64.exe
 
       # macOS .dmg (universal)
       - name: Download macOS .dmg file
@@ -742,20 +724,6 @@ jobs:
       - name: Copy .dmg file to uploads
         run: cp macos-dmg-result/Crossonic.dmg uploads/Crossonic-${{ needs.build.outputs.version }}-macOS-universal.dmg
 
-      # iOS .ipa
-      - name: Download iOS .ipa file
-        uses: actions/download-artifact@v8
-        with:
-          name: ios-ipa-result
-          path: ios-ipa-result
-      - name: Copy .ipa file to uploads
-        run: cp ios-ipa-result/Crossonic.ipa uploads/Crossonic-${{ needs.build.outputs.version }}.ipa
-      - name: Upload .ipa file to App Store Connect
-        env:
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_APP_PASS: ${{ secrets.APPLE_ID_PWD }}
-        run: xcrun altool --upload-app -f uploads/Crossonic-${{ needs.build.outputs.version }}.ipa -t ios -u "$APPLE_ID" -p "$APPLE_APP_PASS"
-
       # web
       - name: Download web .zip file
         uses: actions/download-artifact@v8
@@ -766,21 +734,54 @@ jobs:
       - name: Copy .zip file to uploads
         run: cp web-zip-result/crossonic.zip uploads/Crossonic-${{ needs.build.outputs.version }}-web.zip
 
-      - name: Upload assets
-        uses: softprops/action-gh-release@v2
+      - name: Generate checksums
+        working-directory: uploads
+        run: sha256sum Crossonic-* > Crossonic-${{ needs.build.outputs.version }}-SHA256SUMS.txt
+
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@v4
         with:
-          name: v${{ needs.build.outputs.version }}
-          tag_name: v${{ needs.build.outputs.version }}
-          preserve_order: true
-          draft: true
-          files: |
-            uploads/Crossonic-${{ needs.build.outputs.version }}-android-arm64v8.apk
-            uploads/Crossonic-${{ needs.build.outputs.version }}-android-arm32v7.apk
-            uploads/Crossonic-${{ needs.build.outputs.version }}-android-x64.apk
-            uploads/Crossonic-${{ needs.build.outputs.version }}-linux-x86-64.AppImage
-            uploads/Crossonic-${{ needs.build.outputs.version }}-linux-x86-64.AppImage.zsync
-            uploads/Crossonic-${{ needs.build.outputs.version }}-linux-x86-64.tar.gz
-            uploads/Crossonic-${{ needs.build.outputs.version }}-windows-x86-64.exe
-            uploads/Crossonic-${{ needs.build.outputs.version }}-windows-x86-64.zip
-            uploads/Crossonic-${{ needs.build.outputs.version }}-macOS-universal.dmg
-            uploads/Crossonic-${{ needs.build.outputs.version }}-web.zip
+          subject-path: uploads/Crossonic-*
+
+      - name: Upload assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG: v${{ needs.build.outputs.version }}
+          VERSION: ${{ needs.build.outputs.version }}
+        run: |
+          for f in \
+            android-arm64v8.apk \
+            android-arm32v7.apk \
+            android-x64.apk \
+            linux-x86-64.AppImage \
+            linux-x86-64.AppImage.zsync \
+            linux-x86-64.tar.gz \
+            windows-x86-64.exe \
+            windows-x86-64.zip \
+            macOS-universal.dmg \
+            web.zip \
+            SHA256SUMS.txt
+          do
+            gh release upload "$TAG" "uploads/Crossonic-$VERSION-$f" --clobber
+          done
+
+  upload_app_store:
+    needs:
+      - build
+      - release
+    if: inputs.upload_app_store
+    runs-on: macos-latest
+    timeout-minutes: 15
+    steps:
+      - name: Download iOS .ipa file
+        uses: actions/download-artifact@v8
+        with:
+          name: ios-ipa-result
+          path: ios-ipa-result
+
+      - name: Upload .ipa file to App Store Connect
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_PASS: ${{ secrets.APPLE_ID_PWD }}
+        run: xcrun altool --upload-app -f ios-ipa-result/Crossonic.ipa -t ios -u "$APPLE_ID" -p "$APPLE_APP_PASS"

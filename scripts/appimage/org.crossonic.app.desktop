@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Crossonic
+Comment=Music player for (Open)Subsonic servers
+Exec=Crossonic
+Icon=org.crossonic.app
+Categories=AudioVideo;Audio;Player;
+Keywords=music;player;subsonic;opensubsonic;
+StartupWMClass=org.crossonic.app
+StartupNotify=true
+Terminal=false
