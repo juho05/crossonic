@@ -24,6 +24,7 @@ import 'package:crossonic/window_listener.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_displaymode/flutter_displaymode.dart';
 import 'package:flutter_single_instance/flutter_single_instance.dart';
 import 'package:predictive_transition/predictive_transition.dart';
@@ -48,6 +49,14 @@ void main() async {
   LogRepository logRepository = LogRepository();
 
   Log.init(logRepository, methodChannelService);
+
+  LicenseRegistry.addLicense(() async* {
+    final license = await rootBundle.loadString(
+      "assets/fonts/Roboto_LICENSE.txt",
+    );
+    yield LicenseEntryWithLineBreaks(["Roboto"], license);
+  });
+
   Log.info(
     "App started. Engine ID: ${PlatformDispatcher.instance.engineId}, Configuration: ${kDebugMode
         ? "debug"
@@ -147,6 +156,9 @@ class MainApp extends StatelessWidget {
     },
   );
 
+  // bundled so that text renders identically on all platforms
+  static const _fontFamily = "Roboto";
+
   @override
   Widget build(BuildContext context) {
     final themeManager = context.read<ThemeManager>();
@@ -173,6 +185,7 @@ class MainApp extends StatelessWidget {
                   brightness: Brightness.light,
                 ),
                 pageTransitionsTheme: _pageTransitions,
+                fontFamily: _fontFamily,
               ),
               darkTheme: ThemeData(
                 useMaterial3: true,
@@ -181,6 +194,7 @@ class MainApp extends StatelessWidget {
                   brightness: Brightness.dark,
                 ),
                 pageTransitionsTheme: _pageTransitions,
+                fontFamily: _fontFamily,
               ),
               themeMode: themeManager.themeMode,
               debugShowCheckedModeBanner: false,

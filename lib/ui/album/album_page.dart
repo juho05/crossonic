@@ -322,11 +322,7 @@ class _AlbumPageState extends State<AlbumPage> {
                                   style: Theme.of(context)
                                       .textTheme
                                       .titleMedium!
-                                      .copyWith(
-                                        fontWeight: isDesktop
-                                            ? FontWeight.bold
-                                            : FontWeight.w800,
-                                      ),
+                                      .copyWith(fontWeight: FontWeight.bold),
                                 ),
                               ),
                             ),

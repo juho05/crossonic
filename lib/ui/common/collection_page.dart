@@ -175,7 +175,7 @@ class _CollectionPageMobileState extends State<CollectionPageMobile> {
                           widget.name,
                           style: Theme.of(context).textTheme.bodyLarge!
                               .copyWith(
-                                fontWeight: FontWeight.w600,
+                                fontWeight: FontWeight.w500,
                                 fontSize: 22,
                               ),
                           textAlign: TextAlign.center,
@@ -386,7 +386,7 @@ class _CollectionPageDesktopState extends State<CollectionPageDesktop> {
                                 widget.name,
                                 style: Theme.of(context).textTheme.bodyLarge!
                                     .copyWith(
-                                      fontWeight: FontWeight.w600,
+                                      fontWeight: FontWeight.w500,
                                       fontSize: 22,
                                     ),
                                 textAlign: TextAlign.center,

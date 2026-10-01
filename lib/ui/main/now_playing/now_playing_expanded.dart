@@ -116,7 +116,7 @@ class NowPlayingExpanded extends StatelessWidget {
                   ScrollingSongTitle(
                     title: _viewModel.songTitle,
                     style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w500,
                       fontSize: 20,
                     ),
                     textAlign: TextAlign.center,

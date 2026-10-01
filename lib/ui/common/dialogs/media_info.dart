@@ -127,7 +127,7 @@ class MediaInfoDialog extends StatelessWidget {
                       final label = Text(
                         "${f.$1}:",
                         style: textTheme.bodyMedium!.copyWith(
-                          fontWeight: FontWeight.w800,
+                          fontWeight: FontWeight.bold,
                         ),
                       );
                       var valueChildren = [

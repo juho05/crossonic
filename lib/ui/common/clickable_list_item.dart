@@ -92,7 +92,7 @@ class ClickableListItem extends StatelessWidget {
                         fontSize: 15,
                         color: textColor,
                         fontWeight: titleBold
-                            ? FontWeight.w600
+                            ? FontWeight.w500
                             : FontWeight.w400,
                       ),
                       overflow: TextOverflow.ellipsis,
