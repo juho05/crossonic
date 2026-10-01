@@ -8,7 +8,7 @@
 
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class SearchInput extends StatefulWidget {
   final void Function(String query) onSearch;

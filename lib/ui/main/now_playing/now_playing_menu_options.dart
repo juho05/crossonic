@@ -15,7 +15,7 @@ import 'package:crossonic/ui/common/toast.dart';
 import 'package:crossonic/ui/common/with_context_menu.dart';
 import 'package:crossonic/ui/main/now_playing/now_playing_viewmodel.dart';
 import 'package:crossonic/utils/result.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 
 List<ContextMenuOption> getNowPlayingMenuOptions(

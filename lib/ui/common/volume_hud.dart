@@ -10,7 +10,7 @@ import 'dart:async';
 
 import 'package:crossonic/data/repositories/audio/playback_manager.dart';
 import 'package:crossonic/ui/common/volume_slider.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
 class VolumeHud extends StatefulWidget {

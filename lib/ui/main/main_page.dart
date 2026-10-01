@@ -22,7 +22,7 @@ import 'package:crossonic/ui/main/now_playing/now_playing_expanded.dart';
 import 'package:crossonic/ui/main/now_playing/now_playing_viewmodel.dart';
 import 'package:crossonic/ui/main/queue_fab.dart';
 import 'package:crossonic/version_checker.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:predictive_transition/predictive_transition.dart';
 import 'package:provider/provider.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';

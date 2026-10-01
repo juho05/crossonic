@@ -7,7 +7,7 @@
  */
 
 import 'package:crossonic/data/repositories/audio/playback_manager.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class CreateQueueViewModel extends ChangeNotifier {
   final PlaybackManager _playbackManager;

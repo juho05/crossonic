@@ -12,7 +12,7 @@ import 'package:crossonic/ui/common/buttons.dart';
 import 'package:crossonic/ui/common/section_header.dart';
 import 'package:crossonic/ui/settings/pages/transcoding_viewmodel.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
 @RoutePage()

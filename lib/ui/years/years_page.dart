@@ -12,7 +12,7 @@ import 'package:crossonic/ui/common/refresh_scroll_view.dart';
 import 'package:crossonic/ui/main/layout_mode.dart';
 import 'package:crossonic/ui/years/year_selector_field.dart';
 import 'package:crossonic/ui/years/years_viewmodel.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
 @RoutePage()

@@ -8,7 +8,7 @@
 
 import 'package:crossonic/data/repositories/subsonic/models/date.dart';
 import 'package:crossonic/ui/common/optional_tooltip.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class AlbumReleaseBadge extends StatelessWidget {
   final String albumId;

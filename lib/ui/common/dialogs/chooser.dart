@@ -8,7 +8,7 @@
 
 // ignore_for_file: use_build_context_synchronously
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class ChooserDialog extends StatelessWidget {
   final String title;

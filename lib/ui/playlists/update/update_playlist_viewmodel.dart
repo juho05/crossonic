@@ -9,7 +9,7 @@
 import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/data/repositories/playlist/playlist_repository.dart';
 import 'package:crossonic/utils/result.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class UpdatePlaylistViewModel extends ChangeNotifier {
   final PlaylistRepository _repo;

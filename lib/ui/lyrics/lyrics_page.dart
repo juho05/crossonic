@@ -13,7 +13,7 @@ import 'package:crossonic/data/repositories/subsonic/models/lyrics.dart';
 import 'package:crossonic/ui/common/buttons.dart';
 import 'package:crossonic/ui/lyrics/lyrics_viewmodel.dart';
 import 'package:crossonic/utils/fetch_status.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/rendering.dart';
 import 'package:provider/provider.dart';
 import 'package:super_sliver_list/super_sliver_list.dart';

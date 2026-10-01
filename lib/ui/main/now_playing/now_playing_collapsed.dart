@@ -14,7 +14,7 @@ import 'package:crossonic/ui/main/now_playing/now_playing_menu_options.dart';
 import 'package:crossonic/ui/main/now_playing/now_playing_viewmodel.dart';
 import 'package:crossonic/ui/main/now_playing/scrolling_song_title.dart';
 import 'package:crossonic/utils/result_toast.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 
 class NowPlayingCollapsed extends StatelessWidget {

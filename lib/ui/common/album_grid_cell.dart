@@ -18,7 +18,7 @@ import 'package:crossonic/ui/common/dialogs/media_info.dart';
 import 'package:crossonic/ui/common/grid_cell.dart';
 import 'package:crossonic/ui/common/with_context_menu.dart';
 import 'package:crossonic/utils/result_toast.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
 class AlbumGridCell extends StatefulWidget {

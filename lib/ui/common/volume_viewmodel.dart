@@ -10,7 +10,7 @@ import 'dart:async';
 
 import 'package:crossonic/data/repositories/audio/playback_manager.dart';
 import 'package:crossonic/utils/throttle.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class VolumeViewModel extends ChangeNotifier {
   final PlaybackManager _playbackManager;

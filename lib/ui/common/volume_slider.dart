@@ -7,7 +7,7 @@
  */
 
 import 'package:crossonic/ui/common/volume_viewmodel.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
 enum VolumeSliderValuePosition { left, right, hidden }

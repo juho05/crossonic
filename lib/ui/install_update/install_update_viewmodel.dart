@@ -9,7 +9,7 @@
 import 'package:crossonic/data/repositories/auto_update/auto_update_repository.dart';
 import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/utils/result.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:rxdart/rxdart.dart';
 
 class InstallUpdateViewModel extends ChangeNotifier {

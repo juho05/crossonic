@@ -13,7 +13,7 @@ import 'package:crossonic/ui/common/lazy_sliver_child.dart';
 import 'package:crossonic/ui/common/song_list_item.dart';
 import 'package:crossonic/ui/common/song_list_sliver_viewmodel.dart';
 import 'package:crossonic/utils/fetch_status.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
 class SongListSliver extends StatefulWidget {

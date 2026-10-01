@@ -11,7 +11,7 @@ import 'package:crossonic/ui/common/album_grid_cell.dart';
 import 'package:crossonic/ui/common/cover_grid_sliver.dart';
 import 'package:crossonic/ui/common/lazy_sliver_child.dart';
 import 'package:crossonic/utils/fetch_status.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class AlbumGridSliver extends StatefulWidget {
   final List<Album> albums;

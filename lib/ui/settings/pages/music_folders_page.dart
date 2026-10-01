@@ -10,7 +10,7 @@ import 'package:auto_route/annotations.dart';
 import 'package:crossonic/ui/common/clickable_list_item.dart';
 import 'package:crossonic/ui/settings/pages/music_folders_viewmodel.dart';
 import 'package:crossonic/utils/fetch_status.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
 @RoutePage()

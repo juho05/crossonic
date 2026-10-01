@@ -8,7 +8,7 @@
 
 import 'package:crossonic/data/repositories/settings/settings_repository.dart';
 import 'package:crossonic/data/repositories/settings/transcoding.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class TranscodingViewModel extends ChangeNotifier {
   final SettingsRepository _settings;

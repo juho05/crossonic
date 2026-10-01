@@ -12,7 +12,7 @@ import 'package:crossonic/data/repositories/settings/settings_repository.dart';
 import 'package:crossonic/ui/common/clickable_list_item.dart';
 import 'package:crossonic/ui/common/section_header.dart';
 import 'package:crossonic/ui/settings/pages/home_layout_viewmodel.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 

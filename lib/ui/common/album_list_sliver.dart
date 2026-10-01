@@ -9,7 +9,7 @@
 import 'package:crossonic/data/repositories/subsonic/models/album.dart';
 import 'package:crossonic/ui/common/album_list_item.dart';
 import 'package:crossonic/ui/common/clickable_list_item.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
 
 class AlbumListSliver extends StatelessWidget {
   final List<Album> albums;

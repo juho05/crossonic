@@ -9,7 +9,7 @@
 import 'package:crossonic/ui/common/dialogs/dialog.dart';
 import 'package:crossonic/ui/common/dialogs/media_info_viewmodel.dart';
 import 'package:crossonic/utils/fetch_status.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 

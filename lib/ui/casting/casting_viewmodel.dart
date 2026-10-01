@@ -9,7 +9,7 @@
 import 'package:crossonic/data/repositories/audio/casting/device.dart';
 import 'package:crossonic/data/repositories/audio/playback_manager.dart';
 import 'package:crossonic/data/repositories/logger/log.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class CastingViewModel extends ChangeNotifier {
   final PlaybackManager _playbackManager;

@@ -7,7 +7,7 @@
  */
 
 import 'package:crossonic/data/repositories/audio/casting/device.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class SonosDevice implements Device {
   final String _name;

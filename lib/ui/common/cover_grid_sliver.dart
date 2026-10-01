@@ -8,7 +8,7 @@
 
 import 'package:crossonic/ui/common/albums_grid_delegate.dart';
 import 'package:crossonic/ui/common/lazy_sliver_child.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class CoverGridGeometry {
   final double coverSize;

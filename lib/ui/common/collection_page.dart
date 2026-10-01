@@ -9,7 +9,7 @@
 import 'package:crossonic/ui/common/buttons.dart';
 import 'package:crossonic/ui/common/optional_tooltip.dart';
 import 'package:crossonic/ui/main/layout_mode.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class CollectionExtraInfo {
   final String text;

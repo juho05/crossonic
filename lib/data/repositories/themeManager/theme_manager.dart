@@ -14,7 +14,7 @@ import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/data/repositories/settings/appearance.dart';
 import 'package:crossonic/data/repositories/themeManager/dbus_interface.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class ThemeManager extends ChangeNotifier {
   static const _linuxThemePrefersDarkKey = "linux_theme_prefers_dark";

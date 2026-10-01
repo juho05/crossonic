@@ -14,7 +14,7 @@ import 'package:crossonic/ui/genres/genres_viewmodel.dart';
 import 'package:crossonic/ui/main/layout_mode.dart';
 import 'package:crossonic/ui/songs/songs_viewmodel.dart';
 import 'package:crossonic/utils/fetch_status.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
 @RoutePage()

@@ -11,7 +11,7 @@ import 'package:crossonic/data/services/database/database.dart';
 import 'package:crossonic/data/services/opensubsonic/subsonic_service.dart';
 import 'package:crossonic/utils/result.dart';
 import 'package:drift/drift.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 enum FavoriteType { song, album, artist }
 

@@ -7,7 +7,7 @@
  */
 
 import 'package:crossonic/data/repositories/settings/appearance.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class AppearanceViewModel extends ChangeNotifier {
   final AppearanceSettings _settings;

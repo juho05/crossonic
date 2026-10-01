@@ -19,7 +19,7 @@ import 'package:crossonic/data/services/database/database.dart';
 import 'package:drift/drift.dart';
 import 'package:file/local.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_cache_manager/file.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:path/path.dart' as path;

@@ -11,7 +11,7 @@ import 'package:crossonic/data/repositories/logger/log_message.dart';
 import 'package:crossonic/routing/router.gr.dart';
 import 'package:crossonic/ui/settings/pages/logs/log_colors.dart';
 import 'package:crossonic/utils/format.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class LogMessageListItem extends StatelessWidget {
   final LogMessage msg;

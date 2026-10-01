@@ -27,7 +27,7 @@ import 'package:crossonic/ui/home/components/song_list.dart';
 import 'package:crossonic/ui/home/components/song_list_viewmodel.dart';
 import 'package:crossonic/ui/home/home_viewmodel.dart';
 import 'package:crossonic/ui/songs/songs_viewmodel.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
 @RoutePage()

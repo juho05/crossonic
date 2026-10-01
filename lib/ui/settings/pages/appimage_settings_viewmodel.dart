@@ -9,7 +9,7 @@
 import 'package:crossonic/data/repositories/appimage/appimage_repository.dart';
 import 'package:crossonic/data/services/restart/restart.dart';
 import 'package:crossonic/utils/result.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class AppImageSettingsViewModel extends ChangeNotifier {
   final AppImageRepository _repo;

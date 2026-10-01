@@ -10,7 +10,7 @@ import 'package:crossonic/data/repositories/settings/version_checking.dart';
 import 'package:crossonic/data/repositories/version/version.dart';
 import 'package:crossonic/data/repositories/version/version_repository.dart';
 import 'package:crossonic/utils/result.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class VersionCheckingViewModel extends ChangeNotifier {
   final VersionCheckingSettings _settings;

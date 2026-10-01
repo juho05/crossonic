@@ -11,7 +11,7 @@ import 'package:crossonic/ui/common/dialogs/media_info.dart';
 import 'package:crossonic/ui/common/grid_cell.dart';
 import 'package:crossonic/ui/common/with_context_menu.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class PlaylistGridCell extends StatefulWidget {
   final String id;

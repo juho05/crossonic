@@ -11,7 +11,7 @@ import 'package:crossonic/ui/common/album_grid_cell.dart';
 import 'package:crossonic/ui/home/components/home_page_component.dart';
 import 'package:crossonic/ui/home/components/release_list_viewmodel.dart';
 import 'package:crossonic/utils/fetch_status.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
 class HomeReleaseList extends StatelessWidget {

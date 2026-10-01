@@ -11,7 +11,7 @@ import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/ui/common/clickable_list_item.dart';
 import 'package:crossonic/ui/settings/pages/logs/choose_log_session_page_viewmodel.dart';
 import 'package:crossonic/utils/format.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
 @RoutePage()

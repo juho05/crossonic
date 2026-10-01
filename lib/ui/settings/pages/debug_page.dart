@@ -14,7 +14,7 @@ import 'package:crossonic/ui/common/section_header.dart';
 import 'package:crossonic/ui/common/toast.dart';
 import 'package:crossonic/ui/settings/pages/debug_viewmodel.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 

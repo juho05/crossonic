@@ -8,7 +8,7 @@
 
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
 import 'package:crossonic/data/repositories/version/version_repository.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class SettingsViewModel extends ChangeNotifier {
   final AuthRepository _authRepository;

@@ -13,7 +13,7 @@ import 'package:crossonic/ui/home/components/data_source.dart';
 import 'package:crossonic/ui/home/home_viewmodel.dart';
 import 'package:crossonic/utils/fetch_status.dart';
 import 'package:crossonic/utils/result.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class HomeArtistListViewModel extends ChangeNotifier {
   final HomeComponentDataSource<Artist> _dataSource;

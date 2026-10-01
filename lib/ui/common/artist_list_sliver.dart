@@ -9,7 +9,7 @@
 import 'package:crossonic/data/repositories/subsonic/models/artist.dart';
 import 'package:crossonic/ui/common/artist_list_item.dart';
 import 'package:crossonic/ui/common/clickable_list_item.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
 
 class ArtistListSliver extends StatelessWidget {
   final List<Artist> artists;

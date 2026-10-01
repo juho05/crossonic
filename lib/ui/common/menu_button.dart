@@ -10,7 +10,7 @@ import 'dart:io';
 
 import 'package:crossonic/ui/common/with_context_menu.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 // Looks and behaves like a Material 3 IconButton opening a PopupMenuButton
 // menu, but is built from a bare InkResponse. An IconButton carries its own

@@ -7,7 +7,7 @@
  */
 
 import 'package:crossonic/data/repositories/settings/home_page_layout.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class HomeLayoutViewModel extends ChangeNotifier {
   final HomeLayoutSettings _settings;

@@ -15,7 +15,7 @@ import 'package:crossonic/data/repositories/audio/queue/queue.dart';
 import 'package:crossonic/data/repositories/playlist/song_downloader.dart';
 import 'package:crossonic/data/repositories/prefetch/queue_prefetcher.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class QueueViewModel extends ChangeNotifier {
   static const int _pageSize = 500;

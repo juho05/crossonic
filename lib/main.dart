@@ -23,10 +23,10 @@ import 'package:crossonic/ui/common/volume_hud.dart';
 import 'package:crossonic/window_listener.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_displaymode/flutter_displaymode.dart';
 import 'package:flutter_single_instance/flutter_single_instance.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:predictive_transition/predictive_transition.dart';
 import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
@@ -156,7 +156,6 @@ class MainApp extends StatelessWidget {
     },
   );
 
-  // bundled so that text renders identically on all platforms
   static const _fontFamily = "Roboto";
 
   @override
@@ -201,7 +200,9 @@ class MainApp extends StatelessWidget {
               routerConfig: _routerConfig,
               builder: (context, child) => Stack(
                 children: [
-                  child!,
+                  // needed for audio_video_progress_bar and month_picker_dialog
+                  // ignore: deprecated_member_use
+                  MaterialUiCompatibilityBridge(child: child!),
                   const Positioned.fill(child: VolumeHud()),
                 ],
               ),

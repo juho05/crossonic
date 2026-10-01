@@ -7,7 +7,7 @@
  */
 
 import 'package:crossonic/data/repositories/logger/log_repository.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class ChooseLogSessionPageViewModel extends ChangeNotifier {
   final LogRepository _repository;

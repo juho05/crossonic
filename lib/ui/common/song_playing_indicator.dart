@@ -9,7 +9,7 @@
 import 'dart:math';
 
 import 'package:crossonic/data/repositories/audio/player_manager.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class SongPlayingIndicator extends StatelessWidget {
   final PlaybackStatus playbackStatus;

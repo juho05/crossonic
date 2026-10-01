@@ -8,7 +8,7 @@
 
 import 'package:crossonic/ui/common/optional_tooltip.dart';
 import 'package:crossonic/ui/common/text_scroll.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class ScrollingSongTitle extends StatelessWidget {
   final String title;

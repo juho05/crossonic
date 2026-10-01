@@ -11,7 +11,7 @@ import 'package:crossonic/ui/albums/albums_viewmodel.dart';
 import 'package:crossonic/ui/common/album_grid_sliver.dart';
 import 'package:crossonic/ui/common/refresh_scroll_view.dart';
 import 'package:crossonic/ui/main/layout_mode.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
 @RoutePage()

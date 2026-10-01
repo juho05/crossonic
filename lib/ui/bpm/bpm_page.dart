@@ -13,7 +13,7 @@ import 'package:crossonic/ui/common/refresh_scroll_view.dart';
 import 'package:crossonic/ui/common/song_list_sliver.dart';
 import 'package:crossonic/ui/common/toast.dart';
 import 'package:crossonic/utils/result_toast.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
 @RoutePage()

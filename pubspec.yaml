@@ -8,13 +8,12 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  cupertino_icons: ^1.0.9
   provider: ^6.1.5+1
   auto_route: ^11.1.0
   flutter_secure_storage: ^11.0.0
   crypto: ^3.0.7
   http: ^1.6.0
-  flutter_form_builder: ^10.3.0+2
+  flutter_form_builder: ^11.0.0
   form_builder_validators: ^11.3.0
   json_annotation: ^4.12.0
   rxdart: ^0.28.0
@@ -47,7 +46,6 @@ dependencies:
   tray_manager: ^0.5.3
   flutter_svg: ^2.3.0
   url_launcher: ^6.3.2
-  linkfy_text: ^1.1.6
   package_info_plus: ^10.2.0
   dbus: ^0.7.14
   dbus_secrets: ^0.0.2
@@ -67,27 +65,29 @@ dependencies:
   month_picker_dialog: ^6.7.2
   media_kit: ^1.2.6
   media_kit_libs_audio: ^1.0.7
-  dynamic_color: ^1.8.1
+  dynamic_color: ^2.1.0
   file_selector: ^1.1.0
-  file_picker: ^12.0.0-beta.7
+  file_picker: ^13.1.0
   uuid: ^4.5.3
   xml: ^6.6.1
   bonsoir: ^7.1.4
   predictive_transition:
     git:
       url: https://github.com/juho05/flutter_predictive_transition
-      ref: 92d37c71e4c27c69e10b913520693d96bc90c6b1
+      ref: 1c52b52ff1a257d263295d3ed612d465c42c7813
 
+  material_ui: ^1.5.0
+  cupertino_ui: ^1.1.1
 dependency_overrides:
   auto_route:
     git:
       url: https://github.com/juho05/auto_route_library
-      ref: ec27d6273c2e4d6a57c6cd4721103a42f60f482c
+      ref: 284a1f4b19101e098779a7ad8373e3db450fb2d8
       path: ./auto_route
   auto_route_generator:
     git:
       url: https://github.com/juho05/auto_route_library
-      ref: ec27d6273c2e4d6a57c6cd4721103a42f60f482c
+      ref: 284a1f4b19101e098779a7ad8373e3db450fb2d8
       path: ./auto_route_generator
   flutter_secure_storage_linux:
     path: ./dependency_overrides/stubs/flutter_secure_storage_linux

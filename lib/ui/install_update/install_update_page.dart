@@ -12,7 +12,7 @@ import 'package:crossonic/data/services/restart/restart.dart';
 import 'package:crossonic/ui/common/buttons.dart';
 import 'package:crossonic/ui/install_update/install_update_viewmodel.dart';
 import 'package:crossonic/utils/exit.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
 @RoutePage()
