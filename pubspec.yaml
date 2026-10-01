@@ -89,8 +89,6 @@ dependency_overrides:
       url: https://github.com/juho05/auto_route_library
       ref: ec27d6273c2e4d6a57c6cd4721103a42f60f482c
       path: ./auto_route_generator
-  flutter_secure_storage_darwin:
-    path: ./dependency_overrides/flutter_secure_storage/flutter_secure_storage_darwin
   flutter_secure_storage_linux:
     path: ./dependency_overrides/stubs/flutter_secure_storage_linux
   path_provider_linux:
