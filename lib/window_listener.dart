@@ -13,40 +13,75 @@ import 'package:flutter/foundation.dart';
 import 'package:tray_manager/tray_manager.dart';
 import 'package:window_manager/window_manager.dart';
 
-class CrossonicWindowListener with WindowListener, TrayListener {
+class CrossonicWindowListener with WindowListener {
+  TrayIcon? _trayIcon;
+  MenuItem? _toggleVisibilityItem;
+
   CrossonicWindowListener.enable() {
     windowManager.addListener(this);
     if (!kIsWeb && !Platform.isMacOS) {
       windowManager.setPreventClose(true);
-      trayManager.addListener(this);
       _initSystemTray();
     }
   }
 
-  Future<void> _updateTrayContextMenu() async {
-    if (kIsWeb || Platform.isMacOS) return;
-    await trayManager.setContextMenu(
-      Menu(
-        items: [
-          if (await windowManager.isVisible())
-            MenuItem(key: "hide", label: "Hide")
-          else
-            MenuItem(key: "show", label: "Show"),
-          MenuItem.separator(),
-          MenuItem(key: "exit", label: "Exit"),
-        ],
-      ),
+  void _initSystemTray() {
+    if (_trayIcon != null) return;
+    _trayIcon = TrayIcon.create();
+    final menu = Menu.create();
+    final toggleItem = MenuItem.createWithLabelAndType(
+      "Hide",
+      MenuItemType.normal,
     );
-  }
+    final exitItem = MenuItem.createWithLabelAndType(
+      "Exit",
+      MenuItemType.normal,
+    );
+    if (_trayIcon == null ||
+        menu == null ||
+        toggleItem == null ||
+        exitItem == null) {
+      return;
+    }
 
-  Future<void> _initSystemTray() async {
-    await trayManager.setIcon(
+    toggleItem.addListener((event) {
+      if (event is MenuItemClickedEvent) _toggleWindowVisibility();
+    });
+    exitItem.addListener((event) {
+      if (event is MenuItemClickedEvent) exitApp();
+    });
+    menu.addItem(toggleItem);
+    menu.addSeparator();
+    menu.addItem(exitItem);
+
+    _trayIcon!.icon = ImageAsset.fromAsset(
       "assets/icon/crossonic-tray.${Platform.isWindows ? "ico" : "png"}",
     );
+    _trayIcon!.setTooltip("Crossonic");
     if (Platform.isLinux) {
-      await trayManager.setTitle("Crossonic");
+      _trayIcon!.setTitle("Crossonic");
+    }
+    _trayIcon!.setContextMenu(menu);
+    _trayIcon!.setContextMenuTrigger(ContextMenuTrigger.rightClicked);
+    _trayIcon!.addListener((event) {
+      if (event is TrayIconClickedEvent) _toggleWindowVisibility();
+    });
+    _trayIcon!.setVisible(true);
+
+    _toggleVisibilityItem = toggleItem;
+    _updateTrayContextMenu();
+  }
+
+  Future<void> _updateTrayContextMenu() async {
+    if (_toggleVisibilityItem == null) return;
+    _toggleVisibilityItem!.label = await windowManager.isVisible() ? "Hide" : "Show";
+  }
+
+  Future<void> _toggleWindowVisibility() async {
+    if (await windowManager.isVisible()) {
+      await windowManager.hide();
     } else {
-      await trayManager.setToolTip("Crossonic");
+      await windowManager.show();
     }
     await _updateTrayContextMenu();
   }
@@ -64,34 +99,5 @@ class CrossonicWindowListener with WindowListener, TrayListener {
     }
     await windowManager.hide();
     await _updateTrayContextMenu();
-  }
-
-  @override
-  Future<void> onTrayIconMouseDown() async {
-    if (await windowManager.isVisible()) {
-      await windowManager.hide();
-    } else {
-      await windowManager.show();
-    }
-    await _updateTrayContextMenu();
-  }
-
-  @override
-  Future<void> onTrayIconRightMouseDown() async {
-    await trayManager.popUpContextMenu();
-  }
-
-  @override
-  Future<void> onTrayMenuItemClick(MenuItem menuItem) async {
-    switch (menuItem.key) {
-      case "show":
-        await windowManager.show();
-        await _updateTrayContextMenu();
-      case "hide":
-        await windowManager.hide();
-        await _updateTrayContextMenu();
-      case "exit":
-        await exitApp();
-    }
   }
 }

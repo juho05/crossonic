@@ -122,18 +122,17 @@ dart run build_runner build
 #### Install dependencies
 
 - Install `libmpv`
-- Install `ayatana-appindicator3-0.1` or `appindicator3-0.1`
 
 ##### Debian
 
 ```bash
-sudo apt install mpv libmpv-dev libayatana-appindicator3-dev
+sudo apt install mpv libmpv-dev
 ```
 
 ##### ArchLinux
 
 ```bash
-sudo pacman -S mpv libayatana-appindicator
+sudo pacman -S mpv
 ```
 
 #### Build
