@@ -6,11 +6,15 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+import 'dart:io';
+
 import 'package:auto_route/annotations.dart';
+import 'package:crossonic/data/repositories/audio/casting/local_device.dart';
 import 'package:crossonic/ui/casting/casting_viewmodel.dart';
 import 'package:crossonic/ui/common/clickable_list_item.dart';
 import 'package:crossonic/ui/common/section_header.dart';
 import 'package:crossonic/ui/common/volume_slider.dart';
+import 'package:flutter/foundation.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
@@ -101,6 +105,23 @@ class _CastingPageState extends State<CastingPage> {
                       const SliverPadding(
                         padding: EdgeInsets.symmetric(horizontal: 8),
                         sliver: SliverToBoxAdapter(child: VolumeSlider()),
+                      ),
+                    if (!kIsWeb &&
+                        Platform.isIOS &&
+                        _viewModel.currentDevice != null &&
+                        _viewModel.currentDevice is! LocalDevice)
+                      SliverPadding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        sliver: SliverToBoxAdapter(
+                          child: Text(
+                            "WARNING: Due to iOS restrictions, the app must remain open in the foreground while casting.",
+                            style: Theme.of(context).textTheme.bodyMedium!
+                                .copyWith(
+                                  color: const Color.fromARGB(255, 244, 163, 0),
+                                  fontSize: 14,
+                                ),
+                          ),
+                        ),
                       ),
                     const SliverPadding(
                       padding: EdgeInsets.all(8),
