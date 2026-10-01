@@ -40,7 +40,6 @@ dependencies:
   intl: ^0.20.2
   background_downloader: ^9.5.5
   path: ^1.9.1
-  image_picker: ^1.2.2
   flutter_single_instance: ^1.7.0
   window_manager: ^0.5.1
   tray_manager: ^0.7.0
@@ -78,6 +77,8 @@ dependencies:
 
   material_ui: ^1.5.0
   cupertino_ui: ^1.1.1
+  image_picker_android: ^0.8.13+23
+  image_picker_platform_interface: ^2.11.1
 dependency_overrides:
   auto_route:
     git:
@@ -119,6 +120,7 @@ flutter:
     - assets/icon/crossonic-foreground-monochrome.svg
     - assets/icon/desktop/crossonic-512.png
     - assets/fonts/Roboto_LICENSE.txt
+    - assets/licenses/
   fonts:
     - family: Roboto
       fonts:

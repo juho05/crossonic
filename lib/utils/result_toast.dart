@@ -27,7 +27,7 @@ void toastResult(
         case ConnectionException():
           Toast.show(context, "Failed to contact server");
         default:
-          Toast.show(context, "An unexpected error occured");
+          Toast.show(context, "An unexpected error occurred");
       }
     }
   } else if (successMsg != null && context.mounted) {

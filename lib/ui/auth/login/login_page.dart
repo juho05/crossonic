@@ -213,7 +213,7 @@ class _LoginPageState extends State<LoginPage> with RestorationMixin {
       } else if (result.error is ConnectionException) {
         message = "Failed to contact server";
       } else {
-        message = "An unexpected error occured";
+        message = "An unexpected error occurred";
       }
       Toast.show(context, message);
       viewModel.login.clearResult();

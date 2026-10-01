@@ -68,6 +68,7 @@ Future<List<SingleChildWidget>> createProviders({
         // limit concurrent downloads per group to 5
         (bd.Config.holdingQueue, (null, null, 5)),
       ],
+      iOSConfig: (bd.Config.excludeFromCloudBackup, true),
     );
   }
 

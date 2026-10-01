@@ -18,9 +18,11 @@ import 'package:crossonic/data/repositories/subsonic/models/song.dart';
 import 'package:crossonic/utils/exceptions.dart';
 import 'package:crossonic/utils/result.dart';
 import 'package:crossonic/utils/throttle.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/foundation.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:image_picker_android/image_picker_android.dart';
+import 'package:image_picker_platform_interface/image_picker_platform_interface.dart';
 import 'package:path/path.dart' as path;
 
 class ImageTooLargeException extends AppException {
@@ -143,8 +145,20 @@ class PlaylistViewModel extends ChangeNotifier {
           ),
         ],
       );
+    } else if (!kIsWeb && Platform.isAndroid) {
+      final picker = ImagePickerPlatform.instance;
+      if (picker is ImagePickerAndroid) picker.useAndroidPhotoPicker = true;
+      image = await picker.getImageFromSource(
+        source: ImageSource.gallery,
+      );
     } else {
-      image = await ImagePicker().pickImage(source: ImageSource.gallery);
+      final file = await FilePicker.pickFile(
+        type: FileType.image,
+        darwinOptions: const DarwinOptions(
+          assetRepresentationMode: DarwinAssetRepresentationMode.compatible,
+        ),
+      );
+      image = file?.xFile;
     }
     if (image == null) {
       return const Result.ok(null);

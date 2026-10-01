@@ -516,7 +516,7 @@ jobs:
     needs: build
     runs-on: macos-26
     timeout-minutes: 20
-    # disable unused permissions -> also change xcode pre-action env variables when changing these
+    # disable unused permissions -> also change xcode pre-action env variables and the "Check Plugin Permission Env" build phase when changing these
     env:
       # permission_handler
       PERMISSION_NOTIFICATIONS: "0"

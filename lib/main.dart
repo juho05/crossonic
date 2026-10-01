@@ -56,6 +56,10 @@ void main() async {
     );
     yield LicenseEntryWithLineBreaks(["Roboto"], license);
   });
+  // only these platforms bundle media_kit's prebuilt libmpv, the Linux AppImage ships its own license files
+  if (!kIsWeb && (Platform.isIOS || Platform.isMacOS || Platform.isWindows)) {
+    LicenseRegistry.addLicense(_mediaLibraryLicenses);
+  }
 
   Log.info(
     "App started. Engine ID: ${PlatformDispatcher.instance.engineId}, Configuration: ${kDebugMode
@@ -134,15 +138,40 @@ void main() async {
       child: AppShortcuts(
         child: Builder(
           builder: (context) {
-            final routerConfig = AppRouter(
-              authRepository: context.read(),
-            ).config(reevaluateListenable: context.read<AuthRepository>());
+            final routerConfig = AppRouter(authRepository: context.read())
+                .config(reevaluateListenable: context.read<AuthRepository>());
             return MainApp(routerConfig: routerConfig);
           },
         ),
       ),
     ),
   );
+}
+
+Stream<LicenseEntry> _mediaLibraryLicenses() async* {
+  final lgpl3 = await rootBundle.loadString("assets/licenses/LGPL-3.0.txt");
+  final gpl3 = await rootBundle.loadString("assets/licenses/GPL-3.0.txt");
+  final lgpl21 = await rootBundle.loadString("assets/licenses/LGPL-2.1.txt");
+  final apache2 = await rootBundle.loadString("assets/licenses/Apache-2.0.txt");
+  final mpvSource = Platform.isWindows
+      ? "https://github.com/mpv-player/mpv/tree/652a1dd907"
+      : "https://github.com/mpv-player/mpv/tree/v0.36.0";
+
+  yield const LicenseEntryWithLineBreaks(
+    ["FFmpeg"],
+    "This software uses libraries from the FFmpeg project licensed under the "
+    "LGPLv3. The source code can be downloaded from "
+    "https://ffmpeg.org/releases/ffmpeg-6.0.tar.xz",
+  );
+  yield LicenseEntryWithLineBreaks(["FFmpeg"], lgpl3);
+  yield LicenseEntryWithLineBreaks(["FFmpeg"], gpl3);
+  yield LicenseEntryWithLineBreaks(
+    ["mpv"],
+    "This software uses libmpv licensed under the LGPLv2.1 or later. The "
+    "source code can be downloaded from $mpvSource",
+  );
+  yield LicenseEntryWithLineBreaks(["mpv"], lgpl21);
+  yield LicenseEntryWithLineBreaks(["Mbed TLS"], apache2);
 }
 
 class MainApp extends StatelessWidget {

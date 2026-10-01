@@ -6,9 +6,12 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+import 'dart:io';
+
 import 'package:auto_route/auto_route.dart';
 import 'package:crossonic/data/repositories/settings/settings_repository.dart';
 import 'package:crossonic/ui/settings/pages/appearance_viewmodel.dart';
+import 'package:flutter/foundation.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
@@ -53,13 +56,14 @@ class AppearancePage extends StatelessWidget {
                           );
                         }).toList(),
                       ),
-                      SwitchListTile(
-                        value: viewModel.dynamicColors,
-                        title: const Text("Dynamic colors"),
-                        onChanged: (bool enable) {
-                          viewModel.updateDynamicColors(enable);
-                        },
-                      ),
+                      if (kIsWeb || !Platform.isIOS)
+                        SwitchListTile(
+                          value: viewModel.dynamicColors,
+                          title: const Text("Dynamic colors"),
+                          onChanged: (bool enable) {
+                            viewModel.updateDynamicColors(enable);
+                          },
+                        ),
                     ],
                   ),
                 );
