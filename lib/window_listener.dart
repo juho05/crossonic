@@ -15,6 +15,7 @@ import 'package:window_manager/window_manager.dart';
 
 class CrossonicWindowListener with WindowListener {
   TrayIcon? _trayIcon;
+  Menu? _trayMenu;
   MenuItem? _toggleVisibilityItem;
 
   CrossonicWindowListener.enable() {
@@ -62,19 +63,33 @@ class CrossonicWindowListener with WindowListener {
       _trayIcon!.setTitle("Crossonic");
     }
     _trayIcon!.setContextMenu(menu);
-    _trayIcon!.setContextMenuTrigger(ContextMenuTrigger.rightClicked);
+    // the linux backend only exposes the menu over dbus with the clicked trigger
+    _trayIcon!.setContextMenuTrigger(
+      Platform.isLinux
+          ? ContextMenuTrigger.clicked
+          : ContextMenuTrigger.rightClicked,
+    );
     _trayIcon!.addListener((event) {
       if (event is TrayIconClickedEvent) _toggleWindowVisibility();
     });
     _trayIcon!.setVisible(true);
 
+    _trayMenu = menu;
     _toggleVisibilityItem = toggleItem;
     _updateTrayContextMenu();
   }
 
   Future<void> _updateTrayContextMenu() async {
-    if (_toggleVisibilityItem == null) return;
-    _toggleVisibilityItem!.label = await windowManager.isVisible() ? "Hide" : "Show";
+    if (_trayIcon == null ||
+        _trayMenu == null ||
+        _toggleVisibilityItem == null) {
+      return;
+    }
+    _toggleVisibilityItem!.label = await windowManager.isVisible()
+        ? "Hide"
+        : "Show";
+    // label changes are not propagated over dbus on linux, setting the menu again forces a layout refresh
+    _trayIcon!.setContextMenu(_trayMenu);
   }
 
   Future<void> _toggleWindowVisibility() async {
@@ -89,6 +104,13 @@ class CrossonicWindowListener with WindowListener {
   @override
   Future<void> onWindowFocus() async {
     await _updateTrayContextMenu();
+  }
+
+  @override
+  Future<void> onWindowEvent(String eventName) async {
+    if (eventName == "show" || eventName == "hide") {
+      await _updateTrayContextMenu();
+    }
   }
 
   @override
