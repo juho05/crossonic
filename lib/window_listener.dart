@@ -14,11 +14,14 @@ import 'package:tray_manager/tray_manager.dart';
 import 'package:window_manager/window_manager.dart';
 
 class CrossonicWindowListener with WindowListener {
+  static CrossonicWindowListener? _instance;
+
   TrayIcon? _trayIcon;
   Menu? _trayMenu;
   MenuItem? _toggleVisibilityItem;
 
   CrossonicWindowListener.enable() {
+    _instance = this;
     windowManager.addListener(this);
     if (!kIsWeb && !Platform.isMacOS) {
       windowManager.setPreventClose(true);
@@ -77,6 +80,15 @@ class CrossonicWindowListener with WindowListener {
     _trayMenu = menu;
     _toggleVisibilityItem = toggleItem;
     _updateTrayContextMenu();
+  }
+
+  static void disposeTray() {
+    final instance = _instance;
+    final trayIcon = instance?._trayIcon;
+    if (instance == null || trayIcon == null) return;
+    instance._trayIcon = null;
+    trayIcon.setVisible(false);
+    trayIcon.dispose();
   }
 
   Future<void> _updateTrayContextMenu() async {

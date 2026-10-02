@@ -8,12 +8,14 @@
 
 import 'dart:io';
 
+import 'package:crossonic/window_listener.dart';
 import 'package:flutter/foundation.dart';
 import 'package:window_manager/window_manager.dart';
 
 Future<void> exitApp() async {
   if (kIsWeb) return;
   if (Platform.isWindows || Platform.isLinux) {
+    CrossonicWindowListener.disposeTray();
     await windowManager.setPreventClose(false);
     await windowManager.close();
   }
