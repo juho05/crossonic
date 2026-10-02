@@ -6,7 +6,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import 'package:crossonic/data/repositories/version/version.dart';
+import 'package:flutter_system_integration/flutter_system_integration.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'server_features.g.dart';

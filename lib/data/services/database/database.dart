@@ -6,7 +6,6 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import 'package:crossonic/data/repositories/appimage/appimage_repository.dart';
 import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/data/services/database/converters/artist_ref_list_converter.dart';
 import 'package:crossonic/data/services/database/converters/date_converter.dart';
@@ -30,6 +29,7 @@ import 'package:drift/drift.dart';
 import 'package:drift/extensions/json1.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_system_integration/flutter_system_integration.dart';
 import 'package:logger/logger.dart';
 import 'package:path_provider/path_provider.dart';
 

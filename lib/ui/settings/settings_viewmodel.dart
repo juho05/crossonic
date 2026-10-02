@@ -7,7 +7,7 @@
  */
 
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
-import 'package:crossonic/data/repositories/version/version_repository.dart';
+import 'package:flutter_system_integration/flutter_system_integration.dart';
 import 'package:material_ui/material_ui.dart';
 
 class SettingsViewModel extends ChangeNotifier {

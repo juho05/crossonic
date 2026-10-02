@@ -16,7 +16,6 @@ import 'package:crossonic/data/repositories/auth/exceptions.dart';
 import 'package:crossonic/data/repositories/auth/models/server_features.dart';
 import 'package:crossonic/data/repositories/keyvalue/key_value_repository.dart';
 import 'package:crossonic/data/repositories/logger/log.dart';
-import 'package:crossonic/data/repositories/version/version.dart';
 import 'package:crossonic/data/services/database/database.dart';
 import 'package:crossonic/data/services/opensubsonic/auth.dart';
 import 'package:crossonic/data/services/opensubsonic/exceptions.dart';
@@ -27,6 +26,7 @@ import 'package:crossonic/data/services/permissions/local_network_permission.dar
 import 'package:crossonic/utils/exceptions.dart';
 import 'package:crossonic/utils/result.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_system_integration/flutter_system_integration.dart';
 
 class AuthRepository extends ChangeNotifier {
   final SubsonicService _openSubsonicService;

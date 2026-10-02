@@ -15,9 +15,10 @@ import 'package:crossonic/data/repositories/settings/logging.dart';
 import 'package:crossonic/data/repositories/settings/prefetch.dart';
 import 'package:crossonic/data/repositories/settings/replay_gain.dart';
 import 'package:crossonic/data/repositories/settings/transcoding.dart';
-import 'package:crossonic/data/repositories/settings/version_checking.dart';
 import 'package:crossonic/data/repositories/settings/workarounds.dart';
 import 'package:crossonic/data/repositories/subsonic/subsonic_repository.dart';
+import 'package:crossonic/system_integration.dart';
+import 'package:flutter_system_integration/flutter_system_integration.dart';
 
 class SettingsRepository {
   final LoggingSettings logging;
@@ -46,7 +47,8 @@ class SettingsRepository {
        ),
        workarounds = WorkaroundSettings(keyValueRepository: keyValueRepository),
        versionChecking = VersionCheckingSettings(
-         keyValueRepository: keyValueRepository,
+         config: systemIntegrationConfig,
+         keyValue: keyValueRepository,
        ) {
     bool wasAuthenticated = authRepository.isAuthenticated;
     authRepository.addListener(() {

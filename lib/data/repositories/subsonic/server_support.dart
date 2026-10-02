@@ -8,7 +8,7 @@
 
 import 'package:crossonic/data/repositories/auth/models/server_features.dart';
 import 'package:crossonic/data/repositories/settings/transcoding.dart';
-import 'package:crossonic/data/repositories/version/version.dart';
+import 'package:flutter_system_integration/flutter_system_integration.dart';
 
 class ServerSupport {
   // auth types

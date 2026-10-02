@@ -12,7 +12,6 @@ import 'dart:io';
 import 'package:audio_service/audio_service.dart';
 import 'package:background_downloader/background_downloader.dart' as bd;
 import 'package:crossonic/data/repositories/androidauto/androidauto_repository.dart';
-import 'package:crossonic/data/repositories/appimage/appimage_repository.dart';
 import 'package:crossonic/data/repositories/audio/casting/device_manager.dart';
 import 'package:crossonic/data/repositories/audio/playback_manager.dart';
 import 'package:crossonic/data/repositories/audio/player_manager.dart';
@@ -22,7 +21,6 @@ import 'package:crossonic/data/repositories/audio/players/mediakit_player.dart';
 import 'package:crossonic/data/repositories/audio/players/player.dart';
 import 'package:crossonic/data/repositories/audio/queue/queue_manager.dart';
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
-import 'package:crossonic/data/repositories/auto_update/auto_update_repository.dart';
 import 'package:crossonic/data/repositories/cover/cover_repository.dart';
 import 'package:crossonic/data/repositories/keyvalue/key_value_repository.dart';
 import 'package:crossonic/data/repositories/logger/log.dart';
@@ -38,17 +36,15 @@ import 'package:crossonic/data/repositories/subsonic/favorites_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/music_folders_repository.dart';
 import 'package:crossonic/data/repositories/subsonic/subsonic_repository.dart';
 import 'package:crossonic/data/repositories/themeManager/theme_manager.dart';
-import 'package:crossonic/data/repositories/version/version_repository.dart';
 import 'package:crossonic/data/services/database/database.dart';
-import 'package:crossonic/data/services/github/github.dart';
 import 'package:crossonic/data/services/media_integration/android.dart';
 import 'package:crossonic/data/services/media_integration/media_integration.dart';
 import 'package:crossonic/data/services/methodchannel/method_channel_service.dart';
 import 'package:crossonic/data/services/opensubsonic/subsonic_service.dart';
 import 'package:crossonic/data/services/upnp/upnp_service.dart';
-import 'package:crossonic/integrate_appimage_viewmodel.dart';
-import 'package:crossonic/version_checker_viewmodel.dart';
+import 'package:crossonic/system_integration.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_system_integration/flutter_system_integration.dart';
 import 'package:optimize_battery/optimize_battery.dart';
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
@@ -265,10 +261,15 @@ Future<List<SingleChildWidget>> createProviders({
     ),
     Provider.value(value: database),
     Provider.value(value: keyValueRepository),
-    Provider(create: (context) => GitHubService()),
     Provider(
-      create: (context) =>
-          VersionRepository(github: context.read(), keyValue: context.read()),
+      create: (context) => GitHubService(config: systemIntegrationConfig),
+    ),
+    Provider(
+      create: (context) => VersionRepository(
+        config: systemIntegrationConfig,
+        github: context.read(),
+        keyValue: keyValueRepository,
+      ),
     ),
     Provider.value(value: subsonicService),
     ChangeNotifierProvider.value(value: authRepository),
@@ -303,14 +304,17 @@ Future<List<SingleChildWidget>> createProviders({
     ChangeNotifierProvider.value(value: playlistRepository),
     ChangeNotifierProvider(
       create: (context) => VersionCheckerViewModel(
-        keyValue: context.read(),
+        keyValue: keyValueRepository,
         versionRepo: context.read(),
-        settings: context.read(),
+        settings: settings.versionChecking,
       )..check(),
     ),
     if (AppImageRepository.isAppImage)
       Provider(
-        create: (context) => AppImageRepository(keyValue: context.read()),
+        create: (context) => AppImageRepository(
+          config: systemIntegrationConfig,
+          keyValue: keyValueRepository,
+        ),
       ),
     if (AppImageRepository.isAppImage)
       ChangeNotifierProvider(
@@ -321,6 +325,7 @@ Future<List<SingleChildWidget>> createProviders({
     if (AutoUpdateRepository.autoUpdatesSupported)
       ChangeNotifierProvider(
         create: (context) => AutoUpdateRepository(
+          config: systemIntegrationConfig,
           versionRepository: context.read(),
           github: context.read(),
         ),

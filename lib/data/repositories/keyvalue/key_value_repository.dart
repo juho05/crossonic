@@ -11,12 +11,15 @@ import 'dart:convert';
 import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/data/services/database/database.dart';
 import 'package:drift/drift.dart';
+import 'package:flutter_system_integration/flutter_system_integration.dart'
+    show KeyValueStore;
 
-class KeyValueRepository {
+class KeyValueRepository implements KeyValueStore {
   final Database _db;
 
   KeyValueRepository({required Database database}) : _db = database;
 
+  @override
   Future<void> store<T>(String key, T value) async {
     Object? object = value;
     if (object is DateTime) {
@@ -29,11 +32,13 @@ class KeyValueRepository {
     );
   }
 
+  @override
   Future<void> remove(String key) async {
     Log.trace("removing $key");
     await _db.managers.keyValueTable.filter((kv) => kv.key(key)).delete();
   }
 
+  @override
   Future<String?> loadString(String key) async {
     final json = await _loadValue(key);
     if (json == null) return null;
@@ -64,12 +69,14 @@ class KeyValueRepository {
     return (jsonDecode(json) as num).toDouble();
   }
 
+  @override
   Future<bool?> loadBool(String key) async {
     final json = await _loadValue(key);
     if (json == null) return null;
     return jsonDecode(json) as bool;
   }
 
+  @override
   Future<DateTime?> loadDateTime(String key) async {
     final json = await _loadValue(key);
     if (json == null) return null;
@@ -77,6 +84,7 @@ class KeyValueRepository {
     return DateTime.fromMillisecondsSinceEpoch(millis);
   }
 
+  @override
   Future<T?> loadObject<T>(
     String key,
     T Function(Map<String, dynamic>) fromJson,

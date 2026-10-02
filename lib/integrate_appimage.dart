@@ -6,14 +6,12 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import 'package:crossonic/data/repositories/appimage/appimage_repository.dart';
-import 'package:crossonic/data/services/restart/restart.dart';
-import 'package:crossonic/integrate_appimage_viewmodel.dart';
+import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/ui/common/dialogs/confirmation.dart';
-import 'package:crossonic/utils/result.dart';
-import 'package:crossonic/utils/result_toast.dart';
+import 'package:crossonic/ui/common/toast.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_system_integration/flutter_system_integration.dart';
 import 'package:provider/provider.dart';
 
 class IntegrateAppImage extends StatelessWidget {
@@ -43,10 +41,12 @@ class IntegrateAppImage extends StatelessWidget {
               await viewModel.disable();
               return;
             }
-            final result = await viewModel.integrate();
-            if (result is Err) {
+            try {
+              await viewModel.integrate();
+            } on Exception catch (e, st) {
+              Log.error("Failed to integrate AppImage", e: e, st: st);
               if (!context.mounted) return;
-              toastResult(context, result);
+              Toast.show(context, "Failed to integrate AppImage!");
               return;
             }
             Restart.restart();

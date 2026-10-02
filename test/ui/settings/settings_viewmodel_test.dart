@@ -1,8 +1,8 @@
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
 import 'package:crossonic/data/repositories/auth/models/server_features.dart';
-import 'package:crossonic/data/repositories/version/version_repository.dart';
 import 'package:crossonic/ui/settings/settings_viewmodel.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_system_integration/flutter_system_integration.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 

@@ -7,11 +7,11 @@
  */
 
 import 'package:auto_route/auto_route.dart';
-import 'package:crossonic/data/repositories/auto_update/auto_update_repository.dart';
 import 'package:crossonic/routing/router.gr.dart';
+import 'package:crossonic/system_integration.dart';
 import 'package:crossonic/ui/common/adaptive_dialog_action.dart';
 import 'package:crossonic/ui/common/toast.dart';
-import 'package:crossonic/version_checker_viewmodel.dart';
+import 'package:flutter_system_integration/flutter_system_integration.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:provider/provider.dart';
@@ -88,9 +88,7 @@ class VersionChecker extends StatelessWidget {
                   }
                   break;
                 case VersionDialogChoice.view:
-                  launchUrl(
-                    Uri.https("github.com", "/juho05/crossonic/releases"),
-                  );
+                  launchUrl(systemIntegrationConfig.releasesUrl);
                 case null:
                 case VersionDialogChoice.remind:
                   // default behavior

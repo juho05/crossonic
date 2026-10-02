@@ -7,12 +7,12 @@
  */
 
 import 'package:auto_route/auto_route.dart';
-import 'package:crossonic/data/repositories/appimage/appimage_repository.dart';
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
-import 'package:crossonic/data/repositories/settings/version_checking.dart';
 import 'package:crossonic/routing/auth_guard.dart';
 import 'package:crossonic/routing/main_toplevel_guard.dart';
 import 'package:crossonic/routing/router.gr.dart';
+import 'package:crossonic/system_integration.dart';
+import 'package:flutter_system_integration/flutter_system_integration.dart';
 
 @AutoRouterConfig(replaceInRouteName: 'Screen|Page,Route')
 class AppRouter extends RootStackRouter {
@@ -262,7 +262,7 @@ class AppRouter extends RootStackRouter {
         title: (context, data) => "AppImage Integration",
         restorationId: (match) => match.fullPath,
       ),
-    if (!VersionCheckingSettings.externallyDisabled)
+    if (!systemIntegrationConfig.versionCheckExternallyDisabled)
       AutoRoute(
         path: "/settings/versionChecking",
         page: VersionCheckingRoute.page,

@@ -12,7 +12,10 @@ import 'package:crossonic/data/repositories/logger/log_message.dart';
 import 'package:crossonic/data/repositories/logger/log_repository.dart';
 import 'package:crossonic/data/services/methodchannel/method_channel_service.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_system_integration/flutter_system_integration.dart'
+    show systemIntegrationLoggerName;
 import 'package:logger/logger.dart';
+import 'package:logging/logging.dart' as logging;
 
 class Log {
   static Logger _logger = Logger(level: Level.off);
@@ -69,6 +72,9 @@ class Log {
       return true;
     };
 
+    logging.Logger.root.level = logging.Level.ALL;
+    logging.Logger.root.onRecord.listen(_onLoggingRecord);
+
     if (!kIsWeb && Platform.isAndroid) {
       _methodChannel.addEventListener((event, data) {
         if (event != "log") return;
@@ -109,6 +115,29 @@ class Log {
   }
 
   static Level get level => _level;
+
+  static void _onLoggingRecord(logging.LogRecord record) {
+    if (record.level < logging.Level.WARNING &&
+        !record.loggerName.startsWith(systemIntegrationLoggerName)) {
+      return;
+    }
+    final level = switch (record.level.value) {
+      < 500 => Level.trace,
+      < 800 => Level.debug,
+      < 900 => Level.info,
+      < 1000 => Level.warning,
+      < 1200 => Level.error,
+      _ => Level.fatal,
+    };
+    _log(
+      level,
+      record.message,
+      e: record.error,
+      st: record.stackTrace,
+      tag: record.loggerName,
+      time: record.time,
+    );
+  }
 
   static void trace(String msg, {Object? e, StackTrace? st, String? tag}) {
     _log(Level.trace, msg, e: e, st: st, tag: tag);
