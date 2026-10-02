@@ -11,9 +11,12 @@ import 'dart:io';
 
 import 'package:crossonic/data/repositories/auth/encrypted_storage.dart';
 import 'package:crossonic/data/repositories/logger/log.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class EncryptedStorageSecureStorage implements EncryptedStorage {
+  static final _isMacOS = !kIsWeb && Platform.isMacOS;
+
   final FlutterSecureStorage _storage;
 
   EncryptedStorageSecureStorage()
@@ -33,14 +36,14 @@ class EncryptedStorageSecureStorage implements EncryptedStorage {
       Log.warn("Failed to read keychain item", e: e);
       return null;
     }
-    if (value != null || !Platform.isMacOS) return value;
+    if (value != null || !_isMacOS) return value;
     return _migrateLegacyMacOS(key);
   }
 
   @override
   Future<void> delete(String key) async {
     await _storage.delete(key: key);
-    if (!Platform.isMacOS) return;
+    if (!_isMacOS) return;
     try {
       await _LegacyMacOSKeychain.delete(key);
     } catch (e) {
@@ -52,7 +55,7 @@ class EncryptedStorageSecureStorage implements EncryptedStorage {
   @override
   Future<void> write(String key, String value) async {
     await _storage.write(key: key, value: value);
-    if (Platform.isMacOS) await _storage.delete(key: _legacyDeletedKey(key));
+    if (_isMacOS) await _storage.delete(key: _legacyDeletedKey(key));
   }
 
   static String _legacyDeletedKey(String key) => "$key.legacyDeleted";

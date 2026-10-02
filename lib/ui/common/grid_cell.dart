@@ -56,14 +56,10 @@ class GridCell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    Offset menuPosition = Offset.zero;
-    return InkWell(
+    return ContextMenuInkWell(
+      options: menuOptions,
       borderRadius: BorderRadius.circular(10),
       onTap: onTap,
-      onTapDown: (details) => menuPosition = details.globalPosition,
-      onLongPress: () => showContextMenu(context, menuOptions, menuPosition),
-      onSecondaryTapUp: (details) =>
-          showContextMenu(context, menuOptions, details.globalPosition),
       child: Padding(
         padding: const EdgeInsets.all(4),
         child: Column(

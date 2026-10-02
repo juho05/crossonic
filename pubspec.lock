@@ -1408,8 +1408,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "1c52b52ff1a257d263295d3ed612d465c42c7813"
-      resolved-ref: "1c52b52ff1a257d263295d3ed612d465c42c7813"
+      ref: "683c803e5b5e971f769c63f5974be7ab903236a7"
+      resolved-ref: "683c803e5b5e971f769c63f5974be7ab903236a7"
       url: "https://github.com/juho05/flutter_predictive_transition"
     source: git
     version: "0.3.0"

@@ -50,3 +50,5 @@ app.*.map.json
 
 # private
 /android/key.properties
+# demo library for app store review server
+/demo-library/

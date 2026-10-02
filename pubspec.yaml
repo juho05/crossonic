@@ -73,7 +73,7 @@ dependencies:
   predictive_transition:
     git:
       url: https://github.com/juho05/flutter_predictive_transition
-      ref: 1c52b52ff1a257d263295d3ed612d465c42c7813
+      ref: 683c803e5b5e971f769c63f5974be7ab903236a7
 
   material_ui: ^1.5.0
   cupertino_ui: ^1.1.1

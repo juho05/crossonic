@@ -26,8 +26,6 @@ class ClickableListItem extends StatelessWidget {
   final bool opaque;
   final bool enabled;
 
-  // opened by the InkWell on long press and secondary tap, a separate gesture
-  // layer per row is measurable when rows are created while scrolling
   final Iterable<ContextMenuOption> contextMenuOptions;
   final bool contextMenuOnLongPress;
 
@@ -55,24 +53,10 @@ class ClickableListItem extends StatelessWidget {
     final textColor = !enabled ? theme.disabledColor : null;
     final showTrailingInfo = MediaQuery.sizeOf(context).width > 320;
     final extraInfoText = extraInfo.join(" • ");
-    final hasMenu = contextMenuOptions.isNotEmpty;
-    // onTapDown fires before a long press, so it supplies the menu position
-    Offset menuPosition = Offset.zero;
-    final child = InkWell(
+    final child = ContextMenuInkWell(
+      options: contextMenuOptions,
+      openOnLongPress: contextMenuOnLongPress,
       onTap: enabled ? onTap : null,
-      onTapDown: hasMenu
-          ? (details) => menuPosition = details.globalPosition
-          : null,
-      onLongPress: hasMenu && contextMenuOnLongPress
-          ? () => showContextMenu(context, contextMenuOptions, menuPosition)
-          : null,
-      onSecondaryTapUp: hasMenu
-          ? (details) => showContextMenu(
-              context,
-              contextMenuOptions,
-              details.globalPosition,
-            )
-          : null,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 4),
         child: Row(

@@ -6,8 +6,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
+import 'package:material_ui/material_ui.dart';
 
 class ContextMenuOption {
   final IconData? icon;
@@ -17,16 +17,63 @@ class ContextMenuOption {
   ContextMenuOption({this.icon, required this.title, required this.onSelected});
 }
 
-void showContextMenu(
-  BuildContext context,
-  Iterable<ContextMenuOption> options,
-  Offset position,
-) {
-  CustomContextMenuController().show(
-    context: context,
-    contextMenuBuilder: (context) =>
-        _buildContextMenu(context, options, position),
-  );
+class ContextMenuInkWell extends StatefulWidget {
+  final Iterable<ContextMenuOption> options;
+  final bool openOnLongPress;
+  final void Function()? onTap;
+  final BorderRadius? borderRadius;
+  final Widget child;
+
+  const ContextMenuInkWell({
+    super.key,
+    required this.options,
+    required this.child,
+    this.openOnLongPress = true,
+    this.onTap,
+    this.borderRadius,
+  });
+
+  @override
+  State<ContextMenuInkWell> createState() => _ContextMenuInkWellState();
+}
+
+class _ContextMenuInkWellState extends State<ContextMenuInkWell> {
+  final _controller = CustomContextMenuController();
+
+  Offset _menuPosition = Offset.zero;
+
+  void _show(Offset position) {
+    _controller.show(
+      context: context,
+      contextMenuBuilder: (context) =>
+          _buildContextMenu(context, widget.options, position),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.remove();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final hasMenu = widget.options.isNotEmpty;
+    return InkWell(
+      borderRadius: widget.borderRadius,
+      onTap: widget.onTap,
+      onTapDown: hasMenu
+          ? (details) => _menuPosition = details.globalPosition
+          : null,
+      onLongPress: hasMenu && widget.openOnLongPress
+          ? () => _show(_menuPosition)
+          : null,
+      onSecondaryTapUp: hasMenu
+          ? (details) => _show(details.globalPosition)
+          : null,
+      child: widget.child,
+    );
+  }
 }
 
 Widget _buildContextMenu(
@@ -96,8 +143,10 @@ class _WithContextMenuState extends State<WithContextMenu> {
   }
 }
 
-typedef ContextMenuBuilder =
-    Widget Function(BuildContext context, Offset offset);
+typedef ContextMenuBuilder = Widget Function(
+  BuildContext context,
+  Offset offset,
+);
 
 class ContextMenu extends StatefulWidget {
   /// Builds the context menu.
