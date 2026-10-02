@@ -10,6 +10,7 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:crossonic/data/repositories/logger/log.dart';
+import 'package:crossonic/data/services/opensubsonic/subsonic_service.dart';
 import 'package:crossonic/data/services/upnp/exceptions.dart';
 import 'package:crossonic/data/services/upnp/upnp_connection.dart';
 import 'package:crossonic/data/services/upnp/upnp_mediaitem.dart';
@@ -337,16 +338,8 @@ class UpnpService {
     }
   }
 
-  // Redacts credential query params (p, t, s, apiKey) from stream/cover urls
-  // embedded in the xml bodies. Handles xml-escaped (&amp;) and double-escaped
-  // (&amp;amp;) separators, so it must run on the raw string, not parsed uris.
-  static final _credentialParam = RegExp(
-    r'([?&](?:amp;)*(?:p|t|s|apiKey)=)[^&<\s]*',
-  );
-
   @visibleForTesting
-  static String sanitizeLog(String body) =>
-      body.replaceAllMapped(_credentialParam, (m) => "${m[1]}xxx");
+  static String sanitizeLog(String body) => SubsonicService.sanitizeText(body);
 
   static String formatTime(Duration duration) {
     var seconds = duration.inSeconds;

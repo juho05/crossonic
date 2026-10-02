@@ -927,9 +927,7 @@ class SubsonicService {
     } catch (e, st) {
       Log.error(
         "Failed to connect to server: ${post ? "POST" : "GET"} $endpointName?${sanitizedQueryUri.query}",
-        e: e is http.ClientException
-            ? http.ClientException(e.message, sanitizeUrl(e.uri))
-            : e,
+        e: sanitizeException(e),
         st: st,
       );
       return Result.error(ConnectionException());
@@ -998,4 +996,18 @@ class SubsonicService {
       userInfo: userInfoParts.join(":"),
     );
   }
+
+  // Handles xml-escaped (&amp;) and double-escaped (&amp;amp;) separators, so
+  // it must run on the raw string, not parsed uris.
+  static final _credentialParam = RegExp(
+    r'([?&](?:amp;)*(?:p|t|s|apiKey)=)[^&<\s]*',
+  );
+
+  // redacts credential query params of urls embedded in arbitrary text
+  static String sanitizeText(String text) =>
+      text.replaceAllMapped(_credentialParam, (m) => "${m[1]}xxx");
+
+  static Object sanitizeException(Object e) => e is http.ClientException
+      ? http.ClientException(e.message, sanitizeUrl(e.uri))
+      : e;
 }

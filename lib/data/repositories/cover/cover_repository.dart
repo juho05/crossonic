@@ -16,6 +16,7 @@ import 'package:crossonic/data/repositories/cover/web_helper.dart';
 import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/data/repositories/subsonic/subsonic_repository.dart';
 import 'package:crossonic/data/services/database/database.dart';
+import 'package:crossonic/data/services/opensubsonic/subsonic_service.dart';
 import 'package:drift/drift.dart';
 import 'package:file/local.dart';
 import 'package:flutter/foundation.dart';
@@ -302,7 +303,11 @@ class CoverRepository extends BaseCacheManager {
         }
         ensureCleanupScheduled();
       } on Object catch (e, st) {
-        Log.debug("failed to download cover file $key", e: e, st: st);
+        Log.debug(
+          "failed to download cover file $key",
+          e: SubsonicService.sanitizeText(e.toString()),
+          st: st,
+        );
         if (cacheFile == null && streamController.hasListener) {
           streamController.addError(e);
         }

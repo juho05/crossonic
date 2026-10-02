@@ -429,7 +429,10 @@ class QueuePrefetcher extends ChangeNotifier implements LocalSongSource {
           if (task.canceled) break;
         } catch (e) {
           if (task.canceled) break;
-          Log.warn("prefetch attempt ${attempt + 1} failed for $id: $e");
+          Log.warn(
+            "prefetch attempt ${attempt + 1} failed for $id: "
+            "${SubsonicService.sanitizeException(e)}",
+          );
         }
 
         attempt++;

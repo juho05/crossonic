@@ -16,6 +16,7 @@ import 'package:crossonic/data/repositories/audio/players/player.dart';
 import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/data/repositories/subsonic/models/song.dart';
 import 'package:crossonic/data/services/media_integration/media_integration.dart';
+import 'package:crossonic/data/services/opensubsonic/subsonic_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:media_kit/media_kit.dart';
@@ -333,6 +334,9 @@ class AudioPlayerMediaKit extends AudioPlayer {
   }
 
   Future<void> _onError(String msg) async {
-    throw PlatformException(code: "media_kit:error", message: msg);
+    throw PlatformException(
+      code: "media_kit:error",
+      message: SubsonicService.sanitizeText(msg),
+    );
   }
 }
