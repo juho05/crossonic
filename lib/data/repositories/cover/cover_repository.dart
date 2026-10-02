@@ -450,8 +450,8 @@ class CoverRepository extends BaseCacheManager {
     while (true) {
       totalSizeKB =
           (await (_db.selectOnly(_db.coverCacheTable)
-                ..addColumns([_db.coverCacheTable.size.sum()]))
-              .map((row) => row.read(_db.coverCacheTable.size.sum()))
+                ..addColumns([_db.coverCacheTable.fileSizeKB.sum()]))
+              .map((row) => row.read(_db.coverCacheTable.fileSizeKB.sum()))
               .getSingleOrNull()) ??
           0;
       if (totalSizeKB < _mBToKB(1000)) {
