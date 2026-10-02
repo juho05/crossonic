@@ -49,6 +49,7 @@ class SongListSliver extends StatefulWidget {
 
 class _SongListSliverState extends State<SongListSliver> {
   static const _extent = ClickableListItem.verticalExtent;
+  static const _maxCachedRows = 200;
 
   final _budget = ChildCreationBudget();
   final _rows = <int, LazySliverChild>{};
@@ -59,6 +60,18 @@ class _SongListSliverState extends State<SongListSliver> {
   void didUpdateWidget(covariant SongListSliver oldWidget) {
     super.didUpdateWidget(oldWidget);
     _delegate = null;
+    if (oldWidget.songs != widget.songs) {
+      _rows.clear();
+    }
+  }
+
+  void _pruneRows(SliverVisibleRange visible) {
+    if (_rows.length <= _maxCachedRows) return;
+    _rows.removeWhere(
+      (index, _) =>
+          index < visible.first - _maxCachedRows ~/ 2 ||
+          index > visible.last + _maxCachedRows ~/ 2,
+    );
   }
 
   Widget _rowFor(int index, SongListSliverViewModel viewModel) {
@@ -153,6 +166,7 @@ class _SongListSliverState extends State<SongListSliver> {
                       _extent)
                   .ceil(),
             );
+            _pruneRows(_budget.visible);
             return SliverFixedExtentList(
               itemExtent: _extent,
               delegate: _delegateFor(viewModel),

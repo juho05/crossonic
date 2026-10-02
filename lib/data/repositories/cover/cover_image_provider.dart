@@ -34,6 +34,20 @@ class CoverImageProvider extends ImageProvider<CoverImageProvider> {
   // image cache keys that have been loaded per cover id, so all cached
   // variants of a cover can be evicted when the cover changes
   static final Map<String, Set<CoverImageProvider>> _loadedKeys = {};
+  static const _minPruneThreshold = 256;
+  static int _pruneThreshold = _minPruneThreshold;
+
+  // entries the image cache has dropped since are removed once the map has
+  // doubled, so the cost stays amortized constant per load
+  static void _pruneLoadedKeys() {
+    if (_loadedKeys.length <= _pruneThreshold) return;
+    final cache = PaintingBinding.instance.imageCache;
+    _loadedKeys.removeWhere((_, keys) {
+      keys.removeWhere((key) => !cache.statusForKey(key).tracked);
+      return keys.isEmpty;
+    });
+    _pruneThreshold = max(_minPruneThreshold, _loadedKeys.length * 2);
+  }
 
   static void evictCover(String coverId) {
     final keys = _loadedKeys.remove(coverId);
@@ -53,6 +67,7 @@ class CoverImageProvider extends ImageProvider<CoverImageProvider> {
     CoverImageProvider key,
     ImageDecoderCallback decode,
   ) {
+    _pruneLoadedKeys();
     (_loadedKeys[coverId] ??= {}).add(key);
     return MultiFrameImageStreamCompleter(
       codec: _load(decode),

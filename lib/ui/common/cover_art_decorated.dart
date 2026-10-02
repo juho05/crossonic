@@ -12,8 +12,8 @@ import 'package:crossonic/data/repositories/playlist/song_downloader.dart';
 import 'package:crossonic/ui/common/cover_art.dart';
 import 'package:crossonic/ui/common/menu_button.dart';
 import 'package:crossonic/ui/common/with_context_menu.dart';
-import 'package:material_ui/material_ui.dart';
 import 'package:icon_decoration/icon_decoration.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
 class CoverArtDecorated extends StatelessWidget {
@@ -249,14 +249,14 @@ class _OnCoverButton extends StatelessWidget {
     try {
       size = context.read<OnCoverIconButtonSize>();
     } catch (_) {}
-    return Container(
-      width: size == OnCoverIconButtonSize.large ? 40 : 30,
-      height: size == OnCoverIconButtonSize.large ? 40 : 30,
-      decoration: ShapeDecoration(
+    return SizedBox.square(
+      dimension: size == OnCoverIconButtonSize.large ? 40 : 30,
+      child: Material(
         color: Colors.black.withAlpha(90),
         shape: const CircleBorder(),
+        clipBehavior: Clip.antiAlias,
+        child: button,
       ),
-      child: button,
     );
   }
 }

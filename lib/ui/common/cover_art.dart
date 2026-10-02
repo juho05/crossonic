@@ -161,24 +161,24 @@ class _CoverImageState extends State<_CoverImage>
       if (wasSynchronouslyLoaded) {
         _fade.value = 1;
       } else {
-        _fade.forward();
+        _fade.forward().then((_) {
+          if (mounted) setState(() {});
+        });
       }
     }
-    return child;
+    return _fade.isCompleted ? child : LoadingBox(child: child);
   }
 
   @override
   Widget build(BuildContext context) {
-    return LoadingBox(
-      child: Image(
-        image: widget.image,
-        fit: BoxFit.cover,
-        filterQuality: FilterQuality.low,
-        excludeFromSemantics: true,
-        opacity: _fade,
-        frameBuilder: _frameBuilder,
-        errorBuilder: (context, error, stackTrace) => widget.errorPlaceholder,
-      ),
+    return Image(
+      image: widget.image,
+      fit: BoxFit.cover,
+      filterQuality: FilterQuality.low,
+      excludeFromSemantics: true,
+      opacity: _fade,
+      frameBuilder: _frameBuilder,
+      errorBuilder: (context, error, stackTrace) => widget.errorPlaceholder,
     );
   }
 }
