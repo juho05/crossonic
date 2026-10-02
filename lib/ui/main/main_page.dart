@@ -179,9 +179,9 @@ class _MainPageState extends State<MainPage> {
                                           });
                                     }
                                   }
-                                  final bottomPadding = MediaQuery.of(
-                                    context,
-                                  ).viewPadding.bottom;
+                                  final bottomPadding = MediaQuery.of(context)
+                                      .viewPadding
+                                      .bottom;
                                   body = LayoutBuilder(
                                     builder: (context, constraints) =>
                                         SlidingUpPanel(
@@ -279,9 +279,17 @@ class _MainPageState extends State<MainPage> {
                                         ),
                                   );
                                 } else {
+                                  if (!_collapsedVisible || _expandedVisible) {
+                                    WidgetsBinding.instance
+                                        .addPostFrameCallback((_) {
+                                          if (!mounted) return;
+                                          setState(() {
+                                            _collapsedVisible = true;
+                                            _expandedVisible = false;
+                                          });
+                                        });
+                                  }
                                   try {
-                                    _collapsedVisible = true;
-                                    _expandedVisible = false;
                                     _slidingUpPanelController.close();
                                   } catch (_) {}
                                   body = Scaffold(
