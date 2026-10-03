@@ -53,6 +53,12 @@ add_subdirectory(${FLUTTER_MANAGED_DIR})
 # System-level dependencies.
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(GTK REQUIRED IMPORTED_TARGET gtk+-3.0)
+pkg_check_modules(GLIB REQUIRED glib-2.0)
+
+# cnativeapi uses a name that only exists since GLib 2.74.
+if(GLIB_VERSION VERSION_LESS 2.74)
+  add_definitions(-DG_APPLICATION_DEFAULT_FLAGS=G_APPLICATION_FLAGS_NONE)
+endif()
 
 include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}
