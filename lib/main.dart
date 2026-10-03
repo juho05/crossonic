@@ -55,7 +55,6 @@ void main() async {
     );
     yield LicenseEntryWithLineBreaks(["Roboto"], license);
   });
-  // only these platforms bundle media_kit's prebuilt libmpv, the Linux AppImage ships its own license files
   if (!kIsWeb && (Platform.isIOS || Platform.isMacOS || Platform.isWindows)) {
     LicenseRegistry.addLicense(_mediaLibraryLicenses);
   }
