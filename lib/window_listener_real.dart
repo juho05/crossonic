@@ -6,6 +6,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:crossonic/utils/exit.dart';
@@ -52,7 +53,7 @@ class CrossonicWindowListener with WindowListener {
       if (event is MenuItemClickedEvent) _toggleWindowVisibility();
     });
     exitItem.addListener((event) {
-      if (event is MenuItemClickedEvent) exitApp();
+      if (event is MenuItemClickedEvent) Timer.run(exitApp);
     });
     menu.addItem(toggleItem);
     menu.addSeparator();
