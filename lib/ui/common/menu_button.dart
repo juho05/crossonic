@@ -122,6 +122,7 @@ class MenuButton extends StatelessWidget {
           )
           .toList(),
     );
+    if (!context.mounted) return;
     option?.onSelected?.call();
   }
 }

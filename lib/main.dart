@@ -58,6 +58,8 @@ void main() async {
   });
   if (!kIsWeb && (Platform.isIOS || Platform.isMacOS || Platform.isWindows)) {
     LicenseRegistry.addLicense(_mediaLibraryLicenses);
+  } else if (!kIsWeb && AppImageRepository.isAppImage) {
+    LicenseRegistry.addLicense(_appImageMediaLibraryLicenses);
   }
 
   Log.info(
@@ -171,6 +173,51 @@ Stream<LicenseEntry> _mediaLibraryLicenses() async* {
   );
   yield LicenseEntryWithLineBreaks(["mpv"], lgpl21);
   yield LicenseEntryWithLineBreaks(["Mbed TLS"], apache2);
+}
+
+// versions have to match scripts/libmpv/build.sh
+Stream<LicenseEntry> _appImageMediaLibraryLicenses() async* {
+  final lgpl21 = await rootBundle.loadString("assets/licenses/LGPL-2.1.txt");
+
+  yield const LicenseEntryWithLineBreaks(
+    ["FFmpeg"],
+    "This software uses libraries from the FFmpeg project licensed under the "
+    "LGPLv2.1 or later. The source code can be downloaded from "
+    "https://ffmpeg.org/releases/ffmpeg-8.1.3.tar.xz",
+  );
+  yield LicenseEntryWithLineBreaks(["FFmpeg"], lgpl21);
+  yield const LicenseEntryWithLineBreaks(
+    ["mpv"],
+    "This software uses libmpv licensed under the LGPLv2.1 or later. The "
+    "source code can be downloaded from "
+    "https://github.com/mpv-player/mpv/tree/v0.41.0",
+  );
+  yield LicenseEntryWithLineBreaks(["mpv"], lgpl21);
+  yield const LicenseEntryWithLineBreaks(
+    ["libplacebo"],
+    "This software uses libplacebo licensed under the LGPLv2.1 or later. The "
+    "source code can be downloaded from "
+    "https://github.com/haasn/libplacebo/tree/v7.360.1",
+  );
+  yield LicenseEntryWithLineBreaks(["libplacebo"], lgpl21);
+  yield const LicenseEntryWithLineBreaks(
+    ["libass"],
+    "ISC License\n"
+    "\n"
+    "Copyright (C) 2006-2016 libass contributors\n"
+    "\n"
+    "Permission to use, copy, modify, and/or distribute this software for any "
+    "purpose with or without fee is hereby granted, provided that the above "
+    "copyright notice and this permission notice appear in all copies.\n"
+    "\n"
+    'THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES '
+    "WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF "
+    "MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR "
+    "ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES "
+    "WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN "
+    "ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF "
+    "OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.",
+  );
 }
 
 class MainApp extends StatelessWidget {
