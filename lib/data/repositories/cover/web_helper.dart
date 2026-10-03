@@ -253,12 +253,14 @@ class WebHelper {
       }
     } else if (keepOldFile) {
       await response.content.drain();
-      await _db.managers.coverCacheTable.update(
-        (o) => o(
-          validTill: Value(response.validTill),
-          downloadTime: Value(DateTime.now()),
-        ),
-      );
+      await _db.managers.coverCacheTable
+          .filter((f) => f.coverId(coverId) & f.size(size))
+          .update(
+            (o) => o(
+              validTill: Value(response.validTill),
+              downloadTime: Value(DateTime.now()),
+            ),
+          );
     }
 
     yield FileInfo(

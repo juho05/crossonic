@@ -6,6 +6,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -66,7 +67,13 @@ class _ContextMenuInkWellState extends State<ContextMenuInkWell> {
           ? (details) => _menuPosition = details.globalPosition
           : null,
       onLongPress: hasMenu && widget.openOnLongPress
-          ? () => _show(_menuPosition)
+          ? () {
+              // InkWell only gives long press feedback on Android
+              if (defaultTargetPlatform == TargetPlatform.iOS) {
+                HapticFeedback.mediumImpact();
+              }
+              _show(_menuPosition);
+            }
           : null,
       onSecondaryTapUp: hasMenu
           ? (details) => _show(details.globalPosition)
