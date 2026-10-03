@@ -6,5 +6,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-export 'window_listener_real.dart'
-    if (dart.library.js_interop) 'window_listener_stub.dart';
+class CrossonicWindowListener {
+  CrossonicWindowListener.enable();
+
+  static void disposeTray() {}
+}
