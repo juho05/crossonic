@@ -55,7 +55,7 @@ dependencies:
   flutter_system_integration:
     git:
       url: https://github.com/juho05/flutter_system_integration
-      ref: c3984c2a1efb8507908182b0574d9b99167a9ef2
+      ref: b5a410df0321eaded42571c7faefcbbce218605b
   share_plus: ^13.2.0
   device_info_plus: ^13.2.0
   permission_handler: ^13.0.0
