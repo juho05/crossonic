@@ -12,6 +12,7 @@ import 'dart:io' as io;
 import 'dart:math';
 
 import 'package:crossonic/data/repositories/auth/auth_repository.dart';
+import 'package:crossonic/data/repositories/cover/cover_image_provider.dart';
 import 'package:crossonic/data/repositories/cover/web_helper.dart';
 import 'package:crossonic/data/repositories/logger/log.dart';
 import 'package:crossonic/data/repositories/subsonic/subsonic_repository.dart';
@@ -100,6 +101,7 @@ class CoverRepository extends BaseCacheManager {
       await cacheDir.delete(recursive: true);
     }
     imageCache.clear();
+    imageCache.clearLiveImages();
   }
 
   @override
@@ -231,19 +233,28 @@ class CoverRepository extends BaseCacheManager {
   Future<File> loadCoverFile(String coverId, int size) async {
     final key = getKey(coverId, size);
     final cached = await getFileFromCache(key);
-    if (cached != null && cached.validTill.isAfter(DateTime.now())) {
-      return cached.file;
+    if (cached == null) return (await downloadFile(key)).file;
+    if (!cached.validTill.isAfter(DateTime.now())) {
+      unawaited(_refreshCover(coverId, key));
     }
+    return cached.file;
+  }
+
+  Future<void> _refreshCover(String coverId, String key) async {
     try {
-      return (await downloadFile(key)).file;
-    } on Object catch (e) {
-      if (cached == null) rethrow;
-      if (e is HttpExceptionWithStatus && e.statusCode == 404) {
-        await removeFile(key);
-        rethrow;
+      final info = await downloadFile(key);
+      // a failed download can fall back to a resized local copy
+      if (info.source != FileSource.Online ||
+          info.statusCode == io.HttpStatus.notModified) {
+        return;
       }
-      return cached.file;
+    } on HttpExceptionWithStatus catch (e) {
+      if (e.statusCode != 404) return;
+      await removeFile(key);
+    } on Object catch (_) {
+      return;
     }
+    CoverImageProvider.evictCover(coverId);
   }
 
   Future<void> invalidateCover(String coverId) async {
