@@ -712,8 +712,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "50b0e18e0e9d06b433a983bc998e283b9b8052b6"
-      resolved-ref: "50b0e18e0e9d06b433a983bc998e283b9b8052b6"
+      ref: "5fa6f3d38c9d8307b2562e24651a384346d81cdb"
+      resolved-ref: "5fa6f3d38c9d8307b2562e24651a384346d81cdb"
       url: "https://github.com/juho05/flutter_system_integration"
     source: git
     version: "0.1.0"

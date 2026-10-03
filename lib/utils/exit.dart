@@ -14,10 +14,13 @@ import 'package:window_manager/window_manager.dart';
 
 Future<void> exitApp() async {
   if (kIsWeb) return;
-  if (Platform.isWindows || Platform.isLinux) {
-    CrossonicWindowListener.disposeTray();
-    await windowManager.setPreventClose(false);
-    await windowManager.close();
+  try {
+    if (Platform.isWindows || Platform.isLinux) {
+      CrossonicWindowListener.disposeTray();
+      await windowManager.setPreventClose(false);
+      await windowManager.close();
+    }
+  } finally {
+    exit(0);
   }
-  exit(0);
 }

@@ -43,6 +43,7 @@ import 'package:crossonic/data/services/methodchannel/method_channel_service.dar
 import 'package:crossonic/data/services/opensubsonic/subsonic_service.dart';
 import 'package:crossonic/data/services/upnp/upnp_service.dart';
 import 'package:crossonic/system_integration.dart';
+import 'package:crossonic/utils/exit.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_system_integration/flutter_system_integration.dart';
 import 'package:optimize_battery/optimize_battery.dart';
@@ -328,6 +329,7 @@ Future<List<SingleChildWidget>> createProviders({
           config: systemIntegrationConfig,
           versionRepository: context.read(),
           github: context.read(),
+          beforeExit: exitApp,
         ),
       ),
   ];

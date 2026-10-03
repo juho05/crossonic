@@ -18,6 +18,7 @@ import 'package:crossonic/data/repositories/themeManager/theme_manager.dart';
 import 'package:crossonic/data/services/methodchannel/method_channel_service.dart';
 import 'package:crossonic/routing/router.dart';
 import 'package:crossonic/ui/common/volume_hud.dart';
+import 'package:crossonic/utils/exit.dart';
 import 'package:crossonic/window_listener.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/foundation.dart';
@@ -81,7 +82,7 @@ void main() async {
         Log.info(
           "An instance with a different version is trying to start, exiting...",
         );
-        exit(0);
+        await exitApp();
       }
     } catch (_) {}
 

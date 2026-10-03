@@ -23,7 +23,7 @@ class InstallUpdatePage extends StatelessWidget {
       autoUpdateRepository: fsi.AutoUpdateRepository.autoUpdatesSupported
           ? context.read()
           : null,
-      onExit: exitApp,
+      exitApp: exitApp,
     );
   }
 }
