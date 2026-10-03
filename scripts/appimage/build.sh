@@ -60,8 +60,12 @@ for size in 32 64 128 256 512; do
     "$APPDIR/usr/share/icons/hicolor/${size}x${size}/apps/$APP_ID.png"
 done
 
-# Flutter locates lib/ and data/ via /proc/self/exe, so symlinking the binary is enough.
-ln -s usr/lib/crossonic/Crossonic "$APPDIR/AppRun"
+# A symlink to the binary would work too but the process would be named AppRun.
+cat > "$APPDIR/AppRun" <<'EOF'
+#!/bin/sh
+exec "$(dirname "$(readlink -f "$0")")/usr/lib/crossonic/Crossonic" "$@"
+EOF
+chmod 755 "$APPDIR/AppRun"
 ln -s "usr/share/applications/$APP_ID.desktop" "$APPDIR/$APP_ID.desktop"
 ln -s "usr/share/icons/hicolor/256x256/apps/$APP_ID.png" "$APPDIR/$APP_ID.png"
 ln -s "$APP_ID.png" "$APPDIR/.DirIcon"

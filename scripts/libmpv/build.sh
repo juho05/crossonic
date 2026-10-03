@@ -102,7 +102,7 @@ meson() {
   cd "$WORK_DIR/mpv"
   meson setup build --prefix="$PREFIX" --libdir=lib --buildtype=release \
     -Dauto_features=disabled -Dgpl=false -Dlibmpv=true -Dcplayer=false -Dbuild-date=false \
-    -Dgl=disabled -Dpulse=enabled -Dalsa=enabled -Dzlib=enabled
+    -Dlua=disabled -Dgl=disabled -Dpulse=enabled -Dalsa=enabled -Dzlib=enabled
   meson install -C build
 )
 
