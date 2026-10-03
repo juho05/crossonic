@@ -6,6 +6,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+import 'dart:async';
 import 'dart:math';
 import 'dart:ui' as ui;
 
@@ -70,7 +71,7 @@ class CoverImageProvider extends ImageProvider<CoverImageProvider> {
     _pruneLoadedKeys();
     (_loadedKeys[coverId] ??= {}).add(key);
     return MultiFrameImageStreamCompleter(
-      codec: _load(decode),
+      codec: _load(key, decode),
       scale: 1.0,
       debugLabel: "cover $coverId@$resolution",
       informationCollector: () => [
@@ -79,13 +80,23 @@ class CoverImageProvider extends ImageProvider<CoverImageProvider> {
     );
   }
 
-  Future<ui.Codec> _load(ImageDecoderCallback decode) async {
-    final file = await _repository.loadCoverFile(coverId, resolution);
-    final buffer = await ui.ImmutableBuffer.fromFilePath(file.path);
-    return decode(
-      buffer,
-      getTargetSize: targetSize != null ? _decodeSize : null,
-    );
+  Future<ui.Codec> _load(
+    CoverImageProvider key,
+    ImageDecoderCallback decode,
+  ) async {
+    try {
+      final file = await _repository.loadCoverFile(coverId, resolution);
+      final buffer = await ui.ImmutableBuffer.fromFilePath(file.path);
+      return await decode(
+        buffer,
+        getTargetSize: targetSize != null ? _decodeSize : null,
+      );
+    } catch (_) {
+      scheduleMicrotask(() {
+        PaintingBinding.instance.imageCache.evict(key);
+      });
+      rethrow;
+    }
   }
 
   ui.TargetImageSize _decodeSize(int intrinsicWidth, int intrinsicHeight) {
