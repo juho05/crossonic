@@ -34,8 +34,16 @@ Future<bool> _isEnforced() async {
   }
 }
 
+Future<bool>? _pendingRequest;
+
 Future<bool> requestLocalNetworkPermission() async {
   if (!await _isEnforced()) return true;
+  return _pendingRequest ??= _request().whenComplete(
+    () => _pendingRequest = null,
+  );
+}
+
+Future<bool> _request() async {
   try {
     return await Permission.accessLocalNetwork.request().isGranted;
   } catch (e, st) {
@@ -80,9 +88,8 @@ Future<bool> _hasPermission() async {
 
 Future<void> _requestIfHostnameLocal(String host) async {
   try {
-    final addresses = await InternetAddress.lookup(
-      host,
-    ).timeout(const Duration(milliseconds: 1500), onTimeout: () => const []);
+    final addresses = await InternetAddress.lookup(host)
+        .timeout(const Duration(milliseconds: 1500), onTimeout: () => const []);
     if (addresses.any(_isPrivate)) await requestLocalNetworkPermission();
   } catch (_) {}
 }
