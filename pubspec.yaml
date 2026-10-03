@@ -1,7 +1,7 @@
 name: crossonic
 description: "An OpenSubsonic compatible music player with its own server for additional features."
 publish_to: "none"
-version: 0.5.1+14
+version: 0.5.2+15
 environment:
   sdk: ^3.13.0
 
@@ -55,7 +55,7 @@ dependencies:
   flutter_system_integration:
     git:
       url: https://github.com/juho05/flutter_system_integration
-      ref: 5fa6f3d38c9d8307b2562e24651a384346d81cdb
+      ref: 75bfd9e2c725041d550069a6efb08f9ff63e4a3f
   share_plus: ^13.2.0
   device_info_plus: ^13.2.0
   permission_handler: ^13.0.0
