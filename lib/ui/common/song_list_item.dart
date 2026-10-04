@@ -22,8 +22,8 @@ import 'package:crossonic/ui/common/with_context_menu.dart';
 import 'package:crossonic/utils/format.dart';
 import 'package:crossonic/utils/result.dart';
 import 'package:crossonic/utils/result_toast.dart';
-import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
 class SongListItem extends StatefulWidget {
@@ -113,7 +113,7 @@ class _SongListItemState extends State<SongListItem> {
           year = s.originalDate!.year.toString();
         }
         if (s.releaseDate != null &&
-            s.releaseDate!.year != s.originalDate!.year) {
+            s.releaseDate?.year != s.originalDate?.year) {
           year += "/${s.releaseDate!.year}";
         }
         final reorderable =
