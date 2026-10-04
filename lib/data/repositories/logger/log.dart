@@ -117,8 +117,7 @@ class Log {
   static Level get level => _level;
 
   static void _onLoggingRecord(logging.LogRecord record) {
-    if (record.level < logging.Level.WARNING &&
-        !record.loggerName.startsWith(systemIntegrationLoggerName)) {
+    if (!record.loggerName.startsWith(systemIntegrationLoggerName)) {
       return;
     }
     final level = switch (record.level.value) {
@@ -207,9 +206,8 @@ class Log {
       final traceString = StackTrace.current.toString().split(
         '\n',
       )[traceLineIndex];
-      final match = RegExp(
-        r'#' + traceLineIndex.toString() + r'\s+(\S+)',
-      ).firstMatch(traceString);
+      final match = RegExp(r'#' + traceLineIndex.toString() + r'\s+(\S+)')
+          .firstMatch(traceString);
       if (match != null && match.groupCount >= 1) {
         return match.group(1) ?? 'Unknown';
       }
@@ -218,9 +216,8 @@ class Log {
   }
 
   static String _formatFullStackTrace(StackTrace st) {
-    return PrettyPrinter(
-          excludePaths: [_excludePath],
-        ).formatStackTrace(st, null) ??
+    return PrettyPrinter(excludePaths: [_excludePath])
+            .formatStackTrace(st, null) ??
         st.toString();
   }
 }

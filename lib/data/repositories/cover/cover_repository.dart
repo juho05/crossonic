@@ -21,9 +21,9 @@ import 'package:crossonic/data/services/opensubsonic/subsonic_service.dart';
 import 'package:drift/drift.dart';
 import 'package:file/local.dart';
 import 'package:flutter/foundation.dart';
-import 'package:material_ui/material_ui.dart';
 import 'package:flutter_cache_manager/file.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 
@@ -62,11 +62,17 @@ class CoverRepository extends BaseCacheManager {
     if (coverIds.isEmpty) return;
     Log.debug("explicitly requested download of ${coverIds.length} covers");
     await Future.wait(
-      coverIds.map<Future>((id) async {
-        if (await cacheFileExists(id!, 1024)) {
-          return null;
+      coverIds.map((id) async {
+        try {
+          if (await cacheFileExists(id!, 1024)) return;
+          await downloadFile(getKey(id, 1024));
+        } on Object catch (e, st) {
+          Log.warn(
+            "failed to download cover $id",
+            e: SubsonicService.sanitizeText(e.toString()),
+            st: st,
+          );
         }
-        return downloadFile(getKey(id, 1024));
       }),
     );
   }
