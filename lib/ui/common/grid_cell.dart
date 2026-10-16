@@ -8,6 +8,7 @@
 
 import 'package:crossonic/data/repositories/playlist/song_downloader.dart';
 import 'package:crossonic/ui/common/cover_art_decorated.dart';
+import 'package:crossonic/ui/common/lazy_sliver_child.dart';
 import 'package:crossonic/ui/common/optional_tooltip.dart';
 import 'package:crossonic/ui/common/with_context_menu.dart';
 import 'package:material_ui/material_ui.dart';
@@ -80,28 +81,35 @@ class GridCell extends StatelessWidget {
               topRight: topRight,
             ),
             const SizedBox(height: 2),
-            OptionalTooltip.wrap(
-              message: title,
-              child: Text(
-                title,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: textTheme.bodyMedium!.copyWith(
-                  fontWeight: FontWeight.w400,
-                  fontSize: 12,
-                ),
-              ),
-            ),
-            OptionalTooltip.wrap(
-              message: extraInfo,
-              child: Text(
-                extraInfo,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: textTheme.bodyMedium!.copyWith(
-                  fontWeight: FontWeight.w300,
-                  fontSize: 10,
-                ),
+            LazySliverStage(
+              builder: (context) => Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  OptionalTooltip.wrap(
+                    message: title,
+                    child: Text(
+                      title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: textTheme.bodyMedium!.copyWith(
+                        fontWeight: FontWeight.w400,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                  OptionalTooltip.wrap(
+                    message: extraInfo,
+                    child: Text(
+                      extraInfo,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: textTheme.bodyMedium!.copyWith(
+                        fontWeight: FontWeight.w300,
+                        fontSize: 10,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],

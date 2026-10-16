@@ -68,31 +68,115 @@ class LazySliverChild extends StatefulWidget {
   State<LazySliverChild> createState() => _LazySliverChildState();
 }
 
-class _LazySliverChildState extends State<LazySliverChild> {
+class _LazySliverChildState extends State<LazySliverChild>
+    with _BudgetedBuild {
   Widget? _child;
   Object? _childKey;
-  bool _retryScheduled = false;
 
   @override
   Widget build(BuildContext context) {
-    final child = _child;
-    if (child != null && _childKey == widget.cacheKey) {
-      return child;
+    if (_child == null || _childKey != widget.cacheKey) {
+      _childKey = widget.cacheKey;
+      _child = LayoutBuilder(
+        builder: (context, _) => _buildBudgeted(
+          widget.budget,
+          widget.index,
+          () => _LazySliverScope(
+            budget: widget.budget,
+            index: widget.index,
+            child: widget.builder(context),
+          ),
+        ),
+      );
     }
-    if (child == null && !widget.budget.mayCreate(widget.index)) {
-      _scheduleRetry();
-      return const SizedBox();
-    }
-    _childKey = widget.cacheKey;
-    return _child = widget.builder(context);
+    return _child!;
   }
+
+  @override
+  void _retry() => setState(() => _child = null);
+}
+
+class _LazySliverScope extends InheritedWidget {
+  final ChildCreationBudget budget;
+  final int index;
+
+  const _LazySliverScope({
+    required this.budget,
+    required this.index,
+    required super.child,
+  });
+
+  @override
+  bool updateShouldNotify(_LazySliverScope oldWidget) => false;
+}
+
+// Defers part of a LazySliverChild to a later frame once the budget is used
+// up, so an expensive child is spread over several frames instead of
+// overrunning a single one. Builds immediately outside of a LazySliverChild.
+class LazySliverStage extends StatefulWidget {
+  final WidgetBuilder builder;
+  final Widget placeholder;
+
+  const LazySliverStage({
+    super.key,
+    required this.builder,
+    this.placeholder = const SizedBox(),
+  });
+
+  @override
+  State<LazySliverStage> createState() => _LazySliverStageState();
+}
+
+class _LazySliverStageState extends State<LazySliverStage>
+    with _BudgetedBuild {
+  @override
+  Widget build(BuildContext context) {
+    final scope = context.getInheritedWidgetOfExactType<_LazySliverScope>();
+    if (scope == null) return widget.builder(context);
+    return LayoutBuilder(
+      builder: (context, _) => _buildBudgeted(
+        scope.budget,
+        scope.index,
+        () => widget.builder(context),
+        widget.placeholder,
+      ),
+    );
+  }
+
+  @override
+  void _retry() => setState(() {});
+}
+
+// The budget is checked in a layout callback, because build runs ahead of
+// layout and would not account for the layout cost of earlier children.
+mixin _BudgetedBuild<T extends StatefulWidget> on State<T> {
+  bool _created = false;
+  bool _retryScheduled = false;
+
+  Widget _buildBudgeted(
+    ChildCreationBudget budget,
+    int index,
+    Widget Function() build, [
+    Widget placeholder = const SizedBox(),
+  ]) {
+    if (!_created) {
+      if (!budget.mayCreate(index)) {
+        _scheduleRetry();
+        return placeholder;
+      }
+      _created = true;
+    }
+    return build();
+  }
+
+  void _retry();
 
   void _scheduleRetry() {
     if (_retryScheduled) return;
     _retryScheduled = true;
     SchedulerBinding.instance.addPostFrameCallback((_) {
       _retryScheduled = false;
-      if (mounted) setState(() {});
+      if (mounted) _retry();
     });
   }
 }
