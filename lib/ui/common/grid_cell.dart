@@ -82,34 +82,31 @@ class GridCell extends StatelessWidget {
             ),
             const SizedBox(height: 2),
             LazySliverStage(
-              builder: (context) => Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  OptionalTooltip.wrap(
-                    message: title,
-                    child: Text(
-                      title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: textTheme.bodyMedium!.copyWith(
-                        fontWeight: FontWeight.w400,
-                        fontSize: 12,
+              builder: (context) => OptionalTooltip.wrap(
+                message: title,
+                child: Text.rich(
+                  TextSpan(
+                    children: [
+                      TextSpan(
+                        text: "$title\n",
+                        style: textTheme.bodyMedium!.copyWith(
+                          fontWeight: FontWeight.w400,
+                          fontSize: 12,
+                        ),
                       ),
-                    ),
-                  ),
-                  OptionalTooltip.wrap(
-                    message: extraInfo,
-                    child: Text(
-                      extraInfo,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: textTheme.bodyMedium!.copyWith(
-                        fontWeight: FontWeight.w300,
-                        fontSize: 10,
+                      TextSpan(
+                        text: extraInfo,
+                        style: textTheme.bodyMedium!.copyWith(
+                          fontWeight: FontWeight.w300,
+                          fontSize: 10,
+                        ),
                       ),
-                    ),
+                    ],
                   ),
-                ],
+                  maxLines: 2,
+                  softWrap: false,
+                  overflow: TextOverflow.clip,
+                ),
               ),
             ),
           ],
