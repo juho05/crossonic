@@ -55,7 +55,9 @@ class VersionChecker extends StatelessWidget {
                     Navigator.pop(context, VersionDialogChoice.view),
                 child: const Text("View"),
               ),
-              if (AutoUpdateRepository.autoUpdatesSupported)
+              if (AutoUpdateRepository.autoUpdatesSupported(
+                systemIntegrationConfig,
+              ))
                 AdaptiveDialogAction(
                   onPressed: () =>
                       Navigator.pop(context, VersionDialogChoice.install),

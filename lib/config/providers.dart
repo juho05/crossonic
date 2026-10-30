@@ -323,7 +323,7 @@ Future<List<SingleChildWidget>> createProviders({
             IntegrateAppImageViewModel(appImageRepository: context.read())
               ..check(),
       ),
-    if (AutoUpdateRepository.autoUpdatesSupported)
+    if (AutoUpdateRepository.autoUpdatesSupported(systemIntegrationConfig))
       ChangeNotifierProvider(
         create: (context) => AutoUpdateRepository(
           config: systemIntegrationConfig,

@@ -7,6 +7,7 @@
  */
 
 import 'package:auto_route/auto_route.dart';
+import 'package:crossonic/system_integration.dart';
 import 'package:crossonic/utils/exit.dart';
 import 'package:flutter_system_integration/flutter_system_integration.dart'
     as fsi;
@@ -20,7 +21,8 @@ class InstallUpdatePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return fsi.InstallUpdatePage(
-      autoUpdateRepository: fsi.AutoUpdateRepository.autoUpdatesSupported
+      autoUpdateRepository:
+          fsi.AutoUpdateRepository.autoUpdatesSupported(systemIntegrationConfig)
           ? context.read()
           : null,
       exitApp: exitApp,
