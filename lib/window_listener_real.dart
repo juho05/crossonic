@@ -63,9 +63,6 @@ class CrossonicWindowListener with WindowListener {
       "assets/icon/crossonic-tray.${Platform.isWindows ? "ico" : "png"}",
     );
     _trayIcon!.setTooltip("Crossonic");
-    if (Platform.isLinux) {
-      _trayIcon!.setTitle("Crossonic");
-    }
     _trayIcon!.setContextMenu(menu);
     // the linux backend only exposes the menu over dbus with the clicked trigger
     _trayIcon!.setContextMenuTrigger(
