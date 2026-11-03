@@ -83,7 +83,7 @@ class GridCell extends StatelessWidget {
             const SizedBox(height: 2),
             LazySliverStage(
               builder: (context) => OptionalTooltip.wrap(
-                message: title,
+                message: extraInfo.isEmpty ? title : "$title\n$extraInfo",
                 child: Text.rich(
                   TextSpan(
                     children: [
