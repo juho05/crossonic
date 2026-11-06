@@ -190,14 +190,14 @@ Stream<LicenseEntry> _appImageMediaLibraryLicenses() async* {
     ["mpv"],
     "This software uses libmpv licensed under the LGPLv2.1 or later. The "
     "source code can be downloaded from "
-    "https://github.com/mpv-player/mpv/tree/v0.41.0",
+    "https://github.com/mpv-player/mpv/tree/v0.42.0",
   );
   yield LicenseEntryWithLineBreaks(["mpv"], lgpl21);
   yield const LicenseEntryWithLineBreaks(
     ["libplacebo"],
     "This software uses libplacebo licensed under the LGPLv2.1 or later. The "
     "source code can be downloaded from "
-    "https://github.com/haasn/libplacebo/tree/v7.360.1",
+    "https://github.com/haasn/libplacebo/tree/v7.387.0",
   );
   yield LicenseEntryWithLineBreaks(["libplacebo"], lgpl21);
   yield const LicenseEntryWithLineBreaks(
